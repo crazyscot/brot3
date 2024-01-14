@@ -2,7 +2,10 @@
 name = "brot3"
 version = "0.0.0"
 edition = "2021"
+authors = ["Ross Younger <crazyscot@gmail.com>"]
+description = "Yet Another Fractal Plotter"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clap = { version = "4.4.16", features = ["wrap_help", "cargo", "derive"] }
