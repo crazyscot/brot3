@@ -3,29 +3,46 @@
 use crate::fractal::Tile;
 use crate::render::Renderer;
 use std::error::Error;
-use std::fs;
+use std::fs::File;
+
+#[derive(PartialEq)]
+struct Filename {
+    filename: String,
+}
+
+impl Filename {
+    pub fn new(filename: &str) -> Self {
+        Filename {
+            filename: String::from(filename),
+        }
+    }
+    pub fn write_handle(&self) -> std::io::Result<Box<dyn std::io::Write>> {
+        if self.filename == "-" {
+            Ok(Box::new(std::io::stdout()))
+        } else {
+            Ok(Box::new(File::create(&self.filename)?))
+        }
+    }
+}
 
 /// CSV format, fractal points
 pub struct Csv {
-    filename: String,
+    filename: Filename,
 }
 
 impl Csv {
     pub fn new(filename: &str) -> Self {
         Csv {
-            filename: String::from(filename),
+            filename: Filename::new(filename),
         }
     }
 }
 
 impl Renderer for Csv {
     fn render(&self, tile: &Tile) -> Result<(), Box<dyn Error>> {
-        if self.filename == "-" {
-            // Tile fmt finishes with a newline
-            print!("{}", tile);
-            Ok(())
-        } else {
-            Ok(fs::write(&self.filename, tile.to_string())?)
-        }
+        self.filename
+            .write_handle()?
+            .write_all(tile.to_string().as_bytes())?;
+        Ok(())
     }
 }
