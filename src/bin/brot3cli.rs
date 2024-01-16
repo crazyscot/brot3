@@ -1,6 +1,11 @@
-use brot3::fractal::{PlotData, Point, Tile};
+/// brot3 command line interface
+/// (c) 2024 Ross Younger
+use brot3::{
+    fractal::{PlotData, Point, Tile},
+    render::Renderer,
+};
 use clap::{ArgAction, Parser};
-use std::fs;
+use std::error::Error;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -27,7 +32,7 @@ struct Cli {
     help: Option<bool>,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     // Default plot size & params for now
@@ -39,11 +44,9 @@ fn main() {
     };
     t.prepare(&p);
     t.plot(512);
-
-    if cli.output_filename == "-" {
-        print!("{}", t);
-        // Tile fmt finishes with a newline
-    } else {
-        fs::write(cli.output_filename, t.to_string()).expect("Unable to write file");
-    }
+    let r = brot3::render::ascii::Csv::new(&cli.output_filename);
+    r.render(&t).map_err(|op| {
+        println!("Failed to render: {}", op);
+        std::process::exit(1);
+    })
 }
