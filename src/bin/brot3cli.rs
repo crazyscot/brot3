@@ -75,7 +75,7 @@ struct ListArgs {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     if cli.debug_cli {
-        println!("{:?}", cli);
+        println!("{:#?}", cli);
         return Ok(());
     }
 
