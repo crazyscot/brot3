@@ -8,6 +8,7 @@ description = "Yet Another Fractal Plotter"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anstyle = "1.0.4"
 array2d = "0.3.2"
 clap = { version = "4.4.16", features = ["wrap_help", "cargo", "derive"] }
 num-complex = "0.4.4"
