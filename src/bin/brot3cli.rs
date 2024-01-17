@@ -49,6 +49,8 @@ enum Commands {
         #[arg(short, long, value_name = "PIXELS", default_value = "300")]
         height: usize,
     },
+    /// Lists the available renderers
+    Renderers,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -73,6 +75,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             width,
             height,
         ),
+        Commands::Renderers => {
+            brot3::render::list_pretty();
+            Ok(())
+        }
     }
 }
 
