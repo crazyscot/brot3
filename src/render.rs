@@ -27,8 +27,6 @@ pub enum WhichRenderer {
     Png,
 }
 
-pub const DEFAULT: WhichRenderer = WhichRenderer::AsciiArt;
-
 pub fn list_vec() -> Vec<String> {
     WhichRenderer::iter().map(|a| a.to_string()).collect()
 }

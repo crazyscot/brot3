@@ -41,8 +41,8 @@ struct PlotArgs {
 
     // TODO: fractal: Option<String>, - defaulted
     /// Rendering type
-    #[arg(short, long, value_name = "NAME")]
-    renderer: Option<WhichRenderer>,
+    #[arg(short, long, value_name = "NAME", default_value = "png")]
+    renderer: WhichRenderer,
 
     // TODO: plot params
     // optional one of origin, centre <complex float> - default from fractal
@@ -101,10 +101,7 @@ fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
     };
     t.prepare(&p);
     t.plot(args.max_iter);
-    let r = brot3::render::factory(
-        args.renderer.unwrap_or(brot3::render::DEFAULT),
-        &args.output_filename,
-    );
+    let r = brot3::render::factory(args.renderer, &args.output_filename);
     r.render(&t).map_err(|op| {
         println!("Failed to render: {}", op);
         std::process::exit(1);
