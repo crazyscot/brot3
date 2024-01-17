@@ -2,7 +2,7 @@
 /// (c) 2024 Ross Younger
 use brot3::{
     fractal::{PlotData, Point, Tile},
-    render::Renderer,
+    render::WhichRenderer,
 };
 use clap::{ArgAction, Parser};
 use std::error::Error;
@@ -12,7 +12,9 @@ use std::error::Error;
 #[command(disable_help_flag = true)]
 struct Cli {
     // fractal: Option<String>, - defaulted
-    // palette: Option<String>, - defaulted
+    #[arg(short, long)]
+    /// Rendering type
+    renderer: Option<WhichRenderer>,
     // optional one of origin, centre <complex float> - default from fractal
     // optional one of axis-length, pixel-length, zoom-factor <float OR complex float> - default from fractal - a float f => (f,f)
     /// Enable debug output (may be repeated)
@@ -44,7 +46,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     t.prepare(&p);
     t.plot(512);
-    let r = brot3::render::ascii::AsciiArt::new(&cli.output_filename);
+    let r = brot3::render::factory(
+        cli.renderer.unwrap_or(brot3::render::DEFAULT),
+        &cli.output_filename,
+    );
     r.render(&t).map_err(|op| {
         println!("Failed to render: {}", op);
         std::process::exit(1);
