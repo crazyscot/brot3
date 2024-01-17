@@ -11,6 +11,7 @@ use std::error::Error;
 #[command(author, version, about, long_about = None)]
 #[command(disable_help_flag = true)]
 #[command(styles=get_styles())]
+#[command(infer_subcommands = true)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
