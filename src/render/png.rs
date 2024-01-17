@@ -42,11 +42,17 @@ impl Renderer for Png {
             let mut writer = encoder.write_header()?;
             let mut image_data = Vec::<u8>::with_capacity(4 * tile.width * tile.height);
             let tile_data = tile.result();
+            let max_iter = tile.max_iter_plotted;
             tile_data
                 .elements_row_major_iter()
-                .map(|pd| pd.iterations())
+                .map(|pd| {
+                    if pd.iter == max_iter {
+                        f64::INFINITY
+                    } else {
+                        pd.iterations()
+                    }
+                })
                 .for_each(|iters| {
-                    // TODO: if it's maxiter, set inf
                     let col = colour(iters);
                     for b in col {
                         image_data.push(b);

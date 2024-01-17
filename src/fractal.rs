@@ -27,7 +27,7 @@ impl PlotData {
 #[derive(Clone, Copy, Default)]
 pub struct PointData {
     /// Current number of iterations this point has seen
-    iter: u32,
+    pub iter: u32,
     /// Original value of this point
     origin: Point,
     /// Current value of this point (may not be valid if result is Some)
@@ -66,12 +66,14 @@ impl fmt::Display for PointData {
 pub struct Tile {
     /// Height in pixels
     pub height: usize,
-    // Width in pixels
+    /// Width in pixels
     pub width: usize,
-    // Debug output level
+    /// Debug output level
     debug: u8,
-    // Working data. Address as [(x,y)] aka (re,im).
+    /// Working data. Address as [(x,y)] aka (re,im).
     point_data: Array2D<PointData>,
+    /// Max iterations we plotted to
+    pub max_iter_plotted: u32,
 }
 
 impl Tile {
@@ -82,6 +84,7 @@ impl Tile {
             debug,
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
             point_data: Array2D::filled_with(PointData::default(), height, width),
+            max_iter_plotted: 0,
         }
         // TODO should this merge with prepare?
     }
@@ -119,6 +122,7 @@ impl Tile {
                 }
             }
         }
+        self.max_iter_plotted = max_iter;
         // TODO live pixel count
     }
 
