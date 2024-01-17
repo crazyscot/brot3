@@ -23,6 +23,9 @@ struct Cli {
     // TODO: plot params
     // optional one of origin, centre <complex float> - default from fractal
     // optional one of axis-length, pixel-length, zoom-factor <float OR complex float> - default from fractal - a float f => (f,f)
+    #[arg(short, long, default_value = "512")]
+    max_iter: u32,
+
     /// Plot width
     #[arg(short, long, default_value = "300")]
     width: usize,
@@ -50,7 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         axes: Point { re: 6.0, im: 6.0 },
     };
     t.prepare(&p);
-    t.plot(512);
+    t.plot(cli.max_iter);
     let r = brot3::render::factory(
         cli.renderer.unwrap_or(brot3::render::DEFAULT),
         &cli.output_filename,
