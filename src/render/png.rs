@@ -32,8 +32,7 @@ impl Renderer for Png {
             encoder.set_depth(png::BitDepth::Eight);
 
             encoder.add_text_chunk("software".to_string(), "brot3".to_string())?;
-            // TODO ... tile info string ?
-            encoder.add_text_chunk("comment".to_string(), "image info goes here".to_string())?;
+            encoder.add_text_chunk("comment".to_string(), tile.info_string())?;
 
             // MAYBE: allow user to specify gamma of their monitor?
             encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));

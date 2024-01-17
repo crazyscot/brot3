@@ -2,13 +2,14 @@
 // (c) 2024 Ross Younger
 use array2d::Array2D;
 use num_complex::Complex;
-use std::fmt;
+use std::fmt::{self, Display, Formatter};
 
 type Scalar = f64;
 const SCALAR_LN_2: Scalar = std::f64::consts::LN_2;
 
 pub type Point = Complex<Scalar>;
 
+#[derive(Debug, Clone)]
 pub struct PlotData {
     pub origin: Point,
     pub axes: Point,
@@ -21,6 +22,12 @@ impl PlotData {
             re: self.axes.re / tile.width as Scalar,
             im: self.axes.im / tile.height as Scalar,
         }
+    }
+}
+
+impl Display for PlotData {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(f, "@{} axes={}", self.origin, self.axes)
     }
 }
 
@@ -74,6 +81,8 @@ pub struct Tile {
     point_data: Array2D<PointData>,
     /// Max iterations we plotted to
     pub max_iter_plotted: u32,
+    /// What have we plotted?
+    plot_data: Option<PlotData>,
 }
 
 impl Tile {
@@ -85,12 +94,14 @@ impl Tile {
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
             point_data: Array2D::filled_with(PointData::default(), height, width),
             max_iter_plotted: 0,
+            plot_data: None,
         }
         // TODO should this merge with prepare?
     }
 
     /// Initialises the data for this tile
     pub fn prepare(&mut self, spec: &PlotData) {
+        self.plot_data = Some(spec.clone());
         let step = spec.pixel_size(self);
         // TRAP: Plot origin != first pixel origin !
         // The plotted point of each pixel should be the CENTRE of the region, i.e. offset by half a pixel from plot origin.
@@ -128,6 +139,13 @@ impl Tile {
 
     pub fn result(&self) -> &Array2D<PointData> {
         &self.point_data
+    }
+
+    pub fn info_string(&self) -> String {
+        match &self.plot_data {
+            Some(pd) => pd.to_string(),
+            None => String::new(),
+        }
     }
 }
 
