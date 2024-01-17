@@ -15,7 +15,7 @@ pub trait Renderer {
     fn render(&self, data: &Tile) -> Result<(), Box<dyn Error>>;
 }
 
-#[derive(clap::ValueEnum, Clone, Display, EnumIter, EnumString)]
+#[derive(clap::ValueEnum, Clone, Debug, Display, EnumIter, EnumString)]
 pub enum WhichRenderer {
     Csv,
     AsciiArt,
