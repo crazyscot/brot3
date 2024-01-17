@@ -96,8 +96,8 @@ fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
     // Single tile, single thread for now
     let mut t = Tile::new(args.height, args.width, debug);
     let p = PlotData {
-        origin: Point { re: -3.0, im: -3.0 },
-        axes: Point { re: 6.0, im: 6.0 },
+        origin: Point { re: -3.0, im: -2.0 },
+        axes: Point { re: 4.0, im: 4.0 },
     };
     t.prepare(&p);
     t.plot(args.max_iter);
