@@ -27,8 +27,8 @@ enum Commands {
     /// Plots fractals
     Plot(PlotArgs),
 
-    /// Lists the available renderers
-    Renderers,
+    /// Lists things known to this interface
+    List(ListArgs),
 }
 
 #[derive(Debug, Args)]
@@ -57,6 +57,21 @@ struct PlotArgs {
     height: usize,
 }
 
+#[derive(Debug, Subcommand)]
+enum ListableThings {
+    /// Lists all available renderers
+    Renderers,
+    /// Lists available wombats
+    Wombats,
+}
+
+#[derive(Debug, Args)]
+#[command(flatten_help = true)]
+struct ListArgs {
+    #[command(subcommand)]
+    thing: ListableThings,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     if cli.debug_cli {
@@ -66,10 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match cli.command {
         Commands::Plot(args) => plot(args, cli.debug),
-        Commands::Renderers => {
-            brot3::render::list_pretty();
-            Ok(())
-        }
+        Commands::List(what) => list(what),
     }
 }
 
@@ -91,4 +103,12 @@ fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
         println!("Failed to render: {}", op);
         std::process::exit(1);
     })
+}
+
+fn list(args: ListArgs) -> Result<(), Box<dyn Error>> {
+    match args.thing {
+        ListableThings::Renderers => brot3::render::list_pretty(),
+        ListableThings::Wombats => println!("wombats!"),
+    }
+    Ok(())
 }
