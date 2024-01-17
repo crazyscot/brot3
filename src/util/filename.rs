@@ -1,6 +1,10 @@
 // Filename helper
 // (c) 2024 Ross Younger
 
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
+
 #[derive(PartialEq)]
 pub struct Filename {
     filename: String,
@@ -12,11 +16,16 @@ impl Filename {
             filename: String::from(filename),
         }
     }
-    pub fn write_handle(&self) -> std::io::Result<Box<dyn std::io::Write>> {
+    pub fn get(&self) -> &String {
+        &self.filename
+    }
+    pub fn write_handle(&self) -> std::io::Result<Box<dyn Write>> {
         if self.filename == "-" {
             Ok(Box::new(std::io::stdout()))
         } else {
-            Ok(Box::new(std::fs::File::create(&self.filename)?))
+            let path = Path::new(&self.filename);
+            let file = File::create(path)?;
+            Ok(Box::new(file))
         }
     }
 }
