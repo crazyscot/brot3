@@ -18,9 +18,9 @@ pub trait Renderer {
 #[derive(clap::ValueEnum, Clone, Debug, Display, EnumIter, EnumString, EnumMessage)]
 #[strum(serialize_all = "kebab_case")]
 pub enum WhichRenderer {
-    #[strum(message = "Comma Separated Values, one line per line of plot")]
+    /// Comma Separated Values, one line per line of plot
     Csv,
-    #[strum(message = "ASCII art")]
+    /// Good old ASCII art
     AsciiArt,
 }
 
@@ -47,7 +47,7 @@ pub fn list(machine_parseable: bool) {
             println!(
                 "  {:width$}  {}",
                 r.to_string(),
-                r.get_message().unwrap_or_default(),
+                r.get_documentation().unwrap_or_default(),
                 width = longest
             )
         })
