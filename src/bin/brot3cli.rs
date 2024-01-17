@@ -17,6 +17,9 @@ struct Cli {
     /// Enable debug output (may be repeated)
     #[arg(short, long, action = ArgAction::Count, help = "Enables debug output (may be repeated)")]
     debug: u8,
+
+    #[arg(long, hide(true))]
+    debug_cli: bool,
 }
 
 #[derive(Debug, Subcommand)]
@@ -50,6 +53,10 @@ enum Commands {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
+    if cli.debug_cli {
+        println!("{:?}", cli);
+        return Ok(());
+    }
 
     match cli.command {
         Commands::Plot {
