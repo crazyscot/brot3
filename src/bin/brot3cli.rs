@@ -68,6 +68,10 @@ enum ListableThings {
 #[derive(Debug, Args)]
 #[command(flatten_help = true)]
 struct ListArgs {
+    /// Machine-parseable output
+    #[arg(short, long)]
+    machine_parseable: bool,
+
     #[command(subcommand)]
     thing: ListableThings,
 }
@@ -107,8 +111,14 @@ fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
 
 fn list(args: ListArgs) -> Result<(), Box<dyn Error>> {
     match args.thing {
-        ListableThings::Renderers => brot3::render::list_pretty(),
-        ListableThings::Wombats => println!("wombats!"),
+        ListableThings::Renderers => brot3::render::list(args.machine_parseable),
+        ListableThings::Wombats => {
+            if args.machine_parseable {
+                println!("[\"fred\",\"barney\"]");
+            } else {
+                println!("wombats!")
+            };
+        }
     }
     Ok(())
 }

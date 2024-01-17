@@ -26,11 +26,16 @@ pub enum WhichRenderer {
 
 pub const DEFAULT: WhichRenderer = WhichRenderer::AsciiArt;
 
-pub fn list() -> Vec<String> {
+pub fn list_vec() -> Vec<String> {
     WhichRenderer::iter().map(|a| a.to_string()).collect()
 }
 
-pub fn list_pretty() {
+pub fn list(machine_parseable: bool) {
+    if machine_parseable {
+        println!("{:?}", list_vec());
+        return;
+    }
+
     println!("Available renderers:");
     let longest = WhichRenderer::iter()
         .map(|r| r.to_string().len())
