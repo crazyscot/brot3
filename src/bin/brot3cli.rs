@@ -1,5 +1,5 @@
-/// brot3 command line interface
-/// (c) 2024 Ross Younger
+// brot3 command line interface
+// (c) 2024 Ross Younger
 use brot3::{
     fractal::{PlotData, Point, Tile},
     render::WhichRenderer,

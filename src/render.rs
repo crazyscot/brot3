@@ -1,5 +1,5 @@
-/// Conversion of fractal PointData into its output format
-/// (c) 2024 Ross Younger
+// Conversion of fractal PointData into its output format
+// (c) 2024 Ross Younger
 pub mod ascii;
 
 use crate::fractal::Tile;

@@ -1,5 +1,5 @@
-/// Rendering output in various ASCII-based formats
-/// (c) 2024 Ross Younger
+// Rendering output in various ASCII-based formats
+// (c) 2024 Ross Younger
 use crate::fractal::Tile;
 use crate::render::Renderer;
 use crate::util::filename::Filename;

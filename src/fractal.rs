@@ -1,5 +1,5 @@
-/// Fractal plotting
-/// (c) 2024 Ross Younger
+// Fractal plotting
+// (c) 2024 Ross Younger
 use array2d::Array2D;
 use num_complex::Complex;
 use std::fmt;

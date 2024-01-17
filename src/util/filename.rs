@@ -1,5 +1,5 @@
-/// Filename helper
-/// (c) 2024 Ross Younger
+// Filename helper
+// (c) 2024 Ross Younger
 
 #[derive(PartialEq)]
 pub struct Filename {
