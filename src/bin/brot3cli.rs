@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     t.prepare(&p);
     t.plot(512);
-    let r = brot3::render::ascii::Csv::new(&cli.output_filename);
+    let r = brot3::render::ascii::AsciiArt::new(&cli.output_filename);
     r.render(&t).map_err(|op| {
         println!("Failed to render: {}", op);
         std::process::exit(1);
