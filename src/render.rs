@@ -1,6 +1,7 @@
 // Conversion of fractal PointData into its output format
 // (c) 2024 Ross Younger
-pub mod ascii;
+mod ascii;
+mod png;
 
 use crate::fractal::Tile;
 use std::error::Error;
@@ -22,6 +23,8 @@ pub enum WhichRenderer {
     Csv,
     /// Good old ASCII art
     AsciiArt,
+    /// Portable Network Graphics file
+    Png,
 }
 
 pub const DEFAULT: WhichRenderer = WhichRenderer::AsciiArt;
@@ -58,5 +61,6 @@ pub fn factory(selection: WhichRenderer, filename: &str) -> Box<dyn Renderer> {
     match selection {
         WhichRenderer::AsciiArt => Box::new(ascii::AsciiArt::new(filename)),
         WhichRenderer::Csv => Box::new(ascii::Csv::new(filename)),
+        WhichRenderer::Png => Box::new(png::Png::new(filename)),
     }
 }

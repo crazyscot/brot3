@@ -12,5 +12,6 @@ anstyle = "1.0.4"
 array2d = "0.3.2"
 clap = { version = "4.4.16", features = ["wrap_help", "cargo", "derive"] }
 num-complex = "0.4.4"
+png = "0.17.11"
 strum = "0.25.0"
 strum_macros = "0.25.3"
