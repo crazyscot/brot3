@@ -4,14 +4,16 @@
 mod plotdata;
 mod pointdata;
 mod tile;
+pub mod userplotdata;
 
 use num_complex::Complex;
 
 pub use plotdata::PlotData;
 pub use pointdata::PointData;
 pub use tile::Tile;
+pub use userplotdata::UserPlotData;
 
-type Scalar = f64;
+pub type Scalar = f64;
 const SCALAR_LN_2: Scalar = std::f64::consts::LN_2;
 
 pub type Point = Complex<Scalar>;
