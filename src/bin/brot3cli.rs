@@ -1,7 +1,10 @@
 // brot3 command line interface
 // (c) 2024 Ross Younger
 use brot3::{
-    fractal::{PlotData, Point, Tile},
+    fractal::{
+        userplotdata::{UserPlotLocation, UserPlotSize},
+        PlotData, Point, Scalar, Tile, UserPlotData,
+    },
     render::WhichRenderer,
 };
 use clap::{ArgAction, Args, Parser, Subcommand};
@@ -28,7 +31,6 @@ struct Cli {
 enum Commands {
     /// Plots fractals
     Plot(PlotArgs),
-
     /// Lists things known to this interface
     List(ListArgs),
 }
@@ -44,19 +46,46 @@ struct PlotArgs {
     #[arg(short, long, value_name = "NAME", default_value = "png")]
     renderer: WhichRenderer,
 
-    // TODO: plot params
-    // optional one of origin, centre <complex float> - default from fractal
-    // optional one of axis-length, pixel-length, zoom-factor <float OR complex float> - default from fractal - a float f => (f,f)
+    /// The origin (top-left) point of the plot, e.g. -3-3i. Conflicts with --centre.
+    #[arg(
+        short = 'O',
+        long,
+        value_name = "COMPLEX",
+        group = "location",
+        allow_hyphen_values(true)
+    )]
+    origin: Option<Point>,
+
+    /// The centre point of the plot, e.g. -1-1i. Conflicts with --origin.
+    #[arg(
+        short = 'C',
+        long,
+        value_name = "COMPLEX",
+        group = "location",
+        allow_hyphen_values(true)
+    )]
+    centre: Option<Point>,
+
+    /// The length of the axes, e.g. 3+3i. If the imaginary dimension is not specified it will be assumed to be the same as the real. Conflicts with pixel_size and zoom.
+    #[arg(short = 'A', long, value_name = "COMPLEX", group = "size")]
+    axes_length: Option<Point>,
+    /// The size of a pixel, e.g. 0.003+0.003i. If the imaginary dimension is not specified it will be assumed to be the same as the real. Conflicts with axes_length and zoom.
+    #[arg(short = 'P', long, value_name = "COMPLEX", group = "size")]
+    pixel_size: Option<Point>,
+    /// The zoom factor, relative to the plot default. Conflicts with axes_length and pixel_size.
+    #[arg(short = 'Z', long, value_name = "INT", group = "size")]
+    zoom: Option<Scalar>,
+
     /// Maximum number of iterations
     #[arg(short, long, value_name = "N", default_value = "512")]
     max_iter: u32,
 
     /// Plot width
     #[arg(short, long, value_name = "PIXELS", default_value = "300")]
-    width: usize,
+    width: u32,
     /// Plot height
     #[arg(short, long, value_name = "PIXELS", default_value = "300")]
-    height: usize,
+    height: u32,
 }
 
 #[derive(Debug, Subcommand)]
@@ -68,7 +97,7 @@ enum ListableThings {
 }
 
 #[derive(Debug, Args)]
-#[command(flatten_help = true)]
+//#[command(flatten_help = true)]
 struct ListArgs {
     /// Machine-parseable output
     #[arg(short, long)]
@@ -91,14 +120,52 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 }
 
+const DEFAULT_CENTRE: Point = Point { re: -1.0, im: 0.0 };
+const DEFAULT_ZOOM: f64 = 1.0;
+
+fn check_fix_axes(input: Point) -> Result<Point, Box<dyn Error>> {
+    let mut out = input;
+    if out.im == 0.0 {
+        out.im = out.re;
+    }
+    if out.re == 0.0 {
+        return Err("Real axis cannot be zero".into());
+    }
+    Ok(out)
+}
+
 fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
-    // Default plot size & params for now
     // Single tile, single thread for now
-    let mut t = Tile::new(args.height, args.width, debug);
-    let p = PlotData {
-        origin: Point { re: -3.0, im: -2.0 },
-        axes: Point { re: 4.0, im: 4.0 },
+    let mut t = Tile::new(args.height as usize, args.width as usize, debug);
+    let user_plot_data = UserPlotData {
+        location: {
+            if let Some(o) = args.origin {
+                UserPlotLocation::Origin(o)
+            } else {
+                UserPlotLocation::Centre(args.centre.unwrap_or(DEFAULT_CENTRE))
+            }
+        },
+        axes: {
+            if let Some(axes) = args.axes_length {
+                UserPlotSize::AxesLength(check_fix_axes(axes)?)
+            } else if let Some(size) = args.pixel_size {
+                UserPlotSize::PixelSize(check_fix_axes(size)?)
+            } else {
+                UserPlotSize::ZoomFactor(args.zoom.unwrap_or(DEFAULT_ZOOM))
+            }
+        },
+        height: args.height,
+        width: args.width,
     };
+    if debug > 0 {
+        println!("Entered plot data: {:#?}", user_plot_data);
+    }
+
+    let p = PlotData::from(&user_plot_data);
+    if debug > 0 {
+        println!("Computed plot data: {:#?}", p);
+    }
+
     t.prepare(&p);
     t.plot(args.max_iter);
     let r = brot3::render::factory(args.renderer, &args.output_filename);
