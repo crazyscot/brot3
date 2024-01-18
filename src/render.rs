@@ -22,6 +22,7 @@ pub enum WhichRenderer {
     /// Comma Separated Values, one line per line of plot
     Csv,
     /// Good old ASCII art
+    #[value(alias = "aa")]
     AsciiArt,
     /// Portable Network Graphics file
     Png,
