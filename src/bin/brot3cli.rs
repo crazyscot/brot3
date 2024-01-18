@@ -136,7 +136,6 @@ fn check_fix_axes(input: Point) -> Result<Point, Box<dyn Error>> {
 
 fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
     // Single tile, single thread for now
-    let mut t = Tile::new(args.height as usize, args.width as usize, debug);
     let user_plot_data = UserPlotData {
         location: {
             if let Some(o) = args.origin {
@@ -161,12 +160,13 @@ fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
         println!("Entered plot data: {:#?}", user_plot_data);
     }
 
-    let p = PlotData::from(&user_plot_data);
+    let pd = PlotData::from(&user_plot_data);
     if debug > 0 {
-        println!("Computed plot data: {:#?}", p);
+        println!("Computed plot data: {:#?}", pd);
     }
 
-    t.prepare(&p);
+    let mut t = Tile::new(&pd, debug);
+    t.prepare(&pd);
     t.plot(args.max_iter);
     let r = brot3::render::factory(args.renderer, &args.output_filename);
     r.render(&t).map_err(|op| {

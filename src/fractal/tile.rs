@@ -16,27 +16,30 @@ pub struct Tile {
     point_data: Array2D<PointData>,
     /// Max iterations we plotted to
     pub max_iter_plotted: u32,
-    /// What have we plotted?
+    /// What have we plotted / are we plotting? // TODO not optional
     plot_data: Option<PlotData>,
 }
 
 impl Tile {
-    pub fn new(height: usize, width: usize, debug: u8) -> Self {
+    pub fn new(data: &PlotData, debug: u8) -> Self {
         Self {
-            height,
-            width,
+            height: data.height as usize, // TODO factor out
+            width: data.width as usize,   // TODO factor out
             debug,
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
-            point_data: Array2D::filled_with(PointData::default(), height, width),
+            point_data: Array2D::filled_with(
+                PointData::default(),
+                data.height as usize,
+                data.width as usize,
+            ),
             max_iter_plotted: 0,
-            plot_data: None,
+            plot_data: Some(data.clone()),
         }
         // TODO should this merge with prepare?
     }
 
     /// Initialises the data for this tile
     pub fn prepare(&mut self, spec: &PlotData) {
-        self.plot_data = Some(spec.clone());
         let step = spec.pixel_size(self);
         // TRAP: Plot origin != first pixel origin !
         // The plotted point of each pixel should be the CENTRE of the region, i.e. offset by half a pixel from plot origin.
