@@ -9,6 +9,8 @@ use std::fmt::{self, Display, Formatter};
 pub struct PlotData {
     pub origin: Point,
     pub axes: Point,
+    pub width: u32,
+    pub height: u32,
 }
 
 /// Canonicalised data about a plot.
@@ -42,7 +44,12 @@ impl From<&UserPlotData> for PlotData {
             UserPlotLocation::Origin(o) => o,
             UserPlotLocation::Centre(c) => c - 0.5 * axes,
         };
-        PlotData { origin, axes }
+        PlotData {
+            origin,
+            axes,
+            height: upd.height,
+            width: upd.width,
+        }
     }
 }
 
