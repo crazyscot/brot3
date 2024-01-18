@@ -6,7 +6,7 @@ use super::{Point, Scalar, Tile, UserPlotData};
 use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone)]
-pub struct PlotData {
+pub struct PlotSpec {
     pub origin: Point,
     pub axes: Point,
     pub width: u32,
@@ -15,7 +15,7 @@ pub struct PlotData {
 
 /// Canonicalised data about a plot.
 /// For convenient construction, use From<&UserPlotData>.
-impl PlotData {
+impl PlotSpec {
     pub fn pixel_size(&self, tile: &Tile) -> Point {
         Point {
             re: self.axes.re / tile.width as Scalar,
@@ -26,7 +26,7 @@ impl PlotData {
 
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
-impl From<&UserPlotData> for PlotData {
+impl From<&UserPlotData> for PlotSpec {
     fn from(upd: &UserPlotData) -> Self {
         // Must compute axes first as origin may depend on them
         let axes: Point = match upd.axes {
@@ -44,7 +44,7 @@ impl From<&UserPlotData> for PlotData {
             UserPlotLocation::Origin(o) => o,
             UserPlotLocation::Centre(c) => c - 0.5 * axes,
         };
-        PlotData {
+        PlotSpec {
             origin,
             axes,
             height: upd.height,
@@ -53,7 +53,7 @@ impl From<&UserPlotData> for PlotData {
     }
 }
 
-impl Display for PlotData {
+impl Display for PlotSpec {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         write!(f, "origin={} axes={}", self.origin, self.axes)
     }
@@ -63,7 +63,7 @@ impl Display for PlotData {
 mod tests {
     use crate::fractal::{
         userplotdata::{UserPlotLocation, UserPlotSize},
-        PlotData, Point, UserPlotData,
+        PlotSpec, Point, UserPlotData,
     };
 
     const ZERO: Point = Point { re: 0.0, im: 0.0 };
@@ -109,29 +109,29 @@ mod tests {
 
     #[test]
     fn axes_pass_through() {
-        let result = PlotData::from(&TD_ORIGIN_AXES);
+        let result = PlotSpec::from(&TD_ORIGIN_AXES);
         assert_eq!(result.axes, ONE);
     }
     #[test]
     fn pixel_size_divides() {
-        let result = PlotData::from(&TD_ORIGIN_PIXELS);
+        let result = PlotSpec::from(&TD_ORIGIN_PIXELS);
         assert_eq!(result.axes, ONE);
     }
     #[test]
     fn aspect_axes() {
         assert_eq!(TD_ORIGIN_ZOOM.aspect_ratio(), 2.0);
-        let result = PlotData::from(&TD_ORIGIN_ZOOM);
+        let result = PlotSpec::from(&TD_ORIGIN_ZOOM);
         assert_eq!(result.axes, TD_ORIGIN_ZOOM_AXES);
     }
 
     #[test]
     fn origin_pass_through() {
-        let result = PlotData::from(&TD_ORIGIN_AXES);
+        let result = PlotSpec::from(&TD_ORIGIN_AXES);
         assert_eq!(result.origin, ZERO);
     }
     #[test]
     fn centre_computed() {
-        let result = PlotData::from(&TD_CENTRE);
+        let result = PlotSpec::from(&TD_CENTRE);
         assert_eq!(result.origin, TD_CENTRE_ORIGIN);
     }
 }

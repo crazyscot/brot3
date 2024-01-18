@@ -3,7 +3,7 @@
 use brot3::{
     fractal::{
         userplotdata::{UserPlotLocation, UserPlotSize},
-        PlotData, Point, Scalar, Tile, UserPlotData,
+        PlotSpec, Point, Scalar, Tile, UserPlotData,
     },
     render::WhichRenderer,
 };
@@ -160,7 +160,7 @@ fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
         println!("Entered plot data: {:#?}", user_plot_data);
     }
 
-    let pd = PlotData::from(&user_plot_data);
+    let pd = PlotSpec::from(&user_plot_data);
     if debug > 0 {
         println!("Computed plot data: {:#?}", pd);
     }

@@ -1,6 +1,6 @@
 // (c) 2024 Ross Younger
 
-use super::{PlotData, Point, PointData};
+use super::{PlotSpec, Point, PointData};
 use array2d::Array2D;
 use std::fmt;
 
@@ -17,11 +17,11 @@ pub struct Tile {
     /// Max iterations we plotted to
     pub max_iter_plotted: u32,
     /// Specification for this plot
-    plot_data: PlotData,
+    plot_data: PlotSpec,
 }
 
 impl Tile {
-    pub fn new(data: &PlotData, debug: u8) -> Self {
+    pub fn new(data: &PlotSpec, debug: u8) -> Self {
         Self {
             height: data.height as usize, // TODO factor out
             width: data.width as usize,   // TODO factor out
@@ -39,7 +39,7 @@ impl Tile {
     }
 
     /// Initialises the data for this tile
-    pub fn prepare(&mut self, spec: &PlotData) {
+    pub fn prepare(&mut self, spec: &PlotSpec) {
         let step = spec.pixel_size(self);
         // TRAP: Plot origin != first pixel origin !
         // The plotted point of each pixel should be the CENTRE of the region, i.e. offset by half a pixel from plot origin.

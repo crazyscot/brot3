@@ -8,7 +8,7 @@ pub mod userplotdata;
 
 use num_complex::Complex;
 
-pub use plotdata::PlotData;
+pub use plotdata::PlotSpec;
 pub use pointdata::PointData;
 pub use tile::Tile;
 pub use userplotdata::UserPlotData;
