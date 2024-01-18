@@ -3,7 +3,7 @@
 use brot3::{
     fractal::{
         userplotdata::{UserPlotLocation, UserPlotSize},
-        PlotSpec, Point, Scalar, Tile, UserPlotData,
+        PlotSpec, Point, Scalar, Tile, UserPlotSpec,
     },
     render::WhichRenderer,
 };
@@ -136,7 +136,7 @@ fn check_fix_axes(input: Point) -> Result<Point, Box<dyn Error>> {
 
 fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
     // Single tile, single thread for now
-    let user_plot_data = UserPlotData {
+    let user_plot_data = UserPlotSpec {
         location: {
             if let Some(o) = args.origin {
                 UserPlotLocation::Origin(o)
