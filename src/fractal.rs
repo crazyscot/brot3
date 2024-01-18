@@ -4,14 +4,14 @@
 mod plotspec;
 mod pointdata;
 mod tile;
-pub mod userplotdata;
+pub mod userplotspec;
 
 use num_complex::Complex;
 
 pub use plotspec::PlotSpec;
 pub use pointdata::PointData;
 pub use tile::Tile;
-pub use userplotdata::UserPlotSpec;
+pub use userplotspec::UserPlotSpec;
 
 pub type Scalar = f64;
 const SCALAR_LN_2: Scalar = std::f64::consts::LN_2;

@@ -1,7 +1,7 @@
 // Specification of a plot (origin, axes, etc)
 // (c) 2024 Ross Younger
 
-use super::userplotdata::{UserPlotLocation, UserPlotSize};
+use super::userplotspec::{UserPlotLocation, UserPlotSize};
 use super::{Point, Scalar, Tile, UserPlotSpec};
 use std::fmt::{self, Display, Formatter};
 
@@ -62,7 +62,7 @@ impl Display for PlotSpec {
 #[cfg(test)]
 mod tests {
     use crate::fractal::{
-        userplotdata::{UserPlotLocation, UserPlotSize},
+        userplotspec::{UserPlotLocation, UserPlotSize},
         PlotSpec, Point, UserPlotSpec,
     };
 

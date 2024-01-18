@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 use brot3::{
     fractal::{
-        userplotdata::{UserPlotLocation, UserPlotSize},
+        userplotspec::{UserPlotLocation, UserPlotSize},
         PlotSpec, Point, Scalar, Tile, UserPlotSpec,
     },
     render::WhichRenderer,
