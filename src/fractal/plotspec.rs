@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use super::userplotspec::{UserPlotLocation, UserPlotSize};
-use super::{Point, Scalar, Tile, UserPlotSpec};
+use super::{Point, Scalar, UserPlotSpec};
 use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone)]
@@ -16,10 +16,10 @@ pub struct PlotSpec {
 /// Canonicalised data about a plot.
 /// For convenient construction, use From<&UserPlotData>.
 impl PlotSpec {
-    pub fn pixel_size(&self, tile: &Tile) -> Point {
+    pub fn pixel_size(&self) -> Point {
         Point {
-            re: self.axes.re / tile.width as Scalar,
-            im: self.axes.im / tile.height as Scalar,
+            re: self.axes.re / self.width as Scalar,
+            im: self.axes.im / self.height as Scalar,
         }
     }
 }
