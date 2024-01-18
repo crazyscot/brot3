@@ -166,7 +166,7 @@ fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
     }
 
     let mut t = Tile::new(&pd, debug);
-    t.prepare(&pd);
+    t.prepare();
     t.plot(args.max_iter);
     let r = brot3::render::factory(args.renderer, &args.output_filename);
     r.render(&t).map_err(|op| {

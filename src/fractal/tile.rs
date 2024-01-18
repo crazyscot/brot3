@@ -29,15 +29,14 @@ impl Tile {
             max_iter_plotted: 0,
             spec: spec.clone(),
         }
-        // TODO should this merge with prepare?
     }
 
     /// Initialises the data for this tile
-    pub fn prepare(&mut self, spec: &PlotSpec) {
-        let step = spec.pixel_size();
+    pub fn prepare(&mut self) {
+        let step = self.spec.pixel_size();
         // TRAP: Plot origin != first pixel origin !
         // The plotted point of each pixel should be the CENTRE of the region, i.e. offset by half a pixel from plot origin.
-        let origin_pixel = spec.origin + 0.5 * step;
+        let origin_pixel = self.spec.origin + 0.5 * step;
 
         let mut imag = origin_pixel.im;
         for y in 0..self.spec.height as usize {
