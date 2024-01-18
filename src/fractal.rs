@@ -1,14 +1,14 @@
 // Fractal plotting
 // (c) 2024 Ross Younger
 
-mod plotdata;
+mod plotspec;
 mod pointdata;
 mod tile;
 pub mod userplotdata;
 
 use num_complex::Complex;
 
-pub use plotdata::PlotSpec;
+pub use plotspec::PlotSpec;
 pub use pointdata::PointData;
 pub use tile::Tile;
 pub use userplotdata::UserPlotData;
