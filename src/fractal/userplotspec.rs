@@ -1,4 +1,4 @@
-// Data about the plot, human-friendly form
+// Specification of a plot, human-friendly form
 // (c) 2024 Ross Younger
 
 use super::{Point, Scalar};
@@ -36,5 +36,3 @@ impl UserPlotSpec {
         self.width as f64 / self.height as f64
     }
 }
-
-// TODO: convert from a PlotData to the variants...
