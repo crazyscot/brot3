@@ -17,17 +17,17 @@ pub struct Tile {
 }
 
 impl Tile {
-    pub fn new(data: &PlotSpec, debug: u8) -> Self {
+    pub fn new(spec: &PlotSpec, debug: u8) -> Self {
         Self {
             debug,
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
             point_data: Array2D::filled_with(
                 PointData::default(),
-                data.height as usize,
-                data.width as usize,
+                spec.height as usize,
+                spec.width as usize,
             ),
             max_iter_plotted: 0,
-            spec: data.clone(),
+            spec: spec.clone(),
         }
         // TODO should this merge with prepare?
     }
