@@ -16,8 +16,8 @@ pub struct Tile {
     point_data: Array2D<PointData>,
     /// Max iterations we plotted to
     pub max_iter_plotted: u32,
-    /// Specification for this plot
-    plot_data: PlotSpec,
+    /// Specification of this plot
+    spec: PlotSpec,
 }
 
 impl Tile {
@@ -33,7 +33,7 @@ impl Tile {
                 data.width as usize,
             ),
             max_iter_plotted: 0,
-            plot_data: data.clone(),
+            spec: data.clone(),
         }
         // TODO should this merge with prepare?
     }
@@ -80,7 +80,7 @@ impl Tile {
     }
 
     pub fn info_string(&self) -> String {
-        self.plot_data.to_string()
+        self.spec.to_string()
     }
 }
 
