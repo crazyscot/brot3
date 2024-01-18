@@ -14,7 +14,6 @@ use std::error::Error;
 #[command(author, version, about, long_about = None)]
 #[command(disable_help_flag = true)]
 #[command(styles=get_styles())]
-#[command(infer_subcommands = true)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -29,9 +28,9 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    /// Plots fractals
+    /// Plots fractals [short form: "p"]
+    #[clap(alias = "p")]
     Plot(PlotArgs),
-    /// Lists things known to this interface
     List(ListArgs),
 }
 
