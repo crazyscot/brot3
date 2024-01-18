@@ -5,9 +5,7 @@ use super::Renderer;
 use crate::fractal::Tile;
 use crate::util::filename::Filename;
 use std::error::Error;
-use std::fs::File;
 use std::io::{BufWriter, Write};
-use std::path::Path;
 
 pub struct Png {
     filename: Filename,
@@ -65,10 +63,9 @@ impl Png {
 
 impl Renderer for Png {
     fn render(&self, tile: &Tile) -> Result<(), Box<dyn Error>> {
-        let path = Path::new(self.filename.get());
-        let file = File::create(path)?;
-        let w = Box::new(BufWriter::new(file)) as Box<dyn Write>;
-        self.render_inner(tile, w)?;
+        let handle = self.filename.write_handle()?;
+        let bw = Box::new(BufWriter::new(handle)) as Box<dyn Write>;
+        self.render_inner(tile, bw)?;
         Ok(())
     }
 }
