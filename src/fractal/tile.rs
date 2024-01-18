@@ -1,7 +1,6 @@
 // (c) 2024 Ross Younger
 
-use crate::fractal::plotdata::PlotData;
-use crate::fractal::{Point, PointData};
+use super::{PlotData, Point, PointData};
 use array2d::Array2D;
 use std::fmt;
 

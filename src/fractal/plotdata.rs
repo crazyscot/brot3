@@ -1,7 +1,7 @@
 // Specification of a plot (origin, axes, etc)
 // (c) 2024 Ross Younger
 
-use crate::fractal::{tile::Tile, Point, Scalar};
+use super::{Point, Scalar, Tile};
 use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone)]

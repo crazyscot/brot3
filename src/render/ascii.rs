@@ -1,7 +1,7 @@
 // Rendering output in various ASCII-based formats
 // (c) 2024 Ross Younger
+use super::Renderer;
 use crate::fractal::Tile;
-use crate::render::Renderer;
 use crate::util::filename::Filename;
 use std::error::Error;
 

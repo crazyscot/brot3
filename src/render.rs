@@ -3,7 +3,7 @@
 mod ascii;
 mod png;
 
-use crate::fractal::Tile;
+use super::fractal::Tile;
 use std::error::Error;
 use strum::{EnumMessage, IntoEnumIterator};
 use strum_macros::{Display, EnumIter, EnumMessage, EnumString};

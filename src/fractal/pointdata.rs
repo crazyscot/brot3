@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::fractal::{Point, Scalar};
+use super::{Point, Scalar};
 
 /// Everything we know about a plotted point
 #[derive(Clone, Copy, Default)]
