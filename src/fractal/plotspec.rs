@@ -8,7 +8,7 @@ use std::fmt::{self, Display, Formatter};
 
 /// Interior specification of a plot
 #[derive(Debug, Clone, Copy)]
-pub struct PlotSpec {
+pub struct TileSpec {
     /// Plot origin (bottom-left corner, smallest real/imaginary coefficients)
     pub origin: Point,
     /// Plot axes length
@@ -21,7 +21,7 @@ pub struct PlotSpec {
 
 /// Canonicalised data about a plot.
 /// For convenient construction, use From<&``UserPlotData``>.
-impl PlotSpec {
+impl TileSpec {
     /// Computes the pixel size for this spec.
     #[must_use]
     pub fn pixel_size(&self) -> Point {
@@ -34,7 +34,7 @@ impl PlotSpec {
 
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
-impl From<&UserPlotSpec> for PlotSpec {
+impl From<&UserPlotSpec> for TileSpec {
     fn from(upd: &UserPlotSpec) -> Self {
         // Must compute axes first as origin may depend on them
         let axes: Point = match upd.axes {
@@ -52,7 +52,7 @@ impl From<&UserPlotSpec> for PlotSpec {
             UserPlotLocation::Origin(o) => o,
             UserPlotLocation::Centre(c) => c - 0.5 * axes,
         };
-        PlotSpec {
+        TileSpec {
             origin,
             axes,
             height: upd.height,
@@ -61,7 +61,7 @@ impl From<&UserPlotSpec> for PlotSpec {
     }
 }
 
-impl Display for PlotSpec {
+impl Display for TileSpec {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         write!(f, "origin={} axes={}", self.origin, self.axes)
     }
@@ -71,7 +71,7 @@ impl Display for PlotSpec {
 mod tests {
     use crate::fractal::{
         userplotspec::{UserPlotLocation, UserPlotSize},
-        PlotSpec, Point, UserPlotSpec,
+        Point, TileSpec, UserPlotSpec,
     };
     use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
 
@@ -118,29 +118,29 @@ mod tests {
 
     #[test]
     fn axes_pass_through() {
-        let result = PlotSpec::from(&TD_ORIGIN_AXES);
+        let result = TileSpec::from(&TD_ORIGIN_AXES);
         assert_eq!(result.axes, ONE);
     }
     #[test]
     fn pixel_size_divides() {
-        let result = PlotSpec::from(&TD_ORIGIN_PIXELS);
+        let result = TileSpec::from(&TD_ORIGIN_PIXELS);
         assert_eq!(result.axes, ONE);
     }
     #[test]
     fn aspect_axes() {
         assert_f64_near!(TD_ORIGIN_ZOOM.aspect_ratio(), 2.0);
-        let result = PlotSpec::from(&TD_ORIGIN_ZOOM);
+        let result = TileSpec::from(&TD_ORIGIN_ZOOM);
         assert_eq!(result.axes, TD_ORIGIN_ZOOM_AXES);
     }
 
     #[test]
     fn origin_pass_through() {
-        let result = PlotSpec::from(&TD_ORIGIN_AXES);
+        let result = TileSpec::from(&TD_ORIGIN_AXES);
         assert_eq!(result.origin, ZERO);
     }
     #[test]
     fn centre_computed() {
-        let result = PlotSpec::from(&TD_CENTRE);
+        let result = TileSpec::from(&TD_CENTRE);
         assert_eq!(result.origin, TD_CENTRE_ORIGIN);
     }
 }

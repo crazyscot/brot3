@@ -1,6 +1,6 @@
 // (c) 2024 Ross Younger
 
-use super::{PlotSpec, Point, PointData};
+use super::{Point, PointData, TileSpec};
 use array2d::Array2D;
 use std::fmt;
 
@@ -14,13 +14,13 @@ pub struct Tile {
     /// Max iterations we plotted to
     pub max_iter_plotted: u32,
     /// Specification of this plot
-    pub spec: PlotSpec,
+    pub spec: TileSpec,
 }
 
 impl Tile {
     /// Standard constructor
     #[must_use]
-    pub fn new(spec: &PlotSpec, debug: u8) -> Self {
+    pub fn new(spec: &TileSpec, debug: u8) -> Self {
         Self {
             debug,
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !

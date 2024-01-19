@@ -1,7 +1,7 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
-use crate::fractal::{PlotSpec, Point, Scalar, Tile, UserPlotLocation, UserPlotSize, UserPlotSpec};
+use crate::fractal::{Point, Scalar, Tile, TileSpec, UserPlotLocation, UserPlotSize, UserPlotSpec};
 use crate::render::{self, WhichRenderer};
 
 use anyhow::ensure;
@@ -101,7 +101,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         println!("Entered plot data: {user_plot_data:#?}");
     }
 
-    let pd = PlotSpec::from(&user_plot_data);
+    let pd = TileSpec::from(&user_plot_data);
     if debug > 0 {
         println!("Computed plot data: {pd:#?}");
     }
