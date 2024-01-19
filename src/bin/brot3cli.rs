@@ -24,7 +24,7 @@ struct Cli {
 enum Commands {
     /// Plots fractals [short form: "p"]
     #[clap(alias = "p")]
-    Plot(plot::PlotArgs),
+    Plot(plot::Args),
     List(list::Args),
 }
 
