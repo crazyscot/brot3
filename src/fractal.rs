@@ -21,7 +21,8 @@ const SCALAR_LN_2: Scalar = std::f64::consts::LN_2;
 /// Complex type for fractals
 pub type Point = Complex<Scalar>;
 
-fn mandelbrot_prepare(point: &mut PointData) {
+/// Prepares the ``PointData`` to iterate
+pub fn mandelbrot_prepare(point: &mut PointData) {
     // Cardioid and period-2 bulb checks
     let c1 = point.origin.re - 0.25;
     let y2 = point.origin.im * point.origin.im;
@@ -34,11 +35,14 @@ fn mandelbrot_prepare(point: &mut PointData) {
     }
 }
 
-fn mandelbrot_iterate(point: &mut PointData) {
+/// The actual Mandelbrot set iteration
+pub fn mandelbrot_iterate(point: &mut PointData) {
     point.value = point.value * point.value + point.origin;
     point.iter += 1;
 }
-fn mandelbrot_pixel(point: &mut PointData, max_iter: u32) {
+
+/// Runs the Mandelbrot set iteration for a single point, up to a given limit
+pub fn mandelbrot_pixel(point: &mut PointData, max_iter: u32) {
     for _ in point.iter..max_iter {
         mandelbrot_iterate(point);
         if point.value.norm_sqr() >= 4.0 {

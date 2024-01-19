@@ -18,6 +18,17 @@ pub struct PointData {
 }
 
 impl PointData {
+    /// Standard constructor. This knows nothing about fractal-specific optimisations.
+    #[must_use]
+    pub fn new(origin: Point) -> Self {
+        PointData {
+            iter: 0,
+            origin,
+            value: 0.0.into(),
+            result: None,
+        }
+    }
+
     /// Set this point as infinite
     pub fn mark_infinite(&mut self) {
         self.result = Some(Scalar::INFINITY);
