@@ -19,9 +19,10 @@ pub struct PlotSpec {
 }
 
 /// Canonicalised data about a plot.
-/// For convenient construction, use From<&UserPlotData>.
+/// For convenient construction, use From<&``UserPlotData``>.
 impl PlotSpec {
     /// Computes the pixel size for this spec.
+    #[must_use]
     pub fn pixel_size(&self) -> Point {
         Point {
             re: self.axes.re / self.width as Scalar,

@@ -99,12 +99,12 @@ pub fn plot(args: &PlotArgs, debug: u8) -> anyhow::Result<()> {
         width: args.width,
     };
     if debug > 0 {
-        println!("Entered plot data: {:#?}", user_plot_data);
+        println!("Entered plot data: {user_plot_data:#?}");
     }
 
     let pd = PlotSpec::from(&user_plot_data);
     if debug > 0 {
-        println!("Computed plot data: {:#?}", pd);
+        println!("Computed plot data: {pd:#?}");
     }
 
     let mut t = Tile::new(&pd, debug);

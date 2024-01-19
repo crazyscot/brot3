@@ -15,6 +15,7 @@ pub struct Filename {
 
 impl Filename {
     /// Standard constructor
+    #[must_use]
     pub fn new(filename: &str) -> Self {
         Filename {
             filename: String::from(filename),

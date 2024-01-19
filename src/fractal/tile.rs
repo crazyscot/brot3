@@ -19,6 +19,7 @@ pub struct Tile {
 
 impl Tile {
     /// Standard constructor
+    #[must_use]
     pub fn new(spec: &PlotSpec, debug: u8) -> Self {
         Self {
             debug,
@@ -72,11 +73,13 @@ impl Tile {
     }
 
     /// Result accessor
+    #[must_use]
     pub fn result(&self) -> &Array2D<PointData> {
         &self.point_data
     }
 
     /// Info string quasi-accessor
+    #[must_use]
     pub fn info_string(&self) -> String {
         self.spec.to_string()
     }

@@ -73,6 +73,7 @@ impl Renderer for Png {
 type Rgba = [u8; 4];
 
 // temporary
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn colour(iters: f64) -> Rgba {
     // This is the colourer from mandy, impl here because it's quick
     // inf -> black, that's all good with us.
@@ -80,7 +81,7 @@ fn colour(iters: f64) -> Rgba {
     [
         (((0.2 * c).cos() + 1.0) * 127.0) as u8,
         (((0.14285 * c).cos() + 1.0) * 127.0) as u8,
-        (((0.090909 * c).cos() + 1.0) * 127.0) as u8,
+        (((0.090_909 * c).cos() + 1.0) * 127.0) as u8,
         255,
     ]
 }

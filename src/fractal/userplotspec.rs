@@ -39,7 +39,8 @@ pub struct UserPlotSpec {
 
 impl UserPlotSpec {
     /// Calculates the aspect ratio of the plot
+    #[must_use]
     pub fn aspect_ratio(&self) -> f64 {
-        self.width as f64 / self.height as f64
+        f64::from(self.width) / f64::from(self.height)
     }
 }

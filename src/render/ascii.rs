@@ -1,7 +1,7 @@
 // Rendering output in various ASCII-based formats
 // (c) 2024 Ross Younger
 use super::Renderer;
-use crate::fractal::Tile;
+use crate::fractal::{PointData, Tile};
 use crate::util::filename::Filename;
 
 use anyhow::Result;
@@ -51,7 +51,7 @@ impl Renderer for AsciiArt {
         let data = tile.result();
         let iter = data
             .elements_column_major_iter()
-            .map(|pd| pd.iterations())
+            .map(PointData::iterations)
             .filter(|iters| iters.is_finite());
         let most = iter
             .clone()
@@ -68,7 +68,7 @@ impl Renderer for AsciiArt {
         for row in data.as_rows() {
             let mut rowstr = row
                 .iter()
-                .map(|pd| pd.iterations())
+                .map(PointData::iterations)
                 .map(|it| {
                     if it.is_infinite() {
                         *DEFAULT_ASCII_ART_CHARSET.last().unwrap()

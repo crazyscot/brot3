@@ -32,7 +32,7 @@ pub fn list(args: &ListArgs) -> anyhow::Result<()> {
             if args.machine_parseable {
                 println!("[\"fred\",\"barney\"]");
             } else {
-                println!("wombats!")
+                println!("wombats!");
             };
         }
     }

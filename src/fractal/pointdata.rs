@@ -23,8 +23,9 @@ impl PointData {
         self.result = Some(Scalar::INFINITY);
     }
     /// The result, if we have it, or the _working result_ (current iteration count) if not.
+    #[must_use]
     pub fn iterations(&self) -> f64 {
-        self.result.unwrap_or(self.iter as f64)
+        self.result.unwrap_or(f64::from(self.iter))
     }
     /// Standard output format
     pub fn fmt(&self, f: &mut std::fmt::Formatter<'_>, debug: u8) -> std::fmt::Result {
