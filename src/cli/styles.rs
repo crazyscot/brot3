@@ -1,4 +1,4 @@
-// Default styling for clap output
+/// Default styling for clap output
 
 pub fn get_styles() -> clap::builder::Styles {
     clap::builder::Styles::styled()

@@ -5,17 +5,23 @@ use super::userplotspec::{UserPlotLocation, UserPlotSize};
 use super::{Point, Scalar, UserPlotSpec};
 use std::fmt::{self, Display, Formatter};
 
+/// Interior specification of a plot
 #[derive(Debug, Clone, Copy)]
 pub struct PlotSpec {
+    /// Plot origin (top-left corner)
     pub origin: Point,
+    /// Plot axes length
     pub axes: Point,
+    /// Width in pixels
     pub width: u32,
+    /// Height in pixels
     pub height: u32,
 }
 
 /// Canonicalised data about a plot.
 /// For convenient construction, use From<&UserPlotData>.
 impl PlotSpec {
+    /// Computes the pixel size for this spec.
     pub fn pixel_size(&self) -> Point {
         Point {
             re: self.axes.re / self.width as Scalar,

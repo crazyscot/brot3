@@ -18,6 +18,7 @@ pub struct PointData {
 }
 
 impl PointData {
+    /// Set this point as infinite
     pub fn mark_infinite(&mut self) {
         self.result = Some(Scalar::INFINITY);
     }
@@ -25,6 +26,7 @@ impl PointData {
     pub fn iterations(&self) -> f64 {
         self.result.unwrap_or(self.iter as f64)
     }
+    /// Standard output format
     pub fn fmt(&self, f: &mut std::fmt::Formatter<'_>, debug: u8) -> std::fmt::Result {
         match debug {
             0 => write!(f, "{}", self.iterations()),

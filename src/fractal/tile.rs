@@ -18,6 +18,7 @@ pub struct Tile {
 }
 
 impl Tile {
+    /// Standard constructor
     pub fn new(spec: &PlotSpec, debug: u8) -> Self {
         Self {
             debug,
@@ -56,6 +57,7 @@ impl Tile {
         // TODO: live_pixel count
     }
 
+    /// Runs the fractal iteration for all points in this tile
     pub fn plot(&mut self, max_iter: u32) {
         for y in 0..self.spec.height as usize {
             for x in 0..self.spec.width as usize {
@@ -69,10 +71,12 @@ impl Tile {
         // TODO live pixel count
     }
 
+    /// Result accessor
     pub fn result(&self) -> &Array2D<PointData> {
         &self.point_data
     }
 
+    /// Info string quasi-accessor
     pub fn info_string(&self) -> String {
         self.spec.to_string()
     }

@@ -1,3 +1,5 @@
+//! Yet Another Fractal Plotter
+
 //#![warn(clippy::pedantic)]
 #![deny(elided_lifetimes_in_paths)]
 #![deny(explicit_outlives_requirements)]
@@ -5,7 +7,7 @@
 #![deny(missing_abi)]
 #![deny(missing_copy_implementations)]
 #![deny(missing_debug_implementations)]
-//#![warn(missing_docs)]
+#![warn(missing_docs)]
 #![deny(non_ascii_idents)]
 #![deny(single_use_lifetimes)]
 #![deny(trivial_casts)]
@@ -20,7 +22,11 @@
 #![warn(unused_tuple_struct_fields)]
 #![deny(variant_size_differences)]
 
+/// Command Line Interface helpers
 pub mod cli;
+/// Fractal interface
 pub mod fractal;
+/// Fractal renderers
 pub mod render;
+/// General utility code
 pub mod util;

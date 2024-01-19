@@ -17,6 +17,7 @@ pub trait Renderer {
     fn render(&self, data: &Tile) -> anyhow::Result<()>;
 }
 
+/// Selector for available Renderers
 #[derive(clap::ValueEnum, Clone, Copy, Debug, Display, EnumIter, EnumString, EnumMessage)]
 #[strum(serialize_all = "kebab_case")]
 pub enum WhichRenderer {
@@ -29,10 +30,12 @@ pub enum WhichRenderer {
     Png,
 }
 
+/// Lists all available renderers
 pub fn list_vec() -> Vec<String> {
     WhichRenderer::iter().map(|a| a.to_string()).collect()
 }
 
+/// Implementation of 'list renderers'
 pub fn list(machine_parseable: bool) {
     if machine_parseable {
         println!("{:?}", list_vec());
@@ -57,6 +60,7 @@ pub fn list(machine_parseable: bool) {
         .collect::<Vec<_>>();
 }
 
+/// Factory method for renderers
 pub fn factory(selection: WhichRenderer, filename: &str) -> Box<dyn Renderer> {
     match selection {
         WhichRenderer::AsciiArt => Box::new(ascii::AsciiArt::new(filename)),

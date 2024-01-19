@@ -7,12 +7,14 @@ use std::path::Path;
 
 use anyhow::Context;
 
+/// Holds a filename and provides utility methods for that name
 #[derive(Debug, PartialEq)]
 pub struct Filename {
     filename: String,
 }
 
 impl Filename {
+    /// Standard constructor
     pub fn new(filename: &str) -> Self {
         Filename {
             filename: String::from(filename),

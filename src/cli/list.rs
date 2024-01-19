@@ -1,6 +1,5 @@
 // List subcommand
 // (c) 2024 Ross Younger
-
 use crate::render;
 
 use clap::{Args, Subcommand};
@@ -13,6 +12,7 @@ enum ListableThings {
     Wombats,
 }
 
+/// Arguments to 'list'
 #[derive(Debug, Args)]
 //#[command(flatten_help = true)]
 pub struct ListArgs {
@@ -24,6 +24,7 @@ pub struct ListArgs {
     thing: ListableThings,
 }
 
+/// Implementation of 'list'
 pub fn list(args: ListArgs) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => render::list(args.machine_parseable),

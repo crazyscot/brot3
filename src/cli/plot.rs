@@ -10,6 +10,7 @@ use clap::Args;
 const DEFAULT_CENTRE: Point = Point { re: -1.0, im: 0.0 };
 const DEFAULT_ZOOM: f64 = 1.0;
 
+/// Arguments for the 'plot' subcommand
 #[derive(Debug, Args)]
 pub struct PlotArgs {
     /// Where to send the output (required; use '-' for stdout)
@@ -74,6 +75,7 @@ fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
     Ok(out)
 }
 
+/// Implementation of 'plot'
 pub fn plot(args: PlotArgs, debug: u8) -> anyhow::Result<()> {
     // Single tile, single thread for now
     let user_plot_data = UserPlotSpec {
