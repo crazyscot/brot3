@@ -18,9 +18,6 @@ impl Filename {
             filename: String::from(filename),
         }
     }
-    pub fn get(&self) -> &String {
-        &self.filename
-    }
     /// Truncatingly opens the given file for writing and returns a buffered write handle.
     /// You should call flush() before dropping the handle.
     pub fn write_handle(&self) -> anyhow::Result<Box<dyn Write>> {
