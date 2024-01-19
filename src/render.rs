@@ -64,3 +64,13 @@ pub fn factory(selection: WhichRenderer, filename: &str) -> Box<dyn Renderer> {
         WhichRenderer::Png => Box::new(png::Png::new(filename)),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::list_vec;
+
+    #[test]
+    fn renderers_list() {
+        assert_ne!(list_vec().len(), 0);
+    }
+}
