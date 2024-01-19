@@ -1,7 +1,7 @@
 /// Default styling for clap output
 
 #[must_use]
-pub fn get_styles() -> clap::builder::Styles {
+pub fn get() -> clap::builder::Styles {
     clap::builder::Styles::styled()
         .usage(
             anstyle::Style::new()

@@ -7,7 +7,7 @@ use clap::{ArgAction, Parser, Subcommand};
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 #[command(disable_help_flag = true)]
-#[command(styles=cli::styles::get_styles())]
+#[command(styles=cli::styles::get())]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
