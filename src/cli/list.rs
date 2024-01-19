@@ -25,7 +25,7 @@ pub struct ListArgs {
 }
 
 /// Implementation of 'list'
-pub fn list(args: ListArgs) -> anyhow::Result<()> {
+pub fn list(args: &ListArgs) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => render::list(args.machine_parseable),
         ListableThings::Wombats => {

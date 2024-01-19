@@ -36,7 +36,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     match cli.command {
-        Commands::Plot(args) => plot::plot(args, cli.debug),
-        Commands::List(what) => list::list(what),
+        Commands::Plot(args) => plot::plot(&args, cli.debug),
+        Commands::List(what) => list::list(&what),
     }
 }

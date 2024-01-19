@@ -76,7 +76,7 @@ fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
 }
 
 /// Implementation of 'plot'
-pub fn plot(args: PlotArgs, debug: u8) -> anyhow::Result<()> {
+pub fn plot(args: &PlotArgs, debug: u8) -> anyhow::Result<()> {
     // Single tile, single thread for now
     let user_plot_data = UserPlotSpec {
         location: {
