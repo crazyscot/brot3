@@ -50,7 +50,7 @@ fn mandelbrot_pixel(point: &mut PointData, max_iter: u32) {
             mandelbrot_iterate(point);
             mandelbrot_iterate(point);
             point.result =
-                Some((point.iter as Scalar) - point.value.norm().ln().ln() / SCALAR_LN_2);
+                Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / SCALAR_LN_2);
 
             /* TODO debug tidyup
             let norm = temp.norm();

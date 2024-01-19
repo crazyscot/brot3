@@ -25,8 +25,8 @@ impl PlotSpec {
     #[must_use]
     pub fn pixel_size(&self) -> Point {
         Point {
-            re: self.axes.re / self.width as Scalar,
-            im: self.axes.im / self.height as Scalar,
+            re: self.axes.re / Scalar::from(self.width),
+            im: self.axes.im / Scalar::from(self.height),
         }
     }
 }
@@ -39,8 +39,8 @@ impl From<&UserPlotSpec> for PlotSpec {
         let axes: Point = match upd.axes {
             UserPlotSize::AxesLength(l) => l,
             UserPlotSize::PixelSize(p) => Point {
-                re: p.re * upd.width as Scalar,
-                im: p.im * upd.height as Scalar,
+                re: p.re * Scalar::from(upd.width),
+                im: p.im * Scalar::from(upd.height),
             },
             UserPlotSize::ZoomFactor(zoom) => Point {
                 re: DEFAULT_AXIS_LENGTH / zoom,
