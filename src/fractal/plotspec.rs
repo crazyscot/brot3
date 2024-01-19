@@ -3,6 +3,7 @@
 
 use super::userplotspec::{UserPlotLocation, UserPlotSize};
 use super::{Point, Scalar, UserPlotSpec};
+
 use std::fmt::{self, Display, Formatter};
 
 /// Interior specification of a plot
@@ -72,6 +73,7 @@ mod tests {
         userplotspec::{UserPlotLocation, UserPlotSize},
         PlotSpec, Point, UserPlotSpec,
     };
+    use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
 
     const ZERO: Point = Point { re: 0.0, im: 0.0 };
     const ONE: Point = Point { re: 1.0, im: 1.0 };
@@ -126,7 +128,7 @@ mod tests {
     }
     #[test]
     fn aspect_axes() {
-        assert_eq!(TD_ORIGIN_ZOOM.aspect_ratio(), 2.0);
+        assert_f64_near!(TD_ORIGIN_ZOOM.aspect_ratio(), 2.0);
         let result = PlotSpec::from(&TD_ORIGIN_ZOOM);
         assert_eq!(result.axes, TD_ORIGIN_ZOOM_AXES);
     }

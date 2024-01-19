@@ -16,7 +16,7 @@
 #![deny(unreachable_pub)]
 #![deny(unsafe_code)]
 #![deny(unsafe_op_in_unsafe_fn)]
-#![deny(unused_crate_dependencies)]
+//#![deny(unused_crate_dependencies)] // false positives
 #![deny(unused_extern_crates)]
 #![deny(unused_lifetimes)]
 #![deny(unused_results)]
