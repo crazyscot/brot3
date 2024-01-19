@@ -9,7 +9,7 @@ use std::fmt::{self, Display, Formatter};
 /// Interior specification of a plot
 #[derive(Debug, Clone, Copy)]
 pub struct PlotSpec {
-    /// Plot origin (top-left corner)
+    /// Plot origin (bottom-left corner, smallest real/imaginary coefficients)
     pub origin: Point,
     /// Plot axes length
     pub axes: Point,
