@@ -5,6 +5,7 @@ use array2d::Array2D;
 use std::fmt;
 
 /// A section of a fractal plot
+#[derive(Debug)]
 pub struct Tile {
     /// Debug output level
     debug: u8,

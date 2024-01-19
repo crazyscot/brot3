@@ -7,7 +7,7 @@ use std::path::Path;
 
 use anyhow::Context;
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Filename {
     filename: String,
 }

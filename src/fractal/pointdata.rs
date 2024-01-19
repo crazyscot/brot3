@@ -5,7 +5,7 @@ use std::fmt;
 use super::{Point, Scalar};
 
 /// Everything we know about a plotted point
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct PointData {
     /// Current number of iterations this point has seen
     pub iter: u32,
