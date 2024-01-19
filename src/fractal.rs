@@ -11,7 +11,7 @@ use num_complex::Complex;
 pub use plotspec::PlotSpec;
 pub use pointdata::PointData;
 pub use tile::Tile;
-pub use userplotspec::UserPlotSpec;
+pub use userplotspec::{UserPlotLocation, UserPlotSize, UserPlotSpec};
 
 pub type Scalar = f64;
 const SCALAR_LN_2: Scalar = std::f64::consts::LN_2;
