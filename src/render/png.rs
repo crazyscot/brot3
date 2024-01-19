@@ -21,7 +21,7 @@ impl Png {
 }
 
 impl Png {
-    fn render_inner(&self, tile: &Tile, writer: Box<dyn std::io::Write>) -> Result<()> {
+    fn render_inner(tile: &Tile, writer: Box<dyn std::io::Write>) -> Result<()> {
         let mut encoder = png::Encoder::new(writer, tile.spec.width, tile.spec.height);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
@@ -62,8 +62,7 @@ impl Renderer for Png {
     fn render(&self, tile: &Tile) -> Result<()> {
         let handle = self.filename.write_handle()?;
         let bw = Box::new(BufWriter::new(handle));
-        self.render_inner(tile, bw)
-            .with_context(|| "Failed to render PNG")?;
+        Png::render_inner(tile, bw).with_context(|| "Failed to render PNG")?;
         // You can test this error pathway by trying to write to /dev/full
         Ok(())
     }
