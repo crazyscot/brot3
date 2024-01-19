@@ -25,7 +25,7 @@ enum Commands {
     /// Plots fractals [short form: "p"]
     #[clap(alias = "p")]
     Plot(plot::PlotArgs),
-    List(list::ListArgs),
+    List(list::Args),
 }
 
 fn main() -> anyhow::Result<()> {

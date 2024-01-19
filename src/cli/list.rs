@@ -2,9 +2,7 @@
 // (c) 2024 Ross Younger
 use crate::render;
 
-use clap::{Args, Subcommand};
-
-#[derive(Debug, Subcommand)]
+#[derive(Debug, clap:: Subcommand)]
 enum ListableThings {
     /// Lists all available renderers
     Renderers,
@@ -13,9 +11,9 @@ enum ListableThings {
 }
 
 /// Arguments to 'list'
-#[derive(Debug, Args)]
+#[derive(Debug, clap::Args)]
 //#[command(flatten_help = true)]
-pub struct ListArgs {
+pub struct Args {
     /// Machine-parseable output
     #[arg(short, long)]
     machine_parseable: bool,
@@ -25,7 +23,7 @@ pub struct ListArgs {
 }
 
 /// Implementation of 'list'
-pub fn list(args: &ListArgs) -> anyhow::Result<()> {
+pub fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => render::list(args.machine_parseable),
         ListableThings::Wombats => {
