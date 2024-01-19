@@ -9,7 +9,7 @@ pub mod userplotspec;
 
 use num_complex::Complex;
 
-pub use plotspec::PlotSpec;
+pub use plotspec::TileSpec;
 pub use pointdata::PointData;
 pub use tile::Tile;
 pub use userplotspec::{UserPlotLocation, UserPlotSize, UserPlotSpec};

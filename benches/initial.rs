@@ -1,4 +1,4 @@
-use brot3::fractal::{mandelbrot_pixel, mandelbrot_prepare, PlotSpec, Point, PointData, Tile};
+use brot3::fractal::{mandelbrot_pixel, mandelbrot_prepare, Point, PointData, Tile, TileSpec};
 use brot3::render;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
@@ -15,7 +15,7 @@ fn pixel(c: &mut Criterion) {
     });
 }
 
-const TEST_TILE_SPEC: PlotSpec = PlotSpec {
+const TEST_TILE_SPEC: TileSpec = TileSpec {
     origin: Point { re: -1.0, im: 0.0 },
     axes: Point { re: 4.0, im: 4.0 },
     width: 300,
@@ -32,7 +32,7 @@ fn tile(c: &mut Criterion) {
     });
 }
 
-const PALETTE_TILE_SPEC: PlotSpec = PlotSpec {
+const PALETTE_TILE_SPEC: TileSpec = TileSpec {
     origin: Point {
         re: -0.0946,
         im: 1.0105,
