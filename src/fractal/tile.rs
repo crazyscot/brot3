@@ -45,7 +45,9 @@ impl Tile {
         for y in 0..self.spec.height as usize {
             let mut real = origin_pixel.re;
             for x in 0..self.spec.width as usize {
-                let point = &mut self.point_data[(y, x)];
+                let real_y = self.spec.height as usize - y - 1;
+                // curveball: origin is bottom left of the plot, but we want to output the top row first.
+                let point = &mut self.point_data[(real_y, x)];
                 point.origin = Point { re: real, im: imag };
                 // The first iteration is easy
                 point.value = point.origin;

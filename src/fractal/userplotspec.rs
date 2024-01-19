@@ -6,7 +6,7 @@ use super::{Point, Scalar};
 /// The user is allowed to specify the plot location in multiple ways.
 #[derive(Debug, Clone, Copy)]
 pub enum UserPlotLocation {
-    /// The origin (top-left corner) point
+    /// The origin point (bottom-left corner i.e. smallest real,imaginary coefficients)
     Origin(Point),
     /// The centre point
     Centre(Point),

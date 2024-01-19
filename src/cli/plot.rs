@@ -21,7 +21,7 @@ pub struct Args {
     #[arg(short, long, value_name = "NAME", default_value = "png")]
     pub renderer: WhichRenderer,
 
-    /// The origin (top-left) point of the plot, e.g. -3-3i. Conflicts with --centre.
+    /// The origin (bottom-left) point of the plot, e.g. -3-3i. Conflicts with --centre.
     #[arg(
         short = 'O',
         long,
