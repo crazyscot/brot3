@@ -3,7 +3,8 @@
 use super::Renderer;
 use crate::fractal::Tile;
 use crate::util::filename::Filename;
-use std::error::Error;
+
+use anyhow::Result;
 
 /// CSV format, fractal points
 pub struct Csv {
@@ -19,7 +20,7 @@ impl Csv {
 }
 
 impl Renderer for Csv {
-    fn render(&self, tile: &Tile) -> Result<(), Box<dyn Error>> {
+    fn render(&self, tile: &Tile) -> Result<()> {
         self.filename
             .write_handle()?
             .write_all(tile.to_string().as_bytes())?;
@@ -43,7 +44,7 @@ impl AsciiArt {
 }
 
 impl Renderer for AsciiArt {
-    fn render(&self, tile: &Tile) -> Result<(), Box<dyn Error>> {
+    fn render(&self, tile: &Tile) -> Result<()> {
         let mut output = self.filename.write_handle()?;
 
         // Find the range of output levels, discounting INF.

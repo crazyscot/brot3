@@ -7,8 +7,9 @@ use brot3::{
     },
     render::WhichRenderer,
 };
+
+use anyhow::ensure;
 use clap::{ArgAction, Args, Parser, Subcommand};
-use std::error::Error;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
@@ -106,7 +107,7 @@ struct ListArgs {
     thing: ListableThings,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     if cli.debug_cli {
         println!("{:#?}", cli);
@@ -122,18 +123,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 const DEFAULT_CENTRE: Point = Point { re: -1.0, im: 0.0 };
 const DEFAULT_ZOOM: f64 = 1.0;
 
-fn check_fix_axes(input: Point) -> Result<Point, Box<dyn Error>> {
+fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
     let mut out = input;
     if out.im == 0.0 {
         out.im = out.re;
     }
-    if out.re == 0.0 {
-        return Err("Real axis cannot be zero".into());
-    }
+    ensure!(out.re.is_finite(), "Real axis must be finite");
+    ensure!(out.re != 0.0, "Real axis cannot be zero");
     Ok(out)
 }
 
-fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
+fn plot(args: PlotArgs, debug: u8) -> anyhow::Result<()> {
     // Single tile, single thread for now
     let user_plot_data = UserPlotSpec {
         location: {
@@ -168,13 +168,10 @@ fn plot(args: PlotArgs, debug: u8) -> Result<(), Box<dyn Error>> {
     t.prepare();
     t.plot(args.max_iter);
     let r = brot3::render::factory(args.renderer, &args.output_filename);
-    r.render(&t).map_err(|op| {
-        println!("Failed to render: {}", op);
-        std::process::exit(1);
-    })
+    r.render(&t)
 }
 
-fn list(args: ListArgs) -> Result<(), Box<dyn Error>> {
+fn list(args: ListArgs) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => brot3::render::list(args.machine_parseable),
         ListableThings::Wombats => {

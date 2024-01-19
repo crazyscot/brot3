@@ -5,6 +5,8 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
+use anyhow::Context;
+
 #[derive(PartialEq)]
 pub struct Filename {
     filename: String,
@@ -21,13 +23,13 @@ impl Filename {
     }
     /// Truncatingly opens the given file for writing and returns a buffered write handle.
     /// You should call flush() before dropping the handle.
-    pub fn write_handle(&self) -> std::io::Result<Box<dyn Write>> {
+    pub fn write_handle(&self) -> anyhow::Result<Box<dyn Write>> {
         if self.filename == "-" {
             // stdout is buffered already
             Ok(Box::new(std::io::stdout()))
         } else {
             let path = Path::new(&self.filename);
-            let file = File::create(path)?;
+            let file = File::create(path).with_context(|| "Could not open output file")?;
             let bw = Box::new(BufWriter::new(file)) as Box<dyn Write>;
             Ok(bw)
         }

@@ -4,7 +4,8 @@
 use super::Renderer;
 use crate::fractal::Tile;
 use crate::util::filename::Filename;
-use std::error::Error;
+
+use anyhow::{Context, Result};
 use std::io::{BufWriter, Write};
 
 pub struct Png {
@@ -20,11 +21,7 @@ impl Png {
 }
 
 impl Png {
-    fn render_inner(
-        &self,
-        tile: &Tile,
-        writer: Box<dyn std::io::Write>,
-    ) -> Result<(), Box<dyn Error>> {
+    fn render_inner(&self, tile: &Tile, writer: Box<dyn std::io::Write>) -> Result<()> {
         let mut encoder = png::Encoder::new(writer, tile.spec.width, tile.spec.height);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
@@ -62,10 +59,12 @@ impl Png {
 }
 
 impl Renderer for Png {
-    fn render(&self, tile: &Tile) -> Result<(), Box<dyn Error>> {
+    fn render(&self, tile: &Tile) -> Result<()> {
         let handle = self.filename.write_handle()?;
         let bw = Box::new(BufWriter::new(handle)) as Box<dyn Write>;
-        self.render_inner(tile, bw)?;
+        self.render_inner(tile, bw)
+            .with_context(|| "Failed to render PNG")?;
+        // You can test this error pathway by trying to write to /dev/full
         Ok(())
     }
 }

@@ -4,7 +4,8 @@ mod ascii;
 mod png;
 
 use super::fractal::Tile;
-use std::error::Error;
+
+use anyhow;
 use strum::{EnumMessage, IntoEnumIterator};
 use strum_macros::{Display, EnumIter, EnumMessage, EnumString};
 
@@ -13,7 +14,7 @@ use strum_macros::{Display, EnumIter, EnumMessage, EnumString};
 /// The trait knows nothing about output or buffering; the implementation is responsible for setting that up.
 pub trait Renderer {
     /// Renders fractal data and sends it to its output
-    fn render(&self, data: &Tile) -> Result<(), Box<dyn Error>>;
+    fn render(&self, data: &Tile) -> anyhow::Result<()>;
 }
 
 #[derive(clap::ValueEnum, Clone, Debug, Display, EnumIter, EnumString, EnumMessage)]
