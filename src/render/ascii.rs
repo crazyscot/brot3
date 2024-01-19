@@ -63,6 +63,7 @@ impl Renderer for AsciiArt {
         let n_levels = DEFAULT_ASCII_ART_CHARSET.len();
         let range = most - least;
         // Infinity will take the last character, map the rest linearly for now
+        #[allow(clippy::cast_precision_loss)] // this is a quick & dirty output module
         let step = range / (n_levels - 1) as f64;
 
         for row in data.as_rows() {
@@ -73,6 +74,9 @@ impl Renderer for AsciiArt {
                     if it.is_infinite() {
                         *DEFAULT_ASCII_ART_CHARSET.last().unwrap()
                     } else {
+                        // this is a quick & dirty output module
+                        #[allow(clippy::cast_possible_truncation)]
+                        #[allow(clippy::cast_sign_loss)]
                         DEFAULT_ASCII_ART_CHARSET[((it - least) / step) as usize]
                     }
                 })
