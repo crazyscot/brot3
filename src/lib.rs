@@ -1,6 +1,7 @@
 //! Yet Another Fractal Plotter
 
 #![warn(clippy::pedantic)]
+#![allow(clippy::missing_errors_doc)]
 #![deny(elided_lifetimes_in_paths)]
 #![deny(explicit_outlives_requirements)]
 #![deny(meta_variable_misuse)]
