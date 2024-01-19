@@ -9,6 +9,8 @@ use anyhow;
 use strum::{EnumMessage, IntoEnumIterator};
 use strum_macros::{Display, EnumIter, EnumMessage, EnumString};
 
+pub use png::colour_temp;
+
 /// A Renderer accepts ``PointData`` and deals with it completely.
 /// This is distinct from a Palette, which accepts ``PointData`` and returns colour data.
 /// The trait knows nothing about output or buffering; the implementation is responsible for setting that up.
