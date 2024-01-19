@@ -1,17 +1,17 @@
 // Fractal plotting
 // (c) 2024 Ross Younger
 
-mod plotspec;
 mod pointdata;
 mod tile;
+mod tilespec;
 /// User-facing plot specification
 pub mod userplotspec;
 
 use num_complex::Complex;
 
-pub use plotspec::TileSpec;
 pub use pointdata::PointData;
 pub use tile::Tile;
+pub use tilespec::TileSpec;
 pub use userplotspec::{UserPlotLocation, UserPlotSize, UserPlotSpec};
 
 /// One dimension of a fractal
