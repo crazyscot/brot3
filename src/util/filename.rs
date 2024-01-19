@@ -27,7 +27,7 @@ impl Filename {
         } else {
             let path = Path::new(&self.filename);
             let file = File::create(path).with_context(|| "Could not open output file")?;
-            let bw = Box::new(BufWriter::new(file)) as Box<dyn Write>;
+            let bw = Box::new(BufWriter::new(file));
             Ok(bw)
         }
     }

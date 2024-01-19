@@ -6,7 +6,7 @@ use crate::fractal::Tile;
 use crate::util::filename::Filename;
 
 use anyhow::{Context, Result};
-use std::io::{BufWriter, Write};
+use std::io::BufWriter;
 
 pub struct Png {
     filename: Filename,
@@ -61,7 +61,7 @@ impl Png {
 impl Renderer for Png {
     fn render(&self, tile: &Tile) -> Result<()> {
         let handle = self.filename.write_handle()?;
-        let bw = Box::new(BufWriter::new(handle)) as Box<dyn Write>;
+        let bw = Box::new(BufWriter::new(handle));
         self.render_inner(tile, bw)
             .with_context(|| "Failed to render PNG")?;
         // You can test this error pathway by trying to write to /dev/full
