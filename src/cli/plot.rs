@@ -70,6 +70,7 @@ fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
     }
     ensure!(out.re.is_finite(), "Real axis must be finite");
     ensure!(out.re != 0.0, "Real axis cannot be zero");
+    ensure!(out.im.is_finite(), "Imaginary axis must be finite");
     Ok(out)
 }
 
@@ -109,4 +110,46 @@ pub fn plot(args: PlotArgs, debug: u8) -> anyhow::Result<()> {
     t.plot(args.max_iter);
     let r = render::factory(args.renderer, &args.output_filename);
     r.render(&t)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::check_fix_axes;
+    use crate::fractal::Point;
+
+    #[test]
+    fn axes_fixup_nonzero() {
+        let result = check_fix_axes(Point { re: 1.0, im: 0.0 }).unwrap();
+        assert_eq!(result, Point { re: 1.0, im: 1.0 });
+    }
+    #[test]
+    fn axes_zero_error() {
+        assert!(check_fix_axes(Point { re: 0.0, im: 0.0 }).is_err());
+    }
+    #[test]
+    fn axes_inf_error() {
+        assert!(check_fix_axes(Point {
+            re: f64::INFINITY,
+            im: 2.0
+        })
+        .is_err());
+        assert!(check_fix_axes(Point {
+            re: 2.0,
+            im: f64::INFINITY
+        })
+        .is_err());
+    }
+    #[test]
+    fn axes_nan_error() {
+        assert!(check_fix_axes(Point {
+            re: f64::NAN,
+            im: 2.0
+        })
+        .is_err());
+        assert!(check_fix_axes(Point {
+            re: 2.0,
+            im: f64::NAN
+        })
+        .is_err());
+    }
 }
