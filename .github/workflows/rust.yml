@@ -36,3 +36,5 @@ jobs:
       run: cargo check --verbose
     - name: Extra checks
       run: cargo clippy --verbose
+    - name: Compile-check benchmarks
+      run: cargo bench --no-run
