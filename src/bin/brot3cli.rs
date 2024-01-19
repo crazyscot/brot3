@@ -1,7 +1,7 @@
 // brot3 command line interface
 // (c) 2024 Ross Younger
 use brot3::{
-    cli::styles,
+    cli,
     fractal::{
         userplotspec::{UserPlotLocation, UserPlotSize},
         PlotSpec, Point, Scalar, Tile, UserPlotSpec,
@@ -15,7 +15,7 @@ use clap::{ArgAction, Args, Parser, Subcommand};
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 #[command(disable_help_flag = true)]
-#[command(styles=styles::get_styles())]
+#[command(styles=cli::styles::get_styles())]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -33,7 +33,7 @@ enum Commands {
     /// Plots fractals [short form: "p"]
     #[clap(alias = "p")]
     Plot(PlotArgs),
-    List(ListArgs),
+    List(cli::list::ListArgs),
 }
 
 #[derive(Debug, Args)]
@@ -89,25 +89,6 @@ struct PlotArgs {
     height: u32,
 }
 
-#[derive(Debug, Subcommand)]
-enum ListableThings {
-    /// Lists all available renderers
-    Renderers,
-    /// Lists available wombats
-    Wombats,
-}
-
-#[derive(Debug, Args)]
-//#[command(flatten_help = true)]
-struct ListArgs {
-    /// Machine-parseable output
-    #[arg(short, long)]
-    machine_parseable: bool,
-
-    #[command(subcommand)]
-    thing: ListableThings,
-}
-
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     if cli.debug_cli {
@@ -117,7 +98,7 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Plot(args) => plot(args, cli.debug),
-        Commands::List(what) => list(what),
+        Commands::List(what) => cli::list::list(what),
     }
 }
 
@@ -170,18 +151,4 @@ fn plot(args: PlotArgs, debug: u8) -> anyhow::Result<()> {
     t.plot(args.max_iter);
     let r = brot3::render::factory(args.renderer, &args.output_filename);
     r.render(&t)
-}
-
-fn list(args: ListArgs) -> anyhow::Result<()> {
-    match args.thing {
-        ListableThings::Renderers => brot3::render::list(args.machine_parseable),
-        ListableThings::Wombats => {
-            if args.machine_parseable {
-                println!("[\"fred\",\"barney\"]");
-            } else {
-                println!("wombats!")
-            };
-        }
-    }
-    Ok(())
 }
