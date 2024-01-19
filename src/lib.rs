@@ -10,7 +10,7 @@
 #![deny(single_use_lifetimes)]
 #![deny(trivial_casts)]
 #![deny(trivial_numeric_casts)]
-//#![deny(unreachable_pub)]
+#![deny(unreachable_pub)]
 #![deny(unsafe_code)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(unused_crate_dependencies)]

@@ -7,12 +7,12 @@ use crate::util::filename::Filename;
 use anyhow::Result;
 
 /// CSV format, fractal points
-pub struct Csv {
+pub(crate) struct Csv {
     filename: Filename,
 }
 
 impl Csv {
-    pub fn new(filename: &str) -> Self {
+    pub(crate) fn new(filename: &str) -> Self {
         Csv {
             filename: Filename::new(filename),
         }
@@ -29,14 +29,14 @@ impl Renderer for Csv {
 }
 
 /// Rough and ready ASCII art renderer
-pub struct AsciiArt {
+pub(crate) struct AsciiArt {
     filename: Filename,
 }
 
 const DEFAULT_ASCII_ART_CHARSET: &[u8] = " .,:obOB%#".as_bytes();
 
 impl AsciiArt {
-    pub fn new(filename: &str) -> Self {
+    pub(crate) fn new(filename: &str) -> Self {
         AsciiArt {
             filename: Filename::new(filename),
         }

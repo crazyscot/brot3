@@ -8,12 +8,12 @@ use crate::util::filename::Filename;
 use anyhow::{Context, Result};
 use std::io::BufWriter;
 
-pub struct Png {
+pub(crate) struct Png {
     filename: Filename,
 }
 
 impl Png {
-    pub fn new(filename: &str) -> Self {
+    pub(crate) fn new(filename: &str) -> Self {
         Png {
             filename: Filename::new(filename),
         }
