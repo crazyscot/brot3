@@ -28,7 +28,7 @@ impl Tile {
                 spec.width as usize,
             ),
             max_iter_plotted: 0,
-            spec: spec.clone(),
+            spec: *spec,
         }
     }
 

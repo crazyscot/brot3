@@ -4,14 +4,14 @@
 use super::{Point, Scalar};
 
 /// The user is allowed to specify the plot location in multiple ways.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum UserPlotLocation {
     Origin(Point),
     Centre(Point),
 }
 
 /// The user is allowed to specify the plot size in multiple ways.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum UserPlotSize {
     /// Length of both axes
     AxesLength(Point),
@@ -23,7 +23,7 @@ pub enum UserPlotSize {
 }
 
 /// User-friendly way to specify a plot
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct UserPlotSpec {
     pub location: UserPlotLocation,
     pub axes: UserPlotSize,

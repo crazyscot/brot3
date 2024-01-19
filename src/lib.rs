@@ -3,7 +3,7 @@
 #![deny(explicit_outlives_requirements)]
 #![deny(meta_variable_misuse)]
 #![deny(missing_abi)]
-//#![deny(missing_copy_implementations)]
+#![deny(missing_copy_implementations)]
 #![deny(missing_debug_implementations)]
 //#![warn(missing_docs)]
 #![deny(non_ascii_idents)]

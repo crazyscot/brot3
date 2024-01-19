@@ -17,7 +17,7 @@ pub trait Renderer {
     fn render(&self, data: &Tile) -> anyhow::Result<()>;
 }
 
-#[derive(clap::ValueEnum, Clone, Debug, Display, EnumIter, EnumString, EnumMessage)]
+#[derive(clap::ValueEnum, Clone, Copy, Debug, Display, EnumIter, EnumString, EnumMessage)]
 #[strum(serialize_all = "kebab_case")]
 pub enum WhichRenderer {
     /// Comma Separated Values, one line per line of plot

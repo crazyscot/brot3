@@ -5,7 +5,7 @@ use super::userplotspec::{UserPlotLocation, UserPlotSize};
 use super::{Point, Scalar, UserPlotSpec};
 use std::fmt::{self, Display, Formatter};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct PlotSpec {
     pub origin: Point,
     pub axes: Point,
