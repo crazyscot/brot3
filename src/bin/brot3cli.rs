@@ -1,6 +1,7 @@
 // brot3 command line interface
 // (c) 2024 Ross Younger
 use brot3::{
+    cli::styles,
     fractal::{
         userplotspec::{UserPlotLocation, UserPlotSize},
         PlotSpec, Point, Scalar, Tile, UserPlotSpec,
@@ -14,7 +15,7 @@ use clap::{ArgAction, Args, Parser, Subcommand};
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 #[command(disable_help_flag = true)]
-#[command(styles=get_styles())]
+#[command(styles=styles::get_styles())]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -183,42 +184,4 @@ fn list(args: ListArgs) -> anyhow::Result<()> {
         }
     }
     Ok(())
-}
-
-pub fn get_styles() -> clap::builder::Styles {
-    clap::builder::Styles::styled()
-        .usage(
-            anstyle::Style::new()
-                .bold()
-                .underline()
-                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Yellow))),
-        )
-        .header(
-            anstyle::Style::new()
-                .bold()
-                .underline()
-                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Yellow))),
-        )
-        .literal(
-            anstyle::Style::new().fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Green))),
-        )
-        .invalid(
-            anstyle::Style::new()
-                .bold()
-                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Red))),
-        )
-        .error(
-            anstyle::Style::new()
-                .bold()
-                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Red))),
-        )
-        .valid(
-            anstyle::Style::new()
-                .bold()
-                .underline()
-                .fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::Green))),
-        )
-        .placeholder(
-            anstyle::Style::new().fg_color(Some(anstyle::Color::Ansi(anstyle::AnsiColor::White))),
-        )
 }
