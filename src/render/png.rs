@@ -48,7 +48,7 @@ impl Png {
                 }
             })
             .for_each(|iters| {
-                let col = colour(iters);
+                let col = colour_temp(iters);
                 for b in col {
                     image_data.push(b);
                 }
@@ -71,10 +71,11 @@ impl Renderer for Png {
 /// An 8-bit RGBA quadruplet.
 type Rgba = [u8; 4];
 
-// temporary
+/// temporary colouring function
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-fn colour(iters: f64) -> Rgba {
-    // This is the colourer from mandy, impl here because it's quick
+#[must_use]
+pub fn colour_temp(iters: f64) -> Rgba {
+    // This is the colourer from mandy, impl here because it's quick.
     // inf -> black, that's all good with us.
     let c = 2.0 * std::f64::consts::PI * iters.sqrt();
     [
