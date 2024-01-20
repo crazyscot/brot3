@@ -5,8 +5,7 @@ mod mandelbrot;
 mod pointdata;
 mod tile;
 mod tilespec;
-/// User-facing plot specification
-pub mod userplotspec;
+mod userplotspec;
 
 use num_complex::Complex;
 
