@@ -25,7 +25,6 @@ const TEST_TILE_SPEC: TileSpec = TileSpec {
 fn tile(c: &mut Criterion) {
     c.bench_function("mandelbrot_tile", |b| {
         let mut tile = Tile::new(&TEST_TILE_SPEC, 0);
-        tile.prepare();
         b.iter(|| {
             tile.plot(black_box(512));
         });
@@ -54,7 +53,6 @@ fn colour_pixel(c: &mut Criterion) {
 fn colour_tile(c: &mut Criterion) {
     c.bench_function("colour_tile_mandy", |b| {
         let mut tile = Tile::new(&PALETTE_TILE_SPEC, 0);
-        tile.prepare();
         tile.plot(384);
         let png = render::factory(SelectionDiscriminants::Png, "/dev/null");
         b.iter(|| png.render(black_box(&tile)));

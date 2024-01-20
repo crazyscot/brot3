@@ -18,10 +18,10 @@ pub struct Tile {
 }
 
 impl Tile {
-    /// Standard constructor
+    /// Standard constructor. Also initialises the data for this tile.
     #[must_use]
     pub fn new(spec: &TileSpec, debug: u8) -> Self {
-        Self {
+        let mut new1 = Self {
             debug,
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
             point_data: Array2D::filled_with(
@@ -31,11 +31,13 @@ impl Tile {
             ),
             max_iter_plotted: 0,
             spec: *spec,
-        }
+        };
+        new1.prepare();
+        new1
     }
 
     /// Initialises the data for this tile
-    pub fn prepare(&mut self) {
+    fn prepare(&mut self) {
         let step = self.spec.pixel_size();
         // TRAP: Plot origin != first pixel origin !
         // The plotted point of each pixel should be the CENTRE of the region, i.e. offset by half a pixel from plot origin.

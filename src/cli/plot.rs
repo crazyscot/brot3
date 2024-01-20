@@ -107,7 +107,6 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     }
 
     let mut t = Tile::new(&pd, debug);
-    t.prepare();
     t.plot(args.max_iter);
 
     render::factory(args.renderer, &args.output_filename).render(&t)
