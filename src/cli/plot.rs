@@ -1,7 +1,7 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
-use crate::fractal::{PlotSpec, Point, Scalar, Tile, TileSpec, UserPlotLocation, UserPlotSize};
+use crate::fractal::{Location, PlotSpec, Point, Scalar, Size, Tile, TileSpec};
 use crate::render::{self, Renderer, SelectionDiscriminants};
 
 use anyhow::ensure;
@@ -80,18 +80,18 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let user_plot_data = PlotSpec {
         location: {
             if let Some(o) = args.origin {
-                UserPlotLocation::Origin(o)
+                Location::Origin(o)
             } else {
-                UserPlotLocation::Centre(args.centre.unwrap_or(DEFAULT_CENTRE))
+                Location::Centre(args.centre.unwrap_or(DEFAULT_CENTRE))
             }
         },
         axes: {
             if let Some(axes) = args.axes_length {
-                UserPlotSize::AxesLength(check_fix_axes(axes)?)
+                Size::AxesLength(check_fix_axes(axes)?)
             } else if let Some(size) = args.pixel_size {
-                UserPlotSize::PixelSize(check_fix_axes(size)?)
+                Size::PixelSize(check_fix_axes(size)?)
             } else {
-                UserPlotSize::ZoomFactor(args.zoom.unwrap_or(DEFAULT_ZOOM))
+                Size::ZoomFactor(args.zoom.unwrap_or(DEFAULT_ZOOM))
             }
         },
         height: args.height,

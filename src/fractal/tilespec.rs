@@ -1,12 +1,12 @@
 // Specification of a plot (origin, axes, etc)
 // (c) 2024 Ross Younger
 
-use super::userplotspec::{UserPlotLocation, UserPlotSize};
+use super::userplotspec::{Location, Size};
 use super::{PlotSpec, Point, Scalar};
 
 use std::fmt::{self, Display, Formatter};
 
-/// Interior specification of a plot
+/// Machine-facing specification of a tile to plot
 #[derive(Debug, Clone, Copy)]
 pub struct TileSpec {
     /// Plot origin (bottom-left corner, smallest real/imaginary coefficients)
@@ -38,19 +38,19 @@ impl From<&PlotSpec> for TileSpec {
     fn from(upd: &PlotSpec) -> Self {
         // Must compute axes first as origin may depend on them
         let axes: Point = match upd.axes {
-            UserPlotSize::AxesLength(l) => l,
-            UserPlotSize::PixelSize(p) => Point {
+            Size::AxesLength(l) => l,
+            Size::PixelSize(p) => Point {
                 re: p.re * Scalar::from(upd.width),
                 im: p.im * Scalar::from(upd.height),
             },
-            UserPlotSize::ZoomFactor(zoom) => Point {
+            Size::ZoomFactor(zoom) => Point {
                 re: DEFAULT_AXIS_LENGTH / zoom,
                 im: (DEFAULT_AXIS_LENGTH / zoom) / upd.aspect_ratio(),
             },
         };
         let origin: Point = match upd.location {
-            UserPlotLocation::Origin(o) => o,
-            UserPlotLocation::Centre(c) => c - 0.5 * axes,
+            Location::Origin(o) => o,
+            Location::Centre(c) => c - 0.5 * axes,
         };
         TileSpec {
             origin,
@@ -70,7 +70,7 @@ impl Display for TileSpec {
 #[cfg(test)]
 mod tests {
     use crate::fractal::{
-        userplotspec::{UserPlotLocation, UserPlotSize},
+        userplotspec::{Location, Size},
         PlotSpec, Point, TileSpec,
     };
     use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
@@ -81,21 +81,21 @@ mod tests {
     const CENTI: Point = Point { re: 0.01, im: 0.01 };
 
     const TD_ORIGIN_AXES: PlotSpec = PlotSpec {
-        location: UserPlotLocation::Origin(ZERO),
-        axes: UserPlotSize::AxesLength(ONE),
+        location: Location::Origin(ZERO),
+        axes: Size::AxesLength(ONE),
         height: 100,
         width: 100,
     };
     const TD_ORIGIN_PIXELS: PlotSpec = PlotSpec {
-        location: UserPlotLocation::Origin(ZERO),
-        axes: UserPlotSize::PixelSize(CENTI),
+        location: Location::Origin(ZERO),
+        axes: Size::PixelSize(CENTI),
         height: 100,
         width: 100,
         // this has the property that {width,height} * CENTI = { 1,1 }
     };
     const TD_ORIGIN_ZOOM: PlotSpec = PlotSpec {
-        location: UserPlotLocation::Origin(ZERO),
-        axes: UserPlotSize::ZoomFactor(1000.0),
+        location: Location::Origin(ZERO),
+        axes: Size::ZoomFactor(1000.0),
         height: 100,
         width: 200,
         // note funky aspect ratio.
@@ -103,8 +103,8 @@ mod tests {
         // 200x100 pixels => (0.004,0.002) axes.
     };
     const TD_CENTRE: PlotSpec = PlotSpec {
-        location: UserPlotLocation::Centre(ONETWO),
-        axes: UserPlotSize::AxesLength(ONE),
+        location: Location::Centre(ONETWO),
+        axes: Size::AxesLength(ONE),
         // centre(1,2) => origin (0.5,1.5)
         height: 100,
         width: 100,
