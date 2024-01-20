@@ -1,13 +1,15 @@
 // List subcommand
 // (c) 2024 Ross Younger
-use crate::render;
+use crate::{fractal, render};
 
-#[derive(Debug, clap:: Subcommand)]
+#[derive(Debug, clap::Subcommand)]
 enum ListableThings {
     /// Lists all available renderers
+    #[clap(alias = "r")]
     Renderers,
-    /// Lists available wombats
-    Wombats,
+    /// Lists available fractal algorithms
+    #[clap(alias = "f")]
+    Fractals,
 }
 
 /// Arguments to 'list'
@@ -26,13 +28,7 @@ pub struct Args {
 pub fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => render::list(args.machine_parseable),
-        ListableThings::Wombats => {
-            if args.machine_parseable {
-                println!("[\"fred\",\"barney\"]");
-            } else {
-                println!("wombats!");
-            };
-        }
+        ListableThings::Fractals => fractal::list(args.machine_parseable),
     }
     Ok(())
 }
