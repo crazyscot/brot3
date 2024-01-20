@@ -1,6 +1,6 @@
 // (c) 2024 Ross Younger
 
-use super::{Point, PointData, TileSpec};
+use super::{Algorithm, Point, PointData, SelectionF, TileSpec};
 use array2d::Array2D;
 use std::fmt;
 
@@ -15,12 +15,14 @@ pub struct Tile {
     pub max_iter_plotted: u32,
     /// Specification of this plot
     pub spec: TileSpec,
+    /// The algorithm to use
+    algorithm: SelectionF,
 }
 
 impl Tile {
     /// Standard constructor. Also initialises the data for this tile.
     #[must_use]
-    pub fn new(spec: &TileSpec, debug: u8) -> Self {
+    pub fn new(spec: &TileSpec, fractal: &SelectionF, debug: u8) -> Self {
         let mut new1 = Self {
             debug,
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
@@ -31,6 +33,7 @@ impl Tile {
             ),
             max_iter_plotted: 0,
             spec: *spec,
+            algorithm: *fractal,
         };
         new1.prepare();
         new1
@@ -54,7 +57,7 @@ impl Tile {
                 // The first iteration is easy
                 point.value = point.origin;
                 point.iter = 1;
-                crate::fractal::mandelbrot_prepare(point);
+                self.algorithm.prepare(point);
                 real += step.re;
             }
             imag += step.im;
@@ -68,7 +71,7 @@ impl Tile {
             for x in 0..self.spec.width as usize {
                 let point = &mut self.point_data[(y, x)];
                 if point.result.is_none() {
-                    crate::fractal::mandelbrot_pixel(point, max_iter);
+                    self.algorithm.pixel(point, max_iter);
                 }
             }
         }

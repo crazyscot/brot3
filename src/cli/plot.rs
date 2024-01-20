@@ -1,8 +1,8 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
-use crate::fractal::{Location, PlotSpec, Point, Scalar, Size, Tile, TileSpec};
-use crate::render::{self, Renderer, SelectionDiscriminants};
+use crate::fractal::{self, Location, PlotSpec, Point, Scalar, Size, Tile, TileSpec};
+use crate::render::{self, Renderer};
 
 use anyhow::ensure;
 
@@ -16,7 +16,10 @@ pub struct Args {
     #[arg(short = 'o', long = "output", value_name = "FILENAME")]
     pub output_filename: String,
 
-    // TODO: fractal: Option<String>, - defaulted
+    /// The fractal algorithm to use
+    #[arg(short = 'f', long, value_name = "NAME", default_value = "original")]
+    pub fractal: fractal::SelectionFDiscriminants,
+
     /// Rendering type
     #[arg(short, long, value_name = "NAME", default_value = "png")]
     pub renderer: render::SelectionRDiscriminants,
@@ -106,7 +109,8 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         println!("Computed plot data: {pd:#?}");
     }
 
-    let mut t = Tile::new(&pd, debug);
+    let algorithm = fractal::factory(args.fractal);
+    let mut t = Tile::new(&pd, &algorithm, debug);
     t.plot(args.max_iter);
 
     render::factory(args.renderer, &args.output_filename).render(&t)
