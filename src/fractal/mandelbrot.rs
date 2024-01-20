@@ -34,3 +34,28 @@ impl Algorithm for Original {
         point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / SCALAR_LN_2);
     }
 }
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Mandel3 {}
+
+impl Algorithm for Mandel3 {
+    fn prepare(&self, _point: &mut PointData) {} // TODO prepare folds into here?
+
+    #[doc = r" The iteration function"]
+    fn iterate(&self, point: &mut PointData) {
+        point.value = point.value * point.value * point.value + point.origin;
+        point.iter += 1;
+    }
+
+    #[doc = r"Finalises the point data once a pixel has escaped"]
+    fn finish(&self, point: &mut PointData) {
+        const THREE: f64 = 3.0;
+        let ln3: Scalar = THREE.ln(); // this should be a compile-time const
+
+        // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
+        // A couple of extra iterations helps decrease the size of the error term
+        self.iterate(point);
+        self.iterate(point);
+        point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / ln3);
+    }
+}

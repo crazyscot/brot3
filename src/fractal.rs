@@ -13,7 +13,7 @@ pub use tilespec::TileSpec;
 pub use userplotspec::{Location, PlotSpec, Size};
 
 use enum_dispatch::enum_dispatch;
-use mandelbrot::Original;
+use mandelbrot::{Mandel3, Original};
 use num_complex::Complex;
 use strum::{EnumMessage, IntoEnumIterator};
 use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
@@ -32,9 +32,12 @@ pub type Point = Complex<Scalar>;
 #[derive(EnumDiscriminants)] // This creates the enum AlgorithmEnumDiscriminants ...
 #[strum_discriminants(derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
 pub enum SelectionF {
-    /// The original Mandelbrot set (aliases: "m", "m2")
+    /// The original Mandelbrot set, z := z^2+c (aliases: "m", "m2")
     #[strum_discriminants(value(alias = "m", alias = "m2"))]
     Original,
+    /// Mandelbrot^3 z:=z^3+c (alias: "m3")
+    #[strum_discriminants(value(alias = "m3"))]
+    Mandel3,
 }
 
 const ESCAPE_THRESHOLD: Scalar = 4.0;
@@ -98,6 +101,7 @@ pub fn list(machine_parseable: bool) {
 pub fn factory(selection: SelectionFDiscriminants) -> SelectionF {
     match selection {
         SelectionFDiscriminants::Original => SelectionF::Original(mandelbrot::Original {}),
+        SelectionFDiscriminants::Mandel3 => SelectionF::Mandel3(mandelbrot::Mandel3 {}),
     }
 }
 
