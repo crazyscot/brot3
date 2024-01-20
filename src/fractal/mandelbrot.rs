@@ -1,7 +1,31 @@
 // Mandelbrot set implementation
 // (c) 2024 Ross Younger
 
-use super::{PointData, Scalar, SCALAR_LN_2};
+use super::{Algorithm, PointData, Scalar, SCALAR_LN_2};
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Original {}
+
+impl Algorithm for Original {
+    #[doc = r" Prepares the ``PointData`` to iterate"]
+    fn prepare(&self, point: &mut PointData) {
+        mandelbrot_prepare(point);
+    }
+
+    #[doc = r" The iteration function"]
+    fn iterate(&self, point: &mut PointData) {
+        mandelbrot_iterate(point);
+    }
+
+    #[doc = r"Finalises the point data once a pixel has escaped"]
+    fn finish(&self, point: &mut PointData) {
+        // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
+        // A couple of extra iterations helps decrease the size of the error term
+        self.iterate(point);
+        self.iterate(point);
+        point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / SCALAR_LN_2);
+    }
+}
 
 /// Prepares the ``PointData`` to iterate
 #[allow(clippy::module_name_repetitions)]
