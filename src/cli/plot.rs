@@ -19,7 +19,7 @@ pub struct Args {
     // TODO: fractal: Option<String>, - defaulted
     /// Rendering type
     #[arg(short, long, value_name = "NAME", default_value = "png")]
-    pub renderer: SelectionDiscriminants,
+    pub renderer: render::SelectionRDiscriminants,
 
     /// The origin (bottom-left) point of the plot, e.g. -3-3i. Conflicts with --centre.
     #[arg(

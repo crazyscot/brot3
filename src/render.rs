@@ -3,7 +3,7 @@
 mod ascii;
 mod png;
 
-use super::fractal::Tile;
+use crate::fractal::Tile;
 
 use anyhow;
 use enum_dispatch::enum_dispatch;
@@ -21,7 +21,7 @@ use self::png::Png;
 #[derive(EnumDiscriminants)] // This creates the enum RenderBehaviourEnumDiscriminants ...
 #[strum_discriminants(derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
 /// Selector for available Renderers
-pub enum Selection {
+pub enum SelectionR {
     /// Comma Separated Values, one line per line of plot
     Csv,
     /// Good old ASCII art (can be abbreviated to "aa")
@@ -34,7 +34,7 @@ pub enum Selection {
 /// A Renderer accepts ``PointData`` and deals with it completely.
 /// This is distinct from a Palette, which accepts ``PointData`` and returns colour data.
 /// The trait knows nothing about output or buffering; the implementation is responsible for setting that up.
-#[enum_dispatch(Selection)]
+#[enum_dispatch(SelectionR)]
 pub trait Renderer {
     /// Renders fractal data and sends it to its output
     fn render(&self, data: &Tile) -> anyhow::Result<()>;
@@ -43,7 +43,7 @@ pub trait Renderer {
 /// Lists all available renderers
 #[must_use]
 pub fn list_vec() -> Vec<String> {
-    Selection::iter().map(|a| a.to_string()).collect()
+    SelectionR::iter().map(|a| a.to_string()).collect()
 }
 
 /// Implementation of 'list renderers'
@@ -54,12 +54,12 @@ pub fn list(machine_parseable: bool) {
     }
 
     println!("Available renderers:");
-    let longest = Selection::iter()
+    let longest = SelectionR::iter()
         .map(|r| r.to_string().len())
         .max()
         .unwrap_or(1);
 
-    let _ = Selection::iter()
+    let _ = SelectionR::iter()
         .map(|r| {
             println!(
                 "  {:width$}  {}",
@@ -73,11 +73,11 @@ pub fn list(machine_parseable: bool) {
 
 /// Factory method for renderers
 #[must_use]
-pub fn factory(selection: SelectionDiscriminants, filename: &str) -> Selection {
+pub fn factory(selection: SelectionRDiscriminants, filename: &str) -> SelectionR {
     match selection {
-        SelectionDiscriminants::Csv => Selection::Csv(ascii::Csv::new(filename)),
-        SelectionDiscriminants::AsciiArt => Selection::AsciiArt(ascii::AsciiArt::new(filename)),
-        SelectionDiscriminants::Png => Selection::Png(png::Png::new(filename)),
+        SelectionRDiscriminants::Csv => SelectionR::Csv(ascii::Csv::new(filename)),
+        SelectionRDiscriminants::AsciiArt => SelectionR::AsciiArt(ascii::AsciiArt::new(filename)),
+        SelectionRDiscriminants::Png => SelectionR::Png(png::Png::new(filename)),
     }
 }
 
