@@ -46,8 +46,13 @@ const ESCAPE_THRESHOLD: Scalar = 4.0;
 /// This knows nothing about colouring, only maths on the complex plane.
 #[enum_dispatch(SelectionF)]
 pub trait Algorithm {
-    /// Prepares the ``PointData`` to iterate
-    fn prepare(&self, point: &mut PointData);
+    /// Algorithm-specific data preparation before we iterate for the first time
+    fn prepare(&self, point: &mut PointData) {
+        // This default is a reasonable optimisation for many fractals but may not be appropriate for all.
+        // Some fractals may use this default and add additional tasks.
+        point.value = point.origin;
+        point.iter = 1;
+    }
     /// The iteration function
     fn iterate(&self, point: &mut PointData);
     /// Runs the iteration for a single point, up to a given limit.

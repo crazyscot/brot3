@@ -54,9 +54,6 @@ impl Tile {
                 // curveball: origin is bottom left of the plot, but we want to output the top row first.
                 let point = &mut self.point_data[(real_y, x)];
                 point.origin = Point { re: real, im: imag };
-                // The first iteration is easy
-                point.value = point.origin;
-                point.iter = 1;
                 self.algorithm.prepare(point);
                 real += step.re;
             }

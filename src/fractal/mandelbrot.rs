@@ -9,6 +9,9 @@ pub struct Original {}
 impl Algorithm for Original {
     #[doc = r" Prepares the ``PointData`` to iterate"]
     fn prepare(&self, point: &mut PointData) {
+        // The first iteration is easy
+        point.value = point.origin;
+        point.iter = 1;
         // Cardioid and period-2 bulb checks
         let c1 = point.origin.re - 0.25;
         let y2 = point.origin.im * point.origin.im;
@@ -39,7 +42,7 @@ impl Algorithm for Original {
 pub struct Mandel3 {}
 
 impl Algorithm for Mandel3 {
-    fn prepare(&self, _point: &mut PointData) {} // TODO prepare folds into here?
+    // Default prepare
 
     #[doc = r" The iteration function"]
     fn iterate(&self, point: &mut PointData) {
