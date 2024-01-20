@@ -32,7 +32,7 @@ pub type Point = Complex<Scalar>;
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum AlgorithmEnumDiscriminants ...
 #[strum_discriminants(derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
-pub enum Selection {
+pub enum SelectionF {
     /// The original Mandelbrot set (aliases: "m", "m2")
     #[strum_discriminants(value(alias = "m", alias = "m2"))]
     Original,
@@ -42,7 +42,7 @@ const ESCAPE_THRESHOLD: Scalar = 4.0;
 
 /// A fractal algorithm
 /// This knows nothing about colouring, only maths on the complex plane.
-#[enum_dispatch(Algorithm)]
+#[enum_dispatch(SelectionF)]
 pub trait Algorithm {
     /// Prepares the ``PointData`` to iterate
     fn prepare(&self, point: &mut PointData);
@@ -66,7 +66,7 @@ pub trait Algorithm {
 /// Lists all available renderers
 #[must_use]
 pub fn list_vec() -> Vec<String> {
-    Selection::iter().map(|a| a.to_string()).collect()
+    SelectionF::iter().map(|a| a.to_string()).collect()
 }
 
 /// Implementation of 'list fractals'
@@ -77,12 +77,12 @@ pub fn list(machine_parseable: bool) {
     }
 
     println!("Available fractals:");
-    let longest = Selection::iter()
+    let longest = SelectionF::iter()
         .map(|r| r.to_string().len())
         .max()
         .unwrap_or(1);
 
-    let _ = Selection::iter()
+    let _ = SelectionF::iter()
         .map(|r| {
             println!(
                 "  {:width$}  {}",
@@ -96,9 +96,9 @@ pub fn list(machine_parseable: bool) {
 
 /// Factory method for fractals
 #[must_use]
-pub fn factory(selection: SelectionDiscriminants) -> Selection {
+pub fn factory(selection: SelectionFDiscriminants) -> SelectionF {
     match selection {
-        SelectionDiscriminants::Original => Selection::Original(mandelbrot::Original {}),
+        SelectionFDiscriminants::Original => SelectionF::Original(mandelbrot::Original {}),
     }
 }
 
