@@ -1,5 +1,5 @@
-use brot3::fractal::{mandelbrot_pixel, mandelbrot_prepare, Point, PointData, Tile, TileSpec};
-use brot3::render::{self, Renderer, SelectionDiscriminants};
+use brot3::fractal::{self, Algorithm, Point, PointData, SelectionFDiscriminants, Tile, TileSpec};
+use brot3::render::{self, Renderer, SelectionRDiscriminants};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
@@ -8,10 +8,11 @@ const TEST_POINT: Point = Point::new(-0.158_653_6, 1.034_804);
 
 fn pixel(c: &mut Criterion) {
     let template = PointData::new(TEST_POINT);
+    let alg = fractal::factory(SelectionFDiscriminants::Original);
     c.bench_function("mandelbrot_pixel", |b| {
         let mut point = template;
-        mandelbrot_prepare(&mut point);
-        b.iter(|| mandelbrot_pixel(&mut point, black_box(512)))
+        alg.prepare(&mut point);
+        b.iter(|| alg.pixel(black_box(&mut point), black_box(512)))
     });
 }
 
@@ -24,7 +25,8 @@ const TEST_TILE_SPEC: TileSpec = TileSpec {
 
 fn tile(c: &mut Criterion) {
     c.bench_function("mandelbrot_tile", |b| {
-        let mut tile = Tile::new(&TEST_TILE_SPEC, 0);
+        let alg = fractal::factory(SelectionFDiscriminants::Original);
+        let mut tile = Tile::new(&TEST_TILE_SPEC, &alg, 0);
         b.iter(|| {
             tile.plot(black_box(512));
         });
@@ -52,9 +54,10 @@ fn colour_pixel(c: &mut Criterion) {
 
 fn colour_tile(c: &mut Criterion) {
     c.bench_function("colour_tile_mandy", |b| {
-        let mut tile = Tile::new(&PALETTE_TILE_SPEC, 0);
+        let alg = fractal::factory(SelectionFDiscriminants::Original);
+        let mut tile = Tile::new(&PALETTE_TILE_SPEC, &alg, 0);
         tile.plot(384);
-        let png = render::factory(SelectionDiscriminants::Png, "/dev/null");
+        let png = render::factory(SelectionRDiscriminants::Png, "/dev/null");
         b.iter(|| png.render(black_box(&tile)));
     });
 }

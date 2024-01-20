@@ -7,7 +7,6 @@ mod tile;
 mod tilespec;
 mod userplotspec;
 
-pub use mandelbrot::{mandelbrot_iterate, mandelbrot_pixel, mandelbrot_prepare}; // TEMP
 pub use pointdata::PointData;
 pub use tile::Tile;
 pub use tilespec::TileSpec;
