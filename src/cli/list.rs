@@ -1,6 +1,6 @@
 // List subcommand
 // (c) 2024 Ross Younger
-use crate::{fractal, render};
+use crate::{fractal::SelectionF, render::SelectionR, util::listable};
 
 #[derive(Debug, clap::Subcommand)]
 enum ListableThings {
@@ -27,8 +27,8 @@ pub struct Args {
 /// Implementation of 'list'
 pub fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
-        ListableThings::Renderers => render::list(args.machine_parseable),
-        ListableThings::Fractals => fractal::list(args.machine_parseable),
+        ListableThings::Renderers => listable::list::<SelectionR>(args.machine_parseable),
+        ListableThings::Fractals => listable::list::<SelectionF>(args.machine_parseable),
     }
     Ok(())
 }

@@ -15,7 +15,6 @@ pub use userplotspec::{Location, PlotSpec, Size};
 use enum_dispatch::enum_dispatch;
 use mandelbrot::{Mandel3, Original};
 use num_complex::Complex;
-use strum::{EnumMessage, IntoEnumIterator};
 use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
 
 /// One dimension of a fractal
@@ -72,37 +71,6 @@ pub trait Algorithm {
     fn finish(&self, point: &mut PointData);
 }
 
-/// Lists all available renderers
-#[must_use]
-pub fn list_vec() -> Vec<String> {
-    SelectionF::iter().map(|a| a.to_string()).collect()
-}
-
-/// Implementation of 'list fractals'
-pub fn list(machine_parseable: bool) {
-    if machine_parseable {
-        println!("{:?}", list_vec());
-        return;
-    }
-
-    println!("Available fractals:");
-    let longest = SelectionF::iter()
-        .map(|r| r.to_string().len())
-        .max()
-        .unwrap_or(1);
-
-    let _ = SelectionF::iter()
-        .map(|r| {
-            println!(
-                "  {:width$}  {}",
-                r.to_string(),
-                r.get_documentation().unwrap_or_default(),
-                width = longest
-            );
-        })
-        .collect::<Vec<_>>();
-}
-
 /// Factory method for fractals
 #[must_use]
 pub fn factory(selection: SelectionFDiscriminants) -> SelectionF {
@@ -114,10 +82,11 @@ pub fn factory(selection: SelectionFDiscriminants) -> SelectionF {
 
 #[cfg(test)]
 mod tests {
-    use super::list_vec;
+    use super::SelectionF;
+    use crate::util::listable::list_vec;
 
     #[test]
     fn renderers_list() {
-        assert_ne!(list_vec().len(), 0);
+        assert_ne!(list_vec::<SelectionF>().len(), 0);
     }
 }

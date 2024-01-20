@@ -7,7 +7,6 @@ use crate::fractal::Tile;
 
 use anyhow;
 use enum_dispatch::enum_dispatch;
-use strum::{EnumMessage, IntoEnumIterator};
 use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
 
 pub use png::colour_temp;
@@ -40,37 +39,6 @@ pub trait Renderer {
     fn render(&self, data: &Tile) -> anyhow::Result<()>;
 }
 
-/// Lists all available renderers
-#[must_use]
-pub fn list_vec() -> Vec<String> {
-    SelectionR::iter().map(|a| a.to_string()).collect()
-}
-
-/// Implementation of 'list renderers'
-pub fn list(machine_parseable: bool) {
-    if machine_parseable {
-        println!("{:?}", list_vec());
-        return;
-    }
-
-    println!("Available renderers:");
-    let longest = SelectionR::iter()
-        .map(|r| r.to_string().len())
-        .max()
-        .unwrap_or(1);
-
-    let _ = SelectionR::iter()
-        .map(|r| {
-            println!(
-                "  {:width$}  {}",
-                r.to_string(),
-                r.get_documentation().unwrap_or_default(),
-                width = longest
-            );
-        })
-        .collect::<Vec<_>>();
-}
-
 /// Factory method for renderers
 #[must_use]
 pub fn factory(selection: SelectionRDiscriminants, filename: &str) -> SelectionR {
@@ -83,10 +51,11 @@ pub fn factory(selection: SelectionRDiscriminants, filename: &str) -> SelectionR
 
 #[cfg(test)]
 mod tests {
-    use super::list_vec;
+    use super::SelectionR;
+    use crate::util::listable::list_vec;
 
     #[test]
     fn renderers_list() {
-        assert_ne!(list_vec().len(), 0);
+        assert_ne!(list_vec::<SelectionR>().len(), 0);
     }
 }
