@@ -6,36 +6,44 @@ mod png;
 use super::fractal::Tile;
 
 use anyhow;
+use enum_dispatch::enum_dispatch;
 use strum::{EnumMessage, IntoEnumIterator};
-use strum_macros::{Display, EnumIter, EnumMessage, EnumString};
+use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
 
 pub use png::colour_temp;
 
-/// A Renderer accepts ``PointData`` and deals with it completely.
-/// This is distinct from a Palette, which accepts ``PointData`` and returns colour data.
-/// The trait knows nothing about output or buffering; the implementation is responsible for setting that up.
-pub trait Renderer {
-    /// Renders fractal data and sends it to its output
-    fn render(&self, data: &Tile) -> anyhow::Result<()>;
-}
+use self::ascii::{AsciiArt, Csv};
+use self::png::Png;
 
-/// Selector for available Renderers
-#[derive(clap::ValueEnum, Clone, Copy, Debug, Display, EnumIter, EnumString, EnumMessage)]
+#[enum_dispatch]
+#[derive(Clone, Debug, Display, EnumIter, EnumMessage)]
 #[strum(serialize_all = "kebab_case")]
-pub enum WhichRenderer {
+#[derive(EnumDiscriminants)] // This creates the enum RenderBehaviourEnumDiscriminants ...
+#[strum_discriminants(derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
+/// Selector for available Renderers
+pub enum Selection {
     /// Comma Separated Values, one line per line of plot
     Csv,
-    /// Good old ASCII art
-    #[value(alias = "aa")]
+    /// Good old ASCII art (can be abbreviated to "aa")
+    #[strum_discriminants(value(alias = "aa"))]
     AsciiArt,
     /// Portable Network Graphics file
     Png,
 }
 
+/// A Renderer accepts ``PointData`` and deals with it completely.
+/// This is distinct from a Palette, which accepts ``PointData`` and returns colour data.
+/// The trait knows nothing about output or buffering; the implementation is responsible for setting that up.
+#[enum_dispatch(Selection)]
+pub trait Renderer {
+    /// Renders fractal data and sends it to its output
+    fn render(&self, data: &Tile) -> anyhow::Result<()>;
+}
+
 /// Lists all available renderers
 #[must_use]
 pub fn list_vec() -> Vec<String> {
-    WhichRenderer::iter().map(|a| a.to_string()).collect()
+    Selection::iter().map(|a| a.to_string()).collect()
 }
 
 /// Implementation of 'list renderers'
@@ -46,12 +54,12 @@ pub fn list(machine_parseable: bool) {
     }
 
     println!("Available renderers:");
-    let longest = WhichRenderer::iter()
+    let longest = Selection::iter()
         .map(|r| r.to_string().len())
         .max()
         .unwrap_or(1);
 
-    let _ = WhichRenderer::iter()
+    let _ = Selection::iter()
         .map(|r| {
             println!(
                 "  {:width$}  {}",
@@ -65,11 +73,11 @@ pub fn list(machine_parseable: bool) {
 
 /// Factory method for renderers
 #[must_use]
-pub fn factory(selection: WhichRenderer, filename: &str) -> Box<dyn Renderer> {
+pub fn factory(selection: SelectionDiscriminants, filename: &str) -> Selection {
     match selection {
-        WhichRenderer::AsciiArt => Box::new(ascii::AsciiArt::new(filename)),
-        WhichRenderer::Csv => Box::new(ascii::Csv::new(filename)),
-        WhichRenderer::Png => Box::new(png::Png::new(filename)),
+        SelectionDiscriminants::Csv => Selection::Csv(ascii::Csv::new(filename)),
+        SelectionDiscriminants::AsciiArt => Selection::AsciiArt(ascii::AsciiArt::new(filename)),
+        SelectionDiscriminants::Png => Selection::Png(png::Png::new(filename)),
     }
 }
 

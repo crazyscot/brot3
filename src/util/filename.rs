@@ -8,7 +8,7 @@ use std::path::Path;
 use anyhow::Context;
 
 /// Holds a filename and provides utility methods for that name
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Filename {
     filename: String,
 }
@@ -32,6 +32,14 @@ impl Filename {
             let file = File::create(path).with_context(|| "Could not open output file")?;
             let bw = Box::new(BufWriter::new(file));
             Ok(bw)
+        }
+    }
+}
+
+impl Default for Filename {
+    fn default() -> Self {
+        Self {
+            filename: String::from("-"),
         }
     }
 }

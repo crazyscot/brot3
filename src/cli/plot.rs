@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use crate::fractal::{Point, Scalar, Tile, TileSpec, UserPlotLocation, UserPlotSize, UserPlotSpec};
-use crate::render::{self, WhichRenderer};
+use crate::render::{self, Renderer, SelectionDiscriminants};
 
 use anyhow::ensure;
 
@@ -19,7 +19,7 @@ pub struct Args {
     // TODO: fractal: Option<String>, - defaulted
     /// Rendering type
     #[arg(short, long, value_name = "NAME", default_value = "png")]
-    pub renderer: WhichRenderer,
+    pub renderer: SelectionDiscriminants,
 
     /// The origin (bottom-left) point of the plot, e.g. -3-3i. Conflicts with --centre.
     #[arg(
@@ -109,8 +109,8 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let mut t = Tile::new(&pd, debug);
     t.prepare();
     t.plot(args.max_iter);
-    let r = render::factory(args.renderer, &args.output_filename);
-    r.render(&t)
+
+    render::factory(args.renderer, &args.output_filename).render(&t)
 }
 
 #[cfg(test)]

@@ -8,7 +8,8 @@ use crate::util::filename::Filename;
 use anyhow::{Context, Result};
 use std::io::BufWriter;
 
-pub(crate) struct Png {
+#[derive(Clone, Debug, Default)]
+pub struct Png {
     filename: Filename,
 }
 
