@@ -47,6 +47,7 @@ const ESCAPE_THRESHOLD: Scalar = 4.0;
 #[enum_dispatch(SelectionF)]
 pub trait Algorithm {
     /// Algorithm-specific data preparation before we iterate for the first time
+    #[inline]
     fn prepare(&self, point: &mut PointData) {
         // This default is a reasonable optimisation for many fractals but may not be appropriate for all.
         // Some fractals may use this default and add additional tasks.
@@ -57,6 +58,7 @@ pub trait Algorithm {
     fn iterate(&self, point: &mut PointData);
     /// Runs the iteration for a single point, up to a given limit.
     /// The default implementation is expected to suit most algorithms.
+    #[inline]
     fn pixel(&self, point: &mut PointData, max_iter: u32) {
         for _ in point.iter..max_iter {
             self.iterate(point);

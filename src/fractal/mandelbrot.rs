@@ -23,6 +23,7 @@ impl Algorithm for Original {
     }
 
     #[doc = r" The iteration function"]
+    #[inline]
     fn iterate(&self, point: &mut PointData) {
         point.value = point.value * point.value + point.origin;
         point.iter += 1;
@@ -45,6 +46,7 @@ impl Algorithm for Mandel3 {
     // Default prepare
 
     #[doc = r" The iteration function"]
+    #[inline]
     fn iterate(&self, point: &mut PointData) {
         point.value = point.value * point.value * point.value + point.origin;
         point.iter += 1;

@@ -75,6 +75,7 @@ type Rgba = [u8; 4];
 /// temporary colouring function
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 #[must_use]
+#[inline]
 pub fn colour_temp(iters: f64) -> Rgba {
     // This is the colourer from mandy, impl here because it's quick.
     // inf -> black, that's all good with us.
