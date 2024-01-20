@@ -7,7 +7,8 @@ use crate::util::filename::Filename;
 use anyhow::Result;
 
 /// CSV format, fractal points
-pub(crate) struct Csv {
+#[derive(Clone, Debug, Default)]
+pub struct Csv {
     filename: Filename,
 }
 
@@ -29,7 +30,9 @@ impl Renderer for Csv {
 }
 
 /// Rough and ready ASCII art renderer
-pub(crate) struct AsciiArt {
+#[derive(Clone, Debug, Default)]
+#[allow(clippy::module_name_repetitions)]
+pub struct AsciiArt {
     filename: Filename,
 }
 

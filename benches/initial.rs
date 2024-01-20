@@ -1,5 +1,5 @@
 use brot3::fractal::{mandelbrot_pixel, mandelbrot_prepare, Point, PointData, Tile, TileSpec};
-use brot3::render;
+use brot3::render::{self, Renderer, SelectionDiscriminants};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
@@ -56,7 +56,7 @@ fn colour_tile(c: &mut Criterion) {
         let mut tile = Tile::new(&PALETTE_TILE_SPEC, 0);
         tile.prepare();
         tile.plot(384);
-        let png = render::factory(render::WhichRenderer::Png, "/dev/null");
+        let png = render::factory(SelectionDiscriminants::Png, "/dev/null");
         b.iter(|| png.render(black_box(&tile)));
     });
 }
