@@ -14,7 +14,7 @@ pub use mandelbrot::{mandelbrot_iterate, mandelbrot_pixel, mandelbrot_prepare}; 
 pub use pointdata::PointData;
 pub use tile::Tile;
 pub use tilespec::TileSpec;
-pub use userplotspec::{UserPlotLocation, UserPlotSize, UserPlotSpec};
+pub use userplotspec::{PlotSpec, UserPlotLocation, UserPlotSize};
 
 /// One dimension of a fractal
 pub type Scalar = f64;

@@ -1,7 +1,7 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
-use crate::fractal::{Point, Scalar, Tile, TileSpec, UserPlotLocation, UserPlotSize, UserPlotSpec};
+use crate::fractal::{PlotSpec, Point, Scalar, Tile, TileSpec, UserPlotLocation, UserPlotSize};
 use crate::render::{self, Renderer, SelectionDiscriminants};
 
 use anyhow::ensure;
@@ -77,7 +77,7 @@ fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
 /// Implementation of 'plot'
 pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     // Single tile, single thread for now
-    let user_plot_data = UserPlotSpec {
+    let user_plot_data = PlotSpec {
         location: {
             if let Some(o) = args.origin {
                 UserPlotLocation::Origin(o)

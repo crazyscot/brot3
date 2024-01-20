@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use super::userplotspec::{UserPlotLocation, UserPlotSize};
-use super::{Point, Scalar, UserPlotSpec};
+use super::{PlotSpec, Point, Scalar};
 
 use std::fmt::{self, Display, Formatter};
 
@@ -34,8 +34,8 @@ impl TileSpec {
 
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
-impl From<&UserPlotSpec> for TileSpec {
-    fn from(upd: &UserPlotSpec) -> Self {
+impl From<&PlotSpec> for TileSpec {
+    fn from(upd: &PlotSpec) -> Self {
         // Must compute axes first as origin may depend on them
         let axes: Point = match upd.axes {
             UserPlotSize::AxesLength(l) => l,
@@ -71,7 +71,7 @@ impl Display for TileSpec {
 mod tests {
     use crate::fractal::{
         userplotspec::{UserPlotLocation, UserPlotSize},
-        Point, TileSpec, UserPlotSpec,
+        PlotSpec, Point, TileSpec,
     };
     use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
 
@@ -80,20 +80,20 @@ mod tests {
     const ONETWO: Point = Point { re: 1.0, im: 2.0 };
     const CENTI: Point = Point { re: 0.01, im: 0.01 };
 
-    const TD_ORIGIN_AXES: UserPlotSpec = UserPlotSpec {
+    const TD_ORIGIN_AXES: PlotSpec = PlotSpec {
         location: UserPlotLocation::Origin(ZERO),
         axes: UserPlotSize::AxesLength(ONE),
         height: 100,
         width: 100,
     };
-    const TD_ORIGIN_PIXELS: UserPlotSpec = UserPlotSpec {
+    const TD_ORIGIN_PIXELS: PlotSpec = PlotSpec {
         location: UserPlotLocation::Origin(ZERO),
         axes: UserPlotSize::PixelSize(CENTI),
         height: 100,
         width: 100,
         // this has the property that {width,height} * CENTI = { 1,1 }
     };
-    const TD_ORIGIN_ZOOM: UserPlotSpec = UserPlotSpec {
+    const TD_ORIGIN_ZOOM: PlotSpec = PlotSpec {
         location: UserPlotLocation::Origin(ZERO),
         axes: UserPlotSize::ZoomFactor(1000.0),
         height: 100,
@@ -102,7 +102,7 @@ mod tests {
         // 4.0 default axis * zoom factor 1000 = 0.004 across
         // 200x100 pixels => (0.004,0.002) axes.
     };
-    const TD_CENTRE: UserPlotSpec = UserPlotSpec {
+    const TD_CENTRE: PlotSpec = PlotSpec {
         location: UserPlotLocation::Centre(ONETWO),
         axes: UserPlotSize::AxesLength(ONE),
         // centre(1,2) => origin (0.5,1.5)

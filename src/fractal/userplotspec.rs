@@ -26,7 +26,7 @@ pub enum UserPlotSize {
 
 /// User-friendly way to specify a plot
 #[derive(Debug, Clone, Copy)]
-pub struct UserPlotSpec {
+pub struct PlotSpec {
     /// Location of the plot
     pub location: UserPlotLocation,
     /// Size of the plot
@@ -37,7 +37,7 @@ pub struct UserPlotSpec {
     pub width: u32,
 }
 
-impl UserPlotSpec {
+impl PlotSpec {
     /// Calculates the aspect ratio of the plot
     #[must_use]
     pub fn aspect_ratio(&self) -> f64 {
