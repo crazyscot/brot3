@@ -1,34 +1,30 @@
 use brot3::fractal::{self, Algorithm, Point, PointData, SelectionFDiscriminants, Tile, TileSpec};
 use brot3::render::{self, Renderer, SelectionRDiscriminants};
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
 
 /// A point (found by experiment) that's in the set but not in the special-case cut-off regions
 const TEST_POINT_M2: Point = Point::new(-0.158_653_6, 1.034_804);
 const TEST_POINT_M3: Point = Point::new(-0.573_133_7, 0.569_299_8);
 
-// TODO: We should be able to macrify or otherwise de-duplicate this across the algorithms. Perhaps a table of (algorithm, point).
-fn pixels(c: &mut Criterion) {
+fn iteration(c: &mut Criterion) {
     let mut group = c.benchmark_group("fractals");
-
-    {
-        let template = PointData::new(TEST_POINT_M2);
-        let alg = fractal::factory(SelectionFDiscriminants::Original);
-        group.bench_function("mandelbrot_pixel", |b| {
-            let mut point = template;
-            alg.prepare(&mut point);
-            b.iter(|| alg.pixel(black_box(&mut point), black_box(512)))
+    let mut alg = |alg, point: Point| {
+        let fractal = fractal::factory(alg);
+        group.bench_function(format!("iter_{alg:?}"), |b| {
+            b.iter_batched_ref(
+                || {
+                    let mut pd = PointData::new(point);
+                    fractal.prepare(&mut pd);
+                    pd
+                },
+                |pd| fractal.iterate(pd),
+                BatchSize::SmallInput,
+            );
         });
-    }
-    {
-        let template = PointData::new(TEST_POINT_M3);
-        let alg = fractal::factory(SelectionFDiscriminants::Mandel3);
-        group.bench_function("mandelbrot3_pixel", |b| {
-            let mut point = template;
-            alg.prepare(&mut point);
-            b.iter(|| alg.pixel(black_box(&mut point), black_box(512)))
-        });
-    }
+    };
+    alg(SelectionFDiscriminants::Original, TEST_POINT_M2);
+    alg(SelectionFDiscriminants::Mandel3, TEST_POINT_M3);
 }
 
 const TEST_TILE_SPEC: TileSpec = TileSpec {
@@ -40,12 +36,15 @@ const TEST_TILE_SPEC: TileSpec = TileSpec {
 
 fn tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
-    group.bench_function("mandelbrot_tile", |b| {
+    group.bench_function("tile_Original", |b| {
         let alg = fractal::factory(SelectionFDiscriminants::Original);
-        let mut tile = Tile::new(&TEST_TILE_SPEC, &alg, 0);
-        b.iter(|| {
-            tile.plot(black_box(512));
-        });
+        b.iter_batched_ref(
+            || Tile::new(&TEST_TILE_SPEC, &alg, 0),
+            |t| {
+                t.plot(black_box(512));
+            },
+            BatchSize::SmallInput,
+        );
     });
 }
 
@@ -83,6 +82,6 @@ fn colour_tile(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, pixels, tile);
+criterion_group!(fractals, iteration, tile);
 criterion_group!(palettes, colour_pixel, colour_tile);
-criterion_main!(benches, palettes);
+criterion_main!(fractals, palettes);
