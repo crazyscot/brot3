@@ -24,7 +24,11 @@ criterion = { version = "0.4", features = ["html_reports"] }
 iai-callgrind = "0.10.0"
 
 [[bench]]
-name = "initial"
+name = "palette"
+harness = false
+
+[[bench]]
+name = "plot"
 harness = false
 
 [[bench]]
