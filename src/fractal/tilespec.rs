@@ -47,14 +47,14 @@ impl TileSpec {
     pub fn new(
         origin: Point,
         axes: Point,
-        height: u32,
-        width: u32,
+        // Width, Height
+        size_in_pixels: (u32, u32),
         algorithm: FractalInstance,
     ) -> TileSpec {
         TileSpec {
             origin,
             axes,
-            size_in_pixels: (width, height),
+            size_in_pixels,
             offset_within_plot: None,
             algorithm,
         }
@@ -65,15 +65,15 @@ impl TileSpec {
         origin: Point,
         axes: Point,
         // Size of this tile (width, height)
-        pixel_size: (u32, u32),
-        // Offset from a larger plot. (width, height)
+        size_in_pixels: (u32, u32),
+        // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
         pixel_offset: Option<(u32, u32)>,
         algorithm: FractalInstance,
     ) -> TileSpec {
         TileSpec {
             origin,
             axes,
-            size_in_pixels: pixel_size,
+            size_in_pixels,
             offset_within_plot: pixel_offset,
             algorithm,
         }

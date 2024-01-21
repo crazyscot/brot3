@@ -30,8 +30,7 @@ fn get_test_tile_spec() -> TileSpec {
     TileSpec::new(
         Point { re: -1.0, im: 0.0 },
         Point { re: 4.0, im: 4.0 },
-        1000,
-        650,
+        (1000, 650),
         fractal::factory(fractal::Selection::Original),
     )
 }
