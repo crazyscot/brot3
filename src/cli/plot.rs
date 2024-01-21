@@ -1,13 +1,10 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
-use crate::fractal::{self, Location, PlotSpec, Point, Scalar, Size, Tile, TileSpec};
+use crate::fractal::{self, Algorithm, Location, PlotSpec, Point, Scalar, Size, Tile, TileSpec};
 use crate::render::{self, Renderer};
 
 use anyhow::ensure;
-
-const DEFAULT_CENTRE: Point = Point { re: -1.0, im: 0.0 };
-const DEFAULT_ZOOM: f64 = 1.0;
 
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
@@ -77,24 +74,33 @@ fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
     Ok(out)
 }
 
+fn check_zoom(input: Scalar) -> anyhow::Result<Scalar> {
+    ensure!(input > 0.0, "Zoom must be positive");
+    Ok(input)
+}
+
 /// Implementation of 'plot'
 pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     // Single tile, single thread for now
+    let algorithm = fractal::factory(args.fractal);
+
     let user_plot_data = PlotSpec {
         location: {
             if let Some(o) = args.origin {
                 Location::Origin(o)
             } else {
-                Location::Centre(args.centre.unwrap_or(DEFAULT_CENTRE))
+                Location::Centre(args.centre.unwrap_or(algorithm.default_centre()))
             }
         },
         axes: {
-            if let Some(axes) = args.axes_length {
-                Size::AxesLength(check_fix_axes(axes)?)
-            } else if let Some(size) = args.pixel_size {
+            if let Some(size) = args.pixel_size {
                 Size::PixelSize(check_fix_axes(size)?)
+            } else if let Some(zoom) = args.zoom {
+                Size::ZoomFactor(check_zoom(zoom)?)
             } else {
-                Size::ZoomFactor(args.zoom.unwrap_or(DEFAULT_ZOOM))
+                Size::AxesLength(check_fix_axes(
+                    args.axes_length.unwrap_or(algorithm.default_axes()),
+                )?)
             }
         },
         height: args.height,
@@ -109,10 +115,8 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         println!("Computed plot data: {pd:#?}");
     }
 
-    let algorithm = fractal::factory(args.fractal);
     let mut t = Tile::new(&pd, &algorithm, debug);
     t.plot(args.max_iter);
-
     render::factory(args.renderer, &args.output_filename).render(&t)
 }
 

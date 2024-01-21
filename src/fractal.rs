@@ -70,6 +70,15 @@ pub trait Algorithm {
     }
     /// Finalises the point data once a pixel has escaped
     fn finish(&self, point: &mut PointData);
+
+    /// The default plot origin for this fractal
+    fn default_centre(&self) -> Point {
+        Point { re: 0.0, im: 0.0 }
+    }
+    /// The default plot axes for this fractal
+    fn default_axes(&self) -> Point {
+        Point { re: 4.0, im: 4.0 }
+    }
 }
 
 /// Factory method for fractals

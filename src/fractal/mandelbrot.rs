@@ -1,7 +1,7 @@
 // Mandelbrot set implementation
 // (c) 2024 Ross Younger
 
-use super::{Algorithm, PointData, Scalar, SCALAR_LN_2};
+use super::{Algorithm, Point, PointData, Scalar, SCALAR_LN_2};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Original {}
@@ -36,6 +36,13 @@ impl Algorithm for Original {
         self.iterate(point);
         self.iterate(point);
         point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / SCALAR_LN_2);
+    }
+
+    fn default_centre(&self) -> super::Point {
+        Point { re: -1.0, im: 0.0 }
+    }
+    fn default_axes(&self) -> super::Point {
+        Point { re: 4.0, im: 4.0 }
     }
 }
 
