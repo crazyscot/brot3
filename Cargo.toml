@@ -26,3 +26,7 @@ iai-callgrind = "0.10.0"
 [[bench]]
 name = "initial"
 harness = false
+
+[[bench]]
+name = "iai"
+harness = false
