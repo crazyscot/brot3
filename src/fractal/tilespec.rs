@@ -13,10 +13,8 @@ pub struct TileSpec {
     origin: Point,
     /// Plot axes length
     axes: Point,
-    /// Width in pixels
-    width: u32,
-    /// Height in pixels
-    height: u32,
+    /// Plot size in pixels (width,height)
+    pixel_size: (u32, u32),
 
     /// The selected algorithm
     algorithm: FractalInstance,
@@ -29,8 +27,8 @@ impl TileSpec {
     #[must_use]
     pub fn pixel_size(&self) -> Point {
         Point {
-            re: self.axes.re / Scalar::from(self.width),
-            im: self.axes.im / Scalar::from(self.height),
+            re: self.axes.re / Scalar::from(self.width()),
+            im: self.axes.im / Scalar::from(self.height()),
         }
     }
 
@@ -46,8 +44,7 @@ impl TileSpec {
         TileSpec {
             origin,
             axes,
-            width,
-            height,
+            pixel_size: (width, height),
             algorithm,
         }
     }
@@ -65,12 +62,12 @@ impl TileSpec {
     /// Accessor
     #[must_use]
     pub fn height(&self) -> u32 {
-        self.height
+        self.pixel_size.0
     }
     /// Accessor
     #[must_use]
     pub fn width(&self) -> u32 {
-        self.width
+        self.pixel_size.1
     }
     /// Accessor
     #[must_use]
@@ -102,8 +99,7 @@ impl From<&PlotSpec> for TileSpec {
         TileSpec {
             origin,
             axes,
-            height: upd.height,
-            width: upd.width,
+            pixel_size: (upd.width, upd.height),
             algorithm: upd.algorithm,
         }
     }
