@@ -29,8 +29,7 @@ pub type Point = Complex<Scalar>;
 #[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
-#[strum_discriminants(derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
-#[strum_discriminants(name(Selection))]
+#[strum_discriminants(name(Selection), derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
 #[allow(clippy::module_name_repetitions)] // enum_dispatch doesn't support structs with the same name but different paths
 pub enum FractalInstance {
     /// The original Mandelbrot set, z := z^2+c (aliases: "m", "m2")
@@ -77,8 +76,8 @@ pub trait Algorithm {
 #[must_use]
 pub fn factory(selection: Selection) -> FractalInstance {
     match selection {
-        Selection::Original => FractalInstance::Original(mandelbrot::Original {}),
-        Selection::Mandel3 => FractalInstance::Mandel3(mandelbrot::Mandel3 {}),
+        Selection::Original => mandelbrot::Original {}.into(),
+        Selection::Mandel3 => mandelbrot::Mandel3 {}.into(),
     }
 }
 

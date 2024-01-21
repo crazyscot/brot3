@@ -45,8 +45,8 @@ pub trait Renderer {
 pub fn factory(selection: Selection, filename: &str) -> RenderInstance {
     match selection {
         Selection::Csv => ascii::Csv::new(filename).into(),
-        Selection::AsciiArt => RenderInstance::AsciiArt(ascii::AsciiArt::new(filename)),
-        Selection::Png => RenderInstance::Png(png::Png::new(filename)),
+        Selection::AsciiArt => ascii::AsciiArt::new(filename).into(),
+        Selection::Png => png::Png::new(filename).into(),
     }
 }
 
