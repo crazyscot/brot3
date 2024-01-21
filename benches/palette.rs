@@ -4,19 +4,19 @@ use brot3::render::{self, Renderer};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 fn palette_tile_spec() -> TileSpec {
-    TileSpec {
-        origin: Point {
+    TileSpec::new(
+        Point {
             re: -0.0946,
             im: 1.0105,
         },
-        axes: Point {
+        Point {
             re: 0.282,
             im: 0.282,
         },
-        width: 300,
-        height: 300,
-        algorithm: fractal::factory(fractal::Selection::Original),
-    }
+        300,
+        300,
+        fractal::factory(fractal::Selection::Original),
+    )
 }
 
 // TODO: We should be able to macrify this for additional palettes.

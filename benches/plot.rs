@@ -26,19 +26,19 @@ fn iteration(c: &mut Criterion) {
     alg(fractal::Selection::Mandel3, TEST_POINT_M3);
 }
 
-fn test_tile_spec() -> TileSpec {
-    TileSpec {
-        origin: Point { re: -1.0, im: 0.0 },
-        axes: Point { re: 4.0, im: 4.0 },
-        width: 1000,
-        height: 650,
-        algorithm: fractal::factory(fractal::Selection::Original),
-    }
+fn get_test_tile_spec() -> TileSpec {
+    TileSpec::new(
+        Point { re: -1.0, im: 0.0 },
+        Point { re: 4.0, im: 4.0 },
+        1000,
+        650,
+        fractal::factory(fractal::Selection::Original),
+    )
 }
 
 fn tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
-    let spec = test_tile_spec();
+    let spec = get_test_tile_spec();
     group.bench_function("tile_Original", |b| {
         b.iter_batched_ref(
             || Tile::new(&spec, 0),
