@@ -17,6 +17,8 @@ pub struct Tile {
     pub spec: TileSpec,
     /// The algorithm to use
     algorithm: FractalInstance,
+    /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, from the origin
+    offset_within_plot: Option<(u32, u32)>,
 }
 
 impl Tile {
@@ -34,6 +36,7 @@ impl Tile {
             max_iter_plotted: 0,
             spec: *spec,
             algorithm: spec.algorithm(),
+            offset_within_plot: spec.pixel_offset(),
         };
         new1.prepare();
         new1

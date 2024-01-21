@@ -9,17 +9,25 @@ use std::fmt::{self, Display, Formatter};
 /// Machine-facing specification of a tile to plot
 #[derive(Debug, Clone, Copy)]
 pub struct TileSpec {
-    /// Plot origin (bottom-left corner, smallest real/imaginary coefficients)
+    /// Origin of this tile (bottom-left corner, smallest real/imaginary coefficients)
     origin: Point,
-    /// Plot axes length
+    /// Axes length for this tile
     axes: Point,
-    /// Plot size in pixels (width,height)
-    pixel_size: (u32, u32),
-    /// Pixel offset (width, height) into a larger plot - if any
-    pixel_offset: Option<(u32, u32)>,
+    /// Size in pixels of this tile (width,height)
+    size_in_pixels: (u32, u32),
+    /// If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
+    offset_within_plot: Option<(u32, u32)>,
 
     /// The selected algorithm
     algorithm: FractalInstance,
+}
+
+/// Method of splitting a tile
+#[derive(Debug, Clone, Copy)]
+pub enum Split {
+    /// Full-width strips
+    Rows(u32),
+    // TODO Square
 }
 
 /// Canonicalised data about a plot.
@@ -46,27 +54,87 @@ impl TileSpec {
         TileSpec {
             origin,
             axes,
-            pixel_size: (width, height),
-            pixel_offset: None,
+            size_in_pixels: (width, height),
+            offset_within_plot: None,
             algorithm,
         }
     }
     /// Alternate constructor taking an offset
     #[must_use]
-    pub fn new_offset(
+    pub fn new_with_offset(
         origin: Point,
         axes: Point,
-        height: u32,
-        width: u32,
-        offset: Option<(u32, u32)>,
+        // Size of this tile (width, height)
+        pixel_size: (u32, u32),
+        // Offset from a larger plot. (width, height)
+        pixel_offset: Option<(u32, u32)>,
         algorithm: FractalInstance,
     ) -> TileSpec {
         TileSpec {
             origin,
             axes,
-            pixel_size: (width, height),
-            pixel_offset: offset,
+            size_in_pixels: pixel_size,
+            offset_within_plot: pixel_offset,
             algorithm,
+        }
+    }
+
+    /// Splits this tile up into a number of smaller tiles, for parallelisation
+    #[must_use]
+    pub fn split(&self, how: Split) -> Vec<TileSpec> {
+        match how {
+            Split::Rows(row_height) => {
+                let n_whole = (self.height() / row_height) as usize;
+                let maybe_last_height: Option<u32> = match self.height() % row_height {
+                    0 => None,
+                    other => Some(other),
+                };
+
+                // What is fixed about the subtiles?
+                let strip_pixel_size = (self.width(), row_height);
+                let axes = Point {
+                    re: self.axes.re,
+                    im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
+                };
+                // What varies as we go round the loop?
+                let mut working_origin = self.origin;
+                let origin_step = Point {
+                    re: 0.0,
+                    im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
+                };
+                let mut offset: (u32, u32) = (0, 0);
+
+                let mut output = Vec::<TileSpec>::with_capacity(n_whole);
+                for _ in 0..n_whole {
+                    output.push(TileSpec::new_with_offset(
+                        working_origin,
+                        axes,
+                        strip_pixel_size,
+                        Some(offset),
+                        self.algorithm,
+                    ));
+                    working_origin += origin_step;
+                    offset.1 += row_height;
+                }
+                if let Some(last_height) = maybe_last_height {
+                    // There may be a slight imprecision when repeatedly adding small amounts.
+                    // Therefore we recompute the last strip to take what's left of the overall axes.
+                    let last_axes = Point {
+                        re: self.axes.re,
+                        im: self.axes.im + self.origin.im - working_origin.im,
+                    };
+                    output.push(TileSpec::new_with_offset(
+                        working_origin,
+                        last_axes,
+                        (self.width(), last_height),
+                        Some(offset),
+                        self.algorithm,
+                    ));
+                }
+                // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
+                output.reverse();
+                output
+            }
         }
     }
 
@@ -83,17 +151,22 @@ impl TileSpec {
     /// Accessor
     #[must_use]
     pub fn height(&self) -> u32 {
-        self.pixel_size.0
+        self.size_in_pixels.1
     }
     /// Accessor
     #[must_use]
     pub fn width(&self) -> u32 {
-        self.pixel_size.1
+        self.size_in_pixels.0
     }
     /// Accessor
     #[must_use]
     pub fn algorithm(&self) -> FractalInstance {
         self.algorithm
+    }
+    /// Accessor
+    #[must_use]
+    pub fn pixel_offset(&self) -> Option<(u32, u32)> {
+        self.offset_within_plot
     }
 }
 
@@ -120,8 +193,8 @@ impl From<&PlotSpec> for TileSpec {
         TileSpec {
             origin,
             axes,
-            pixel_size: (upd.width, upd.height),
-            pixel_offset: None,
+            size_in_pixels: (upd.width, upd.height),
+            offset_within_plot: None,
             algorithm: upd.algorithm,
         }
     }
@@ -137,8 +210,9 @@ impl Display for TileSpec {
 mod tests {
     use crate::fractal::{
         self,
+        tilespec::Split,
         userplotspec::{Location, Size},
-        FractalInstance, PlotSpec, Point, TileSpec,
+        FractalInstance, PlotSpec, Point, Scalar, TileSpec,
     };
     use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
 
@@ -215,5 +289,102 @@ mod tests {
     fn centre_computed() {
         let result = TileSpec::from(&TD_CENTRE);
         assert_eq!(result.origin, TD_CENTRE_ORIGIN);
+    }
+
+    #[test]
+    fn split_strips_no_remainder() {
+        const TEST_HEIGHT: u32 = 10;
+        let spec = TileSpec::from(&TD_CENTRE);
+        assert_eq!(
+            spec.height() % TEST_HEIGHT,
+            0,
+            "This test requires a test spec that is a multiple of {TEST_HEIGHT} pixels high"
+        );
+        let result = spec.split(Split::Rows(TEST_HEIGHT));
+        assert_eq!(
+            result.len(),
+            (spec.height() / TEST_HEIGHT) as usize,
+            "Wrong number of output strips"
+        );
+        sanity_check_strips(&spec, &result, TEST_HEIGHT, None);
+    }
+
+    #[test]
+    fn split_strips_with_remainder() {
+        const TEST_HEIGHT: u32 = 11;
+        let spec = TileSpec::from(&TD_CENTRE);
+        let remainder = spec.height() % TEST_HEIGHT;
+        assert_ne!(
+            remainder, 0,
+            "This test requires a test spec that is not a multiple of {TEST_HEIGHT} pixels high"
+        );
+        let result = spec.split(Split::Rows(TEST_HEIGHT));
+        assert_eq!(
+            result.len(),
+            1 + (spec.height() / TEST_HEIGHT) as usize,
+            "Wrong number of output strips"
+        );
+        sanity_check_strips(&spec, &result, TEST_HEIGHT, Some(remainder));
+    }
+
+    fn sanity_check_strips(
+        spec: &TileSpec,
+        result: &Vec<TileSpec>,
+        test_height: u32,
+        remainder_height: Option<u32>,
+    ) {
+        // Sanity check the results
+        let upper_corner = spec.origin() + spec.axes();
+
+        let check_one = |ts: &TileSpec, remainder_height: Option<u32>| {
+            let expected_axes_length = Point {
+                re: spec.axes().re,
+                im: spec.axes().im * Scalar::from(remainder_height.unwrap_or(test_height))
+                    / Scalar::from(spec.height()),
+            };
+
+            // origin
+            assert_f64_near!(ts.origin().re, spec.origin().re);
+            assert!(ts.origin().im >= spec.origin().im);
+            assert!(
+                ts.origin().im <= upper_corner.im,
+                "subtile origin im is implausible; {} but upper corner is {}",
+                ts.origin(),
+                upper_corner
+            );
+            // axes
+            assert_f64_near!(ts.axes().re, expected_axes_length.re);
+            assert_f64_near!(ts.axes().im, expected_axes_length.im, 150); // slippery in the remainder case!
+
+            // pixel offset
+            let offset = ts.pixel_offset().unwrap();
+            assert_eq!(offset.0, 0);
+            assert!(offset.1 <= spec.height());
+            // pixel_size
+            assert_eq!(ts.width(), spec.width());
+            let expected_height = remainder_height.unwrap_or(test_height);
+            assert_eq!(ts.height(), expected_height);
+
+            // algorithm
+            assert_eq!(ts.algorithm(), spec.algorithm());
+        };
+
+        if let Some(hh) = remainder_height {
+            // First entry in the vector gets special handling as it's the remainder strip
+            // (this is brittle!)
+            check_one(result.first().unwrap(), Some(hh));
+            for ts in &result[1..] {
+                check_one(ts, None);
+            }
+        } else {
+            for ts in result {
+                check_one(ts, None);
+            }
+        }
+
+        // check no overflow.
+        // The last tile added - the FIRST in the output vector - is the topmost, so subject to the most accumulated error.
+        let first: &TileSpec = result.first().unwrap();
+        assert_f64_near!(first.origin().im + first.axes().im, upper_corner.im);
     }
 }
