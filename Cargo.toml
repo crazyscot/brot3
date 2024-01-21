@@ -21,6 +21,7 @@ strum_macros = "0.25.3"
 
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
+iai-callgrind = "0.10.0"
 
 [[bench]]
 name = "initial"
