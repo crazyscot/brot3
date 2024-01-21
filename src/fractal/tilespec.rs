@@ -178,8 +178,8 @@ impl From<&PlotSpec> for TileSpec {
         let axes: Point = match upd.axes {
             Size::AxesLength(l) => l,
             Size::PixelSize(p) => Point {
-                re: p.re * Scalar::from(upd.width),
-                im: p.im * Scalar::from(upd.height),
+                re: p.re * Scalar::from(upd.width()),
+                im: p.im * Scalar::from(upd.height()),
             },
             Size::ZoomFactor(zoom) => Point {
                 re: DEFAULT_AXIS_LENGTH / zoom,
@@ -193,7 +193,7 @@ impl From<&PlotSpec> for TileSpec {
         TileSpec {
             origin,
             axes,
-            size_in_pixels: (upd.width, upd.height),
+            size_in_pixels: (upd.width(), upd.height()),
             offset_within_plot: None,
             algorithm: upd.algorithm,
         }
@@ -208,11 +208,14 @@ impl Display for TileSpec {
 
 #[cfg(test)]
 mod tests {
-    use crate::fractal::{
-        self,
-        tilespec::Split,
-        userplotspec::{Location, Size},
-        FractalInstance, PlotSpec, Point, Scalar, TileSpec,
+    use crate::{
+        fractal::{
+            self,
+            tilespec::Split,
+            userplotspec::{Location, Size},
+            FractalInstance, PlotSpec, Point, Scalar, TileSpec,
+        },
+        util,
     };
     use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
 
@@ -226,23 +229,29 @@ mod tests {
     const TD_ORIGIN_AXES: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
         axes: Size::AxesLength(ONE),
-        height: 100,
-        width: 100,
+        size_in_pixels: util::Size::<u32> {
+            width: 100,
+            height: 100,
+        },
         algorithm: MANDELBROT,
     };
     const TD_ORIGIN_PIXELS: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
         axes: Size::PixelSize(CENTI),
-        height: 100,
-        width: 100,
+        size_in_pixels: util::Size::<u32> {
+            width: 100,
+            height: 100,
+        },
         // this has the property that {width,height} * CENTI = { 1,1 }
         algorithm: MANDELBROT,
     };
     const TD_ORIGIN_ZOOM: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
         axes: Size::ZoomFactor(1000.0),
-        height: 100,
-        width: 200,
+        size_in_pixels: util::Size::<u32> {
+            width: 200,
+            height: 100,
+        },
         // note funky aspect ratio.
         // 4.0 default axis * zoom factor 1000 = 0.004 across
         // 200x100 pixels => (0.004,0.002) axes.
@@ -252,8 +261,10 @@ mod tests {
         location: Location::Centre(ONETWO),
         axes: Size::AxesLength(ONE),
         // centre(1,2) => origin (0.5,1.5)
-        height: 100,
-        width: 100,
+        size_in_pixels: util::Size::<u32> {
+            width: 100,
+            height: 100,
+        },
         algorithm: MANDELBROT,
     };
 
