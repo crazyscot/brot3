@@ -23,7 +23,7 @@ impl Png {
 
 impl Png {
     fn render_inner(tile: &Tile, writer: Box<dyn std::io::Write>) -> Result<()> {
-        let mut encoder = png::Encoder::new(writer, tile.spec.width, tile.spec.height);
+        let mut encoder = png::Encoder::new(writer, tile.spec.width(), tile.spec.height());
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
 
@@ -36,7 +36,7 @@ impl Png {
 
         let mut png_writer = encoder.write_header()?;
         let mut image_data =
-            Vec::<u8>::with_capacity(4 * tile.spec.width as usize * tile.spec.height as usize);
+            Vec::<u8>::with_capacity(4 * tile.spec.width() as usize * tile.spec.height() as usize);
         let tile_data = tile.result();
         let max_iter = tile.max_iter_plotted;
         tile_data

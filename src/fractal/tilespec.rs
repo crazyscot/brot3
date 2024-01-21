@@ -10,16 +10,16 @@ use std::fmt::{self, Display, Formatter};
 #[derive(Debug, Clone, Copy)]
 pub struct TileSpec {
     /// Plot origin (bottom-left corner, smallest real/imaginary coefficients)
-    pub origin: Point,
+    origin: Point,
     /// Plot axes length
-    pub axes: Point,
+    axes: Point,
     /// Width in pixels
-    pub width: u32,
+    width: u32,
     /// Height in pixels
-    pub height: u32,
+    height: u32,
 
     /// The selected algorithm
-    pub algorithm: FractalInstance,
+    algorithm: FractalInstance,
 }
 
 /// Canonicalised data about a plot.
@@ -32,6 +32,50 @@ impl TileSpec {
             re: self.axes.re / Scalar::from(self.width),
             im: self.axes.im / Scalar::from(self.height),
         }
+    }
+
+    /// Constructor
+    #[must_use]
+    pub fn new(
+        origin: Point,
+        axes: Point,
+        height: u32,
+        width: u32,
+        algorithm: FractalInstance,
+    ) -> TileSpec {
+        TileSpec {
+            origin,
+            axes,
+            width,
+            height,
+            algorithm,
+        }
+    }
+
+    /// Accessor
+    #[must_use]
+    pub fn origin(&self) -> Point {
+        self.origin
+    }
+    /// Accessor
+    #[must_use]
+    pub fn axes(&self) -> Point {
+        self.axes
+    }
+    /// Accessor
+    #[must_use]
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+    /// Accessor
+    #[must_use]
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+    /// Accessor
+    #[must_use]
+    pub fn algorithm(&self) -> FractalInstance {
+        self.algorithm
     }
 }
 
