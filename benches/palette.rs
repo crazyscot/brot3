@@ -13,8 +13,7 @@ fn palette_tile_spec() -> TileSpec {
             re: 0.282,
             im: 0.282,
         },
-        300,
-        300,
+        (300, 300),
         fractal::factory(fractal::Selection::Original),
     )
 }
