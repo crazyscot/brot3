@@ -18,7 +18,7 @@ use self::png::Png;
 #[derive(Clone, Debug, Display, EnumIter, EnumMessage)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum RenderBehaviourEnumDiscriminants ...
-#[strum_discriminants(derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
+#[strum_discriminants(name(Selection), derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
 /// Selector for available Renderers
 pub enum SelectionR {
     /// Comma Separated Values, one line per line of plot
@@ -41,11 +41,11 @@ pub trait Renderer {
 
 /// Factory method for renderers
 #[must_use]
-pub fn factory(selection: SelectionRDiscriminants, filename: &str) -> SelectionR {
+pub fn factory(selection: Selection, filename: &str) -> SelectionR {
     match selection {
-        SelectionRDiscriminants::Csv => SelectionR::Csv(ascii::Csv::new(filename)),
-        SelectionRDiscriminants::AsciiArt => SelectionR::AsciiArt(ascii::AsciiArt::new(filename)),
-        SelectionRDiscriminants::Png => SelectionR::Png(png::Png::new(filename)),
+        Selection::Csv => SelectionR::Csv(ascii::Csv::new(filename)),
+        Selection::AsciiArt => SelectionR::AsciiArt(ascii::AsciiArt::new(filename)),
+        Selection::Png => SelectionR::Png(png::Png::new(filename)),
     }
 }
 

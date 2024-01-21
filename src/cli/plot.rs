@@ -22,7 +22,7 @@ pub struct Args {
 
     /// Rendering type
     #[arg(short, long, value_name = "NAME", default_value = "png")]
-    pub renderer: render::SelectionRDiscriminants,
+    pub renderer: render::Selection,
 
     /// The origin (bottom-left) point of the plot, e.g. -3-3i. Conflicts with --centre.
     #[arg(

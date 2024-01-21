@@ -1,5 +1,5 @@
 use brot3::fractal::{self, Algorithm, Point, PointData, Tile, TileSpec};
-use brot3::render::{self, Renderer, SelectionRDiscriminants};
+use brot3::render::{self, Renderer};
 
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
 
@@ -77,7 +77,7 @@ fn colour_tile(c: &mut Criterion) {
         let alg = fractal::factory(fractal::Selection::Original);
         let mut tile = Tile::new(&PALETTE_TILE_SPEC, &alg, 0);
         tile.plot(384);
-        let png = render::factory(SelectionRDiscriminants::Png, "/dev/null");
+        let png = render::factory(render::Selection::Png, "/dev/null");
         b.iter(|| png.render(black_box(&tile)));
     });
 }
