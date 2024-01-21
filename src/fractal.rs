@@ -28,8 +28,9 @@ pub type Point = Complex<Scalar>;
 #[enum_dispatch]
 #[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage)]
 #[strum(serialize_all = "kebab_case")]
-#[derive(EnumDiscriminants)] // This creates the enum AlgorithmEnumDiscriminants ...
+#[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
+#[strum_discriminants(name(Selection))]
 pub enum SelectionF {
     /// The original Mandelbrot set, z := z^2+c (aliases: "m", "m2")
     #[strum_discriminants(value(alias = "m", alias = "m2"))]
@@ -73,10 +74,10 @@ pub trait Algorithm {
 
 /// Factory method for fractals
 #[must_use]
-pub fn factory(selection: SelectionFDiscriminants) -> SelectionF {
+pub fn factory(selection: Selection) -> SelectionF {
     match selection {
-        SelectionFDiscriminants::Original => SelectionF::Original(mandelbrot::Original {}),
-        SelectionFDiscriminants::Mandel3 => SelectionF::Mandel3(mandelbrot::Mandel3 {}),
+        Selection::Original => SelectionF::Original(mandelbrot::Original {}),
+        Selection::Mandel3 => SelectionF::Mandel3(mandelbrot::Mandel3 {}),
     }
 }
 

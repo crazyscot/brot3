@@ -18,7 +18,7 @@ pub struct Args {
 
     /// The fractal algorithm to use
     #[arg(short = 'f', long, value_name = "NAME", default_value = "original")]
-    pub fractal: fractal::SelectionFDiscriminants,
+    pub fractal: fractal::Selection,
 
     /// Rendering type
     #[arg(short, long, value_name = "NAME", default_value = "png")]

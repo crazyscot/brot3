@@ -1,4 +1,4 @@
-use brot3::fractal::{self, Algorithm, Point, PointData, SelectionFDiscriminants, Tile, TileSpec};
+use brot3::fractal::{self, Algorithm, Point, PointData, Tile, TileSpec};
 use brot3::render::{self, Renderer, SelectionRDiscriminants};
 
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
@@ -23,8 +23,8 @@ fn iteration(c: &mut Criterion) {
             );
         });
     };
-    alg(SelectionFDiscriminants::Original, TEST_POINT_M2);
-    alg(SelectionFDiscriminants::Mandel3, TEST_POINT_M3);
+    alg(fractal::Selection::Original, TEST_POINT_M2);
+    alg(fractal::Selection::Mandel3, TEST_POINT_M3);
 }
 
 const TEST_TILE_SPEC: TileSpec = TileSpec {
@@ -37,7 +37,7 @@ const TEST_TILE_SPEC: TileSpec = TileSpec {
 fn tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
     group.bench_function("tile_Original", |b| {
-        let alg = fractal::factory(SelectionFDiscriminants::Original);
+        let alg = fractal::factory(fractal::Selection::Original);
         b.iter_batched_ref(
             || Tile::new(&TEST_TILE_SPEC, &alg, 0),
             |t| {
@@ -74,7 +74,7 @@ fn colour_pixel(c: &mut Criterion) {
 fn colour_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("palettes");
     group.bench_function("colour_tile_mandy", |b| {
-        let alg = fractal::factory(SelectionFDiscriminants::Original);
+        let alg = fractal::factory(fractal::Selection::Original);
         let mut tile = Tile::new(&PALETTE_TILE_SPEC, &alg, 0);
         tile.plot(384);
         let png = render::factory(SelectionRDiscriminants::Png, "/dev/null");
