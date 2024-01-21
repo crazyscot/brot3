@@ -2,6 +2,7 @@
 // (c) 2024 Ross Younger
 
 use super::{FractalInstance, Point, Scalar};
+use crate::util;
 
 /// The user is allowed to specify the plot location in multiple ways.
 #[derive(Debug, Clone, Copy)]
@@ -29,13 +30,10 @@ pub enum Size {
 pub struct PlotSpec {
     /// Location of the plot
     pub location: Location,
-    /// Size of the plot
+    /// Size of the plot on the complex plane
     pub axes: Size,
-    /// Height in pixels
-    pub height: u32,
-    /// Width in pixels
-    pub width: u32,
-
+    /// Size of the plot in pixels
+    pub size_in_pixels: util::Size<u32>,
     /// The selected algorithm
     pub algorithm: FractalInstance,
 }
@@ -44,6 +42,17 @@ impl PlotSpec {
     /// Calculates the aspect ratio of the plot
     #[must_use]
     pub fn aspect_ratio(&self) -> f64 {
-        f64::from(self.width) / f64::from(self.height)
+        f64::from(self.size_in_pixels.width) / f64::from(self.size_in_pixels.height)
+    }
+
+    /// Accessor
+    #[must_use]
+    pub fn width(&self) -> u32 {
+        self.size_in_pixels.width
+    }
+    /// Accessor
+    #[must_use]
+    pub fn height(&self) -> u32 {
+        self.size_in_pixels.height
     }
 }
