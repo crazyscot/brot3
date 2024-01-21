@@ -15,6 +15,8 @@ pub struct TileSpec {
     axes: Point,
     /// Plot size in pixels (width,height)
     pixel_size: (u32, u32),
+    /// Pixel offset (width, height) into a larger plot - if any
+    pixel_offset: Option<(u32, u32)>,
 
     /// The selected algorithm
     algorithm: FractalInstance,
@@ -45,6 +47,25 @@ impl TileSpec {
             origin,
             axes,
             pixel_size: (width, height),
+            pixel_offset: None,
+            algorithm,
+        }
+    }
+    /// Alternate constructor taking an offset
+    #[must_use]
+    pub fn new_offset(
+        origin: Point,
+        axes: Point,
+        height: u32,
+        width: u32,
+        offset: Option<(u32, u32)>,
+        algorithm: FractalInstance,
+    ) -> TileSpec {
+        TileSpec {
+            origin,
+            axes,
+            pixel_size: (width, height),
+            pixel_offset: offset,
             algorithm,
         }
     }
@@ -100,6 +121,7 @@ impl From<&PlotSpec> for TileSpec {
             origin,
             axes,
             pixel_size: (upd.width, upd.height),
+            pixel_offset: None,
             algorithm: upd.algorithm,
         }
     }
