@@ -31,7 +31,8 @@ pub type Point = Complex<Scalar>;
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
 #[strum_discriminants(name(Selection))]
-pub enum SelectionF {
+#[allow(clippy::module_name_repetitions)] // enum_dispatch doesn't support structs with the same name but different paths
+pub enum FractalInstance {
     /// The original Mandelbrot set, z := z^2+c (aliases: "m", "m2")
     #[strum_discriminants(value(alias = "m", alias = "m2"))]
     Original,
@@ -44,7 +45,7 @@ const ESCAPE_THRESHOLD: Scalar = 4.0;
 
 /// A fractal algorithm
 /// This knows nothing about colouring, only maths on the complex plane.
-#[enum_dispatch(SelectionF)]
+#[enum_dispatch(FractalInstance)]
 pub trait Algorithm {
     /// Algorithm-specific data preparation before we iterate for the first time
     #[inline]
@@ -74,20 +75,20 @@ pub trait Algorithm {
 
 /// Factory method for fractals
 #[must_use]
-pub fn factory(selection: Selection) -> SelectionF {
+pub fn factory(selection: Selection) -> FractalInstance {
     match selection {
-        Selection::Original => SelectionF::Original(mandelbrot::Original {}),
-        Selection::Mandel3 => SelectionF::Mandel3(mandelbrot::Mandel3 {}),
+        Selection::Original => FractalInstance::Original(mandelbrot::Original {}),
+        Selection::Mandel3 => FractalInstance::Mandel3(mandelbrot::Mandel3 {}),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::SelectionF;
+    use super::FractalInstance;
     use crate::util::listable::list_vec;
 
     #[test]
     fn renderers_list() {
-        assert_ne!(list_vec::<SelectionF>().len(), 0);
+        assert_ne!(list_vec::<FractalInstance>().len(), 0);
     }
 }

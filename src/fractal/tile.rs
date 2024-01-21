@@ -1,6 +1,6 @@
 // (c) 2024 Ross Younger
 
-use super::{Algorithm, Point, PointData, SelectionF, TileSpec};
+use super::{Algorithm, FractalInstance, Point, PointData, TileSpec};
 use array2d::Array2D;
 use std::fmt;
 
@@ -16,13 +16,13 @@ pub struct Tile {
     /// Specification of this plot
     pub spec: TileSpec,
     /// The algorithm to use
-    algorithm: SelectionF,
+    algorithm: FractalInstance,
 }
 
 impl Tile {
     /// Standard constructor. Also initialises the data for this tile.
     #[must_use]
-    pub fn new(spec: &TileSpec, fractal: &SelectionF, debug: u8) -> Self {
+    pub fn new(spec: &TileSpec, fractal: &FractalInstance, debug: u8) -> Self {
         let mut new1 = Self {
             debug,
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
