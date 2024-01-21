@@ -105,6 +105,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         },
         height: args.height,
         width: args.width,
+        algorithm,
     };
     if debug > 0 {
         println!("Entered plot data: {user_plot_data:#?}");

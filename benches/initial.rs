@@ -27,19 +27,23 @@ fn iteration(c: &mut Criterion) {
     alg(fractal::Selection::Mandel3, TEST_POINT_M3);
 }
 
-const TEST_TILE_SPEC: TileSpec = TileSpec {
-    origin: Point { re: -1.0, im: 0.0 },
-    axes: Point { re: 4.0, im: 4.0 },
-    width: 300,
-    height: 300,
-};
+fn test_tile_spec() -> TileSpec {
+    TileSpec {
+        origin: Point { re: -1.0, im: 0.0 },
+        axes: Point { re: 4.0, im: 4.0 },
+        width: 300,
+        height: 300,
+        algorithm: fractal::factory(fractal::Selection::Original),
+    }
+}
 
 fn tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
+    let spec = test_tile_spec();
     group.bench_function("tile_Original", |b| {
         let alg = fractal::factory(fractal::Selection::Original);
         b.iter_batched_ref(
-            || Tile::new(&TEST_TILE_SPEC, &alg, 0),
+            || Tile::new(&spec, &alg, 0),
             |t| {
                 t.plot(black_box(512));
             },
@@ -48,18 +52,21 @@ fn tile(c: &mut Criterion) {
     });
 }
 
-const PALETTE_TILE_SPEC: TileSpec = TileSpec {
-    origin: Point {
-        re: -0.0946,
-        im: 1.0105,
-    },
-    axes: Point {
-        re: 0.282,
-        im: 0.282,
-    },
-    width: 300,
-    height: 300,
-};
+fn palette_tile_spec() -> TileSpec {
+    TileSpec {
+        origin: Point {
+            re: -0.0946,
+            im: 1.0105,
+        },
+        axes: Point {
+            re: 0.282,
+            im: 0.282,
+        },
+        width: 300,
+        height: 300,
+        algorithm: fractal::factory(fractal::Selection::Original),
+    }
+}
 
 // TODO: We should be able to macrify this for additional palettes.
 // Could we in fact autobench all the palettes?
@@ -73,9 +80,10 @@ fn colour_pixel(c: &mut Criterion) {
 
 fn colour_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("palettes");
+    let spec = palette_tile_spec();
     group.bench_function("colour_tile_mandy", |b| {
         let alg = fractal::factory(fractal::Selection::Original);
-        let mut tile = Tile::new(&PALETTE_TILE_SPEC, &alg, 0);
+        let mut tile = Tile::new(&spec, &alg, 0);
         tile.plot(384);
         let png = render::factory(render::Selection::Png, "/dev/null");
         b.iter(|| png.render(black_box(&tile)));

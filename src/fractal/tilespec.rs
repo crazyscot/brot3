@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use super::userplotspec::{Location, Size};
-use super::{PlotSpec, Point, Scalar};
+use super::{FractalInstance, PlotSpec, Point, Scalar};
 
 use std::fmt::{self, Display, Formatter};
 
@@ -17,6 +17,9 @@ pub struct TileSpec {
     pub width: u32,
     /// Height in pixels
     pub height: u32,
+
+    /// The selected algorithm
+    pub algorithm: FractalInstance,
 }
 
 /// Canonicalised data about a plot.
@@ -57,6 +60,7 @@ impl From<&PlotSpec> for TileSpec {
             axes,
             height: upd.height,
             width: upd.width,
+            algorithm: upd.algorithm,
         }
     }
 }
@@ -70,8 +74,9 @@ impl Display for TileSpec {
 #[cfg(test)]
 mod tests {
     use crate::fractal::{
+        self,
         userplotspec::{Location, Size},
-        PlotSpec, Point, TileSpec,
+        FractalInstance, PlotSpec, Point, TileSpec,
     };
     use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
 
@@ -80,11 +85,14 @@ mod tests {
     const ONETWO: Point = Point { re: 1.0, im: 2.0 };
     const CENTI: Point = Point { re: 0.01, im: 0.01 };
 
+    const MANDELBROT: FractalInstance = FractalInstance::Original(fractal::mandelbrot::Original {});
+
     const TD_ORIGIN_AXES: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
         axes: Size::AxesLength(ONE),
         height: 100,
         width: 100,
+        algorithm: MANDELBROT,
     };
     const TD_ORIGIN_PIXELS: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
@@ -92,6 +100,7 @@ mod tests {
         height: 100,
         width: 100,
         // this has the property that {width,height} * CENTI = { 1,1 }
+        algorithm: MANDELBROT,
     };
     const TD_ORIGIN_ZOOM: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
@@ -101,6 +110,7 @@ mod tests {
         // note funky aspect ratio.
         // 4.0 default axis * zoom factor 1000 = 0.004 across
         // 200x100 pixels => (0.004,0.002) axes.
+        algorithm: MANDELBROT,
     };
     const TD_CENTRE: PlotSpec = PlotSpec {
         location: Location::Centre(ONETWO),
@@ -108,6 +118,7 @@ mod tests {
         // centre(1,2) => origin (0.5,1.5)
         height: 100,
         width: 100,
+        algorithm: MANDELBROT,
     };
 
     const TD_ORIGIN_ZOOM_AXES: Point = Point {

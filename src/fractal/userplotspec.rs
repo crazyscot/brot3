@@ -1,7 +1,7 @@
 // Specification of a plot, human-friendly form
 // (c) 2024 Ross Younger
 
-use super::{Point, Scalar};
+use super::{FractalInstance, Point, Scalar};
 
 /// The user is allowed to specify the plot location in multiple ways.
 #[derive(Debug, Clone, Copy)]
@@ -35,6 +35,9 @@ pub struct PlotSpec {
     pub height: u32,
     /// Width in pixels
     pub width: u32,
+
+    /// The selected algorithm
+    pub algorithm: FractalInstance,
 }
 
 impl PlotSpec {
