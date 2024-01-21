@@ -26,7 +26,7 @@ pub type Point = Complex<Scalar>;
 
 /// Selector for available Algorithms
 #[enum_dispatch]
-#[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage)]
+#[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage, PartialEq)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(name(Selection), derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from

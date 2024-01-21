@@ -3,7 +3,7 @@
 
 use super::{Algorithm, Point, PointData, Scalar, SCALAR_LN_2};
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Original {}
 
 impl Algorithm for Original {
@@ -46,7 +46,7 @@ impl Algorithm for Original {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Mandel3 {}
 
 impl Algorithm for Mandel3 {
