@@ -20,7 +20,8 @@ use self::png::Png;
 #[derive(EnumDiscriminants)] // This creates the enum RenderBehaviourEnumDiscriminants ...
 #[strum_discriminants(name(Selection), derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
 /// Selector for available Renderers
-pub enum SelectionR {
+#[allow(clippy::module_name_repetitions)]
+pub enum RenderInstance {
     /// Comma Separated Values, one line per line of plot
     Csv,
     /// Good old ASCII art (can be abbreviated to "aa")
@@ -33,7 +34,7 @@ pub enum SelectionR {
 /// A Renderer accepts ``PointData`` and deals with it completely.
 /// This is distinct from a Palette, which accepts ``PointData`` and returns colour data.
 /// The trait knows nothing about output or buffering; the implementation is responsible for setting that up.
-#[enum_dispatch(SelectionR)]
+#[enum_dispatch(RenderInstance)]
 pub trait Renderer {
     /// Renders fractal data and sends it to its output
     fn render(&self, data: &Tile) -> anyhow::Result<()>;
@@ -41,21 +42,21 @@ pub trait Renderer {
 
 /// Factory method for renderers
 #[must_use]
-pub fn factory(selection: Selection, filename: &str) -> SelectionR {
+pub fn factory(selection: Selection, filename: &str) -> RenderInstance {
     match selection {
-        Selection::Csv => SelectionR::Csv(ascii::Csv::new(filename)),
-        Selection::AsciiArt => SelectionR::AsciiArt(ascii::AsciiArt::new(filename)),
-        Selection::Png => SelectionR::Png(png::Png::new(filename)),
+        Selection::Csv => ascii::Csv::new(filename).into(),
+        Selection::AsciiArt => RenderInstance::AsciiArt(ascii::AsciiArt::new(filename)),
+        Selection::Png => RenderInstance::Png(png::Png::new(filename)),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::SelectionR;
+    use super::RenderInstance;
     use crate::util::listable::list_vec;
 
     #[test]
     fn renderers_list() {
-        assert_ne!(list_vec::<SelectionR>().len(), 0);
+        assert_ne!(list_vec::<RenderInstance>().len(), 0);
     }
 }
