@@ -3,6 +3,7 @@
 
 use super::userplotspec::{Location, Size};
 use super::{FractalInstance, PlotSpec, Point, Scalar};
+use crate::util;
 
 use std::fmt::{self, Display, Formatter};
 
@@ -14,7 +15,7 @@ pub struct TileSpec {
     /// Axes length for this tile
     axes: Point,
     /// Size in pixels of this tile (width,height)
-    size_in_pixels: (u32, u32),
+    size_in_pixels: util::Size<u32>,
     /// If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
     offset_within_plot: Option<(u32, u32)>,
 
@@ -47,8 +48,7 @@ impl TileSpec {
     pub fn new(
         origin: Point,
         axes: Point,
-        // Width, Height
-        size_in_pixels: (u32, u32),
+        size_in_pixels: util::Size<u32>,
         algorithm: FractalInstance,
     ) -> TileSpec {
         TileSpec {
@@ -64,8 +64,7 @@ impl TileSpec {
     pub fn new_with_offset(
         origin: Point,
         axes: Point,
-        // Size of this tile (width, height)
-        size_in_pixels: (u32, u32),
+        size_in_pixels: util::Size<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
         pixel_offset: Option<(u32, u32)>,
         algorithm: FractalInstance,
@@ -91,7 +90,7 @@ impl TileSpec {
                 };
 
                 // What is fixed about the subtiles?
-                let strip_pixel_size = (self.width(), row_height);
+                let strip_pixel_size = util::Size::new(self.width(), row_height);
                 let axes = Point {
                     re: self.axes.re,
                     im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
@@ -126,7 +125,7 @@ impl TileSpec {
                     output.push(TileSpec::new_with_offset(
                         working_origin,
                         last_axes,
-                        (self.width(), last_height),
+                        util::Size::new(self.width(), last_height),
                         Some(offset),
                         self.algorithm,
                     ));
@@ -151,12 +150,12 @@ impl TileSpec {
     /// Accessor
     #[must_use]
     pub fn height(&self) -> u32 {
-        self.size_in_pixels.1
+        self.size_in_pixels.height
     }
     /// Accessor
     #[must_use]
     pub fn width(&self) -> u32 {
-        self.size_in_pixels.0
+        self.size_in_pixels.width
     }
     /// Accessor
     #[must_use]
@@ -193,7 +192,7 @@ impl From<&PlotSpec> for TileSpec {
         TileSpec {
             origin,
             axes,
-            size_in_pixels: (upd.width(), upd.height()),
+            size_in_pixels: upd.size_in_pixels,
             offset_within_plot: None,
             algorithm: upd.algorithm,
         }
