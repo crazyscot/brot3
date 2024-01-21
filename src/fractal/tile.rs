@@ -22,7 +22,7 @@ pub struct Tile {
 impl Tile {
     /// Standard constructor. Also initialises the data for this tile.
     #[must_use]
-    pub fn new(spec: &TileSpec, fractal: &FractalInstance, debug: u8) -> Self {
+    pub fn new(spec: &TileSpec, debug: u8) -> Self {
         let mut new1 = Self {
             debug,
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
@@ -33,7 +33,7 @@ impl Tile {
             ),
             max_iter_plotted: 0,
             spec: *spec,
-            algorithm: *fractal,
+            algorithm: spec.algorithm,
         };
         new1.prepare();
         new1

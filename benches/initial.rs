@@ -41,9 +41,8 @@ fn tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
     let spec = test_tile_spec();
     group.bench_function("tile_Original", |b| {
-        let alg = fractal::factory(fractal::Selection::Original);
         b.iter_batched_ref(
-            || Tile::new(&spec, &alg, 0),
+            || Tile::new(&spec, 0),
             |t| {
                 t.plot(black_box(512));
             },
@@ -82,8 +81,7 @@ fn colour_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("palettes");
     let spec = palette_tile_spec();
     group.bench_function("colour_tile_mandy", |b| {
-        let alg = fractal::factory(fractal::Selection::Original);
-        let mut tile = Tile::new(&spec, &alg, 0);
+        let mut tile = Tile::new(&spec, 0);
         tile.plot(384);
         let png = render::factory(render::Selection::Png, "/dev/null");
         b.iter(|| png.render(black_box(&tile)));
