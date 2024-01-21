@@ -17,7 +17,7 @@ pub struct TileSpec {
     /// Size in pixels of this tile (width,height)
     size_in_pixels: util::Size<u32>,
     /// If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
-    offset_within_plot: Option<(u32, u32)>,
+    offset_within_plot: Option<util::Size<u32>>,
 
     /// The selected algorithm
     algorithm: FractalInstance,
@@ -66,7 +66,7 @@ impl TileSpec {
         axes: Point,
         size_in_pixels: util::Size<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
-        pixel_offset: Option<(u32, u32)>,
+        pixel_offset: Option<util::Size<u32>>,
         algorithm: FractalInstance,
     ) -> TileSpec {
         TileSpec {
@@ -101,7 +101,7 @@ impl TileSpec {
                     re: 0.0,
                     im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
                 };
-                let mut offset: (u32, u32) = (0, 0);
+                let mut offset = util::Size::<u32>::default();
 
                 let mut output = Vec::<TileSpec>::with_capacity(n_whole);
                 for _ in 0..n_whole {
@@ -113,7 +113,7 @@ impl TileSpec {
                         self.algorithm,
                     ));
                     working_origin += origin_step;
-                    offset.1 += row_height;
+                    offset.height += row_height;
                 }
                 if let Some(last_height) = maybe_last_height {
                     // There may be a slight imprecision when repeatedly adding small amounts.
@@ -164,7 +164,7 @@ impl TileSpec {
     }
     /// Accessor
     #[must_use]
-    pub fn pixel_offset(&self) -> Option<(u32, u32)> {
+    pub fn pixel_offset(&self) -> Option<util::Size<u32>> {
         self.offset_within_plot
     }
 }
@@ -368,8 +368,8 @@ mod tests {
 
             // pixel offset
             let offset = ts.pixel_offset().unwrap();
-            assert_eq!(offset.0, 0);
-            assert!(offset.1 <= spec.height());
+            assert_eq!(offset.width, 0);
+            assert!(offset.height <= spec.height());
             // pixel_size
             assert_eq!(ts.width(), spec.width());
             let expected_height = remainder_height.unwrap_or(test_height);

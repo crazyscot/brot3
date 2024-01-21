@@ -1,6 +1,8 @@
 // (c) 2024 Ross Younger
 
 use super::{Algorithm, FractalInstance, Point, PointData, TileSpec};
+use crate::util;
+
 use array2d::Array2D;
 use std::fmt;
 
@@ -18,7 +20,7 @@ pub struct Tile {
     /// The algorithm to use
     algorithm: FractalInstance,
     /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, from the origin
-    offset_within_plot: Option<(u32, u32)>,
+    offset_within_plot: Option<util::Size<u32>>,
 }
 
 impl Tile {
