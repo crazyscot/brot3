@@ -9,14 +9,14 @@ pub fn list_vec<T: IntoEnumIterator + std::fmt::Display>() -> Vec<String> {
     T::iter().map(|a| a.to_string()).collect()
 }
 
-/// Implementation of 'list'
+/// Prints a list of available items for a given type
 pub fn list<T: IntoEnumIterator + std::fmt::Display + EnumMessage>(machine_parseable: bool) {
     if machine_parseable {
         println!("{:?}", list_vec::<T>());
         return;
     }
 
-    println!("Available fractals:");
+    println!("Available items:");
     let longest = T::iter().map(|r| r.to_string().len()).max().unwrap_or(1);
 
     let _ = T::iter()
