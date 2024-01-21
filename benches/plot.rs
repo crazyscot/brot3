@@ -30,8 +30,8 @@ fn test_tile_spec() -> TileSpec {
     TileSpec {
         origin: Point { re: -1.0, im: 0.0 },
         axes: Point { re: 4.0, im: 4.0 },
-        width: 300,
-        height: 300,
+        width: 1000,
+        height: 650,
         algorithm: fractal::factory(fractal::Selection::Original),
     }
 }
