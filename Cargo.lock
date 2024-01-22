@@ -471,9 +471,9 @@ dependencies = [
 
 [[package]]
 name = "iai-callgrind"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9dbd4d1c88de3299e471a3b829ffac3cd08bffc63c4881386be9692952e34864"
+checksum = "de145b77187e9bb00357b9c02c014b01a0e16d0ac3640a374eb2ff7bfc40339b"
 dependencies = [
  "bincode",
  "bindgen",
@@ -497,9 +497,9 @@ dependencies = [
 
 [[package]]
 name = "iai-callgrind-runner"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4036e3e68dc88a39f528f0fe469aaee00bc07d5a823e9ff88a6156d32f3b912"
+checksum = "67955cc7e850556268403cf14d3db869d02935ca9f0a028b858c7dd216c98d49"
 dependencies = [
  "serde",
 ]
@@ -867,9 +867,9 @@ dependencies = [
 
 [[package]]
 name = "shlex"
-version = "1.2.0"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7cee0529a6d40f580e7a5e6c495c8fbfe21b7b52795ed4bb5e62cdf92bc6380"
+checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "simd-adler32"
