@@ -3,8 +3,9 @@
 use super::{Algorithm, FractalInstance, Point, PointData, TileSpec};
 use crate::util;
 
+use anyhow::{anyhow, ensure, Context};
 use array2d::Array2D;
-use std::fmt;
+use std::{cmp::max, fmt};
 
 /// A section of a fractal plot
 #[derive(Debug)]
@@ -27,7 +28,14 @@ impl Tile {
     /// Standard constructor. Also initialises the data for this tile.
     #[must_use]
     pub fn new(spec: &TileSpec, debug: u8) -> Self {
-        let mut new1 = Self {
+        let mut new1 = Tile::new_internal(spec, debug);
+        new1.prepare();
+        new1
+    }
+
+    /// Internal constructor used by new() and join()
+    fn new_internal(spec: &TileSpec, debug: u8) -> Self {
+        Self {
             debug,
             // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
             point_data: Array2D::filled_with(
@@ -39,9 +47,38 @@ impl Tile {
             spec: *spec,
             algorithm: spec.algorithm(),
             offset_within_plot: spec.offset_within_plot(),
-        };
-        new1.prepare();
-        new1
+        }
+    }
+
+    /// Quasi-constructor: Reassembles the tiles of a split plot into a single plot
+    pub fn join(spec: &TileSpec, tiles: &Vec<Tile>) -> anyhow::Result<Tile> {
+        ensure!(!tiles.is_empty(), "No tiles given to join");
+        // TODO: Might be nice if we could ensure that all data points were covered i.e. no tiles are missing...
+
+        let mut result = Tile::new_internal(spec, 0);
+        result.max_iter_plotted = tiles.iter().fold(0, |b, t| max(b, t.max_iter_plotted));
+
+        for t in tiles {
+            let offset = t
+                .offset_within_plot
+                .ok_or_else(|| anyhow!("joining subtitle did not contain offset"))
+                .with_context(|| format!("{t:?}"))?;
+
+            // map source (0,0) => dest OFFSET
+            let dest_address = |s: util::Size<u32>| s + offset;
+
+            // there's probably a nicer way to do this
+            for y in 0..t.spec.height() {
+                for x in 0..t.spec.width() {
+                    let a = dest_address(util::Size::new(x, y));
+
+                    // Caution! PointData coordinates are in order (y,x)
+                    let val = t.point_data[(y as usize, x as usize)];
+                    result.point_data[(a.height as usize, a.width as usize)] = val;
+                }
+            }
+        }
+        Ok(result)
     }
 
     /// Initialises the data for this tile
@@ -87,6 +124,12 @@ impl Tile {
         &self.point_data
     }
 
+    /// Accessor
+    #[must_use]
+    pub fn offset_within_plot(&self) -> Option<util::Size<u32>> {
+        self.offset_within_plot
+    }
+
     /// Info string quasi-accessor
     #[must_use]
     pub fn info_string(&self) -> String {
@@ -106,5 +149,44 @@ impl fmt::Display for Tile {
             writeln!(f)?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        fractal::{
+            tilespec::Split, FractalInstance, Location, PlotSpec, Point, Size, TileSpec, Zero,
+        },
+        util,
+    };
+
+    use super::Tile;
+
+    const ZERO_ALG: FractalInstance = FractalInstance::Zero(Zero {});
+    const ZERO: Point = Point { re: 0.0, im: 0.0 };
+    const ONE: Point = Point { re: 1.0, im: 1.0 };
+
+    const TD_TILE: PlotSpec = PlotSpec {
+        location: Location::Origin(ZERO),
+        axes: Size::AxesLength(ONE),
+        size_in_pixels: util::Size::<u32> {
+            width: 100,
+            height: 101, // not dividable by 10
+        },
+        algorithm: ZERO_ALG,
+    };
+    #[test]
+    fn rejoin() {
+        let spec = TileSpec::from(&TD_TILE);
+        let split = spec.split(Split::Rows(10));
+        let mut tiles: Vec<Tile> = split.iter().map(|ts| Tile::new(ts, 0)).collect();
+        for t in &mut tiles {
+            t.plot(1);
+        }
+        let result = Tile::join(&spec, &tiles).unwrap();
+        let data = result.result();
+        assert_eq!(data.num_rows(), spec.height() as usize);
+        assert_eq!(data.num_columns(), spec.width() as usize);
     }
 }

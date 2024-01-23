@@ -380,7 +380,7 @@ mod tests {
             let offset = ts.offset_within_plot().unwrap();
             assert_eq!(offset.width, 0);
             assert!(offset.height <= spec.height());
-            // pixel_size
+            // pixel dimensions
             assert_eq!(ts.width(), spec.width());
             let expected_height = remainder_height.unwrap_or(test_height);
             assert_eq!(ts.height(), expected_height);
