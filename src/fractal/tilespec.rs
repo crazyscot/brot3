@@ -1,6 +1,8 @@
 // Specification of a plot (origin, axes, etc)
 // (c) 2024 Ross Younger
 
+use anyhow::ensure;
+
 use super::userplotspec::{Location, Size};
 use super::{FractalInstance, PlotSpec, Point, Scalar};
 use crate::util::Rect;
@@ -79,8 +81,7 @@ impl TileSpec {
     }
 
     /// Splits this tile up into a number of smaller tiles, for parallelisation
-    #[must_use]
-    pub fn split(&self, how: SplitMethod) -> Vec<TileSpec> {
+    pub fn split(&self, how: SplitMethod, debug: u8) -> anyhow::Result<Vec<TileSpec>> {
         match how {
             SplitMethod::RowsOfHeight(row_height) => {
                 let n_whole = self.height() / row_height;
@@ -101,10 +102,16 @@ impl TileSpec {
                     re: 0.0,
                     im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
                 };
-                let mut offset = Rect::<u32>::default();
+                // Curveball: Pixel offsets are computed relative to top left, so we must invert the height dimension.
+                // The first strip ends at the top, so starts one strip's height down from there.
+                // We will start the height register at the top left point, which is where the first strip ENDS.
+                let mut offset = Rect::<u32>::new(0, self.height());
 
                 let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize);
-                for _ in 0..n_whole {
+                for i in 0..n_whole {
+                    // Note we subtract the offset height before using it.
+                    // This has the property that after the last whole strip, height is either 0, or is the height of the remainder strip.
+                    offset.height -= row_height;
                     output.push(TileSpec::new_with_offset(
                         working_origin,
                         axes,
@@ -112,8 +119,10 @@ impl TileSpec {
                         Some(offset),
                         self.algorithm,
                     ));
+                    if debug > 0 {
+                        println!("tile {i} origin {working_origin} offset {offset}");
+                    }
                     working_origin += origin_step;
-                    offset.height += row_height;
                 }
                 if let Some(last_height) = maybe_last_height {
                     // There may be a slight imprecision when repeatedly adding small amounts.
@@ -122,6 +131,8 @@ impl TileSpec {
                         re: self.axes.re,
                         im: self.axes.im + self.origin.im - working_origin.im,
                     };
+                    ensure!(offset.height == last_height, "Unexpected remainder strip height ({}, expected {last_height}) - logic error?", offset.height);
+                    offset.height = 0;
                     output.push(TileSpec::new_with_offset(
                         working_origin,
                         last_axes,
@@ -132,7 +143,7 @@ impl TileSpec {
                 }
                 // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
                 output.reverse();
-                output
+                Ok(output)
             }
         }
     }
@@ -320,7 +331,9 @@ mod tests {
             0,
             "This test requires a test spec that is a multiple of {TEST_HEIGHT} pixels high"
         );
-        let result = spec.split(SplitMethod::RowsOfHeight(TEST_HEIGHT));
+        let result = spec
+            .split(SplitMethod::RowsOfHeight(TEST_HEIGHT), 0)
+            .unwrap();
         assert_eq!(
             result.len(),
             (spec.height() / TEST_HEIGHT) as usize,
@@ -338,7 +351,9 @@ mod tests {
             remainder, 0,
             "This test requires a test spec that is not a multiple of {TEST_HEIGHT} pixels high"
         );
-        let result = spec.split(SplitMethod::RowsOfHeight(TEST_HEIGHT));
+        let result = spec
+            .split(SplitMethod::RowsOfHeight(TEST_HEIGHT), 0)
+            .unwrap();
         assert_eq!(
             result.len(),
             1 + (spec.height() / TEST_HEIGHT) as usize,

@@ -1,5 +1,6 @@
 // (c) Ross Younger 2024
 
+use std::fmt::{self, Display};
 use std::ops::Add;
 use std::str::FromStr;
 
@@ -24,6 +25,12 @@ where
     /// Constructor
     pub fn new(width: T, height: T) -> Rect<T> {
         Self { width, height }
+    }
+}
+
+impl<T: Display> Display for Rect<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(f, "(w={} h={})", self.width, self.height)
     }
 }
 
