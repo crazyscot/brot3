@@ -89,12 +89,12 @@ impl Tile {
         let origin_pixel = self.spec.origin() + 0.5 * step;
 
         let mut imag = origin_pixel.im;
-        for y in 0..self.spec.height() as usize {
+        for y in 0..self.spec.height() {
             let mut real = origin_pixel.re;
-            for x in 0..self.spec.width() as usize {
-                let real_y = self.spec.height() as usize - y - 1;
+            for x in 0..self.spec.width() {
+                let real_y = self.spec.height() - y - 1;
                 // curveball: origin is bottom left of the plot, but we want to output the top row first.
-                let point = &mut self.point_data[(real_y, x)];
+                let point = &mut self.point_data[(real_y as usize, x as usize)];
                 point.origin = Point { re: real, im: imag };
                 self.algorithm.prepare(point);
                 real += step.re;
