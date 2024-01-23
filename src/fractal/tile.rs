@@ -5,6 +5,7 @@ use crate::util::Rect;
 
 use anyhow::{anyhow, ensure, Context};
 use array2d::Array2D;
+use num_complex::ComplexFloat;
 use std::{cmp::max, fmt};
 
 /// A section of a fractal plot
@@ -12,7 +13,8 @@ use std::{cmp::max, fmt};
 pub struct Tile {
     /// Debug output level
     debug: u8,
-    /// Working data. Address as [(x,y)] aka (re,im).
+    /// Working data. Address as [(row,column)] aka (y,x).
+    /// <div class="warning">CAUTION: This array is TOP LEFT oriented. The first row is the top row, not the Origin row.</div>
     point_data: Array2D<PointData>,
     /// Max iterations we plotted to
     pub max_iter_plotted: u32,
@@ -20,7 +22,7 @@ pub struct Tile {
     pub spec: TileSpec,
     /// The algorithm to use
     algorithm: FractalInstance,
-    /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, from the origin
+    /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, relative to the TOP LEFT of the plot.
     offset_within_plot: Option<Rect<u32>>,
 }
 
@@ -29,7 +31,7 @@ impl Tile {
     #[must_use]
     pub fn new(spec: &TileSpec, debug: u8) -> Self {
         let mut new1 = Tile::new_internal(spec, debug);
-        new1.prepare();
+        new1.prepare(debug);
         new1
     }
 
@@ -61,7 +63,7 @@ impl Tile {
         for t in tiles {
             let offset = t
                 .offset_within_plot
-                .ok_or_else(|| anyhow!("joining subtitle did not contain offset"))
+                .ok_or_else(|| anyhow!("joining subtile did not contain offset"))
                 .with_context(|| format!("{t:?}"))?;
 
             // map source (0,0) => dest OFFSET
@@ -82,24 +84,41 @@ impl Tile {
     }
 
     /// Initialises the data for this tile
-    fn prepare(&mut self) {
+    fn prepare(&mut self, debug: u8) {
+        // This is a compound step in both dimensions. We will step the dimensions separately (see `real` and `imag`).
         let step = self.spec.pixel_size();
-        // TRAP: Plot origin != first pixel origin !
-        // The plotted point of each pixel should be the CENTRE of the region, i.e. offset by half a pixel from plot origin.
-        let origin_pixel = self.spec.origin() + 0.5 * step;
+
+        // Start plotting from the top-left
+        let origin_pixel = Point {
+            re: self.spec.origin().re,
+            im: self.spec.origin().im + self.spec.axes().im(), // Top row
+        };
+        // TODO: Consider offsetting each pixel by half a step. However, it's only material on very small plots so maybe not worth it?
+
+        if debug > 0 {
+            println!(
+                "Plot origin {}, TL pixel {origin_pixel}, axes {}, step {step}",
+                self.spec.origin(),
+                self.spec.axes()
+            );
+        }
 
         let mut imag = origin_pixel.im;
         for y in 0..self.spec.height() {
             let mut real = origin_pixel.re;
             for x in 0..self.spec.width() {
-                let real_y = self.spec.height() - y - 1;
-                // curveball: origin is bottom left of the plot, but we want to output the top row first.
-                let point = &mut self.point_data[(real_y as usize, x as usize)];
+                let point = &mut self.point_data[(y as usize, x as usize)];
                 point.origin = Point { re: real, im: imag };
                 self.algorithm.prepare(point);
                 real += step.re;
             }
-            imag += step.im;
+            if debug > 1 {
+                println!(
+                    "Row {y} imag={imag} firstpix x={} lastpix x={real}",
+                    origin_pixel.re
+                );
+            }
+            imag -= step.im;
         }
         // TODO: live_pixel count
     }
@@ -119,6 +138,7 @@ impl Tile {
     }
 
     /// Result accessor
+    /// <div class="warning">CAUTION: This array is TOP LEFT oriented. The first row is the top row, not the Origin (bottom) row!</div>
     #[must_use]
     pub fn result(&self) -> &Array2D<PointData> {
         &self.point_data
@@ -179,8 +199,8 @@ mod tests {
     #[test]
     fn rejoin() {
         let spec = TileSpec::from(&TD_TILE);
-        let split = spec.split(SplitMethod::RowsOfHeight(10));
-        let mut tiles: Vec<Tile> = split.iter().map(|ts| Tile::new(ts, 0)).collect();
+        let split = spec.split(SplitMethod::RowsOfHeight(10), 0);
+        let mut tiles: Vec<Tile> = split.unwrap().iter().map(|ts| Tile::new(ts, 0)).collect();
         for t in &mut tiles {
             t.plot(1);
         }
