@@ -1,5 +1,6 @@
 // (c) Ross Younger 2024
 
+use std::ops::Add;
 use std::str::FromStr;
 
 /// Co-ordinate pair describing the size of something
@@ -44,6 +45,16 @@ impl<T: FromStr> FromStr for Size<T> {
     }
 }
 
+impl<T: std::ops::Add<Output = T>> Add for Size<T> {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        Self {
+            width: self.width + other.width,
+            height: self.height + other.height,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
@@ -84,5 +95,11 @@ mod tests {
         let u = Size::<f64>::from_str("(inf,nan)").unwrap();
         assert!(u.width.is_infinite());
         assert!(u.height.is_nan());
+    }
+    #[test]
+    fn add() {
+        let s = Size::new(12, 34) + Size::new(56, 78);
+        assert_eq!(s.width, 12 + 56);
+        assert_eq!(s.height, 34 + 78);
     }
 }
