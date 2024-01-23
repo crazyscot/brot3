@@ -301,10 +301,20 @@ mod tests {
         assert_eq!(result.origin, TD_CENTRE_ORIGIN);
     }
 
+    const TD_200H: PlotSpec = PlotSpec {
+        location: Location::Centre(ZERO),
+        axes: Size::AxesLength(ONE),
+        size_in_pixels: util::Size::<u32> {
+            width: 100,
+            height: 200,
+        },
+        algorithm: MANDELBROT,
+    };
+
     #[test]
     fn split_strips_no_remainder() {
         const TEST_HEIGHT: u32 = 10;
-        let spec = TileSpec::from(&TD_CENTRE);
+        let spec = TileSpec::from(&TD_200H);
         assert_eq!(
             spec.height() % TEST_HEIGHT,
             0,
@@ -322,7 +332,7 @@ mod tests {
     #[test]
     fn split_strips_with_remainder() {
         const TEST_HEIGHT: u32 = 11;
-        let spec = TileSpec::from(&TD_CENTRE);
+        let spec = TileSpec::from(&TD_200H);
         let remainder = spec.height() % TEST_HEIGHT;
         assert_ne!(
             remainder, 0,
