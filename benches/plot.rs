@@ -1,5 +1,5 @@
 use brot3::fractal::{self, Algorithm, Point, PointData, Tile, TileSpec};
-use brot3::util::Size;
+use brot3::util::Rect;
 
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
 
@@ -31,7 +31,7 @@ fn get_test_tile_spec() -> TileSpec {
     TileSpec::new(
         Point { re: -1.0, im: 0.0 },
         Point { re: 4.0, im: 4.0 },
-        Size::new(1000, 650),
+        Rect::new(1000, 650),
         fractal::factory(fractal::Selection::Original),
     )
 }

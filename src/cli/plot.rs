@@ -3,7 +3,7 @@
 
 use crate::fractal::{self, Algorithm, Location, PlotSpec, Point, Scalar, Size, Tile, TileSpec};
 use crate::render::{self, Renderer};
-use crate::util;
+use crate::util::Rect;
 
 use anyhow::ensure;
 
@@ -104,7 +104,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
                 )?)
             }
         },
-        size_in_pixels: util::Size::new(args.width, args.height),
+        size_in_pixels: Rect::new(args.width, args.height),
         algorithm,
     };
     if debug > 0 {

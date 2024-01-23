@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use super::{FractalInstance, Point, Scalar};
-use crate::util;
+use crate::util::Rect;
 
 /// The user is allowed to specify the plot location in multiple ways.
 #[derive(Debug, Clone, Copy)]
@@ -33,7 +33,7 @@ pub struct PlotSpec {
     /// Size of the plot on the complex plane
     pub axes: Size,
     /// Size of the plot in pixels
-    pub size_in_pixels: util::Size<u32>,
+    pub size_in_pixels: Rect<u32>,
     /// The selected algorithm
     pub algorithm: FractalInstance,
 }
