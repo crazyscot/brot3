@@ -38,7 +38,7 @@ impl Tile {
             max_iter_plotted: 0,
             spec: *spec,
             algorithm: spec.algorithm(),
-            offset_within_plot: spec.pixel_offset(),
+            offset_within_plot: spec.offset_within_plot(),
         };
         new1.prepare();
         new1
