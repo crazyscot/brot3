@@ -1,6 +1,8 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
+use std::time::SystemTime;
+
 use crate::fractal::{
     self, Algorithm, Location, PlotSpec, Point, Scalar, Size, SplitMethod, Tile, TileSpec,
 };
@@ -8,6 +10,7 @@ use crate::render::{self, Renderer};
 use crate::util::Rect;
 
 use anyhow::ensure;
+use rayon::prelude::*;
 
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
@@ -69,6 +72,10 @@ pub struct Args {
     /// This disables parallelisation and may lead to slightly different numerical output as the plot co-ordinates shift subtly.
     #[arg(long)]
     pub no_split: bool,
+
+    /// For profiling/optimising. Measures and outputs the time to complete various parts of the process.
+    #[arg(long)]
+    pub show_timing: bool,
 }
 
 fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
@@ -126,13 +133,27 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         t.plot(args.max_iter);
         render::factory(args.renderer, &args.output_filename).render(&t)
     } else {
-        let splits = spec.split(SplitMethod::RowsOfHeight(10), debug)?;
+        let time0 = SystemTime::now();
+        let splits = spec.split(SplitMethod::RowsOfHeight(50), debug)?;
         let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
-        for t in &mut tiles {
-            t.plot(args.max_iter);
-        }
+        let time1 = SystemTime::now();
+        tiles.par_iter_mut().for_each(|t| t.plot(args.max_iter));
+        let time2 = SystemTime::now();
         let result = Tile::join(&spec, &tiles)?;
-        render::factory(args.renderer, &args.output_filename).render(&result)
+        let time3 = SystemTime::now();
+
+        let res = render::factory(args.renderer, &args.output_filename).render(&result);
+        let time4 = SystemTime::now();
+        if args.show_timing {
+            println!(
+                "times: prepare {:?}, plot {:?}, join {:?}, render {:?}",
+                time1.duration_since(time0).unwrap_or_default(),
+                time2.duration_since(time1).unwrap_or_default(),
+                time3.duration_since(time2).unwrap_or_default(),
+                time4.duration_since(time3).unwrap_or_default(),
+            );
+        }
+        res
     }
 }
 
