@@ -1,7 +1,9 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
-use crate::fractal::{self, Algorithm, Location, PlotSpec, Point, Scalar, Size, Tile, TileSpec};
+use crate::fractal::{
+    self, Algorithm, Location, PlotSpec, Point, Scalar, Size, SplitMethod, Tile, TileSpec,
+};
 use crate::render::{self, Renderer};
 use crate::util::Rect;
 
@@ -82,7 +84,6 @@ fn check_zoom(input: Scalar) -> anyhow::Result<Scalar> {
 
 /// Implementation of 'plot'
 pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
-    // Single tile, single thread for now
     let algorithm = fractal::factory(args.fractal);
 
     let user_plot_data = PlotSpec {
@@ -111,14 +112,19 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         println!("Entered plot data: {user_plot_data:#?}");
     }
 
-    let pd = TileSpec::from(&user_plot_data);
+    let spec = TileSpec::from(&user_plot_data);
     if debug > 0 {
-        println!("Computed plot data: {pd:#?}");
+        println!("Computed plot data: {spec:#?}");
     }
 
-    let mut t = Tile::new(&pd, debug);
-    t.plot(args.max_iter);
-    render::factory(args.renderer, &args.output_filename).render(&t)
+    let splits = spec.split(SplitMethod::RowsOfHeight(10));
+    let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
+    for t in &mut tiles {
+        t.plot(args.max_iter);
+    }
+    let result = Tile::join(&spec, &tiles)?;
+
+    render::factory(args.renderer, &args.output_filename).render(&result)
 }
 
 #[cfg(test)]

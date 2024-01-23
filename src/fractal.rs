@@ -9,7 +9,7 @@ mod userplotspec;
 
 pub use pointdata::PointData;
 pub use tile::Tile;
-pub use tilespec::TileSpec;
+pub use tilespec::{SplitMethod, TileSpec};
 pub use userplotspec::{Location, PlotSpec, Size};
 
 use enum_dispatch::enum_dispatch;
