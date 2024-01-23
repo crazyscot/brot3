@@ -1,7 +1,7 @@
 // (c) 2024 Ross Younger
 
 use super::{Algorithm, FractalInstance, Point, PointData, TileSpec};
-use crate::util;
+use crate::util::Rect;
 
 use anyhow::{anyhow, ensure, Context};
 use array2d::Array2D;
@@ -21,7 +21,7 @@ pub struct Tile {
     /// The algorithm to use
     algorithm: FractalInstance,
     /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, from the origin
-    offset_within_plot: Option<util::Size<u32>>,
+    offset_within_plot: Option<Rect<u32>>,
 }
 
 impl Tile {
@@ -65,12 +65,12 @@ impl Tile {
                 .with_context(|| format!("{t:?}"))?;
 
             // map source (0,0) => dest OFFSET
-            let dest_address = |s: util::Size<u32>| s + offset;
+            let dest_address = |s: Rect<u32>| s + offset;
 
             // there's probably a nicer way to do this
             for y in 0..t.spec.height() {
                 for x in 0..t.spec.width() {
-                    let a = dest_address(util::Size::new(x, y));
+                    let a = dest_address(Rect::new(x, y));
 
                     // Caution! PointData coordinates are in order (y,x)
                     let val = t.point_data[(y as usize, x as usize)];
@@ -126,7 +126,7 @@ impl Tile {
 
     /// Accessor
     #[must_use]
-    pub fn offset_within_plot(&self) -> Option<util::Size<u32>> {
+    pub fn offset_within_plot(&self) -> Option<Rect<u32>> {
         self.offset_within_plot
     }
 
@@ -158,7 +158,7 @@ mod tests {
         fractal::{
             tilespec::Split, FractalInstance, Location, PlotSpec, Point, Size, TileSpec, Zero,
         },
-        util,
+        util::Rect,
     };
 
     use super::Tile;
@@ -170,7 +170,7 @@ mod tests {
     const TD_TILE: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
         axes: Size::AxesLength(ONE),
-        size_in_pixels: util::Size::<u32> {
+        size_in_pixels: Rect::<u32> {
             width: 100,
             height: 101, // not dividable by 10
         },

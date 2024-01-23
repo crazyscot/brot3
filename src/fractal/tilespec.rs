@@ -3,7 +3,7 @@
 
 use super::userplotspec::{Location, Size};
 use super::{FractalInstance, PlotSpec, Point, Scalar};
-use crate::util;
+use crate::util::Rect;
 
 use std::fmt::{self, Display, Formatter};
 
@@ -14,10 +14,10 @@ pub struct TileSpec {
     origin: Point,
     /// Axes length for this tile
     axes: Point,
-    /// Size in pixels of this tile (width,height)
-    size_in_pixels: util::Size<u32>,
-    /// If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
-    offset_within_plot: Option<util::Size<u32>>,
+    /// Size in pixels of this tile
+    size_in_pixels: Rect<u32>,
+    /// If present, this tile is part of a larger plot; this is its Pixel offset within
+    offset_within_plot: Option<Rect<u32>>,
 
     /// The selected algorithm
     algorithm: FractalInstance,
@@ -48,7 +48,7 @@ impl TileSpec {
     pub fn new(
         origin: Point,
         axes: Point,
-        size_in_pixels: util::Size<u32>,
+        size_in_pixels: Rect<u32>,
         algorithm: FractalInstance,
     ) -> TileSpec {
         TileSpec {
@@ -64,9 +64,9 @@ impl TileSpec {
     pub fn new_with_offset(
         origin: Point,
         axes: Point,
-        size_in_pixels: util::Size<u32>,
+        size_in_pixels: Rect<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
-        offset_within_plot: Option<util::Size<u32>>,
+        offset_within_plot: Option<Rect<u32>>,
         algorithm: FractalInstance,
     ) -> TileSpec {
         TileSpec {
@@ -90,7 +90,7 @@ impl TileSpec {
                 };
 
                 // What is fixed about the subtiles?
-                let strip_pixel_size = util::Size::new(self.width(), row_height);
+                let strip_pixel_size = Rect::new(self.width(), row_height);
                 let axes = Point {
                     re: self.axes.re,
                     im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
@@ -101,7 +101,7 @@ impl TileSpec {
                     re: 0.0,
                     im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
                 };
-                let mut offset = util::Size::<u32>::default();
+                let mut offset = Rect::<u32>::default();
 
                 let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize);
                 for _ in 0..n_whole {
@@ -125,7 +125,7 @@ impl TileSpec {
                     output.push(TileSpec::new_with_offset(
                         working_origin,
                         last_axes,
-                        util::Size::new(self.width(), last_height),
+                        Rect::new(self.width(), last_height),
                         Some(offset),
                         self.algorithm,
                     ));
@@ -164,7 +164,7 @@ impl TileSpec {
     }
     /// Accessor
     #[must_use]
-    pub fn offset_within_plot(&self) -> Option<util::Size<u32>> {
+    pub fn offset_within_plot(&self) -> Option<Rect<u32>> {
         self.offset_within_plot
     }
 }
@@ -214,7 +214,7 @@ mod tests {
             userplotspec::{Location, Size},
             FractalInstance, PlotSpec, Point, Scalar, TileSpec,
         },
-        util,
+        util::Rect,
     };
     use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
 
@@ -228,7 +228,7 @@ mod tests {
     const TD_ORIGIN_AXES: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
         axes: Size::AxesLength(ONE),
-        size_in_pixels: util::Size::<u32> {
+        size_in_pixels: Rect::<u32> {
             width: 100,
             height: 100,
         },
@@ -237,7 +237,7 @@ mod tests {
     const TD_ORIGIN_PIXELS: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
         axes: Size::PixelSize(CENTI),
-        size_in_pixels: util::Size::<u32> {
+        size_in_pixels: Rect::<u32> {
             width: 100,
             height: 100,
         },
@@ -247,7 +247,7 @@ mod tests {
     const TD_ORIGIN_ZOOM: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
         axes: Size::ZoomFactor(1000.0),
-        size_in_pixels: util::Size::<u32> {
+        size_in_pixels: Rect::<u32> {
             width: 200,
             height: 100,
         },
@@ -260,7 +260,7 @@ mod tests {
         location: Location::Centre(ONETWO),
         axes: Size::AxesLength(ONE),
         // centre(1,2) => origin (0.5,1.5)
-        size_in_pixels: util::Size::<u32> {
+        size_in_pixels: Rect::<u32> {
             width: 100,
             height: 100,
         },
@@ -304,7 +304,7 @@ mod tests {
     const TD_200H: PlotSpec = PlotSpec {
         location: Location::Centre(ZERO),
         axes: Size::AxesLength(ONE),
-        size_in_pixels: util::Size::<u32> {
+        size_in_pixels: Rect::<u32> {
             width: 100,
             height: 200,
         },

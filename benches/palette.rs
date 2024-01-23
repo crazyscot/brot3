@@ -1,6 +1,6 @@
 use brot3::fractal::{self, Point, Tile, TileSpec};
 use brot3::render::{self, Renderer};
-use brot3::util::Size;
+use brot3::util::Rect;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
@@ -14,7 +14,7 @@ fn palette_tile_spec() -> TileSpec {
             re: 0.282,
             im: 0.282,
         },
-        Size::new(300, 300),
+        Rect::new(300, 300),
         fractal::factory(fractal::Selection::Original),
     )
 }

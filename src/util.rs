@@ -5,4 +5,4 @@ pub mod filename;
 pub mod listable;
 
 mod size;
-pub use size::Size;
+pub use size::Rect;

@@ -3,16 +3,16 @@
 use std::ops::Add;
 use std::str::FromStr;
 
-/// Co-ordinate pair describing the size of something
+/// A rectangle of some sort
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct Size<T> {
+pub struct Rect<T> {
     /// Width of the thing
     pub width: T,
     /// Height of the thing
     pub height: T,
 }
 
-impl<T: Copy> Size<T>
+impl<T: Copy> Rect<T>
 where
     f64: From<T>, // this means you can't have a Size<usize> on x86_64
 {
@@ -22,7 +22,7 @@ where
     }
 
     /// Constructor
-    pub fn new(width: T, height: T) -> Size<T> {
+    pub fn new(width: T, height: T) -> Rect<T> {
         Self { width, height }
     }
 }
@@ -30,7 +30,7 @@ where
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ParseSizeError;
 
-impl<T: FromStr> FromStr for Size<T> {
+impl<T: FromStr> FromStr for Rect<T> {
     type Err = ParseSizeError;
 
     fn from_str(item: &str) -> Result<Self, Self::Err> {
@@ -45,7 +45,7 @@ impl<T: FromStr> FromStr for Size<T> {
     }
 }
 
-impl<T: std::ops::Add<Output = T>> Add for Size<T> {
+impl<T: std::ops::Add<Output = T>> Add for Rect<T> {
     type Output = Self;
     fn add(self, other: Self) -> Self {
         Self {
@@ -59,46 +59,46 @@ impl<T: std::ops::Add<Output = T>> Add for Size<T> {
 mod tests {
     use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
 
-    use super::Size;
+    use super::Rect;
     use std::str::FromStr;
 
     #[test]
     fn aspect() {
         #![allow(clippy::float_cmp)]
-        assert_eq!(Size::new(200, 100).aspect_ratio(), 2.0);
-        assert_eq!(Size::new(100, 100).aspect_ratio(), 1.0);
-        assert_eq!(Size::new(100, 200).aspect_ratio(), 0.5);
+        assert_eq!(Rect::new(200, 100).aspect_ratio(), 2.0);
+        assert_eq!(Rect::new(100, 100).aspect_ratio(), 1.0);
+        assert_eq!(Rect::new(100, 200).aspect_ratio(), 0.5);
     }
 
     #[test]
     fn parse_int() {
-        let t = Size::<u32>::from_str("(123,456)").unwrap();
+        let t = Rect::<u32>::from_str("(123,456)").unwrap();
         assert_eq!(t.width, 123);
         assert_eq!(t.height, 456);
     }
     #[test]
     fn parse_fail() {
-        assert!(Size::<u32>::from_str("(123 ,456)").is_err());
-        assert!(Size::<u32>::from_str("(123, 456)").is_err());
-        assert!(Size::<u32>::from_str("123,456)").is_err());
-        assert!(Size::<u32>::from_str("(123,456").is_err());
-        assert!(Size::<u32>::from_str("(123456)").is_err());
-        assert!(Size::<u32>::from_str("(12,34,56)").is_err());
-        assert!(Size::<u32>::from_str("(123banana,456)").is_err());
+        assert!(Rect::<u32>::from_str("(123 ,456)").is_err());
+        assert!(Rect::<u32>::from_str("(123, 456)").is_err());
+        assert!(Rect::<u32>::from_str("123,456)").is_err());
+        assert!(Rect::<u32>::from_str("(123,456").is_err());
+        assert!(Rect::<u32>::from_str("(123456)").is_err());
+        assert!(Rect::<u32>::from_str("(12,34,56)").is_err());
+        assert!(Rect::<u32>::from_str("(123banana,456)").is_err());
     }
     #[test]
     fn parse_float() {
-        let t = Size::<f64>::from_str("(2.0,4.0)").unwrap();
+        let t = Rect::<f64>::from_str("(2.0,4.0)").unwrap();
         assert_f64_near!(t.width, 2.0);
         assert_f64_near!(t.height, 4.0);
 
-        let u = Size::<f64>::from_str("(inf,nan)").unwrap();
+        let u = Rect::<f64>::from_str("(inf,nan)").unwrap();
         assert!(u.width.is_infinite());
         assert!(u.height.is_nan());
     }
     #[test]
     fn add() {
-        let s = Size::new(12, 34) + Size::new(56, 78);
+        let s = Rect::new(12, 34) + Rect::new(56, 78);
         assert_eq!(s.width, 12 + 56);
         assert_eq!(s.height, 34 + 78);
     }
