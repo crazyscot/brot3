@@ -66,14 +66,14 @@ impl TileSpec {
         axes: Point,
         size_in_pixels: util::Size<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
-        pixel_offset: Option<util::Size<u32>>,
+        offset_within_plot: Option<util::Size<u32>>,
         algorithm: FractalInstance,
     ) -> TileSpec {
         TileSpec {
             origin,
             axes,
             size_in_pixels,
-            offset_within_plot: pixel_offset,
+            offset_within_plot,
             algorithm,
         }
     }
@@ -164,7 +164,7 @@ impl TileSpec {
     }
     /// Accessor
     #[must_use]
-    pub fn pixel_offset(&self) -> Option<util::Size<u32>> {
+    pub fn offset_within_plot(&self) -> Option<util::Size<u32>> {
         self.offset_within_plot
     }
 }
@@ -377,7 +377,7 @@ mod tests {
             assert_f64_near!(ts.axes().im, expected_axes_length.im, 150); // slippery in the remainder case!
 
             // pixel offset
-            let offset = ts.pixel_offset().unwrap();
+            let offset = ts.offset_within_plot().unwrap();
             assert_eq!(offset.width, 0);
             assert!(offset.height <= spec.height());
             // pixel_size
