@@ -26,8 +26,8 @@ pub struct TileSpec {
 /// Method of splitting a tile
 #[derive(Debug, Clone, Copy)]
 pub enum SplitMethod {
-    /// Full-width strips
-    Rows(u32),
+    /// Full-width strips.
+    RowsOfHeight(u32),
     // TODO Square
 }
 
@@ -82,7 +82,7 @@ impl TileSpec {
     #[must_use]
     pub fn split(&self, how: SplitMethod) -> Vec<TileSpec> {
         match how {
-            SplitMethod::Rows(row_height) => {
+            SplitMethod::RowsOfHeight(row_height) => {
                 let n_whole = self.height() / row_height;
                 let maybe_last_height: Option<u32> = match self.height() % row_height {
                     0 => None,
@@ -320,7 +320,7 @@ mod tests {
             0,
             "This test requires a test spec that is a multiple of {TEST_HEIGHT} pixels high"
         );
-        let result = spec.split(SplitMethod::Rows(TEST_HEIGHT));
+        let result = spec.split(SplitMethod::RowsOfHeight(TEST_HEIGHT));
         assert_eq!(
             result.len(),
             (spec.height() / TEST_HEIGHT) as usize,
@@ -338,7 +338,7 @@ mod tests {
             remainder, 0,
             "This test requires a test spec that is not a multiple of {TEST_HEIGHT} pixels high"
         );
-        let result = spec.split(SplitMethod::Rows(TEST_HEIGHT));
+        let result = spec.split(SplitMethod::RowsOfHeight(TEST_HEIGHT));
         assert_eq!(
             result.len(),
             1 + (spec.height() / TEST_HEIGHT) as usize,

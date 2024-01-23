@@ -179,7 +179,7 @@ mod tests {
     #[test]
     fn rejoin() {
         let spec = TileSpec::from(&TD_TILE);
-        let split = spec.split(SplitMethod::Rows(10));
+        let split = spec.split(SplitMethod::RowsOfHeight(10));
         let mut tiles: Vec<Tile> = split.iter().map(|ts| Tile::new(ts, 0)).collect();
         for t in &mut tiles {
             t.plot(1);
