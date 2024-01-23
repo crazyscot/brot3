@@ -14,7 +14,7 @@ pub struct Size<T> {
 
 impl<T: Copy> Size<T>
 where
-    f64: From<T>,
+    f64: From<T>, // this means you can't have a Size<usize> on x86_64
 {
     /// Computing accessor
     pub fn aspect_ratio(&self) -> f64 {

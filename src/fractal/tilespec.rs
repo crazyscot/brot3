@@ -83,7 +83,7 @@ impl TileSpec {
     pub fn split(&self, how: Split) -> Vec<TileSpec> {
         match how {
             Split::Rows(row_height) => {
-                let n_whole = (self.height() / row_height) as usize;
+                let n_whole = self.height() / row_height;
                 let maybe_last_height: Option<u32> = match self.height() % row_height {
                     0 => None,
                     other => Some(other),
@@ -103,7 +103,7 @@ impl TileSpec {
                 };
                 let mut offset = util::Size::<u32>::default();
 
-                let mut output = Vec::<TileSpec>::with_capacity(n_whole);
+                let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize);
                 for _ in 0..n_whole {
                     output.push(TileSpec::new_with_offset(
                         working_origin,
