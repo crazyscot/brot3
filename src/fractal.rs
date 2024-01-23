@@ -38,6 +38,10 @@ pub enum FractalInstance {
     /// Mandelbrot^3 z:=z^3+c (alias: "m3")
     #[strum_discriminants(value(alias = "m3"))]
     Mandel3,
+
+    /// Test algorithm that always outputs zero
+    #[strum(disabled)]
+    Zero,
 }
 
 const ESCAPE_THRESHOLD: Scalar = 4.0;
@@ -87,7 +91,18 @@ pub fn factory(selection: Selection) -> FractalInstance {
     match selection {
         Selection::Original => mandelbrot::Original {}.into(),
         Selection::Mandel3 => mandelbrot::Mandel3 {}.into(),
+        Selection::Zero => Zero {}.into(),
     }
+}
+
+/// Test algorithm, doesn't do anything useful
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Zero {}
+impl Algorithm for Zero {
+    fn iterate(&self, point: &mut PointData) {
+        point.result = Some(0.0);
+    }
+    fn finish(&self, _point: &mut PointData) {}
 }
 
 #[cfg(test)]
