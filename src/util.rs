@@ -4,5 +4,5 @@ pub mod filename;
 /// Support code for enums which the user can select from
 pub mod listable;
 
-mod size;
-pub use size::Rect;
+mod rect;
+pub use rect::Rect;
