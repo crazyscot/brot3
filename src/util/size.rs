@@ -1,5 +1,7 @@
 // (c) Ross Younger 2024
 
+use std::str::FromStr;
+
 /// Co-ordinate pair describing the size of something
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Size<T> {
@@ -24,9 +26,30 @@ where
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ParseSizeError;
+
+impl<T: FromStr> FromStr for Size<T> {
+    type Err = ParseSizeError;
+
+    fn from_str(item: &str) -> Result<Self, Self::Err> {
+        let (w, h) = item
+            .strip_prefix('(')
+            .and_then(|s| s.strip_suffix(')'))
+            .and_then(|s| s.split_once(','))
+            .ok_or(ParseSizeError)?;
+        let width = w.parse::<T>().map_err(|_| ParseSizeError)?;
+        let height = h.parse::<T>().map_err(|_| ParseSizeError)?;
+        Ok(Self { width, height })
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
+
     use super::Size;
+    use std::str::FromStr;
 
     #[test]
     fn aspect() {
@@ -34,5 +57,32 @@ mod tests {
         assert_eq!(Size::new(200, 100).aspect_ratio(), 2.0);
         assert_eq!(Size::new(100, 100).aspect_ratio(), 1.0);
         assert_eq!(Size::new(100, 200).aspect_ratio(), 0.5);
+    }
+
+    #[test]
+    fn parse_int() {
+        let t = Size::<u32>::from_str("(123,456)").unwrap();
+        assert_eq!(t.width, 123);
+        assert_eq!(t.height, 456);
+    }
+    #[test]
+    fn parse_fail() {
+        assert!(Size::<u32>::from_str("(123 ,456)").is_err());
+        assert!(Size::<u32>::from_str("(123, 456)").is_err());
+        assert!(Size::<u32>::from_str("123,456)").is_err());
+        assert!(Size::<u32>::from_str("(123,456").is_err());
+        assert!(Size::<u32>::from_str("(123456)").is_err());
+        assert!(Size::<u32>::from_str("(12,34,56)").is_err());
+        assert!(Size::<u32>::from_str("(123banana,456)").is_err());
+    }
+    #[test]
+    fn parse_float() {
+        let t = Size::<f64>::from_str("(2.0,4.0)").unwrap();
+        assert_f64_near!(t.width, 2.0);
+        assert_f64_near!(t.height, 4.0);
+
+        let u = Size::<f64>::from_str("(inf,nan)").unwrap();
+        assert!(u.width.is_infinite());
+        assert!(u.height.is_nan());
     }
 }
