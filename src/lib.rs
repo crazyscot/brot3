@@ -25,6 +25,8 @@
 
 /// Command Line Interface helpers
 pub mod cli;
+/// Fractal palettes
+pub mod colouring;
 /// Fractal interface
 pub mod fractal;
 /// Fractal renderers
