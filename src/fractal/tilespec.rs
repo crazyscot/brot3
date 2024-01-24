@@ -44,6 +44,11 @@ impl TileSpec {
             im: self.axes.im / Scalar::from(self.height()),
         }
     }
+    /// Computes the centre for this spec.
+    #[must_use]
+    pub fn centre(&self) -> Point {
+        self.origin + 0.5 * self.axes
+    }
 
     /// Constructor
     #[must_use]
@@ -145,6 +150,41 @@ impl TileSpec {
                 output.reverse();
                 Ok(output)
             }
+        }
+    }
+
+    /// Automatically adjusts this spec to make the pixels square.
+    /// This is done by growing the real or imaginary axis to suit.
+    /// Obviously, you must call this before ``Tilespec::split()`` !
+    /// Return: If we did anything, returns the new Axes value.
+    pub fn auto_adjust_aspect_ratio(&mut self) -> anyhow::Result<Option<Point>> {
+        let axes_aspect = self.axes.re / self.axes.im;
+        let pixels_aspect = self.size_in_pixels.aspect_ratio();
+        let ratio = pixels_aspect / axes_aspect;
+        let centre = self.centre();
+        if axes_aspect < pixels_aspect {
+            // The requested pixel dimensions are too narrow.
+            // Grow the plot in Real, maintaining its centre.
+            ensure!(
+                ratio > 1.0,
+                "logic error; computed ratio {ratio} (expected >1)"
+            );
+            self.axes.re *= ratio;
+            // Recompute origin to keep the same centre
+            self.origin = centre - 0.5 * self.axes;
+            Ok(Some(self.axes))
+        } else if axes_aspect > pixels_aspect {
+            // The requested pixel dimensions are too tall.
+            // Grow the plot in Imaginary, maintaining its centre.
+            ensure!(
+                ratio < 1.0,
+                "logic error; computed ratio {ratio} (expected <1)"
+            );
+            self.axes.im /= ratio;
+            self.origin = centre - 0.5 * self.axes;
+            Ok(Some(self.axes))
+        } else {
+            Ok(None) // nothing to do
         }
     }
 
@@ -421,5 +461,49 @@ mod tests {
         // The last tile added - the FIRST in the output vector - is the topmost, so subject to the most accumulated error.
         let first: &TileSpec = result.first().unwrap();
         assert_f64_near!(first.origin().im + first.axes().im, upper_corner.im);
+    }
+
+    #[test]
+    fn aspect_1() {
+        let mut ts = TileSpec::new(
+            Point { re: -2.0, im: -2.0 },
+            Point { re: 4.0, im: 4.0 },
+            Rect::new(100, 100),
+            MANDELBROT,
+        );
+        assert!(ts.auto_adjust_aspect_ratio().is_ok_and(|v| v.is_none()));
+    }
+
+    #[test]
+    fn aspect_gt_1() {
+        let ts = TileSpec::new(
+            Point { re: -2.0, im: -2.0 },
+            Point { re: 4.0, im: 4.0 },
+            Rect::new(200, 100),
+            MANDELBROT,
+        );
+        check_aspect(ts);
+    }
+    #[test]
+    fn aspect_lt_1() {
+        let ts = TileSpec::new(
+            Point { re: -2.0, im: -2.0 },
+            Point { re: 4.0, im: 4.0 },
+            Rect::new(100, 200),
+            MANDELBROT,
+        );
+        check_aspect(ts);
+    }
+    fn check_aspect(mut ts: TileSpec) {
+        let previous_centre = ts.centre();
+        let res = ts.auto_adjust_aspect_ratio().unwrap();
+        let new_axes = res.unwrap();
+        // new_axes should be as reported
+        assert_eq!(new_axes, ts.axes());
+        // centre should be unchanged (0,0)
+        assert_eq!(ts.centre(), previous_centre);
+        // aspect ratio should now match pixel size
+        let aspect = ts.axes().re / ts.axes().im;
+        assert_f64_near!(aspect, ts.size_in_pixels.aspect_ratio());
     }
 }
