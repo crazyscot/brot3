@@ -68,6 +68,10 @@ pub struct Args {
     #[arg(short, long, value_name = "PIXELS", default_value = "300")]
     pub height: u32,
 
+    /// Suppresses auto-aspect-adjustment. (By default we automatically grow the axes to make the pixels square, which is usually what you wanted.)
+    #[arg(short = 'n', long)]
+    pub no_auto_aspect: bool,
+
     /// For debugging. Prevents the internal processing of the plot as a series of strips.
     /// This disables parallelisation and may lead to slightly different numerical output as the plot co-ordinates shift subtly.
     #[arg(long)]
@@ -124,10 +128,16 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         println!("Entered plot data: {user_plot_data:#?}");
     }
 
-    let spec = TileSpec::from(&user_plot_data);
+    let mut spec = TileSpec::from(&user_plot_data);
+    if !args.no_auto_aspect {
+        if let Ok(Some(new_axes)) = spec.auto_adjust_aspect_ratio() {
+            println!("Auto adjusted aspect ratio. Axes are now {new_axes} (you can suppress this behaviour with `--no-auto-aspect')");
+        }
+    }
     if debug > 0 {
         println!("Computed plot data: {spec:#?}");
     }
+
     if args.no_split {
         let mut t = Tile::new(&spec, debug);
         t.plot(args.max_iter);
