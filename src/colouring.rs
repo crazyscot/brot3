@@ -4,8 +4,13 @@
 
 use palette::Srgb;
 
-// Colour conversion (tests only for now)
+/// Selection & dispatch framework
+pub mod framework;
+pub use framework::{factory, OutputsRgb8, PaletteInstance, Selection};
+
+// Colour space and conversion helpers
 mod types;
+pub use types::OutputsHsvf;
 
 /// RGB type, f32 storage
 pub type Rgbf = palette::rgb::Rgb<Srgb, f32>;

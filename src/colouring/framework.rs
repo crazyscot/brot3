@@ -1,0 +1,51 @@
+// Palette selection & dispatch framework
+// (c) 2024 Ross Younger
+
+use enum_dispatch::enum_dispatch;
+use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
+
+use super::types::White;
+use super::Rgb8;
+//use huecycles::LinearRainbow;
+
+/// Selector for available Palettes
+#[enum_dispatch]
+#[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage, PartialEq)]
+#[strum(serialize_all = "kebab_case")]
+#[derive(EnumDiscriminants)] // This creates the enum Selection ...
+#[strum_discriminants(name(Selection), derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
+#[allow(clippy::module_name_repetitions)] // enum_dispatch doesn't support structs with the same name but different paths
+pub enum PaletteInstance {
+    /// A continuous cycle around the HSV cone with fixed saturation and lightness
+    //LinearRainbow,
+
+    /// Test algorithm that always outputs white pixels
+    #[strum(disabled)]
+    White,
+}
+
+/// A colouring algorithm that outputs Rgb8 directly.
+#[enum_dispatch(PaletteInstance)]
+pub trait OutputsRgb8 {
+    /// Colouring function
+    fn colour_rgb8(&self, iters: f64) -> Rgb8;
+}
+
+/// Factory method
+#[must_use]
+pub fn factory(selection: Selection) -> PaletteInstance {
+    match selection {
+        //Selection::LinearRainbow => huecycles::LinearRainbow {}.into(),
+        Selection::White => White {}.into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{colouring::framework::PaletteInstance, util::listable::list_vec};
+
+    #[test]
+    fn list() {
+        assert_ne!(list_vec::<PaletteInstance>().len(), 0);
+    }
+}
