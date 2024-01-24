@@ -3,6 +3,7 @@
 mod ascii;
 mod png;
 
+use crate::colouring::PaletteInstance;
 use crate::fractal::Tile;
 
 use anyhow;
@@ -43,10 +44,12 @@ pub trait Renderer {
 /// Factory method for renderers
 #[must_use]
 pub fn factory(selection: Selection, filename: &str) -> RenderInstance {
+    let colourer: PaletteInstance = // TEMP, to pass in
+        PaletteInstance::LinearRainbow(crate::colouring::LinearRainbow {});
     match selection {
         Selection::Csv => ascii::Csv::new(filename).into(),
         Selection::AsciiArt => ascii::AsciiArt::new(filename).into(),
-        Selection::Png => png::Png::new(filename).into(),
+        Selection::Png => png::Png::new(filename, colourer).into(),
     }
 }
 

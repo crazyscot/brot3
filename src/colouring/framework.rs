@@ -4,9 +4,9 @@
 use enum_dispatch::enum_dispatch;
 use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
 
+use super::huecycles::{self, LinearRainbow};
 use super::types::White;
 use super::Rgb8;
-//use huecycles::LinearRainbow;
 
 /// Selector for available Palettes
 #[enum_dispatch]
@@ -17,7 +17,7 @@ use super::Rgb8;
 #[allow(clippy::module_name_repetitions)] // enum_dispatch doesn't support structs with the same name but different paths
 pub enum PaletteInstance {
     /// A continuous cycle around the HSV cone with fixed saturation and lightness
-    //LinearRainbow,
+    LinearRainbow,
 
     /// Test algorithm that always outputs white pixels
     #[strum(disabled)]
@@ -35,7 +35,7 @@ pub trait OutputsRgb8 {
 #[must_use]
 pub fn factory(selection: Selection) -> PaletteInstance {
     match selection {
-        //Selection::LinearRainbow => huecycles::LinearRainbow {}.into(),
+        Selection::LinearRainbow => huecycles::LinearRainbow {}.into(),
         Selection::White => White {}.into(),
     }
 }

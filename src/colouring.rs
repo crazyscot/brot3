@@ -7,6 +7,10 @@ use palette::Srgb;
 /// Selection & dispatch framework
 pub mod framework;
 pub use framework::{factory, OutputsRgb8, PaletteInstance, Selection};
+pub use huecycles::LinearRainbow;
+
+// Hue cycling algorithms
+mod huecycles;
 
 // Colour space and conversion helpers
 mod types;
