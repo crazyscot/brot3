@@ -64,6 +64,11 @@ pub struct Args {
     /// Plot height
     #[arg(short, long, value_name = "PIXELS", default_value = "300")]
     pub height: u32,
+
+    /// For debugging. Prevents the internal processing of the plot as a series of strips.
+    /// This disables parallelisation and may lead to slightly different numerical output as the plot co-ordinates shift subtly.
+    #[arg(long)]
+    pub no_split: bool,
 }
 
 fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
@@ -116,15 +121,19 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     if debug > 0 {
         println!("Computed plot data: {spec:#?}");
     }
-
-    let splits = spec.split(SplitMethod::RowsOfHeight(10));
-    let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
-    for t in &mut tiles {
+    if args.no_split {
+        let mut t = Tile::new(&spec, debug);
         t.plot(args.max_iter);
+        render::factory(args.renderer, &args.output_filename).render(&t)
+    } else {
+        let splits = spec.split(SplitMethod::RowsOfHeight(10), debug)?;
+        let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
+        for t in &mut tiles {
+            t.plot(args.max_iter);
+        }
+        let result = Tile::join(&spec, &tiles)?;
+        render::factory(args.renderer, &args.output_filename).render(&result)
     }
-    let result = Tile::join(&spec, &tiles)?;
-
-    render::factory(args.renderer, &args.output_filename).render(&result)
 }
 
 #[cfg(test)]
