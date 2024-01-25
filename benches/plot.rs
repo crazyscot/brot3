@@ -1,7 +1,6 @@
-use brot3::fractal::{self, Algorithm, Point, PointData, Tile, TileSpec};
-use brot3::util::Rect;
+use brot3::fractal::{self, Algorithm, Point, PointData};
 
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
+use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
 
 /// A point (found by experiment) that's in the set but not in the special-case cut-off regions
 const TEST_POINT_M2: Point = Point::new(-0.158_653_6, 1.034_804);
@@ -27,28 +26,5 @@ fn iteration(c: &mut Criterion) {
     alg(fractal::Selection::Mandel3, TEST_POINT_M3);
 }
 
-fn get_test_tile_spec() -> TileSpec {
-    TileSpec::new(
-        Point { re: -1.0, im: 0.0 },
-        Point { re: 4.0, im: 4.0 },
-        Rect::new(1000, 650),
-        fractal::factory(fractal::Selection::Original),
-    )
-}
-
-fn tile(c: &mut Criterion) {
-    let mut group = c.benchmark_group("tiles");
-    let spec = get_test_tile_spec();
-    group.bench_function("tile_Original", |b| {
-        b.iter_batched_ref(
-            || Tile::new(&spec, 0),
-            |t| {
-                t.plot(black_box(512));
-            },
-            BatchSize::SmallInput,
-        );
-    });
-}
-
-criterion_group!(fractals, iteration, tile);
+criterion_group!(fractals, iteration);
 criterion_main!(fractals);
