@@ -1,15 +1,20 @@
 // List subcommand
 // (c) 2024 Ross Younger
-use crate::{fractal::FractalInstance, render::RenderInstance, util::listable};
+use crate::{
+    colouring::ColourerInstance, fractal::FractalInstance, render::RenderInstance, util::listable,
+};
 
 #[derive(Debug, clap::Subcommand)]
 enum ListableThings {
-    /// Lists all available renderers
+    /// Lists all available renderers (file formats)
     #[clap(alias = "r")]
     Renderers,
     /// Lists available fractal algorithms
     #[clap(alias = "f")]
     Fractals,
+    /// Lists available colouring algorithms
+    #[clap(alias = "c")]
+    Colourers,
 }
 
 /// Arguments to 'list'
@@ -29,6 +34,7 @@ pub fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => listable::list::<RenderInstance>(args.machine_parseable),
         ListableThings::Fractals => listable::list::<FractalInstance>(args.machine_parseable),
+        ListableThings::Colourers => listable::list::<ColourerInstance>(args.machine_parseable),
     }
     Ok(())
 }

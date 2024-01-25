@@ -16,28 +16,7 @@ use rayon::prelude::*;
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
 pub struct Args {
-    /// Where to send the output (required; use '-' for stdout)
-    #[arg(short = 'o', long = "output", value_name = "FILENAME")]
-    pub output_filename: String,
-
-    /// The fractal algorithm to use
-    #[arg(short = 'f', long, value_name = "NAME", default_value = "original")]
-    pub fractal: fractal::Selection,
-
-    /// The colouring algorithm to use
-    #[arg(
-        short = 'c',
-        long,
-        value_name = "NAME",
-        default_value = "linear-rainbow"
-    )]
-    pub colourer: colouring::Selection,
-
-    /// Rendering type
-    #[arg(short, long, value_name = "NAME", default_value = "png")]
-    pub renderer: render::Selection,
-
-    /// The origin (bottom-left) point of the plot, e.g. -3-3i. Conflicts with --centre.
+    /// The origin (bottom-left) point of the plot, e.g. -3-3i. (Use one of --centre or --origin.)
     #[arg(
         short = 'O',
         long,
@@ -47,7 +26,7 @@ pub struct Args {
     )]
     pub origin: Option<Point>,
 
-    /// The centre point of the plot, e.g. -1-1i. Conflicts with --origin.
+    /// The centre point of the plot, e.g. -1-1i. (Use one of --centre or --origin.)
     #[arg(
         short = 'C',
         long,
@@ -57,19 +36,46 @@ pub struct Args {
     )]
     pub centre: Option<Point>,
 
-    /// The length of the axes, e.g. 3+3i. If the imaginary dimension is not specified it will be assumed to be the same as the real. Conflicts with pixel_size and zoom.
-    #[arg(short = 'A', long, value_name = "COMPLEX", group = "size")]
-    pub axes_length: Option<Point>,
-    /// The size of a pixel, e.g. 0.003+0.003i. If the imaginary dimension is not specified it will be assumed to be the same as the real. Conflicts with axes_length and zoom.
-    #[arg(short = 'P', long, value_name = "COMPLEX", group = "size")]
-    pub pixel_size: Option<Point>,
-    /// The zoom factor, relative to the plot default. Conflicts with axes_length and pixel_size.
-    #[arg(short = 'Z', long, value_name = "INT", group = "size")]
-    pub zoom: Option<Scalar>,
-
     /// Maximum number of iterations
     #[arg(short, long, value_name = "N", default_value = "512")]
     pub max_iter: u32,
+
+    /// The length of the axes, e.g. 3+3i. If the imaginary dimension is not specified it will be assumed to be the same as the real.
+    /// (Use one of --axes_length, --pixel_size or --zoom.)
+    #[arg(short = 'A', long, value_name = "COMPLEX", group = "size")]
+    pub axes_length: Option<Point>,
+    /// The size of a pixel, e.g. 0.003+0.003i. If the imaginary dimension is not specified it will be assumed to be the same as the real.
+    /// (Use one of --axes_length, --pixel_size or --zoom.)
+    #[arg(short = 'P', long, value_name = "COMPLEX", group = "size")]
+    pub pixel_size: Option<Point>,
+    /// The zoom factor, relative to the plot default.
+    /// (Use one of --axes_length, --pixel_size or --zoom.)
+    #[arg(short = 'Z', long, value_name = "INT", group = "size")]
+    pub zoom: Option<Scalar>,
+
+    /// Where to send the output (required; use '-' for stdout)
+    #[arg(short = 'o', long = "output", value_name = "FILENAME")]
+    pub output_filename: String,
+
+    /// The fractal algorithm to use. Use the `list fractals` command to see the available schemes
+    #[arg(
+        short = 'f',
+        long,
+        value_name = "NAME",
+        default_value = "original",
+        hide_possible_values = true
+    )]
+    pub fractal: fractal::Selection,
+
+    /// The colouring algorithm to use. Use the `list colourers` command to see the available schemes
+    #[arg(
+        short = 'c',
+        long,
+        value_name = "NAME",
+        default_value = "linear-rainbow",
+        hide_possible_values = true
+    )]
+    pub colourer: colouring::Selection,
 
     /// Plot width
     #[arg(short, long, value_name = "PIXELS", default_value = "300")]
@@ -77,6 +83,16 @@ pub struct Args {
     /// Plot height
     #[arg(short, long, value_name = "PIXELS", default_value = "300")]
     pub height: u32,
+
+    /// The output file type. Use the `list renderers` command to see the available formats
+    #[arg(
+        short,
+        long,
+        value_name = "NAME",
+        default_value = "png",
+        hide_possible_values = true
+    )]
+    pub renderer: render::Selection,
 
     /// Suppresses auto-aspect-adjustment. (By default we automatically grow the axes to make the pixels square, which is usually what you wanted.)
     #[arg(short = 'n', long)]

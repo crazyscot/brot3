@@ -20,7 +20,7 @@ pub enum ColourerInstance {
     /// A continuous cycle around the HSV cone with fixed saturation and lightness
     LinearRainbow,
 
-    /// The colouring algorithm from``mandy`` by rjk
+    /// The colouring algorithm from ``mandy`` by rjk
     Mandy,
 
     /// Test algorithm that always outputs white pixels
