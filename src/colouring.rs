@@ -8,12 +8,11 @@ use palette::Srgb;
 pub mod framework;
 pub use framework::{factory, OutputsRgb8, PaletteInstance, Selection};
 
-// Hue cycling algorithms
-mod huecycles;
-pub use huecycles::LinearRainbow;
+/// Hue cycling algorithms
+pub mod huecycles;
 
-// Direct-to-RGB algorithms
-mod direct_rgb;
+/// Direct-to-RGB algorithms
+pub mod direct_rgb;
 
 // Colour space and conversion helpers
 mod types;

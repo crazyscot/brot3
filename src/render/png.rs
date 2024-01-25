@@ -19,7 +19,7 @@ impl Default for Png {
     fn default() -> Self {
         Self {
             filename: Filename::new(""),
-            colourer: PaletteInstance::LinearRainbow(crate::colouring::LinearRainbow {}),
+            colourer: PaletteInstance::LinearRainbow(crate::colouring::huecycles::LinearRainbow {}),
         }
     }
 }
