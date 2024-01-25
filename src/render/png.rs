@@ -85,22 +85,3 @@ impl Renderer for Png {
         Ok(())
     }
 }
-
-/// An 8-bit RGBA quadruplet.
-type Rgba = [u8; 4];
-
-/// temporary colouring function
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-#[must_use]
-#[inline]
-pub fn colour_temp(iters: f64) -> Rgba {
-    // This is the colourer from mandy, impl here because it's quick.
-    // inf -> black, that's all good with us.
-    let c = 2.0 * std::f64::consts::PI * iters.sqrt();
-    [
-        (((0.2 * c).cos() + 1.0) * 127.0) as u8,
-        (((0.14285 * c).cos() + 1.0) * 127.0) as u8,
-        (((0.090_909 * c).cos() + 1.0) * 127.0) as u8,
-        255,
-    ]
-}

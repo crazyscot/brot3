@@ -4,9 +4,10 @@
 use enum_dispatch::enum_dispatch;
 use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
 
+use super::direct_rgb::Mandy;
 use super::huecycles::{self, LinearRainbow};
 use super::types::White;
-use super::Rgb8;
+use super::{direct_rgb, Rgb8};
 
 /// Selector for available Palettes
 #[enum_dispatch]
@@ -18,6 +19,9 @@ use super::Rgb8;
 pub enum PaletteInstance {
     /// A continuous cycle around the HSV cone with fixed saturation and lightness
     LinearRainbow,
+
+    /// The colouring algorithm from``mandy`` by rjk
+    Mandy,
 
     /// Test algorithm that always outputs white pixels
     #[strum(disabled)]
@@ -36,6 +40,7 @@ pub trait OutputsRgb8 {
 pub fn factory(selection: Selection) -> PaletteInstance {
     match selection {
         Selection::LinearRainbow => huecycles::LinearRainbow {}.into(),
+        Selection::Mandy => direct_rgb::Mandy {}.into(),
         Selection::White => White {}.into(),
     }
 }

@@ -10,8 +10,6 @@ use anyhow;
 use enum_dispatch::enum_dispatch;
 use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
 
-pub use png::colour_temp;
-
 use self::ascii::{AsciiArt, Csv};
 use self::png::Png;
 
