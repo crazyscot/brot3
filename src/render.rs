@@ -43,9 +43,7 @@ pub trait Renderer {
 
 /// Factory method for renderers
 #[must_use]
-pub fn factory(selection: Selection, filename: &str) -> RenderInstance {
-    let colourer: PaletteInstance = // TEMP, to pass in
-        PaletteInstance::LinearRainbow(crate::colouring::LinearRainbow {});
+pub fn factory(selection: Selection, colourer: PaletteInstance, filename: &str) -> RenderInstance {
     match selection {
         Selection::Csv => ascii::Csv::new(filename).into(),
         Selection::AsciiArt => ascii::AsciiArt::new(filename).into(),

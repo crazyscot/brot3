@@ -3,6 +3,7 @@
 
 use std::time::SystemTime;
 
+use crate::colouring;
 use crate::fractal::{
     self, Algorithm, Location, PlotSpec, Point, Scalar, Size, SplitMethod, Tile, TileSpec,
 };
@@ -22,6 +23,15 @@ pub struct Args {
     /// The fractal algorithm to use
     #[arg(short = 'f', long, value_name = "NAME", default_value = "original")]
     pub fractal: fractal::Selection,
+
+    /// The colouring algorithm to use
+    #[arg(
+        short = 'c',
+        long,
+        value_name = "NAME",
+        default_value = "linear-rainbow"
+    )]
+    pub colourer: colouring::Selection,
 
     /// Rendering type
     #[arg(short, long, value_name = "NAME", default_value = "png")]
@@ -138,10 +148,12 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         println!("Computed plot data: {spec:#?}");
     }
 
+    let colourer = colouring::factory(args.colourer);
+
     if args.no_split {
         let mut t = Tile::new(&spec, debug);
         t.plot(args.max_iter);
-        render::factory(args.renderer, &args.output_filename).render(&t)
+        render::factory(args.renderer, colourer, &args.output_filename).render(&t)
     } else {
         let time0 = SystemTime::now();
         let splits = spec.split(SplitMethod::RowsOfHeight(50), debug)?;
@@ -152,7 +164,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         let result = Tile::join(&spec, &tiles)?;
         let time3 = SystemTime::now();
 
-        let res = render::factory(args.renderer, &args.output_filename).render(&result);
+        let res = render::factory(args.renderer, colourer, &args.output_filename).render(&result);
         let time4 = SystemTime::now();
         if args.show_timing {
             println!(
