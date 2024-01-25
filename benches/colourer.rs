@@ -1,4 +1,4 @@
-use brot3::colouring::{self, OutputsRgb8, PaletteInstance, Selection};
+use brot3::colouring::{self, ColourerInstance, OutputsRgb8, Selection};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use strum::IntoEnumIterator;
@@ -13,7 +13,7 @@ fn colour_pixel(c: &mut Criterion) {
             });
         });
     };
-    PaletteInstance::iter().for_each(|i| bench(i.into()));
+    ColourerInstance::iter().for_each(|i| bench(i.into()));
 }
 
 criterion_group!(colourers, colour_pixel);

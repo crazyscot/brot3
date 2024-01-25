@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use super::Renderer;
-use crate::colouring::{OutputsRgb8, PaletteInstance};
+use crate::colouring::{ColourerInstance, OutputsRgb8};
 use crate::fractal::Tile;
 use crate::util::filename::Filename;
 
@@ -12,20 +12,22 @@ use std::io::BufWriter;
 #[derive(Clone, Debug)]
 pub struct Png {
     filename: Filename,
-    colourer: PaletteInstance,
+    colourer: ColourerInstance,
 }
 
 impl Default for Png {
     fn default() -> Self {
         Self {
             filename: Filename::new(""),
-            colourer: PaletteInstance::LinearRainbow(crate::colouring::huecycles::LinearRainbow {}),
+            colourer: ColourerInstance::LinearRainbow(
+                crate::colouring::huecycles::LinearRainbow {},
+            ),
         }
     }
 }
 
 impl Png {
-    pub(crate) fn new(filename: &str, colourer: PaletteInstance) -> Self {
+    pub(crate) fn new(filename: &str, colourer: ColourerInstance) -> Self {
         Png {
             filename: Filename::new(filename),
             colourer,
@@ -36,7 +38,7 @@ impl Png {
 impl Png {
     fn render_inner(
         tile: &Tile,
-        colourer: PaletteInstance,
+        colourer: ColourerInstance,
         writer: Box<dyn std::io::Write>,
     ) -> Result<()> {
         let mut encoder = png::Encoder::new(writer, tile.spec.width(), tile.spec.height());

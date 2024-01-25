@@ -16,7 +16,7 @@ use super::{direct_rgb, Rgb8};
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(name(Selection), derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
 #[allow(clippy::module_name_repetitions)] // enum_dispatch doesn't support structs with the same name but different paths
-pub enum PaletteInstance {
+pub enum ColourerInstance {
     /// A continuous cycle around the HSV cone with fixed saturation and lightness
     LinearRainbow,
 
@@ -29,7 +29,7 @@ pub enum PaletteInstance {
 }
 
 /// A colouring algorithm that outputs Rgb8 directly.
-#[enum_dispatch(PaletteInstance)]
+#[enum_dispatch(ColourerInstance)]
 pub trait OutputsRgb8 {
     /// Colouring function
     fn colour_rgb8(&self, iters: f64) -> Rgb8;
@@ -37,7 +37,7 @@ pub trait OutputsRgb8 {
 
 /// Factory method
 #[must_use]
-pub fn factory(selection: Selection) -> PaletteInstance {
+pub fn factory(selection: Selection) -> ColourerInstance {
     match selection {
         Selection::LinearRainbow => huecycles::LinearRainbow {}.into(),
         Selection::Mandy => direct_rgb::Mandy {}.into(),
@@ -47,10 +47,10 @@ pub fn factory(selection: Selection) -> PaletteInstance {
 
 #[cfg(test)]
 mod tests {
-    use crate::{colouring::framework::PaletteInstance, util::listable::list_vec};
+    use crate::{colouring::framework::ColourerInstance, util::listable::list_vec};
 
     #[test]
     fn list() {
-        assert_ne!(list_vec::<PaletteInstance>().len(), 0);
+        assert_ne!(list_vec::<ColourerInstance>().len(), 0);
     }
 }

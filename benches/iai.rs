@@ -2,7 +2,7 @@ use iai_callgrind::{library_benchmark, library_benchmark_group, main};
 use std::hint::black_box;
 
 use brot3::{
-    colouring::{direct_rgb, huecycles, OutputsRgb8, PaletteInstance, Rgb8},
+    colouring::{direct_rgb, huecycles, ColourerInstance, OutputsRgb8, Rgb8},
     fractal::{self, Algorithm, FractalInstance, Point, PointData},
 };
 
@@ -45,7 +45,7 @@ use huecycles::*;
 #[library_benchmark]
 #[bench::linear_rainbow(LinearRainbow {}.into())]
 #[bench::mandy(Mandy {}.into())]
-fn bench_colourer(alg: PaletteInstance) -> Rgb8 {
+fn bench_colourer(alg: ColourerInstance) -> Rgb8 {
     alg.colour_rgb8(black_box(42.0))
 }
 
