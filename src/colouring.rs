@@ -5,7 +5,7 @@
 use palette::Srgb;
 
 /// Selection & dispatch framework
-pub mod framework;
+mod framework;
 pub use framework::{factory, ColourerInstance, OutputsRgb8, Selection};
 
 /// Hue cycling algorithms
