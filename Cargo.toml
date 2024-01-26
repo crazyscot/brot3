@@ -18,7 +18,7 @@ num-complex = "0.4.4"
 palette = "0.7.3"
 png = "0.17.11"
 rayon = "1.8.1"
-strum = "0.25.0"
+strum = { version = "0.25.0", features = ["derive"] }
 strum_macros = "0.25.3"
 
 [dev-dependencies]
