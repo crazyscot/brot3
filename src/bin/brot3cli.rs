@@ -13,7 +13,14 @@ struct Cli {
     command: Commands,
 
     /// Enable debug output (may be repeated)
-    #[arg(short, long, global(true), action = ArgAction::Count, help = "Enables debug output (may be repeated)")]
+    #[arg(
+        short,
+        long,
+        global(true),
+        action = ArgAction::Count,
+        help = "Enables debug output (may be repeated)",
+        display_order(900))
+    ]
     debug: u8,
 
     #[arg(long, hide(true))]
