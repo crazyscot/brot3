@@ -22,7 +22,8 @@ pub struct Args {
         long,
         value_name = "COMPLEX",
         group = "location",
-        allow_hyphen_values(true)
+        allow_hyphen_values(true),
+        display_order(10)
     )]
     pub origin: Option<Point>,
 
@@ -32,30 +33,51 @@ pub struct Args {
         long,
         value_name = "COMPLEX",
         group = "location",
-        allow_hyphen_values(true)
+        allow_hyphen_values(true),
+        display_order(10)
     )]
     pub centre: Option<Point>,
 
-    /// Maximum number of iterations
-    #[arg(short, long, value_name = "N", default_value = "512")]
-    pub max_iter: u32,
-
     /// The length of the axes, e.g. 3+3i. If the imaginary dimension is not specified it will be assumed to be the same as the real.
     /// (Use one of --axes_length, --pixel_size or --zoom.)
-    #[arg(short = 'A', long, value_name = "COMPLEX", group = "size")]
+    #[arg(
+        short = 'A',
+        long,
+        value_name = "COMPLEX",
+        group = "size",
+        display_order(20)
+    )]
     pub axes_length: Option<Point>,
     /// The size of a pixel, e.g. 0.003+0.003i. If the imaginary dimension is not specified it will be assumed to be the same as the real.
     /// (Use one of --axes_length, --pixel_size or --zoom.)
-    #[arg(short = 'P', long, value_name = "COMPLEX", group = "size")]
+    #[arg(
+        short = 'P',
+        long,
+        value_name = "COMPLEX",
+        group = "size",
+        display_order(20)
+    )]
     pub pixel_size: Option<Point>,
     /// The zoom factor, relative to the plot default.
     /// (Use one of --axes_length, --pixel_size or --zoom.)
-    #[arg(short = 'Z', long, value_name = "INT", group = "size")]
+    #[arg(
+        short = 'Z',
+        long,
+        value_name = "INT",
+        group = "size",
+        display_order(20)
+    )]
     pub zoom: Option<Scalar>,
 
-    /// Where to send the output (required; use '-' for stdout)
-    #[arg(short = 'o', long = "output", value_name = "FILENAME")]
-    pub output_filename: String,
+    /// Maximum number of iterations before assuming a pixel has escaped
+    #[arg(
+        short,
+        long,
+        value_name = "N",
+        default_value = "512",
+        display_order(30)
+    )]
+    pub max_iter: u32,
 
     /// The fractal algorithm to use. Use the `list fractals` command to see the available schemes
     #[arg(
@@ -63,7 +85,8 @@ pub struct Args {
         long,
         value_name = "NAME",
         default_value = "original",
-        hide_possible_values = true
+        hide_possible_values = true,
+        display_order(50)
     )]
     pub fractal: fractal::Selection,
 
@@ -71,18 +94,43 @@ pub struct Args {
     #[arg(
         short = 'c',
         long,
+        alias = "colour",
+        alias = "color",
+        alias = "colorer",
         value_name = "NAME",
         default_value = "linear-rainbow",
-        hide_possible_values = true
+        hide_possible_values = true,
+        display_order(60)
     )]
     pub colourer: colouring::Selection,
 
     /// Plot width
-    #[arg(short, long, value_name = "PIXELS", default_value = "300")]
+    #[arg(
+        short,
+        long,
+        value_name = "PIXELS",
+        default_value = "300",
+        display_order(100)
+    )]
     pub width: u32,
     /// Plot height
-    #[arg(short, long, value_name = "PIXELS", default_value = "300")]
+    #[arg(
+        short,
+        long,
+        value_name = "PIXELS",
+        default_value = "300",
+        display_order(100)
+    )]
     pub height: u32,
+
+    /// Where to send the output (required; use '-' for stdout)
+    #[arg(
+        short = 'o',
+        long = "output",
+        value_name = "FILENAME",
+        display_order(110)
+    )]
+    pub output_filename: String,
 
     /// The output file type. Use the `list renderers` command to see the available formats
     #[arg(
@@ -90,21 +138,22 @@ pub struct Args {
         long,
         value_name = "NAME",
         default_value = "png",
-        hide_possible_values = true
+        hide_possible_values = true,
+        display_order(120)
     )]
     pub renderer: render::Selection,
 
     /// Suppresses auto-aspect-adjustment. (By default we automatically grow the axes to make the pixels square, which is usually what you wanted.)
-    #[arg(short = 'n', long)]
+    #[arg(long, display_order(800))]
     pub no_auto_aspect: bool,
 
     /// For debugging. Prevents the internal processing of the plot as a series of strips.
     /// This disables parallelisation and may lead to slightly different numerical output as the plot co-ordinates shift subtly.
-    #[arg(long)]
+    #[arg(long, display_order(900))]
     pub no_split: bool,
 
     /// For profiling/optimising. Measures and outputs the time to complete various parts of the process.
-    #[arg(long)]
+    #[arg(long, display_order(900))]
     pub show_timing: bool,
 }
 
