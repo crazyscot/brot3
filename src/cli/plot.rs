@@ -141,7 +141,7 @@ pub struct Args {
         hide_possible_values = true,
         display_order(120)
     )]
-    pub renderer: render::Selection,
+    pub output_type: render::Selection,
 
     /// Suppresses auto-aspect-adjustment. (By default we automatically grow the axes to make the pixels square, which is usually what you wanted.)
     #[arg(long, display_order(800))]
@@ -218,7 +218,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     if args.no_split {
         let mut t = Tile::new(&spec, debug);
         t.plot(args.max_iter);
-        render::factory(args.renderer, colourer, &args.output_filename).render(&t)
+        render::factory(args.output_type, colourer, &args.output_filename).render(&t)
     } else {
         let time0 = SystemTime::now();
         let splits = spec.split(SplitMethod::RowsOfHeight(50), debug)?;
@@ -229,7 +229,8 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         let result = Tile::join(&spec, &tiles)?;
         let time3 = SystemTime::now();
 
-        let res = render::factory(args.renderer, colourer, &args.output_filename).render(&result);
+        let res =
+            render::factory(args.output_type, colourer, &args.output_filename).render(&result);
         let time4 = SystemTime::now();
         if args.show_timing {
             println!(
