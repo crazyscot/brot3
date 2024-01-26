@@ -8,25 +8,33 @@ use crate::fractal::Tile;
 
 use anyhow;
 use enum_dispatch::enum_dispatch;
-use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
+use strum::IntoStaticStr;
+use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumProperty, EnumString};
 
 use self::ascii::{AsciiArt, Csv};
 use self::png::Png;
 
 #[enum_dispatch]
-#[derive(Clone, Debug, Display, EnumIter, EnumMessage)]
+#[derive(Clone, Debug, Display, EnumIter, EnumMessage, EnumProperty)]
 #[strum(serialize_all = "kebab_case")]
-#[derive(EnumDiscriminants)] // This creates the enum RenderBehaviourEnumDiscriminants ...
-#[strum_discriminants(name(Selection), derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
+#[derive(EnumDiscriminants)] // This creates the enum Selection ...
+#[strum_discriminants(
+    name(Selection),
+    derive(clap::ValueEnum, EnumIter, EnumString, EnumProperty, IntoStaticStr)
+)] // ... and specifies what it derives from
 /// Selector for available Renderers
 #[allow(clippy::module_name_repetitions)]
 pub enum RenderInstance {
-    /// Comma Separated Values, one line per line of plot
+    // Note we set the file_extension and alias properties on the members of the discriminant enum,
+    // not on RenderInstance itself.
+    //
+    /// Comma Separated Values, one line per line of plot (.csv)
     Csv,
-    /// Good old ASCII art (can be abbreviated to "aa")
+    /// Good old ASCII art (.txt) (can be specified as "aa")
     #[strum_discriminants(value(alias = "aa"))]
+    #[strum_discriminants(strum(props(file_extension = "txt")))]
     AsciiArt,
-    /// Portable Network Graphics file
+    /// Portable Network Graphics (.png) file
     Png,
 }
 

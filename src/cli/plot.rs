@@ -1,6 +1,8 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
+use std::ffi::OsStr;
+use std::path::Path;
 use std::time::SystemTime;
 
 use crate::colouring;
@@ -12,6 +14,7 @@ use crate::util::Rect;
 
 use anyhow::ensure;
 use rayon::prelude::*;
+use strum::{EnumProperty, IntoEnumIterator};
 
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
@@ -123,7 +126,7 @@ pub struct Args {
     )]
     pub height: u32,
 
-    /// Where to send the output (required; use '-' for stdout)
+    /// Where to send the output (required; for stdout, use '-' and specify a --type)
     #[arg(
         short = 'o',
         long = "output",
@@ -132,16 +135,15 @@ pub struct Args {
     )]
     pub output_filename: String,
 
-    /// The output file type. Use the `list types` command to see the available formats
+    /// Explicitly specifies the output file type (default: autodetect from filename). Use the `list types` command to see the available formats.
     #[arg(
         short = 't',
         long = "type",
         value_name = "NAME",
-        default_value = "png",
         hide_possible_values = true,
         display_order(120)
     )]
-    pub output_type: render::Selection,
+    pub output_type: Option<render::Selection>,
 
     /// Suppresses auto-aspect-adjustment. (By default we automatically grow the axes to make the pixels square, which is usually what you wanted.)
     #[arg(long, display_order(800))]
@@ -215,10 +217,41 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
 
     let colourer = colouring::factory(args.colourer);
 
+    // If they didn't specify an output file type, attempt to autodetect
+    let render_selection: render::Selection = if let Some(s) = args.output_type {
+        Ok::<render::Selection, anyhow::Error>(s)
+    } else {
+        let extension = Path::new(&args.output_filename)
+            .extension()
+            .and_then(OsStr::to_str)
+            .unwrap_or_default()
+            .to_ascii_lowercase();
+        let found = render::Selection::iter().find(|ren| {
+            let trial = ren.get_str("file_extension").map_or_else(
+                || {
+                    // No property? use the enum name
+                    let r: &'static str = ren.into();
+                    r.to_ascii_lowercase()
+                },
+                // the property exists? convert &str to string
+                std::string::ToString::to_string,
+            );
+            trial == extension
+        });
+        match found {
+            Some(s) => Ok(s),
+            None => anyhow::bail!(
+                "Could not autodetect desired output type from filename (try `--type ...')"
+            ),
+        }
+    }?;
+
+    let renderer = render::factory(render_selection, colourer, &args.output_filename);
+
     if args.no_split {
         let mut t = Tile::new(&spec, debug);
         t.plot(args.max_iter);
-        render::factory(args.output_type, colourer, &args.output_filename).render(&t)
+        renderer.render(&t)
     } else {
         let time0 = SystemTime::now();
         let splits = spec.split(SplitMethod::RowsOfHeight(50), debug)?;
@@ -229,8 +262,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         let result = Tile::join(&spec, &tiles)?;
         let time3 = SystemTime::now();
 
-        let res =
-            render::factory(args.output_type, colourer, &args.output_filename).render(&result);
+        let res = renderer.render(&result);
         let time4 = SystemTime::now();
         if args.show_timing {
             println!(
