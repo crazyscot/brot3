@@ -6,8 +6,8 @@ use crate::{
 
 #[derive(Debug, clap::Subcommand)]
 enum ListableThings {
-    /// Lists all available renderers (file formats)
-    #[clap(alias = "r")]
+    /// Lists all available output file types
+    #[clap(alias = "t", name = "types")]
     Renderers,
     /// Lists available fractal algorithms
     #[clap(alias = "f")]

@@ -132,10 +132,10 @@ pub struct Args {
     )]
     pub output_filename: String,
 
-    /// The output file type. Use the `list renderers` command to see the available formats
+    /// The output file type. Use the `list types` command to see the available formats
     #[arg(
-        short,
-        long,
+        short = 't',
+        long = "type",
         value_name = "NAME",
         default_value = "png",
         hide_possible_values = true,
