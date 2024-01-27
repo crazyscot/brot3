@@ -255,7 +255,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         }
     }?;
 
-    let renderer = render::factory(render_selection, colourer, &args.output_filename);
+    let renderer = render::factory(render_selection, &args.output_filename, colourer);
 
     if args.no_split {
         let mut t = Tile::new(&spec, debug);
