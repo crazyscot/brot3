@@ -4,6 +4,7 @@
 use super::{Point, PointData, ESCAPE_THRESHOLD_SQ};
 
 use super::mandelbrot::{Mandel3, Original};
+use super::mandeldrop::{Mandeldrop, Mandeldrop3};
 
 use enum_dispatch::enum_dispatch;
 use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
@@ -23,6 +24,14 @@ pub enum FractalInstance {
     #[strum_discriminants(value(alias = "m3"))]
     Mandel3,
 
+    #[strum_discriminants(value(alias = "drop"))]
+    /// Mandeldrop (Inverted set) z:=z^2+c using 1/z0 (alias: drop)
+    Mandeldrop,
+
+    #[strum_discriminants(value(alias = "drop3"))]
+    /// Mandeldrop (Inverted set) z:=z^3+c using 1/z0 (alias: drop3)
+    Mandeldrop3,
+
     /// Test algorithm that always outputs zero
     #[strum(disabled)]
     Zero,
@@ -32,8 +41,10 @@ pub enum FractalInstance {
 #[must_use]
 pub fn factory(selection: Selection) -> FractalInstance {
     match selection {
-        Selection::Original => Original {}.into(),
-        Selection::Mandel3 => Mandel3 {}.into(),
+        Selection::Original => Original::default().into(),
+        Selection::Mandel3 => Mandel3::default().into(),
+        Selection::Mandeldrop => Mandeldrop::default().into(),
+        Selection::Mandeldrop3 => Mandeldrop3::default().into(),
         Selection::Zero => Zero {}.into(),
     }
 }
