@@ -5,17 +5,38 @@ use brot3::{
     colouring::{direct_rgb, huecycles, ColourerInstance, OutputsRgb8, Rgb8},
     fractal::{self, Algorithm, FractalInstance, Point, PointData},
 };
-
-/// A point (found by experiment) that's in the set but not in the special-case cut-off regions
-const TEST_POINT_M2: Point = Point::new(-0.158_653_6, 1.034_804);
-const TEST_POINT_M3: Point = Point::new(-0.573_133_7, 0.569_299_8);
+use fractal::Selection::*;
 
 struct BenchData {
     point: PointData,
     fractal: FractalInstance,
 }
 
-use fractal::Selection::*;
+// ////////////////////////////////////////////////////////////////
+// PREP
+
+const PREP_POINT: Point = Point::new(0.1, 0.1);
+
+fn setup_prep(alg: fractal::Selection) -> BenchData {
+    let point = PointData::new(PREP_POINT);
+    let fractal = fractal::factory(alg);
+    BenchData { point, fractal }
+}
+
+#[library_benchmark]
+#[bench::m2(setup_prep(Original))]
+#[bench::i2(setup_prep(Mandeldrop))]
+fn bench_prep(mut bd: BenchData) -> PointData {
+    bd.fractal.prepare(&mut bd.point);
+    bd.point
+}
+
+// ////////////////////////////////////////////////////////////////
+// ITERATION
+
+/// A point (found by experiment) that's in the set but not in the special-case cut-off regions
+const TEST_POINT_M2: Point = Point::new(-0.158_653_6, 1.034_804);
+const TEST_POINT_M3: Point = Point::new(-0.573_133_7, 0.569_299_8);
 
 fn setup_iteration(point_to_use: Point, alg: fractal::Selection) -> BenchData {
     let mut point = PointData::new(point_to_use);
@@ -32,12 +53,15 @@ fn bench_iteration(mut bd: BenchData) -> PointData {
     bd.point
 }
 
+// ////////////////////////////////////////////////////////////////
+
 library_benchmark_group!(
     name = iteration;
-    benchmarks = bench_iteration
+    benchmarks = bench_prep, bench_iteration
 );
 
-///////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////
+// COLOURING
 
 use direct_rgb::*;
 use huecycles::*;
