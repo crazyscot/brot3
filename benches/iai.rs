@@ -54,10 +54,29 @@ fn bench_iteration(mut bd: BenchData) -> PointData {
 }
 
 // ////////////////////////////////////////////////////////////////
+// FINISH
+
+fn setup_finish(point_to_use: Point, alg: fractal::Selection) -> BenchData {
+    let mut point = PointData::new(point_to_use);
+    let fractal = fractal::factory(alg);
+    fractal.prepare(black_box(&mut point));
+    BenchData { point, fractal }
+}
+
+// CAUTION: When optimising the finish algorithm bear in mind that it generally runs the iteration a couple of times.
+#[library_benchmark]
+#[bench::m2(setup_finish(TEST_POINT_M2, Original))]
+#[bench::m3(setup_finish(TEST_POINT_M3, Mandel3))]
+fn bench_finish(mut bd: BenchData) -> Option<fractal::Scalar> {
+    bd.fractal.finish(&mut bd.point);
+    bd.point.result
+}
+
+// ////////////////////////////////////////////////////////////////
 
 library_benchmark_group!(
     name = iteration;
-    benchmarks = bench_prep, bench_iteration
+    benchmarks = bench_prep, bench_iteration, bench_finish
 );
 
 // ////////////////////////////////////////////////////////////////
