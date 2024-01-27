@@ -19,6 +19,7 @@ struct Cli {
         global(true),
         action = ArgAction::Count,
         help = "Enables debug output (may be repeated)",
+        help_heading("Developer options"),
         display_order(900))
     ]
     debug: u8,

@@ -6,15 +6,15 @@ use crate::{
 
 #[derive(Debug, clap::Subcommand)]
 enum ListableThings {
-    /// Lists all available output file types
-    #[clap(alias = "t", name = "types")]
-    Renderers,
     /// Lists available fractal algorithms
     #[clap(alias = "f")]
     Fractals,
     /// Lists available colouring algorithms
     #[clap(alias = "c")]
     Colourers,
+    /// Lists all available output file types
+    #[clap(alias = "t", name = "output-types")]
+    Renderers,
 }
 
 /// Arguments to 'list'
