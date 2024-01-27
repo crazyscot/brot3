@@ -1,7 +1,7 @@
 // (c) 2024 Ross Younger
 
 use super::{Algorithm, FractalInstance, Point, PointData, TileSpec};
-use crate::util::Rect;
+use crate::{colouring::ColourerInstance, util::Rect};
 
 use anyhow::{anyhow, ensure, Context};
 use array2d::Array2D;
@@ -152,8 +152,11 @@ impl Tile {
 
     /// Info string quasi-accessor
     #[must_use]
-    pub fn info_string(&self) -> String {
-        self.spec.to_string()
+    pub fn info_string(&self, colourer: &ColourerInstance) -> String {
+        format!(
+            "{} maxiter={} colourer={}",
+            self.spec, self.max_iter_plotted, colourer
+        )
     }
 }
 

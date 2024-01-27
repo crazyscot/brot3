@@ -260,7 +260,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     if args.no_split {
         let mut t = Tile::new(&spec, debug);
         t.plot(args.max_iter);
-        println!("{}", t.info_string());
+        println!("{}", t.info_string(&colourer));
         renderer.render(&t)
     } else {
         let time0 = SystemTime::now();
@@ -283,7 +283,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
                 time4.duration_since(time3).unwrap_or_default(),
             );
         }
-        println!("{}", tile.info_string());
+        println!("{}", tile.info_string(&colourer));
         result
     }
 }

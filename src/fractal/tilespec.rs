@@ -252,7 +252,11 @@ impl From<&PlotSpec> for TileSpec {
 
 impl Display for TileSpec {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(f, "origin={} axes={}", self.origin, self.axes)
+        write!(
+            f,
+            "alg={} origin={} axes={}",
+            self.algorithm, self.origin, self.axes
+        )
     }
 }
 
