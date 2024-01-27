@@ -2,8 +2,16 @@
 // (c) 2024 Ross Younger
 
 use palette::IntoColor;
+use palette::Srgb;
 
-use super::{framework::OutputsRgb8, Hsvf, Rgb8, Rgbf};
+use super::framework::OutputsRgb8;
+
+/// RGB type, f32 storage
+pub type Rgbf = palette::rgb::Rgb<Srgb, f32>;
+/// RGB type, u8 storage
+pub type Rgb8 = palette::rgb::Rgb<Srgb, u8>;
+/// HSV type, f32 storage
+pub type Hsvf = palette::hsv::Hsv<Srgb, f32>;
 
 /// A colouring algorithm that outputs HSV colours
 pub trait OutputsHsvf {
