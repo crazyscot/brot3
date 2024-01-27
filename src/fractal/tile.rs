@@ -179,7 +179,8 @@ impl fmt::Display for Tile {
 mod tests {
     use crate::{
         fractal::{
-            tilespec::SplitMethod, FractalInstance, Location, PlotSpec, Point, Size, TileSpec, Zero,
+            framework::Zero, tilespec::SplitMethod, FractalInstance, Location, PlotSpec, Point,
+            Size, TileSpec,
         },
         util::Rect,
     };
