@@ -6,6 +6,7 @@ pub mod maths;
 
 mod framework;
 mod mandelbrot;
+mod mandeldrop;
 mod pointdata;
 mod tile;
 mod tilespec;
