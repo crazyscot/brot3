@@ -291,7 +291,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::check_fix_axes;
-    use crate::fractal::Point;
+    use crate::fractal::{Point, Scalar};
 
     #[test]
     fn axes_fixup_nonzero() {
@@ -305,26 +305,26 @@ mod tests {
     #[test]
     fn axes_inf_error() {
         assert!(check_fix_axes(Point {
-            re: f64::INFINITY,
+            re: Scalar::INFINITY,
             im: 2.0
         })
         .is_err());
         assert!(check_fix_axes(Point {
             re: 2.0,
-            im: f64::INFINITY
+            im: Scalar::INFINITY
         })
         .is_err());
     }
     #[test]
     fn axes_nan_error() {
         assert!(check_fix_axes(Point {
-            re: f64::NAN,
+            re: Scalar::NAN,
             im: 2.0
         })
         .is_err());
         assert!(check_fix_axes(Point {
             re: 2.0,
-            im: f64::NAN
+            im: Scalar::NAN
         })
         .is_err());
     }
