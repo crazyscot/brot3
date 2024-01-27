@@ -1,7 +1,8 @@
 // Mandelbrot set implementation
 // (c) 2024 Ross Younger
 
-use super::{Algorithm, Point, PointData, Scalar, SCALAR_LN_2};
+use super::maths::{ln_3, Point, Scalar, LN_2};
+use super::{Algorithm, PointData};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Original {}
@@ -35,7 +36,7 @@ impl Algorithm for Original {
         // A couple of extra iterations helps decrease the size of the error term
         self.iterate(point);
         self.iterate(point);
-        point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / SCALAR_LN_2);
+        point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / LN_2);
     }
 
     fn default_centre(&self) -> super::Point {
@@ -61,13 +62,10 @@ impl Algorithm for Mandel3 {
 
     #[doc = r"Finalises the point data once a pixel has escaped"]
     fn finish(&self, point: &mut PointData) {
-        const THREE: f64 = 3.0;
-        let ln3: Scalar = THREE.ln(); // this should be a compile-time const
-
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // A couple of extra iterations helps decrease the size of the error term
         self.iterate(point);
         self.iterate(point);
-        point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / ln3);
+        point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / ln_3());
     }
 }

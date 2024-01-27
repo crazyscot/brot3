@@ -3,7 +3,7 @@
 
 use super::Renderer;
 use crate::colouring::{ColourerInstance, OutputsRgb8};
-use crate::fractal::Tile;
+use crate::fractal::{Scalar, Tile};
 use crate::util::filename::Filename;
 
 use anyhow::{Context, Result};
@@ -62,7 +62,7 @@ impl Png {
             .elements_row_major_iter()
             .map(|pd| {
                 if pd.iter == max_iter {
-                    f64::INFINITY
+                    Scalar::INFINITY
                 } else {
                     pd.iterations()
                 }
