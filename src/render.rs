@@ -49,7 +49,7 @@ pub trait Renderer {
 
 /// Factory method for renderers
 #[must_use]
-pub fn factory(selection: Selection, colourer: ColourerInstance, filename: &str) -> RenderInstance {
+pub fn factory(selection: Selection, filename: &str, colourer: ColourerInstance) -> RenderInstance {
     match selection {
         Selection::Csv => ascii::Csv::new(filename).into(),
         Selection::AsciiArt => ascii::AsciiArt::new(filename).into(),
