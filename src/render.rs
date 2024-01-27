@@ -30,7 +30,7 @@ pub enum RenderInstance {
     //
     /// Comma Separated Values, one line per line of plot (.csv)
     Csv,
-    /// Good old ASCII art (.txt) (can be specified as "aa")
+    /// Good old ASCII art (.txt) [short-form: "aa"]
     #[strum_discriminants(value(alias = "aa"))]
     #[strum_discriminants(strum(props(file_extension = "txt")))]
     AsciiArt,
