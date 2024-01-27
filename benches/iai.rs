@@ -48,6 +48,12 @@ fn setup_iteration(point_to_use: Point, alg: fractal::Selection) -> BenchData {
 #[library_benchmark]
 #[bench::m2(setup_iteration(TEST_POINT_M2, Original))]
 #[bench::m3(setup_iteration(TEST_POINT_M3, Mandel3))]
+#[bench::bar(setup_iteration(TEST_POINT_M3, Mandelbar))]
+#[bench::ship(setup_iteration(TEST_POINT_M3, BurningShip))]
+#[bench::celtic(setup_iteration(TEST_POINT_M3, Celtic))]
+#[bench::variant(setup_iteration(TEST_POINT_M3, Variant))]
+#[bench::bird(setup_iteration(TEST_POINT_M3, BirdOfPrey))]
+#[bench::buffalo(setup_iteration(TEST_POINT_M3, Buffalo))]
 fn bench_iteration(mut bd: BenchData) -> PointData {
     bd.fractal.iterate(&mut bd.point);
     bd.point
