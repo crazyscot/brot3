@@ -19,5 +19,8 @@ pub fn ln_3() -> f64 {
     THREE.ln()
 }
 
+/// Euler's number aka e or exp(1)
+pub const E: f64 = std::f64::consts::E;
+
 // For INFINITY: use Scalar::INFINITY
 // For NAN: use Scalar::NAN
