@@ -27,6 +27,20 @@ impl OutputsHsvf for LinearRainbow {
     }
 }
 
+/// Cycling H; Fixed S=1.0, V=1.0
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct LogRainbow {}
+#[allow(clippy::cast_possible_truncation)]
+impl OutputsHsvf for LogRainbow {
+    fn colour_hsvf(&self, iters: f64) -> Hsvf {
+        if iters.is_infinite() {
+            return BLACK;
+        }
+        let degrees = 60.0 * (iters.ln() as f32 + 0.5);
+        Hsvf::new(RgbHue::new(degrees), 1.0, 1.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use assert_float_eq::{afe_is_f32_near, afe_near_error_msg, assert_f32_near};
