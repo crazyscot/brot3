@@ -100,6 +100,7 @@ use huecycles::*;
 #[bench::mandy(Mandy {}.into())]
 #[bench::white_fade(WhiteFade {}.into())]
 #[bench::black_fade(BlackFade {}.into())]
+#[bench::olc(OneLoneCoder {}.into())]
 fn colour(alg: colouring::Instance) -> Rgb8 {
     alg.colour_rgb8(black_box(42.0))
 }

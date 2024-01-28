@@ -83,5 +83,28 @@ impl OutputsRgb8 for BlackFade {
     }
 }
 
+// /////////////////////////////////////////////////////////////
+
+/// Colouring algorithm by `OneLoneCoder.com`
+/// `https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_Mandelbrot.cpp`
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct OneLoneCoder {}
+
+#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::cast_sign_loss)]
+impl OutputsRgb8 for OneLoneCoder {
+    fn colour_rgb8(&self, iters: f64) -> Rgb8 {
+        if iters.is_infinite() {
+            //return BLACK;
+        }
+
+        Rgb8::new(
+            (128.0 + 127.0 * (0.1 * iters).sin()) as u8,
+            (128.0 + 127.0 * (0.1 * iters + 2.094).sin()) as u8,
+            (128.0 + 127.0 * (0.1 * iters + 4.188).sin()) as u8,
+        )
+    }
+}
 
 // /////////////////////////////////////////////////////////////
