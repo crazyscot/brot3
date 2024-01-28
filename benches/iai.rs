@@ -17,16 +17,17 @@ struct BenchData {
 
 const PREP_POINT: Point = Point::new(0.1, 0.1);
 
-fn setup_prep(alg: fractal::Selection) -> BenchData {
+/// Setup function for prepare
+fn s_prep(alg: fractal::Selection) -> BenchData {
     let point = PointData::new(PREP_POINT);
     let fractal = fractal::factory(alg);
     BenchData { point, fractal }
 }
 
 #[library_benchmark]
-#[bench::m2(setup_prep(Original))]
-#[bench::i2(setup_prep(Mandeldrop))]
-fn bench_prep(mut bd: BenchData) -> PointData {
+#[bench::m2(s_prep(Original))]
+#[bench::i2(s_prep(Mandeldrop))]
+fn prepare(mut bd: BenchData) -> PointData {
     bd.fractal.prepare(&mut bd.point);
     bd.point
 }
@@ -38,7 +39,8 @@ fn bench_prep(mut bd: BenchData) -> PointData {
 const TEST_POINT_M2: Point = Point::new(-0.158_653_6, 1.034_804);
 const TEST_POINT_M3: Point = Point::new(-0.573_133_7, 0.569_299_8);
 
-fn setup_iteration(point_to_use: Point, alg: fractal::Selection) -> BenchData {
+/// Setup function for iterate
+fn s_iter(point_to_use: Point, alg: fractal::Selection) -> BenchData {
     let mut point = PointData::new(point_to_use);
     let fractal = fractal::factory(alg);
     fractal.prepare(black_box(&mut point));
@@ -46,15 +48,15 @@ fn setup_iteration(point_to_use: Point, alg: fractal::Selection) -> BenchData {
 }
 
 #[library_benchmark]
-#[bench::m2(setup_iteration(TEST_POINT_M2, Original))]
-#[bench::m3(setup_iteration(TEST_POINT_M3, Mandel3))]
-#[bench::bar(setup_iteration(TEST_POINT_M3, Mandelbar))]
-#[bench::ship(setup_iteration(TEST_POINT_M3, BurningShip))]
-#[bench::celtic(setup_iteration(TEST_POINT_M3, Celtic))]
-#[bench::variant(setup_iteration(TEST_POINT_M3, Variant))]
-#[bench::bird(setup_iteration(TEST_POINT_M3, BirdOfPrey))]
-#[bench::buffalo(setup_iteration(TEST_POINT_M3, Buffalo))]
-fn bench_iteration(mut bd: BenchData) -> PointData {
+#[bench::m2(s_iter(TEST_POINT_M2, Original))]
+#[bench::m3(s_iter(TEST_POINT_M3, Mandel3))]
+#[bench::bar(s_iter(TEST_POINT_M3, Mandelbar))]
+#[bench::ship(s_iter(TEST_POINT_M3, BurningShip))]
+#[bench::celtic(s_iter(TEST_POINT_M3, Celtic))]
+#[bench::variant(s_iter(TEST_POINT_M3, Variant))]
+#[bench::bird(s_iter(TEST_POINT_M3, BirdOfPrey))]
+#[bench::buffalo(s_iter(TEST_POINT_M3, Buffalo))]
+fn iterate(mut bd: BenchData) -> PointData {
     bd.fractal.iterate(&mut bd.point);
     bd.point
 }
@@ -62,7 +64,8 @@ fn bench_iteration(mut bd: BenchData) -> PointData {
 // ////////////////////////////////////////////////////////////////
 // FINISH
 
-fn setup_finish(point_to_use: Point, alg: fractal::Selection) -> BenchData {
+/// Setup function for finish
+fn s_fini(point_to_use: Point, alg: fractal::Selection) -> BenchData {
     let mut point = PointData::new(point_to_use);
     let fractal = fractal::factory(alg);
     fractal.prepare(black_box(&mut point));
@@ -71,9 +74,9 @@ fn setup_finish(point_to_use: Point, alg: fractal::Selection) -> BenchData {
 
 // CAUTION: When optimising the finish algorithm bear in mind that it generally runs the iteration a couple of times.
 #[library_benchmark]
-#[bench::m2(setup_finish(TEST_POINT_M2, Original))]
-#[bench::m3(setup_finish(TEST_POINT_M3, Mandel3))]
-fn bench_finish(mut bd: BenchData) -> Option<fractal::Scalar> {
+#[bench::m2(s_fini(TEST_POINT_M2, Original))]
+#[bench::m3(s_fini(TEST_POINT_M3, Mandel3))]
+fn finish(mut bd: BenchData) -> Option<fractal::Scalar> {
     bd.fractal.finish(&mut bd.point);
     bd.point.result
 }
@@ -81,8 +84,8 @@ fn bench_finish(mut bd: BenchData) -> Option<fractal::Scalar> {
 // ////////////////////////////////////////////////////////////////
 
 library_benchmark_group!(
-    name = iteration;
-    benchmarks = bench_prep, bench_iteration, bench_finish
+    name = b_fractal;
+    benchmarks = prepare, iterate, finish
 );
 
 // ////////////////////////////////////////////////////////////////
@@ -94,13 +97,13 @@ use huecycles::*;
 #[library_benchmark]
 #[bench::linear_rainbow(LinearRainbow {}.into())]
 #[bench::mandy(Mandy {}.into())]
-fn bench_colourer(alg: colouring::Instance) -> Rgb8 {
+fn colour(alg: colouring::Instance) -> Rgb8 {
     alg.colour_rgb8(black_box(42.0))
 }
 
 library_benchmark_group!(
-    name = colourer;
-    benchmarks = bench_colourer,
+    name = b_colourer;
+    benchmarks = colour,
 );
 
-main!(library_benchmark_groups = iteration, colourer);
+main!(library_benchmark_groups = b_fractal, b_colourer);
