@@ -6,7 +6,7 @@ use strum_macros::{
     Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantArray, VariantNames,
 };
 
-use super::direct_rgb::Mandy;
+use super::direct_rgb::{BlackFade, Mandy, WhiteFade};
 use super::huecycles::LinearRainbow;
 use super::types::White;
 use super::Rgb8;
@@ -33,6 +33,11 @@ pub enum Instance {
 
     /// The colouring algorithm from ``mandy`` by rjk
     Mandy(Mandy),
+
+    /// fanf's White Fade algorithm
+    WhiteFade(WhiteFade),
+    /// fanf's Black Fade algorithm
+    BlackFade(BlackFade),
 
     /// Test algorithm that always outputs white pixels
     White(White),
