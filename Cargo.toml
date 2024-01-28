@@ -30,7 +30,7 @@ name = "colourer"
 harness = false
 
 [[bench]]
-name = "plot"
+name = "fractal"
 harness = false
 
 [[bench]]
