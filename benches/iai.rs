@@ -96,6 +96,7 @@ use huecycles::*;
 
 #[library_benchmark]
 #[bench::linear_rainbow(LinearRainbow {}.into())]
+#[bench::log_rainbow(LogRainbow {}.into())]
 #[bench::mandy(Mandy {}.into())]
 #[bench::white_fade(WhiteFade {}.into())]
 #[bench::black_fade(BlackFade {}.into())]

@@ -7,7 +7,7 @@ use strum_macros::{
 };
 
 use super::direct_rgb::{BlackFade, Mandy, WhiteFade};
-use super::huecycles::LinearRainbow;
+use super::huecycles::{LinearRainbow, LogRainbow};
 use super::types::White;
 use super::Rgb8;
 
@@ -27,9 +27,12 @@ use super::Rgb8;
         VariantNames
     )
 )] // ... and specifies what it derives from
+
 pub enum Instance {
-    /// A continuous cycle around the HSV cone with fixed saturation and lightness
+    /// Hue cycles around the rainbow
     LinearRainbow(LinearRainbow),
+    /// Hue cycles around the rainbow (log-smoothed)
+    LogRainbow(LogRainbow),
 
     /// The colouring algorithm from ``mandy`` by rjk
     Mandy(Mandy),
