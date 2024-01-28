@@ -24,6 +24,8 @@ fn iteration(c: &mut Criterion) {
     };
     alg(fractal::Selection::Original, TEST_POINT_M2);
     alg(fractal::Selection::Mandel3, TEST_POINT_M3);
+    alg(fractal::Selection::Mandelbar, TEST_POINT_M3);
+    alg(fractal::Selection::Variant, TEST_POINT_M3);
 }
 
 criterion_group!(fractals, iteration);
