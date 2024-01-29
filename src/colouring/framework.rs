@@ -62,7 +62,7 @@ pub enum Instance {
 #[enum_delegate::register]
 pub trait OutputsRgb8 {
     /// Colouring function
-    fn colour_rgb8(&self, iters: f64) -> Rgb8;
+    fn colour_rgb8(&self, iters: f64, max_iter: u64) -> Rgb8;
 }
 
 /// Factory method

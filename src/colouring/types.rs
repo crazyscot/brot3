@@ -22,7 +22,7 @@ pub trait OutputsHsvf {
 /// Auto conversion helper
 impl<T: OutputsHsvf> OutputsRgb8 for T {
     #[inline]
-    fn colour_rgb8(&self, iters: f64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f64, _: u64) -> Rgb8 {
         let hsv = self.colour_hsvf(iters);
         let rgb: Rgbf = hsv.into_color();
         Rgb8::from_format(rgb)
@@ -33,7 +33,7 @@ impl<T: OutputsHsvf> OutputsRgb8 for T {
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct White {}
 impl OutputsRgb8 for White {
-    fn colour_rgb8(&self, _: f64) -> Rgb8 {
+    fn colour_rgb8(&self, _: f64, _: u64) -> Rgb8 {
         Rgb8::new(255, 255, 255)
     }
 }
@@ -68,7 +68,7 @@ mod tests {
     #[test]
     fn hsv_autoconvert() {
         let alg = WhiteHSV {};
-        let result = alg.colour_rgb8(42.0);
+        let result = alg.colour_rgb8(42.0, 256);
         assert_eq!(result.red, 255);
         assert_eq!(result.green, 255);
         assert_eq!(result.blue, 255);

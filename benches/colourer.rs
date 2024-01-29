@@ -8,7 +8,7 @@ fn colour_pixel(c: &mut Criterion) {
     let mut bench = |instance: Instance| {
         group.bench_function(format!("{}", instance), |b| {
             b.iter(|| {
-                instance.colour_rgb8(black_box(42.0));
+                instance.colour_rgb8(black_box(42.0), 256);
             });
         });
     };
