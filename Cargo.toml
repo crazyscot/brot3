@@ -8,7 +8,7 @@ description = "Yet Another Fractal Plotter"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anstyle = "1.0.4"
+anstyle = "1.0.5"
 anyhow = "1.0.79"
 array2d = "0.3.2"
 assert_float_eq = "1.1.3"
