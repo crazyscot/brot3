@@ -6,7 +6,9 @@ use strum_macros::{
     Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantArray, VariantNames,
 };
 
-use super::direct_rgb::{BlackFade, Mandy, Monochrome, OneLoneCoder, WhiteFade};
+use super::direct_rgb::{
+    BlackFade, Mandy, Monochrome, MonochromeInverted, OneLoneCoder, WhiteFade,
+};
 use super::huecycles::{LinearRainbow, LogRainbow};
 use super::types::White;
 use super::Rgb8;
@@ -42,7 +44,11 @@ pub enum Instance {
     /// fanf's Black Fade algorithm
     BlackFade(BlackFade),
     /// fanf's Monochrome Shade algorithm
+    #[strum_discriminants(value(alias = "mono"))]
     Monochrome(Monochrome),
+    /// fanf's Monochrome Shade algorithm, inverted
+    #[strum_discriminants(value(alias = "mono-inv"))]
+    MonochromeInverted(MonochromeInverted),
 
     /// OneLoneCoder's algorithm
     #[strum_discriminants(value(alias = "onelonecoder", alias = "olc"))]

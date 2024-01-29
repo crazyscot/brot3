@@ -101,6 +101,7 @@ use huecycles::*;
 #[bench::white_fade(WhiteFade {}.into())]
 #[bench::black_fade(BlackFade {}.into())]
 #[bench::monochrome(Monochrome {}.into())]
+#[bench::monochrome_inv(MonochromeInverted {}.into())]
 #[bench::olc(OneLoneCoder {}.into())]
 fn colour(alg: colouring::Instance) -> Rgb8 {
     alg.colour_rgb8(black_box(42.0))
