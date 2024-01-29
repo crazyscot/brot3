@@ -23,7 +23,7 @@ strum_macros = "0.25.3"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
-iai-callgrind = "0.10.1"
+iai-callgrind = "0.10.2"
 
 [[bench]]
 name = "colourer"
