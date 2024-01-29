@@ -16,14 +16,14 @@ pub type Hsvf = palette::hsv::Hsv<Srgb, f32>;
 /// A colouring algorithm that outputs HSV colours
 pub trait OutputsHsvf {
     /// Colouring function
-    fn colour_hsvf(&self, iters: f64) -> Hsvf;
+    fn colour_hsvf(&self, iters: f64, max_iters: u64) -> Hsvf;
 }
 
 /// Auto conversion helper
 impl<T: OutputsHsvf> OutputsRgb8 for T {
     #[inline]
-    fn colour_rgb8(&self, iters: f64, _: u64) -> Rgb8 {
-        let hsv = self.colour_hsvf(iters);
+    fn colour_rgb8(&self, iters: f64, max_iters: u64) -> Rgb8 {
+        let hsv = self.colour_hsvf(iters, max_iters);
         let rgb: Rgbf = hsv.into_color();
         Rgb8::from_format(rgb)
     }
@@ -41,7 +41,7 @@ impl OutputsRgb8 for White {
 // Test algorithm
 struct WhiteHSV {}
 impl OutputsHsvf for WhiteHSV {
-    fn colour_hsvf(&self, _: f64) -> Hsvf {
+    fn colour_hsvf(&self, _: f64, _: u64) -> Hsvf {
         Hsvf::new(0.0, 0.0, 1.0)
     }
 }
