@@ -105,6 +105,26 @@ impl OutputsRgb8 for Monochrome {
     }
 }
 
+/// fanf's Monochrome Shade algorithm, Inverted
+/// `https://dotat.at/cgi/git/mandelbrot.git/blob/HEAD:/mandel2ppm.c`
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct MonochromeInverted {}
+
+impl OutputsRgb8 for MonochromeInverted {
+    fn colour_rgb8(&self, iters: f64) -> Rgb8 {
+        #![allow(clippy::cast_possible_truncation)]
+        #![allow(clippy::cast_sign_loss)]
+        if iters < ITERS_CLAMP_EPSILON {
+            return WHITE;
+        }
+        if iters < maths::E {
+            return BLACK;
+        }
+        let shade = 255 - (255.0 / iters.ln()) as u8;
+        Rgb8::new(shade, shade, shade)
+    }
+}
+
 // /////////////////////////////////////////////////////////////
 
 /// Colouring algorithm by `OneLoneCoder.com`
