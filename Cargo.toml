@@ -19,7 +19,7 @@ palette = "0.7.4"
 png = "0.17.11"
 rayon = "1.8.1"
 strum = { version = "0.26.1", features = ["derive"] }
-strum_macros = "0.25.3"
+strum_macros = "0.26.1"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
