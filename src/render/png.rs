@@ -45,7 +45,8 @@ impl Png {
                 }
             })
             .for_each(|iters| {
-                let col = colourer.colour_rgb8(iters);
+                #[allow(clippy::cast_lossless)]
+                let col = colourer.colour_rgb8(iters, max_iter as u64);
                 image_data.push(col.red);
                 image_data.push(col.green);
                 image_data.push(col.blue);

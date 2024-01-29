@@ -104,7 +104,7 @@ use huecycles::*;
 #[bench::monochrome_inv(MonochromeInverted {}.into())]
 #[bench::olc(OneLoneCoder {}.into())]
 fn colour(alg: colouring::Instance) -> Rgb8 {
-    alg.colour_rgb8(black_box(42.0))
+    alg.colour_rgb8(black_box(42.0), 256)
 }
 
 library_benchmark_group!(
