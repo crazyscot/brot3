@@ -103,6 +103,8 @@ use huecycles::*;
 #[bench::monochrome(Monochrome {}.into())]
 #[bench::monochrome_inv(MonochromeInverted {}.into())]
 #[bench::olc(OneLoneCoder {}.into())]
+#[bench::hsv_grad(HsvGradient{}.into())]
+#[bench::lch_grad(LchGradient{}.into())]
 fn colour(alg: colouring::Instance) -> Rgb8 {
     alg.colour_rgb8(black_box(42.0), 256)
 }

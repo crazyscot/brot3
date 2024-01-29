@@ -9,7 +9,7 @@ use strum_macros::{
 use super::direct_rgb::{
     BlackFade, Mandy, Monochrome, MonochromeInverted, OneLoneCoder, WhiteFade,
 };
-use super::huecycles::{HsvGradient, LinearRainbow, LogRainbow};
+use super::huecycles::{HsvGradient, LchGradient, LinearRainbow, LogRainbow};
 use super::types::White;
 use super::Rgb8;
 
@@ -31,9 +31,9 @@ use super::Rgb8;
 )] // ... and specifies what it derives from
 
 pub enum Instance {
-    /// Hue cycles around the rainbow
+    /// Cyclic rainbow
     LinearRainbow(LinearRainbow),
-    /// Hue cycles around the rainbow (log-smoothed)
+    /// Cyclic rainbow (log-smoothed)
     LogRainbow(LogRainbow),
 
     /// The colouring algorithm from ``mandy`` by rjk
@@ -54,8 +54,10 @@ pub enum Instance {
     #[strum_discriminants(value(alias = "onelonecoder", alias = "olc"))]
     OneLoneCoder(OneLoneCoder),
 
-    /// HSV Gradient
+    /// A gradient in the HSV colour space
     HsvGradient(HsvGradient),
+    /// A gradient in the LCH colour space which strives for perceptual uniformity
+    LchGradient(LchGradient),
 
     /// Test algorithm that always outputs white pixels
     White(White),

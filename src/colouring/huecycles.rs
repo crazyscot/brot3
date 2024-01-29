@@ -1,9 +1,9 @@
 // Colouring algorithms that cycle around a given hue
 // (c) 2024 Ross Younger
 
-use palette::{encoding::Srgb, Hsv, RgbHue};
+use palette::{encoding::Srgb, FromColor, Hsv, LabHue, Lch, RgbHue};
 
-use super::OutputsHsvf;
+use super::{OutputsHsvf, OutputsRgb8, Rgb8, Rgbf};
 
 /// Cycling H; Fixed S=1.0, V=1.0
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -11,17 +11,19 @@ pub struct LinearRainbow {}
 
 const LINEAR_RAINBOW_WRAP: f64 = 32.0; // TODO this might become a parameter later
 
-const BLACK: Hsv<Srgb, f32> = Hsv::new_const(RgbHue::new(0.0), 0.0, 0.0);
+const BLACK_HSV: Hsv<Srgb, f32> = Hsv::new_const(RgbHue::new(0.0), 0.0, 0.0);
+const BLACK_RGB: Rgb8 = Rgb8::new(0, 0, 0);
 
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LinearRainbow {
     fn colour_hsvf(&self, iters: f64, _: u64) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
-            return BLACK;
+            return BLACK_HSV;
         }
         let tau = (iters / LINEAR_RAINBOW_WRAP).fract() as f32;
         // this gives a number from 0..1, map that to the hue angle
         // TODO: offset becomes a parameter?
+        // TODO: Wrap becomes a function of max_iter? with a parameter?
         let degrees = (0.5 + tau) * 360.0;
         Hsv::new(RgbHue::new(degrees), 1.0, 1.0)
     }
@@ -34,9 +36,9 @@ pub struct LogRainbow {}
 impl OutputsHsvf for LogRainbow {
     fn colour_hsvf(&self, iters: f64, _: u64) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
-            return BLACK;
+            return BLACK_HSV;
         }
-        let degrees = 60.0 * (iters.ln() as f32 + 0.5);
+        let degrees = 60.0 * (iters.ln() as f32 + 0.0);
         Hsv::new(RgbHue::new(degrees), 1.0, 1.0)
     }
 }
@@ -49,13 +51,33 @@ pub struct HsvGradient {}
 impl OutputsHsvf for HsvGradient {
     fn colour_hsvf(&self, iters: f64, max_iters: u64) -> Hsv<Srgb, f32> {
         if iters.is_infinite() || iters >= (max_iters as f64 - 1.0) {
-            return BLACK;
+            return BLACK_HSV;
         }
         let proportion = iters as f32 / max_iters as f32;
         // TODO: 0.75 becomes a parameter
         let degrees = (proportion * 360.0).powf(1.5) % 360.0;
         // TODO: value 1.0 becomes a parameter of proportion?
         Hsv::new(RgbHue::new(degrees), 1.0, 1.0)
+    }
+}
+
+/// LCH Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#LCH_coloring>
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct LchGradient {}
+#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_possible_truncation)]
+impl OutputsRgb8 for LchGradient {
+    fn colour_rgb8(&self, iters: f64, max_iters: u64) -> Rgb8 {
+        if iters.is_infinite() {
+            return BLACK_RGB;
+        }
+
+        let s = iters as f32 / max_iters as f32;
+        let v = 1.0 - (std::f32::consts::PI * s).cos().powi(2);
+        let lightness = 75.0 - (75.0 * v);
+        let hue = LabHue::new((s * 360.0).powf(1.5) % 360.0);
+        let lch = Lch::new(lightness, 28.0 + lightness, hue);
+        Rgbf::from_color(lch).into_format::<u8>()
     }
 }
 

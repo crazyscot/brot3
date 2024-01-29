@@ -1,7 +1,6 @@
-use brot3::colouring::{self, Instance, OutputsRgb8};
+use brot3::colouring::{self, Instance, OutputsRgb8, Selection::*};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use strum::VariantArray;
 
 fn colour_pixel(c: &mut Criterion) {
     let mut group = c.benchmark_group("colourers");
@@ -12,7 +11,10 @@ fn colour_pixel(c: &mut Criterion) {
             });
         });
     };
-    colouring::Selection::VARIANTS
+    // We run only a selection of algorithms through the full benchmarker
+    // (See also IAI, which runs them all.)
+    let selection = [LinearRainbow, LchGradient, Mandy, WhiteFade];
+    selection
         .iter()
         .for_each(|i| bench(colouring::Instance::from_repr(*i as usize).unwrap()));
 }
