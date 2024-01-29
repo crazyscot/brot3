@@ -15,7 +15,7 @@ const BLACK: Hsvf = Hsvf::new_const(RgbHue::new(0.0), 0.0, 0.0);
 
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LinearRainbow {
-    fn colour_hsvf(&self, iters: f64) -> Hsvf {
+    fn colour_hsvf(&self, iters: f64, _: u64) -> Hsvf {
         if iters.is_infinite() {
             return BLACK;
         }
@@ -32,7 +32,7 @@ impl OutputsHsvf for LinearRainbow {
 pub struct LogRainbow {}
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LogRainbow {
-    fn colour_hsvf(&self, iters: f64) -> Hsvf {
+    fn colour_hsvf(&self, iters: f64, _: u64) -> Hsvf {
         if iters.is_infinite() {
             return BLACK;
         }
@@ -60,7 +60,7 @@ mod tests {
         let mut previous = RgbHue::new(f32::NAN);
 
         for i in 0..(LINEAR_RAINBOW_WRAP as i32) {
-            let res = uut.colour_hsvf(i as f64);
+            let res = uut.colour_hsvf(i as f64, 256);
             assert_ne!(res.hue, previous);
             previous = res.hue;
             hue_accumulator += res.hue.into_degrees();
