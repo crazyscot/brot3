@@ -41,13 +41,31 @@ impl OutputsHsvf for LogRainbow {
     }
 }
 
+/// HSV Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#HSV_coloring>
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct HsvGradient {}
+#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_possible_truncation)]
+impl OutputsHsvf for HsvGradient {
+    fn colour_hsvf(&self, iters: f64, max_iters: u64) -> Hsvf {
+        if iters.is_infinite() || iters >= (max_iters as f64 - 1.0) {
+            return BLACK;
+        }
+        let proportion = iters as f32 / max_iters as f32;
+        // TODO: 0.75 becomes a parameter
+        let degrees = (proportion * 360.0).powf(1.5) % 360.0;
+        // TODO: value 1.0 becomes a parameter of proportion?
+        Hsvf::new(RgbHue::new(degrees), 1.0, 1.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use assert_float_eq::{afe_is_f32_near, afe_near_error_msg, assert_f32_near};
-    use palette::RgbHue;
+    use palette::{IntoColor, RgbHue};
 
     use super::{LinearRainbow, LINEAR_RAINBOW_WRAP};
-    use crate::colouring::OutputsHsvf;
+    use crate::colouring::{Hsvf, OutputsHsvf, Rgb8, Rgbf};
 
     #[test]
     fn hue_cycles() {
@@ -67,5 +85,18 @@ mod tests {
         }
         // Figure from current implementation, not critical
         assert_f32_near!(hue_accumulator, 180.0);
+    }
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn hsv_sanity() {
+        let rgb = Rgb8::new(255, 0, 0);
+        let rgb2 = Rgbf::from_format(rgb);
+        let hsv: Hsvf = rgb2.into_color();
+        println!("{hsv:?}");
+        assert_eq!(hsv.hue, 0.0);
+        assert_eq!(hsv.value, 1.0);
+        assert_eq!(hsv.saturation, 1.0);
+        // This demonstrates that Value and Saturation range from 0.0 to 1.0, as we thought.
     }
 }

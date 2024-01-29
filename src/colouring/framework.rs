@@ -9,7 +9,7 @@ use strum_macros::{
 use super::direct_rgb::{
     BlackFade, Mandy, Monochrome, MonochromeInverted, OneLoneCoder, WhiteFade,
 };
-use super::huecycles::{LinearRainbow, LogRainbow};
+use super::huecycles::{HsvGradient, LinearRainbow, LogRainbow};
 use super::types::White;
 use super::Rgb8;
 
@@ -53,6 +53,9 @@ pub enum Instance {
     /// OneLoneCoder's algorithm
     #[strum_discriminants(value(alias = "onelonecoder", alias = "olc"))]
     OneLoneCoder(OneLoneCoder),
+
+    /// HSV Gradient
+    HsvGradient(HsvGradient),
 
     /// Test algorithm that always outputs white pixels
     White(White),
