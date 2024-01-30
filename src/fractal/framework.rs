@@ -21,8 +21,7 @@ use strum_macros::{
     name(Selection),
     derive(clap::ValueEnum, Display, EnumMessage, EnumString, EnumVariantNames)
 )] // ... and specifies what it derives from
-#[allow(clippy::module_name_repetitions)] // enum_dispatch doesn't support structs with the same name but different paths
-pub enum FractalInstance {
+pub enum Instance {
     /// The original Mandelbrot set, `z := z^2+c` (aliases: "m", "m2")
     #[strum_discriminants(value(alias = "m", alias = "m2"))]
     Original(Original),
