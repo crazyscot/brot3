@@ -3,7 +3,7 @@
 
 use palette::{encoding::Srgb, FromColor, Hsv, LabHue, Lch, RgbHue};
 
-use super::{OutputsHsvf, OutputsRgb8, Rgb8, Rgbf};
+use super::{OutputsHsvf, OutputsRgb8, Rgb8};
 
 /// Cycling H; Fixed S=1.0, V=1.0
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -77,17 +77,17 @@ impl OutputsRgb8 for LchGradient {
         let lightness = 75.0 - (75.0 * v);
         let hue = LabHue::new((s * 360.0).powf(1.5) % 360.0);
         let lch = Lch::new(lightness, 28.0 + lightness, hue);
-        Rgbf::from_color(lch).into_format::<u8>()
+        palette::Srgb::<f32>::from_color(lch).into_format::<u8>()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use assert_float_eq::{afe_is_f32_near, afe_near_error_msg, assert_f32_near};
-    use palette::{FromColor, IntoColor, Lch, RgbHue};
+    use palette::{rgb::Srgb, FromColor, IntoColor, Lch, RgbHue};
 
     use super::{LinearRainbow, LINEAR_RAINBOW_WRAP};
-    use crate::colouring::{OutputsHsvf, Rgb8, Rgbf};
+    use crate::colouring::{OutputsHsvf, Rgb8};
 
     #[test]
     fn hue_cycles() {
@@ -113,7 +113,7 @@ mod tests {
     #[allow(clippy::float_cmp)]
     fn hsv_sanity() {
         let rgb = Rgb8::new(255, 0, 0);
-        let rgb2: palette::rgb::Srgb = Rgbf::from_format(rgb);
+        let rgb2: palette::rgb::Srgb = Srgb::<f32>::from_format(rgb);
         let hsv: palette::Hsv = rgb2.into_color();
         println!("{hsv:?}");
         assert_eq!(hsv.hue, 0.0);
@@ -126,11 +126,11 @@ mod tests {
     fn lch_conversion() {
         // this wasn't so much a unit test of my types as it was figuring out how to use palette properly
         let rgb = Rgb8::new(255, 0, 255);
-        let rgb2 = Rgbf::from_format(rgb);
+        let rgb2 = Srgb::<f32>::from_format(rgb);
         let lch: Lch = rgb2.into_color();
         println!("A {rgb:?} -> {lch:?}");
 
-        let rgb3 = Rgbf::from_color(lch);
+        let rgb3 = Srgb::<f32>::from_color(lch);
         let rgb4 = Rgb8::from_format(rgb3);
         println!("B {lch:?} -> {rgb4:?}");
         assert_eq!(rgb, rgb4);
