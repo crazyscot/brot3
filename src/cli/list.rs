@@ -30,7 +30,7 @@ pub struct Args {
 /// Implementation of 'list'
 pub fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
-        ListableThings::Renderers => listable::list::<render::Selection>(args.machine_parseable),
+        ListableThings::Renderers => listable::list2::<render::Selection>(args.machine_parseable),
         ListableThings::Fractals => listable::list::<FractalInstance>(args.machine_parseable),
         ListableThings::Colourers => listable::list::<ColourerInstance>(args.machine_parseable),
     }

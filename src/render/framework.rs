@@ -6,13 +6,12 @@ use crate::fractal::Tile;
 
 use anyhow;
 use strum_macros::{
-    Display, EnumDiscriminants, EnumIter, EnumMessage, EnumProperty, IntoStaticStr,
+    Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, EnumVariantNames, FromRepr,
+    IntoStaticStr,
 };
 
 use super::ascii::{AsciiArt, Csv};
 use super::png::Png;
-
-use std::str::FromStr;
 
 #[enum_delegate::implement(Renderer)]
 #[derive(Clone, Copy, Debug, Display)]
@@ -23,10 +22,12 @@ use std::str::FromStr;
     derive(
         clap::ValueEnum,
         Display,
-        EnumIter,
         EnumMessage,
         EnumProperty,
-        IntoStaticStr
+        EnumString,
+        EnumVariantNames,
+        FromRepr,
+        IntoStaticStr,
     )
 )] // ... and specifies what it derives from
 /// Selector for available Renderers
@@ -71,11 +72,11 @@ pub fn factory(selection: Selection) -> RenderInstance {
 
 #[cfg(test)]
 mod tests {
-    use super::RenderInstance;
-    use crate::util::listable::list_vec;
+    use super::Selection;
+    use strum::VariantNames;
 
     #[test]
     fn renderers_list() {
-        assert_ne!(list_vec::<RenderInstance>().len(), 0);
+        assert_ne!(Selection::VARIANTS.len(), 0);
     }
 }

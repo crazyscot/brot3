@@ -3,6 +3,7 @@
 
 use std::ffi::OsStr;
 use std::path::Path;
+use std::str::FromStr;
 use std::time::SystemTime;
 
 use crate::colouring;
@@ -14,7 +15,7 @@ use crate::util::Rect;
 
 use anyhow::ensure;
 use rayon::prelude::*;
-use strum::{EnumProperty, IntoEnumIterator};
+use strum::{EnumProperty, VariantNames};
 
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
@@ -235,18 +236,22 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
             .and_then(OsStr::to_str)
             .unwrap_or_default()
             .to_ascii_lowercase();
-        let found = render::Selection::iter().find(|ren| {
-            let trial = ren.get_str("file_extension").map_or_else(
-                || {
-                    // No property? use the enum name
-                    let r: &'static str = ren.into();
-                    r.to_ascii_lowercase()
-                },
-                // the property exists? convert &str to string
-                std::string::ToString::to_string,
-            );
-            trial == extension
-        });
+
+        let found = render::Selection::VARIANTS
+            .iter()
+            .flat_map(|name| render::Selection::from_str(name))
+            .find(|sel| {
+                let trial = sel.get_str("file_extension").map_or_else(
+                    || {
+                        // No property? use the enum name
+                        let r: &'static str = sel.into();
+                        r.to_ascii_lowercase()
+                    },
+                    // the property exists? convert &str to string
+                    std::string::ToString::to_string,
+                );
+                trial == extension
+            });
         match found {
             Some(s) => Ok(s),
             None => anyhow::bail!(
