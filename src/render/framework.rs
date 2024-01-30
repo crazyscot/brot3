@@ -6,8 +6,8 @@ use crate::fractal::Tile;
 
 use anyhow;
 use strum_macros::{
-    Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, EnumVariantNames, FromRepr,
-    IntoStaticStr,
+    Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, IntoStaticStr,
+    VariantNames,
 };
 
 use super::ascii::{AsciiArt, Csv};
@@ -25,8 +25,8 @@ use super::png::Png;
         EnumMessage,
         EnumProperty,
         EnumString,
-        EnumVariantNames,
         IntoStaticStr,
+        VariantNames,
     )
 )] // ... and specifies what it derives from
 /// Selector for available Renderers

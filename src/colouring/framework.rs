@@ -2,9 +2,7 @@
 // (c) 2024 Ross Younger
 
 use enum_delegate;
-use strum_macros::{
-    Display, EnumDiscriminants, EnumMessage, EnumString, EnumVariantNames, FromRepr,
-};
+use strum_macros::{Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantNames};
 
 use super::direct_rgb::Mandy;
 use super::huecycles::LinearRainbow;
@@ -18,7 +16,7 @@ use super::Rgb8;
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
     name(Selection),
-    derive(clap::ValueEnum, Display, EnumMessage, EnumString, EnumVariantNames)
+    derive(clap::ValueEnum, Display, EnumMessage, EnumString, VariantNames)
 )] // ... and specifies what it derives from
 pub enum Instance {
     /// A continuous cycle around the HSV cone with fixed saturation and lightness
