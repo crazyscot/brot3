@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use super::Renderer;
-use crate::colouring::{ColourerInstance, OutputsRgb8};
+use crate::colouring::{Instance, OutputsRgb8};
 use crate::fractal::{Scalar, Tile};
 use crate::util::filename::Filename;
 
@@ -15,7 +15,7 @@ pub struct Png {}
 impl Png {
     fn render_inner(
         tile: &Tile,
-        colourer: ColourerInstance,
+        colourer: Instance,
         writer: Box<dyn std::io::Write>,
     ) -> Result<()> {
         let mut encoder = png::Encoder::new(writer, tile.spec.width(), tile.spec.height());
@@ -57,12 +57,7 @@ impl Png {
 }
 
 impl Renderer for Png {
-    fn render_file(
-        &self,
-        filename: &str,
-        tile: &Tile,
-        colourer: ColourerInstance,
-    ) -> anyhow::Result<()> {
+    fn render_file(&self, filename: &str, tile: &Tile, colourer: Instance) -> anyhow::Result<()> {
         let handle = Filename::open_for_writing(filename)?;
         let bw = Box::new(BufWriter::new(handle));
         Png::render_inner(tile, colourer, bw).with_context(|| "Failed to render PNG")?;

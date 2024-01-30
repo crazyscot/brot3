@@ -4,7 +4,7 @@
 
 /// Selection & dispatch framework
 mod framework;
-pub use framework::{factory, ColourerInstance, OutputsRgb8, Selection};
+pub use framework::{factory, Instance, OutputsRgb8, Selection};
 
 /// Hue cycling algorithms
 pub mod huecycles;

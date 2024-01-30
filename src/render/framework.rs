@@ -1,7 +1,7 @@
 // Rendering selection & dispatch
 // (c) 2024 Ross Younger
 
-use crate::colouring::ColourerInstance;
+use crate::colouring::Instance;
 use crate::fractal::Tile;
 
 use anyhow;
@@ -51,12 +51,7 @@ pub enum RenderInstance {
 #[enum_delegate::register]
 pub trait Renderer {
     /// Renders fractal data and sends it to its output
-    fn render_file(
-        &self,
-        filename: &str,
-        data: &Tile,
-        colourer: ColourerInstance,
-    ) -> anyhow::Result<()>;
+    fn render_file(&self, filename: &str, data: &Tile, colourer: Instance) -> anyhow::Result<()>;
 }
 
 /// Factory method for renderers
