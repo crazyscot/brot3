@@ -7,6 +7,7 @@ use crate::fractal::{Scalar, Tile};
 use crate::util::filename::Filename;
 
 use anyhow::{Context, Result};
+use palette::Srgb;
 use std::io::BufWriter;
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -38,6 +39,7 @@ impl Png {
         tile_data
             .elements_row_major_iter()
             .map(|pd| {
+                // Apply colouring function
                 if pd.iter == max_iter {
                     Scalar::INFINITY
                 } else {
@@ -45,11 +47,13 @@ impl Png {
                 }
             })
             .for_each(|iters| {
+                // PNG wants four u8s, in RGBA order
                 #[allow(clippy::cast_lossless)]
-                let col = colourer.colour_rgb8(iters, max_iter as u64);
-                image_data.push(col.red);
-                image_data.push(col.green);
-                image_data.push(col.blue);
+                let (r, g, b) = Srgb::<u8>::from(colourer.colour_rgb8(iters, max_iter as u64))
+                    .into_components();
+                image_data.push(r);
+                image_data.push(g);
+                image_data.push(b);
                 image_data.push(255);
             });
         png_writer.write_image_data(&image_data)?;
