@@ -5,7 +5,6 @@ use crate::colouring::ColourerInstance;
 use crate::fractal::Tile;
 
 use anyhow;
-use enum_dispatch::enum_dispatch;
 use strum_macros::{
     Display, EnumDiscriminants, EnumIter, EnumMessage, EnumProperty, IntoStaticStr,
 };
@@ -13,7 +12,9 @@ use strum_macros::{
 use super::ascii::{AsciiArt, Csv};
 use super::png::Png;
 
-#[enum_dispatch]
+use std::str::FromStr;
+
+#[enum_delegate::implement(Renderer)]
 #[derive(Clone, Copy, Debug, Display)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
@@ -35,19 +36,19 @@ pub enum RenderInstance {
     // not on RenderInstance itself.
     //
     /// Comma Separated Values, one line per line of plot (.csv)
-    Csv,
+    Csv(Csv),
     /// Good old ASCII art (.txt) [short-form: "aa"]
     #[strum_discriminants(value(alias = "aa"))]
     #[strum_discriminants(strum(props(file_extension = "txt")))]
-    AsciiArt,
+    AsciiArt(AsciiArt),
     /// Portable Network Graphics (.png) file
-    Png,
+    Png(Png),
 }
 
 /// A Renderer accepts ``PointData`` and deals with it completely.
 /// This is distinct from a Palette, which accepts ``PointData`` and returns colour data.
 /// The trait knows nothing about output or buffering; the implementation is responsible for setting that up.
-#[enum_dispatch(RenderInstance)]
+#[enum_delegate::register]
 pub trait Renderer {
     /// Renders fractal data and sends it to its output
     fn render_file(
