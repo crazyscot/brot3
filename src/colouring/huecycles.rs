@@ -62,7 +62,7 @@ impl OutputsHsvf for HsvGradient {
 #[cfg(test)]
 mod tests {
     use assert_float_eq::{afe_is_f32_near, afe_near_error_msg, assert_f32_near};
-    use palette::{rgb::Srgb, IntoColor, Lch, LinSrgb, RgbHue};
+    use palette::{FromColor, IntoColor, Lch, RgbHue};
 
     use super::{LinearRainbow, LINEAR_RAINBOW_WRAP};
     use crate::colouring::{OutputsHsvf, Rgb8, Rgbf};
@@ -98,5 +98,19 @@ mod tests {
         assert_eq!(hsv.value, 1.0);
         assert_eq!(hsv.saturation, 1.0);
         // This demonstrates that Value and Saturation range from 0.0 to 1.0, as we thought.
+    }
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn lch_conversion() {
+        // this wasn't so much a unit test of my types as it was figuring out how to use palette properly
+        let rgb = Rgb8::new(255, 0, 255);
+        let rgb2 = Rgbf::from_format(rgb);
+        let lch: Lch = rgb2.into_color();
+        println!("A {rgb:?} -> {lch:?}");
+
+        let rgb3 = Rgbf::from_color(lch);
+        let rgb4 = Rgb8::from_format(rgb3);
+        println!("B {lch:?} -> {rgb4:?}");
+        assert_eq!(rgb, rgb4);
     }
 }
