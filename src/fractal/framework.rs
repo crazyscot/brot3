@@ -8,16 +8,18 @@ use super::mandeldrop::{Mandeldrop, Mandeldrop3};
 use super::misc_fractals::{BirdOfPrey, Buffalo, BurningShip, Celtic, Mandelbar, Variant};
 
 use enum_delegate;
-use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString, FromRepr};
+use strum_macros::{
+    Display, EnumDiscriminants, EnumMessage, EnumString, EnumVariantNames, FromRepr,
+};
 
 /// Selector for available Algorithms
 #[enum_delegate::implement(Algorithm)]
-#[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage, FromRepr, PartialEq)]
+#[derive(Clone, Copy, Debug, Display, FromRepr, PartialEq)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
     name(Selection),
-    derive(clap::ValueEnum, Display, EnumIter, EnumString)
+    derive(clap::ValueEnum, Display, EnumMessage, EnumString, EnumVariantNames)
 )] // ... and specifies what it derives from
 #[allow(clippy::module_name_repetitions)] // enum_dispatch doesn't support structs with the same name but different paths
 pub enum FractalInstance {
@@ -118,15 +120,4 @@ impl Algorithm for Zero {
         point.result = Some(0.0);
     }
     fn finish(&self, _point: &mut PointData) {}
-}
-
-#[cfg(test)]
-mod tests {
-    use super::FractalInstance;
-    use crate::util::listable::list_vec;
-
-    #[test]
-    fn renderers_list() {
-        assert_ne!(list_vec::<FractalInstance>().len(), 0);
-    }
 }
