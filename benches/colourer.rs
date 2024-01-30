@@ -1,15 +1,12 @@
-use std::str::FromStr;
-
-use brot3::colouring::{self, OutputsRgb8, Selection};
+use brot3::colouring::{self, Instance, OutputsRgb8};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use strum::VariantNames;
+use strum::VariantArray;
 
 fn colour_pixel(c: &mut Criterion) {
     let mut group = c.benchmark_group("colourers");
-    let mut bench = |sel: Selection| {
-        let instance = colouring::factory(sel);
-        group.bench_function(format!("{sel:?}"), |b| {
+    let mut bench = |instance: Instance| {
+        group.bench_function(format!("{}", instance), |b| {
             b.iter(|| {
                 instance.colour_rgb8(black_box(42.0));
             });
@@ -17,7 +14,7 @@ fn colour_pixel(c: &mut Criterion) {
     };
     colouring::Selection::VARIANTS
         .iter()
-        .for_each(|i| bench(colouring::Selection::from_str(i).unwrap()));
+        .for_each(|i| bench(colouring::Instance::from_repr(*i as usize).unwrap()));
 }
 
 criterion_group!(colourers, colour_pixel);

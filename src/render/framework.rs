@@ -7,7 +7,7 @@ use crate::fractal::Tile;
 use anyhow;
 use strum_macros::{
     Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, IntoStaticStr,
-    VariantNames,
+    VariantArray, VariantNames,
 };
 
 use super::ascii::{AsciiArt, Csv};
@@ -26,6 +26,7 @@ use super::png::Png;
         EnumProperty,
         EnumString,
         IntoStaticStr,
+        VariantArray,
         VariantNames,
     )
 )] // ... and specifies what it derives from

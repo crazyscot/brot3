@@ -8,7 +8,9 @@ use super::mandeldrop::{Mandeldrop, Mandeldrop3};
 use super::misc_fractals::{BirdOfPrey, Buffalo, BurningShip, Celtic, Mandelbar, Variant};
 
 use enum_delegate;
-use strum_macros::{Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantNames};
+use strum_macros::{
+    Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantArray, VariantNames,
+};
 
 /// Selector for available Algorithms
 #[enum_delegate::implement(Algorithm)]
@@ -17,7 +19,14 @@ use strum_macros::{Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
     name(Selection),
-    derive(clap::ValueEnum, Display, EnumMessage, EnumString, VariantNames)
+    derive(
+        clap::ValueEnum,
+        Display,
+        EnumMessage,
+        EnumString,
+        VariantArray,
+        VariantNames
+    )
 )] // ... and specifies what it derives from
 pub enum Instance {
     /// The original Mandelbrot set, `z := z^2+c` (aliases: "m", "m2")
