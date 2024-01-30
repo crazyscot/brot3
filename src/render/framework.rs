@@ -6,19 +6,27 @@ use crate::fractal::Tile;
 
 use anyhow;
 use enum_dispatch::enum_dispatch;
-use strum::IntoStaticStr;
-use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumProperty, EnumString};
+use strum_macros::{
+    Display, EnumDiscriminants, EnumIter, EnumMessage, EnumProperty, IntoStaticStr,
+};
 
 use super::ascii::{AsciiArt, Csv};
 use super::png::Png;
 
 #[enum_dispatch]
-#[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage, EnumProperty)]
+#[derive(Clone, Copy, Debug, Display)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
     name(Selection),
-    derive(clap::ValueEnum, EnumIter, EnumString, EnumProperty, IntoStaticStr)
+    derive(
+        clap::ValueEnum,
+        Display,
+        EnumIter,
+        EnumMessage,
+        EnumProperty,
+        IntoStaticStr
+    )
 )] // ... and specifies what it derives from
 /// Selector for available Renderers
 #[allow(clippy::module_name_repetitions)]
