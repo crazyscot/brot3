@@ -6,9 +6,7 @@ use palette::{Hsv, Srgb};
 
 use super::framework::OutputsRgb8;
 
-/// RGB type, f32 storage
-pub type Rgbf = palette::Srgb<f32>;
-/// RGB type, u8 storage
+/// Type sugar: Standard RGB, u8 storage
 pub type Rgb8 = palette::Srgb<u8>;
 
 /// A colouring algorithm that outputs HSV colours
@@ -48,13 +46,13 @@ mod tests {
     use super::{OutputsRgb8, WhiteHSV};
     use palette::{rgb, FromColor, Hsv, IntoColor, RgbHue, Srgb};
 
-    use crate::colouring::{OutputsHsvf, Rgb8, Rgbf};
+    use crate::colouring::{OutputsHsvf, Rgb8};
 
     #[test]
     fn red_conversion() {
         let hsv = Hsv::new(RgbHue::from_degrees(0.0), 1.0, 1.0);
-        let rgb: Rgbf = hsv.into_color();
-        let expected = Rgbf::new(1.0, 0.0, 0.0);
+        let rgb: Srgb<f32> = hsv.into_color();
+        let expected = Srgb::<f32>::new(1.0, 0.0, 0.0);
         assert_eq!(rgb, expected);
 
         let rgb8: Rgb8 = Rgb8::from_format(rgb);
