@@ -1,7 +1,9 @@
-use brot3::colouring::{self, ColourerInstance, OutputsRgb8, Selection};
+use std::str::FromStr;
+
+use brot3::colouring::{self, OutputsRgb8, Selection};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use strum::IntoEnumIterator;
+use strum::VariantNames;
 
 fn colour_pixel(c: &mut Criterion) {
     let mut group = c.benchmark_group("colourers");
@@ -13,7 +15,9 @@ fn colour_pixel(c: &mut Criterion) {
             });
         });
     };
-    ColourerInstance::iter().for_each(|i| bench(i.into()));
+    colouring::Selection::VARIANTS
+        .iter()
+        .for_each(|i| bench(colouring::Selection::from_str(i).unwrap()));
 }
 
 criterion_group!(colourers, colour_pixel);
