@@ -255,13 +255,13 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         }
     }?;
 
-    let renderer = render::factory(render_selection, &args.output_filename, colourer);
+    let renderer = render::factory(render_selection);
 
     if args.no_split {
         let mut t = Tile::new(&spec, debug);
         t.plot(args.max_iter);
         println!("{}", t.info_string(&colourer));
-        renderer.render(&t)
+        renderer.render_file(&args.output_filename, &t, colourer)
     } else {
         let time0 = SystemTime::now();
         let splits = spec.split(SplitMethod::RowsOfHeight(50), debug)?;
@@ -272,7 +272,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         let tile = Tile::join(&spec, &tiles)?;
         let time3 = SystemTime::now();
 
-        let result = renderer.render(&tile);
+        let result = renderer.render_file(&args.output_filename, &tile, colourer);
         let time4 = SystemTime::now();
         if args.show_timing {
             println!(

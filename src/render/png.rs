@@ -9,31 +9,8 @@ use crate::util::filename::Filename;
 use anyhow::{Context, Result};
 use std::io::BufWriter;
 
-#[derive(Clone, Debug)]
-pub struct Png {
-    filename: Filename,
-    colourer: ColourerInstance,
-}
-
-impl Default for Png {
-    fn default() -> Self {
-        Self {
-            filename: Filename::new(""),
-            colourer: ColourerInstance::LinearRainbow(
-                crate::colouring::huecycles::LinearRainbow {},
-            ),
-        }
-    }
-}
-
-impl Png {
-    pub(crate) fn new(filename: &str, colourer: ColourerInstance) -> Self {
-        Png {
-            filename: Filename::new(filename),
-            colourer,
-        }
-    }
-}
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Png {}
 
 impl Png {
     fn render_inner(
@@ -80,10 +57,15 @@ impl Png {
 }
 
 impl Renderer for Png {
-    fn render(&self, tile: &Tile) -> Result<()> {
-        let handle = self.filename.write_handle()?;
+    fn render_file(
+        &self,
+        filename: &str,
+        tile: &Tile,
+        colourer: ColourerInstance,
+    ) -> anyhow::Result<()> {
+        let handle = Filename::open_for_writing(filename)?;
         let bw = Box::new(BufWriter::new(handle));
-        Png::render_inner(tile, self.colourer, bw).with_context(|| "Failed to render PNG")?;
+        Png::render_inner(tile, colourer, bw).with_context(|| "Failed to render PNG")?;
         // You can test this error pathway by trying to write to /dev/full
         Ok(())
     }
