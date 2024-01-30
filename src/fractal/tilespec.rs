@@ -4,7 +4,7 @@
 use anyhow::ensure;
 
 use super::userplotspec::{Location, Size};
-use super::{FractalInstance, PlotSpec, Point, Scalar};
+use super::{Instance, PlotSpec, Point, Scalar};
 use crate::util::Rect;
 
 use std::fmt::{self, Display, Formatter};
@@ -22,7 +22,7 @@ pub struct TileSpec {
     offset_within_plot: Option<Rect<u32>>,
 
     /// The selected algorithm
-    algorithm: FractalInstance,
+    algorithm: Instance,
 }
 
 /// Method of splitting a tile
@@ -56,7 +56,7 @@ impl TileSpec {
         origin: Point,
         axes: Point,
         size_in_pixels: Rect<u32>,
-        algorithm: FractalInstance,
+        algorithm: Instance,
     ) -> TileSpec {
         TileSpec {
             origin,
@@ -74,7 +74,7 @@ impl TileSpec {
         size_in_pixels: Rect<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
         offset_within_plot: Option<Rect<u32>>,
-        algorithm: FractalInstance,
+        algorithm: Instance,
     ) -> TileSpec {
         TileSpec {
             origin,
@@ -210,7 +210,7 @@ impl TileSpec {
     }
     /// Accessor
     #[must_use]
-    pub fn algorithm(&self) -> FractalInstance {
+    pub fn algorithm(&self) -> Instance {
         self.algorithm
     }
     /// Accessor
@@ -267,7 +267,7 @@ mod tests {
             self,
             tilespec::SplitMethod,
             userplotspec::{Location, Size},
-            FractalInstance, PlotSpec, Point, Scalar, TileSpec,
+            Instance, PlotSpec, Point, Scalar, TileSpec,
         },
         util::Rect,
     };
@@ -278,7 +278,7 @@ mod tests {
     const ONETWO: Point = Point { re: 1.0, im: 2.0 };
     const CENTI: Point = Point { re: 0.01, im: 0.01 };
 
-    const MANDELBROT: FractalInstance = FractalInstance::Original(fractal::mandelbrot::Original {});
+    const MANDELBROT: Instance = Instance::Original(fractal::mandelbrot::Original {});
 
     const TD_ORIGIN_AXES: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),

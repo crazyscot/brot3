@@ -1,6 +1,6 @@
 // (c) 2024 Ross Younger
 
-use super::{Algorithm, FractalInstance, Point, PointData, TileSpec};
+use super::{Algorithm, Instance, Point, PointData, TileSpec};
 use crate::{colouring::ColourerInstance, util::Rect};
 
 use anyhow::{anyhow, ensure, Context};
@@ -21,7 +21,7 @@ pub struct Tile {
     /// Specification of this plot
     pub spec: TileSpec,
     /// The algorithm to use
-    algorithm: FractalInstance,
+    algorithm: super::Instance,
     /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, relative to the TOP LEFT of the plot.
     offset_within_plot: Option<Rect<u32>>,
 }
@@ -179,15 +179,15 @@ impl fmt::Display for Tile {
 mod tests {
     use crate::{
         fractal::{
-            framework::Zero, tilespec::SplitMethod, FractalInstance, Location, PlotSpec, Point,
-            Size, TileSpec,
+            framework::Zero, tilespec::SplitMethod, Instance, Location, PlotSpec, Point, Size,
+            TileSpec,
         },
         util::Rect,
     };
 
     use super::Tile;
 
-    const ZERO_ALG: FractalInstance = FractalInstance::Zero(Zero {});
+    const ZERO_ALG: Instance = Instance::Zero(Zero {});
     const ZERO: Point = Point { re: 0.0, im: 0.0 };
     const ONE: Point = Point { re: 1.0, im: 1.0 };
 

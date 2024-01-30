@@ -3,13 +3,13 @@ use std::hint::black_box;
 
 use brot3::{
     colouring::{direct_rgb, huecycles, ColourerInstance, OutputsRgb8, Rgb8},
-    fractal::{self, Algorithm, FractalInstance, Point, PointData},
+    fractal::{self, Algorithm, Point, PointData},
 };
 use fractal::Selection::*;
 
 struct BenchData {
     point: PointData,
-    fractal: FractalInstance,
+    fractal: fractal::Instance,
 }
 
 // ////////////////////////////////////////////////////////////////
