@@ -34,6 +34,12 @@ impl Filename {
             Ok(bw)
         }
     }
+
+    /// Truncatingly opens the given file for writing and returns a buffered write handle.
+    /// You should call flush() before dropping the handle.
+    pub fn open_for_writing(filename: &str) -> anyhow::Result<Box<dyn Write>> {
+        Filename::new(filename).write_handle()
+    }
 }
 
 impl Default for Filename {
