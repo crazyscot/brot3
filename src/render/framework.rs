@@ -14,7 +14,7 @@ use super::ascii::{AsciiArt, Csv};
 use super::png::Png;
 
 #[enum_delegate::implement(Renderer)]
-#[derive(Clone, Copy, Debug, Display)]
+#[derive(Clone, Copy, Debug, Display, FromRepr)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
@@ -26,7 +26,6 @@ use super::png::Png;
         EnumProperty,
         EnumString,
         EnumVariantNames,
-        FromRepr,
         IntoStaticStr,
     )
 )] // ... and specifies what it derives from
@@ -61,13 +60,11 @@ pub trait Renderer {
 }
 
 /// Factory method for renderers
+#[allow(clippy::missing_panics_doc)]
 #[must_use]
 pub fn factory(selection: Selection) -> RenderInstance {
-    match selection {
-        Selection::Csv => Csv::default().into(),
-        Selection::AsciiArt => AsciiArt::default().into(),
-        Selection::Png => Png::default().into(),
-    }
+    RenderInstance::from_repr(selection as usize)
+        .expect("Failed to convert enum discriminant into instance (can't happen)")
 }
 
 #[cfg(test)]
