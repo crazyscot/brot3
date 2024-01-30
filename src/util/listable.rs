@@ -12,28 +12,7 @@ pub fn list_vec<T: IntoEnumIterator + std::fmt::Display>() -> Vec<String> {
 }
 
 /// Prints a list of available items for a given type
-pub fn list<T: IntoEnumIterator + std::fmt::Display + EnumMessage>(machine_parseable: bool) {
-    if machine_parseable {
-        println!("{:?}", list_vec::<T>());
-        return;
-    }
-
-    let longest = T::iter().map(|r| r.to_string().len()).max().unwrap_or(1);
-
-    let _ = T::iter()
-        .map(|r| {
-            println!(
-                "  {:width$}  {}",
-                r.to_string(),
-                r.get_documentation().unwrap_or_default(),
-                width = longest
-            );
-        })
-        .collect::<Vec<_>>();
-}
-
-/// Prints a list of available items for a given type
-pub fn list2<T: VariantNames + FromStr + std::fmt::Display + EnumMessage>(machine_parseable: bool) {
+pub fn list<T: VariantNames + FromStr + std::fmt::Display + EnumMessage>(machine_parseable: bool) {
     let v = &T::VARIANTS;
 
     if machine_parseable {
