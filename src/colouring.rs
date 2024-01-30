@@ -14,4 +14,4 @@ pub mod direct_rgb;
 
 // Colour space and conversion helpers
 mod types;
-pub use types::{Hsvf, OutputsHsvf, Rgb8, Rgbf};
+pub use types::{OutputsHsvf, Rgb8, Rgbf};

@@ -1,9 +1,9 @@
 // Colouring algorithms that cycle around a given hue
 // (c) 2024 Ross Younger
 
-use palette::RgbHue;
+use palette::{encoding::Srgb, Hsv, RgbHue};
 
-use super::{Hsvf, OutputsHsvf};
+use super::OutputsHsvf;
 
 /// Cycling H; Fixed S=1.0, V=1.0
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -11,11 +11,11 @@ pub struct LinearRainbow {}
 
 const LINEAR_RAINBOW_WRAP: f64 = 32.0; // TODO this might become a parameter later
 
-const BLACK: Hsvf = Hsvf::new_const(RgbHue::new(0.0), 0.0, 0.0);
+const BLACK: Hsv<Srgb, f32> = Hsv::new_const(RgbHue::new(0.0), 0.0, 0.0);
 
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LinearRainbow {
-    fn colour_hsvf(&self, iters: f64, _: u64) -> Hsvf {
+    fn colour_hsvf(&self, iters: f64, _: u64) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
             return BLACK;
         }
@@ -23,7 +23,7 @@ impl OutputsHsvf for LinearRainbow {
         // this gives a number from 0..1, map that to the hue angle
         // TODO: offset becomes a parameter?
         let degrees = (0.5 + tau) * 360.0;
-        Hsvf::new(RgbHue::new(degrees), 1.0, 1.0)
+        Hsv::new(RgbHue::new(degrees), 1.0, 1.0)
     }
 }
 
@@ -32,12 +32,12 @@ impl OutputsHsvf for LinearRainbow {
 pub struct LogRainbow {}
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LogRainbow {
-    fn colour_hsvf(&self, iters: f64, _: u64) -> Hsvf {
+    fn colour_hsvf(&self, iters: f64, _: u64) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
             return BLACK;
         }
         let degrees = 60.0 * (iters.ln() as f32 + 0.5);
-        Hsvf::new(RgbHue::new(degrees), 1.0, 1.0)
+        Hsv::new(RgbHue::new(degrees), 1.0, 1.0)
     }
 }
 
@@ -47,7 +47,7 @@ pub struct HsvGradient {}
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for HsvGradient {
-    fn colour_hsvf(&self, iters: f64, max_iters: u64) -> Hsvf {
+    fn colour_hsvf(&self, iters: f64, max_iters: u64) -> Hsv<Srgb, f32> {
         if iters.is_infinite() || iters >= (max_iters as f64 - 1.0) {
             return BLACK;
         }
@@ -55,17 +55,17 @@ impl OutputsHsvf for HsvGradient {
         // TODO: 0.75 becomes a parameter
         let degrees = (proportion * 360.0).powf(1.5) % 360.0;
         // TODO: value 1.0 becomes a parameter of proportion?
-        Hsvf::new(RgbHue::new(degrees), 1.0, 1.0)
+        Hsv::new(RgbHue::new(degrees), 1.0, 1.0)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use assert_float_eq::{afe_is_f32_near, afe_near_error_msg, assert_f32_near};
-    use palette::{IntoColor, RgbHue};
+    use palette::{rgb::Srgb, IntoColor, Lch, LinSrgb, RgbHue};
 
     use super::{LinearRainbow, LINEAR_RAINBOW_WRAP};
-    use crate::colouring::{Hsvf, OutputsHsvf, Rgb8, Rgbf};
+    use crate::colouring::{OutputsHsvf, Rgb8, Rgbf};
 
     #[test]
     fn hue_cycles() {
@@ -91,8 +91,8 @@ mod tests {
     #[allow(clippy::float_cmp)]
     fn hsv_sanity() {
         let rgb = Rgb8::new(255, 0, 0);
-        let rgb2 = Rgbf::from_format(rgb);
-        let hsv: Hsvf = rgb2.into_color();
+        let rgb2: palette::rgb::Srgb = Rgbf::from_format(rgb);
+        let hsv: palette::Hsv = rgb2.into_color();
         println!("{hsv:?}");
         assert_eq!(hsv.hue, 0.0);
         assert_eq!(hsv.value, 1.0);
