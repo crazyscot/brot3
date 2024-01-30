@@ -1,6 +1,11 @@
 // List subcommand
 // (c) 2024 Ross Younger
-use crate::{colouring, fractal::FractalInstance, render, util::listable};
+use crate::{
+    colouring,
+    fractal::{self},
+    render,
+    util::listable,
+};
 
 #[derive(Debug, clap::Subcommand)]
 enum ListableThings {
@@ -31,7 +36,7 @@ pub struct Args {
 pub fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => listable::list2::<render::Selection>(args.machine_parseable),
-        ListableThings::Fractals => listable::list::<FractalInstance>(args.machine_parseable),
+        ListableThings::Fractals => listable::list2::<fractal::Selection>(args.machine_parseable),
         ListableThings::Colourers => {
             listable::list2::<colouring::Selection>(args.machine_parseable);
         }
