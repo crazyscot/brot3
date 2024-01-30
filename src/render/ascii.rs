@@ -1,7 +1,7 @@
 // Rendering output in various ASCII-based formats
 // (c) 2024 Ross Younger
 use super::Renderer;
-use crate::colouring::ColourerInstance;
+use crate::colouring::Instance;
 use crate::fractal::{PointData, Tile};
 use crate::util::filename::Filename;
 
@@ -10,7 +10,7 @@ use crate::util::filename::Filename;
 pub struct Csv {}
 
 impl Renderer for Csv {
-    fn render_file(&self, filename: &str, tile: &Tile, _: ColourerInstance) -> anyhow::Result<()> {
+    fn render_file(&self, filename: &str, tile: &Tile, _: Instance) -> anyhow::Result<()> {
         Filename::open_for_writing(filename)?.write_all(tile.to_string().as_bytes())?;
         Ok(())
     }
@@ -24,7 +24,7 @@ pub struct AsciiArt {}
 const DEFAULT_ASCII_ART_CHARSET: &[u8] = " .,:obOB%#".as_bytes();
 
 impl Renderer for AsciiArt {
-    fn render_file(&self, filename: &str, tile: &Tile, _: ColourerInstance) -> anyhow::Result<()> {
+    fn render_file(&self, filename: &str, tile: &Tile, _: Instance) -> anyhow::Result<()> {
         let mut output = Filename::open_for_writing(filename)?;
 
         // Find the range of output levels, discounting INF.

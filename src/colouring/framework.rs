@@ -20,8 +20,7 @@ use super::Rgb8;
     name(Selection),
     derive(clap::ValueEnum, Display, EnumMessage, EnumString, EnumVariantNames)
 )] // ... and specifies what it derives from
-#[allow(clippy::module_name_repetitions)] // enum_dispatch doesn't support structs with the same name but different paths
-pub enum ColourerInstance {
+pub enum Instance {
     /// A continuous cycle around the HSV cone with fixed saturation and lightness
     LinearRainbow(LinearRainbow),
 
@@ -42,8 +41,8 @@ pub trait OutputsRgb8 {
 /// Factory method
 #[must_use]
 #[allow(clippy::missing_panics_doc)]
-pub fn factory(selection: Selection) -> ColourerInstance {
-    ColourerInstance::from_repr(selection as usize).unwrap_or_else(|| {
+pub fn factory(selection: Selection) -> Instance {
+    Instance::from_repr(selection as usize).unwrap_or_else(|| {
         panic!("Failed to convert enum discriminant {selection} into instance (can't happen)")
     })
 }
