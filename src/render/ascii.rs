@@ -1,54 +1,31 @@
 // Rendering output in various ASCII-based formats
 // (c) 2024 Ross Younger
 use super::Renderer;
+use crate::colouring::ColourerInstance;
 use crate::fractal::{PointData, Tile};
 use crate::util::filename::Filename;
 
-use anyhow::Result;
-
 /// CSV format, fractal points
-#[derive(Clone, Debug, Default)]
-pub struct Csv {
-    filename: Filename,
-}
-
-impl Csv {
-    pub(crate) fn new(filename: &str) -> Self {
-        Csv {
-            filename: Filename::new(filename),
-        }
-    }
-}
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Csv {}
 
 impl Renderer for Csv {
-    fn render(&self, tile: &Tile) -> Result<()> {
-        self.filename
-            .write_handle()?
-            .write_all(tile.to_string().as_bytes())?;
+    fn render_file(&self, filename: &str, tile: &Tile, _: ColourerInstance) -> anyhow::Result<()> {
+        Filename::open_for_writing(filename)?.write_all(tile.to_string().as_bytes())?;
         Ok(())
     }
 }
 
 /// Rough and ready ASCII art renderer
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 #[allow(clippy::module_name_repetitions)]
-pub struct AsciiArt {
-    filename: Filename,
-}
+pub struct AsciiArt {}
 
 const DEFAULT_ASCII_ART_CHARSET: &[u8] = " .,:obOB%#".as_bytes();
 
-impl AsciiArt {
-    pub(crate) fn new(filename: &str) -> Self {
-        AsciiArt {
-            filename: Filename::new(filename),
-        }
-    }
-}
-
 impl Renderer for AsciiArt {
-    fn render(&self, tile: &Tile) -> Result<()> {
-        let mut output = self.filename.write_handle()?;
+    fn render_file(&self, filename: &str, tile: &Tile, _: ColourerInstance) -> anyhow::Result<()> {
+        let mut output = Filename::open_for_writing(filename)?;
 
         // Find the range of output levels, discounting INF.
         let data = tile.result();

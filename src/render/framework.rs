@@ -13,7 +13,7 @@ use super::ascii::{AsciiArt, Csv};
 use super::png::Png;
 
 #[enum_dispatch]
-#[derive(Clone, Debug, Display, EnumIter, EnumMessage, EnumProperty)]
+#[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage, EnumProperty)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
@@ -42,16 +42,21 @@ pub enum RenderInstance {
 #[enum_dispatch(RenderInstance)]
 pub trait Renderer {
     /// Renders fractal data and sends it to its output
-    fn render(&self, data: &Tile) -> anyhow::Result<()>;
+    fn render_file(
+        &self,
+        filename: &str,
+        data: &Tile,
+        colourer: ColourerInstance,
+    ) -> anyhow::Result<()>;
 }
 
 /// Factory method for renderers
 #[must_use]
-pub fn factory(selection: Selection, filename: &str, colourer: ColourerInstance) -> RenderInstance {
+pub fn factory(selection: Selection) -> RenderInstance {
     match selection {
-        Selection::Csv => Csv::new(filename).into(),
-        Selection::AsciiArt => AsciiArt::new(filename).into(),
-        Selection::Png => Png::new(filename, colourer).into(),
+        Selection::Csv => Csv::default().into(),
+        Selection::AsciiArt => AsciiArt::default().into(),
+        Selection::Png => Png::default().into(),
     }
 }
 
