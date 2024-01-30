@@ -7,79 +7,73 @@ use super::mandelbrot::{Mandel3, Original};
 use super::mandeldrop::{Mandeldrop, Mandeldrop3};
 use super::misc_fractals::{BirdOfPrey, Buffalo, BurningShip, Celtic, Mandelbar, Variant};
 
-use enum_dispatch::enum_dispatch;
-use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString};
+use enum_delegate;
+use strum_macros::{Display, EnumDiscriminants, EnumIter, EnumMessage, EnumString, FromRepr};
 
 /// Selector for available Algorithms
-#[enum_dispatch]
-#[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage, PartialEq)]
+#[enum_delegate::implement(Algorithm)]
+#[derive(Clone, Copy, Debug, Display, EnumIter, EnumMessage, FromRepr, PartialEq)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
-#[strum_discriminants(name(Selection), derive(clap::ValueEnum, EnumIter, EnumString))] // ... and specifies what it derives from
+#[strum_discriminants(
+    name(Selection),
+    derive(clap::ValueEnum, Display, EnumIter, EnumString)
+)] // ... and specifies what it derives from
 #[allow(clippy::module_name_repetitions)] // enum_dispatch doesn't support structs with the same name but different paths
 pub enum FractalInstance {
     /// The original Mandelbrot set, `z := z^2+c` (aliases: "m", "m2")
     #[strum_discriminants(value(alias = "m", alias = "m2"))]
-    Original,
+    Original(Original),
     /// Mandelbrot^3 z:=z^3+c (alias: "m3")
     #[strum_discriminants(value(alias = "m3"))]
-    Mandel3,
+    Mandel3(Mandel3),
 
     #[strum_discriminants(value(alias = "drop"))]
     /// Mandeldrop (Inverted set) `z:=z^2+c` using 1/z0 (alias: drop)
-    Mandeldrop,
+    Mandeldrop(Mandeldrop),
 
     #[strum_discriminants(value(alias = "drop3"))]
     /// Mandeldrop (Inverted set) `z:=z^3+c` using 1/z0 (alias: drop3)
-    Mandeldrop3,
+    Mandeldrop3(Mandeldrop3),
 
     #[strum_discriminants(value(alias = "bar"))]
     /// Mandelbar (Tricorn) `z:=(z*)^2+c (alias: bar)``
-    Mandelbar,
+    Mandelbar(Mandelbar),
 
     #[strum_discriminants(value(alias = "ship"))]
     /// The Burning Ship `z:=(|Re(z)|+i|Im(z)|)^2+c` (alias: ship)
-    BurningShip,
+    BurningShip(BurningShip),
 
     /// The Generalised Celtic `z:= (|Re(z^2)| + i.Im(z^2) + c)`
-    Celtic,
+    Celtic(Celtic),
 
     /// The Variant `z:=z^2+c with Re(z):=|Re(z)|` on odd iterations
-    Variant,
+    Variant(Variant),
 
     #[strum_discriminants(value(alias = "bird"))]
     /// Bird of Prey `z:=(Re(z)+i|Im(z)|)^2+c` (alias: bird)
-    BirdOfPrey,
+    BirdOfPrey(BirdOfPrey),
 
     /// Buffalo `z:=|z|^2 - |z| + c`
-    Buffalo,
+    Buffalo(Buffalo),
 
     /// Test algorithm that always outputs zero
     #[strum(disabled)]
-    Zero,
+    Zero(Zero),
 }
 
 /// Factory method for fractals
 #[must_use]
-pub fn factory(selection: Selection) -> FractalInstance {
-    match selection {
-        Selection::Original => Original::default().into(),
-        Selection::Mandel3 => Mandel3::default().into(),
-        Selection::Mandeldrop => Mandeldrop::default().into(),
-        Selection::Mandeldrop3 => Mandeldrop3::default().into(),
-        Selection::Mandelbar => Mandelbar::default().into(),
-        Selection::BurningShip => BurningShip::default().into(),
-        Selection::Celtic => Celtic::default().into(),
-        Selection::Variant => Variant::default().into(),
-        Selection::BirdOfPrey => BirdOfPrey::default().into(),
-        Selection::Buffalo => Buffalo::default().into(),
-        Selection::Zero => Zero {}.into(),
-    }
+#[allow(clippy::missing_panics_doc)]
+pub fn factory(selection: Selection) -> Instance {
+    Instance::from_repr(selection as usize).unwrap_or_else(|| {
+        panic!("Failed to convert enum discriminant {selection} into instance (can't happen)")
+    })
 }
 
 /// A fractal algorithm
 /// This knows nothing about colouring, only maths on the complex plane.
-#[enum_dispatch(FractalInstance)]
+#[enum_delegate::register]
 pub trait Algorithm {
     /// Algorithm-specific data preparation before we iterate for the first time
     #[inline]
