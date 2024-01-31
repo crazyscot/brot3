@@ -28,8 +28,8 @@ jobs:
     - name: Build (debug)
       run: cargo build --profile ci --verbose --all-targets
     - name: Build (release)
-      run: cargo build --release --verbose --all-targets
-      # this includes benchmarks, which are run in release config
+      run: cargo build --release --verbose --tests --benches
+      # we want to ensure the benches build
     - name: Run tests
       run: cargo test --profile ci --verbose
     - name: Run tests (release config)
