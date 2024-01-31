@@ -25,13 +25,13 @@ jobs:
     # we used to use actions/cache@v4
     - name: Build
       run: cargo build --verbose
+    - name: Build tests
+      run: cargo test --verbose --no-run
+    - name: Build benchmarks
+      run: cargo bench --no-run
     - name: Run tests
       run: cargo test --verbose
-    - name: Format check
+    - name: Code style check
       run: cargo fmt --all -- --check --verbose
-    - name: Run checks
-      run: cargo check --verbose
-    - name: Extra checks
-      run: cargo clippy --verbose
-    - name: Compile-check benchmarks
-      run: cargo bench --no-run
+    - name: Clippy
+      run: cargo clippy --verbose --all-features --all-targets
