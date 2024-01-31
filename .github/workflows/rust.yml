@@ -26,13 +26,13 @@ jobs:
       uses: Swatinem/rust-cache@v2
     # we used to use actions/cache@v4
     - name: Build (debug)
-      run: cargo build --verbose --all-targets
+      run: cargo build --profile ci --verbose --all-targets
     - name: Build (release)
       run: cargo build --release --verbose --all-targets
       # this includes benchmarks, which are run in release config
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --profile ci --verbose
     - name: Run tests (release config)
       run: cargo test --release --verbose
     - name: Clippy Checks
-      run: cargo clippy --verbose --all-features --all-targets
+      run: cargo clippy --profile ci --verbose --all-features --all-targets
