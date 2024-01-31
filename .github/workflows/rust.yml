@@ -27,9 +27,9 @@ jobs:
     # we used to use actions/cache@v4
     - name: Build (debug)
       run: cargo build --profile ci --verbose --all-targets
-    - name: Build (release)
-      run: cargo build --release --verbose --benches
-      # we want to ensure the benches build
+    #- name: Build (release)
+    #  run: cargo build --release --verbose --benches
+    #  # we want to ensure the benches build... but we already do that in debug with --all-targets
     - name: Run tests
       run: cargo test --profile ci --verbose
     #- name: Run tests (release config)
