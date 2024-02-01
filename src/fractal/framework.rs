@@ -66,7 +66,6 @@ pub enum Instance {
     Buffalo(Buffalo),
 
     /// Test algorithm that always outputs zero
-    #[strum(disabled)]
     Zero(Zero),
 }
 

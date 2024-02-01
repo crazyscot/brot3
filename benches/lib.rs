@@ -2,9 +2,13 @@
 // (c) 2024 Ross Youinger
 
 use brot3::colouring::{self, Instance, OutputsRgb8, Selection::*};
-use brot3::fractal::{self, Algorithm, Point, PointData};
+use brot3::fractal::{self, Algorithm, Point, PointData, Tile, TileSpec};
 
+use brot3::util::Rect;
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
+
+// //////////////////////////////////////////////////////////////////////////////////////////
+// FRACTALS
 
 /// A point (found by experiment) that's in the set but not in the special-case cut-off regions
 const TEST_POINT_M2: Point = Point::new(-0.158_653_6, 1.034_804);
@@ -30,7 +34,38 @@ fn iteration(c: &mut Criterion) {
     alg(fractal::Selection::Mandel3, TEST_POINT_M3);
     alg(fractal::Selection::Mandelbar, TEST_POINT_M3);
     alg(fractal::Selection::Variant, TEST_POINT_M3);
+    alg(fractal::Selection::Zero, TEST_POINT_M3);
 }
+
+fn get_test_tile_spec(alg: fractal::Selection) -> TileSpec {
+    TileSpec::new(
+        Point { re: -1.0, im: 0.0 },
+        Point { re: 4.0, im: 4.0 },
+        Rect::new(300, 300),
+        fractal::factory(alg),
+    )
+}
+
+fn tile(c: &mut Criterion) {
+    let mut group = c.benchmark_group("tiles");
+    let mut do_alg = |alg| {
+        let spec = get_test_tile_spec(alg);
+        group.bench_function(format!("tile_{alg:?}"), |b| {
+            b.iter_batched_ref(
+                || Tile::new(&spec, 0),
+                |t| t.plot(black_box(512)),
+                BatchSize::SmallInput,
+            );
+        });
+    };
+    do_alg(fractal::Selection::Original);
+    do_alg(fractal::Selection::Zero);
+}
+
+criterion_group!(fractals, iteration, tile);
+
+// //////////////////////////////////////////////////////////////////////////////////////////
+// COLOURING
 
 fn colour_pixel(c: &mut Criterion) {
     let mut group = c.benchmark_group("colourers");
@@ -49,6 +84,5 @@ fn colour_pixel(c: &mut Criterion) {
         .for_each(|i| bench(colouring::Instance::from_repr(*i as usize).unwrap()));
 }
 
-criterion_group!(fractals, iteration);
 criterion_group!(colourers, colour_pixel);
 criterion_main!(fractals, colourers);
