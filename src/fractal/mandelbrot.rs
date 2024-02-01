@@ -9,6 +9,7 @@ pub struct Original {}
 
 impl Algorithm for Original {
     #[doc = r" Prepares the ``PointData`` to iterate"]
+    #[inline]
     fn prepare(&self, point: &mut PointData) {
         // The first iteration is easy
         point.value = point.origin;
@@ -31,6 +32,7 @@ impl Algorithm for Original {
     }
 
     #[doc = r"Finalises the point data once a pixel has escaped"]
+    #[inline]
     fn finish(&self, point: &mut PointData) {
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // A couple of extra iterations helps decrease the size of the error term
@@ -66,6 +68,7 @@ impl Algorithm for Mandel3 {
     }
 
     #[doc = r"Finalises the point data once a pixel has escaped"]
+    #[inline]
     fn finish(&self, point: &mut PointData) {
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // A couple of extra iterations helps decrease the size of the error term

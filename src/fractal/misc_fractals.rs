@@ -5,6 +5,7 @@ use super::{mandelbrot::Original, Algorithm, Point, PointData};
 
 /// Prep function for fractals which appear upside down in this coordinate system
 /// (i.e. invert them)
+#[inline]
 fn prepare_upside_down(point: &mut PointData) {
     let origin = point.origin.conj();
     point.origin = origin;
@@ -27,6 +28,7 @@ impl Algorithm for Mandelbar {
         point.iter += 1;
     }
 
+    #[inline]
     fn finish(&self, point: &mut PointData) {
         self.delegate.finish(point);
     }
@@ -46,6 +48,7 @@ pub struct BurningShip {
 }
 
 impl Algorithm for BurningShip {
+    #[inline]
     fn prepare(&self, point: &mut PointData) {
         prepare_upside_down(point);
     }
@@ -61,6 +64,7 @@ impl Algorithm for BurningShip {
         point.iter += 1;
     }
 
+    #[inline]
     fn finish(&self, point: &mut PointData) {
         self.delegate.finish(point);
     }
@@ -93,6 +97,7 @@ impl Algorithm for Celtic {
         point.iter += 1;
     }
 
+    #[inline]
     fn finish(&self, point: &mut PointData) {
         self.delegate.finish(point);
     }
@@ -129,6 +134,7 @@ impl Algorithm for Variant {
         point.iter += 1;
     }
 
+    #[inline]
     fn finish(&self, point: &mut PointData) {
         self.delegate.finish(point);
     }
@@ -148,6 +154,7 @@ pub struct BirdOfPrey {
 }
 
 impl Algorithm for BirdOfPrey {
+    #[inline]
     fn prepare(&self, point: &mut PointData) {
         prepare_upside_down(point);
     }
@@ -162,6 +169,7 @@ impl Algorithm for BirdOfPrey {
         point.iter += 1;
     }
 
+    #[inline]
     fn finish(&self, point: &mut PointData) {
         self.delegate.finish(point);
     }
@@ -181,6 +189,7 @@ pub struct Buffalo {
 }
 
 impl Algorithm for Buffalo {
+    #[inline]
     fn prepare(&self, point: &mut PointData) {
         prepare_upside_down(point);
     }
@@ -194,7 +203,7 @@ impl Algorithm for Buffalo {
         point.value = z * z - z + point.origin;
         point.iter += 1;
     }
-
+    #[inline]
     fn finish(&self, point: &mut PointData) {
         self.delegate.finish(point);
     }
