@@ -1,4 +1,4 @@
-// Colour space typing helpers
+// Colour space testing
 // (c) 2024 Ross Younger
 
 use palette::Hsv;

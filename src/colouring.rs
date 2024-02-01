@@ -13,4 +13,4 @@ pub mod huecycles;
 pub mod direct_rgb;
 
 // Colour space and conversion helpers
-mod types;
+mod testing;

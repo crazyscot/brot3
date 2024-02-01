@@ -10,7 +10,7 @@ use super::direct_rgb::{
     BlackFade, Mandy, Monochrome, MonochromeInverted, OneLoneCoder, WhiteFade,
 };
 use super::huecycles::{HsvGradient, LchGradient, LinearRainbow, LogRainbow};
-use super::types::White;
+use super::testing::White;
 
 use palette::{FromColor, Hsv, Srgb};
 
