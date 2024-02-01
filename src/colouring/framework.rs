@@ -11,7 +11,11 @@ use super::direct_rgb::{
 };
 use super::huecycles::{HsvGradient, LchGradient, LinearRainbow, LogRainbow};
 use super::types::White;
-use super::Rgb8;
+
+use palette::{FromColor, Hsv, Srgb};
+
+/// Type sugar: Standard RGB, u8 storage
+pub type Rgb8 = palette::Srgb<u8>;
 
 /// Selector for available Palettes
 #[enum_delegate::implement(OutputsRgb8)]
@@ -68,6 +72,21 @@ pub enum Instance {
 pub trait OutputsRgb8 {
     /// Colouring function
     fn colour_rgb8(&self, iters: f64, max_iter: u64) -> Rgb8;
+}
+
+/// A colouring algorithm that outputs HSV colours
+pub trait OutputsHsvf {
+    /// Colouring function
+    fn colour_hsvf(&self, iters: f64, max_iters: u64) -> Hsv<palette::encoding::Srgb, f32>;
+}
+
+/// Auto conversion helper
+impl<T: OutputsHsvf> OutputsRgb8 for T {
+    #[inline]
+    fn colour_rgb8(&self, iters: f64, max_iters: u64) -> Rgb8 {
+        let hsv = self.colour_hsvf(iters, max_iters);
+        Srgb::<f32>::from_color(hsv).into_format::<u8>()
+    }
 }
 
 /// Factory method

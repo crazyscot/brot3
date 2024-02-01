@@ -1,28 +1,9 @@
 // Colour space typing helpers
 // (c) 2024 Ross Younger
 
-use palette::FromColor;
-use palette::{Hsv, Srgb};
+use palette::Hsv;
 
-use super::framework::OutputsRgb8;
-
-/// Type sugar: Standard RGB, u8 storage
-pub type Rgb8 = palette::Srgb<u8>;
-
-/// A colouring algorithm that outputs HSV colours
-pub trait OutputsHsvf {
-    /// Colouring function
-    fn colour_hsvf(&self, iters: f64, max_iters: u64) -> Hsv<palette::encoding::Srgb, f32>;
-}
-
-/// Auto conversion helper
-impl<T: OutputsHsvf> OutputsRgb8 for T {
-    #[inline]
-    fn colour_rgb8(&self, iters: f64, max_iters: u64) -> Rgb8 {
-        let hsv = self.colour_hsvf(iters, max_iters);
-        Srgb::<f32>::from_color(hsv).into_format::<u8>()
-    }
-}
+use super::framework::{OutputsHsvf, OutputsRgb8, Rgb8};
 
 /// Test algorithm, doesn't do anything useful
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -43,10 +24,10 @@ impl OutputsHsvf for WhiteHSV {
 
 #[cfg(test)]
 mod tests {
+    use crate::colouring::{framework::Rgb8, OutputsHsvf};
+
     use super::{OutputsRgb8, WhiteHSV};
     use palette::{rgb, FromColor, Hsv, IntoColor, RgbHue, Srgb};
-
-    use crate::colouring::{OutputsHsvf, Rgb8};
 
     #[test]
     fn red_conversion() {
