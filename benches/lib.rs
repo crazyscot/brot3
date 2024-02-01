@@ -4,6 +4,7 @@
 use brot3::colouring::{self, Instance, OutputsRgb8, Selection::*};
 use brot3::fractal::{self, Algorithm, Point, PointData, Tile, TileSpec};
 
+use brot3::render::{self, Renderer};
 use brot3::util::Rect;
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
 
@@ -41,16 +42,16 @@ fn get_test_tile_spec(alg: fractal::Selection) -> TileSpec {
     TileSpec::new(
         Point { re: -1.0, im: 0.0 },
         Point { re: 4.0, im: 4.0 },
-        Rect::new(300, 300),
+        Rect::new(100, 100),
         fractal::factory(alg),
     )
 }
 
-fn tile(c: &mut Criterion) {
+fn plot_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
     let mut do_alg = |alg| {
         let spec = get_test_tile_spec(alg);
-        group.bench_function(format!("tile_{alg:?}"), |b| {
+        group.bench_function(format!("plot_{alg:?}"), |b| {
             b.iter_batched_ref(
                 || Tile::new(&spec, 0),
                 |t| t.plot(black_box(512)),
@@ -62,7 +63,7 @@ fn tile(c: &mut Criterion) {
     do_alg(fractal::Selection::Zero);
 }
 
-criterion_group!(fractals, iteration, tile);
+criterion_group!(fractals, iteration, plot_tile);
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 // COLOURING
@@ -79,10 +80,30 @@ fn colour_pixel(c: &mut Criterion) {
     // We run only a selection of algorithms through the full benchmarker
     // (See also IAI, which runs them all.)
     let selection = [LinearRainbow, LchGradient, Mandy, WhiteFade];
-    selection
-        .iter()
-        .for_each(|i| bench(colouring::Instance::from_repr(*i as usize).unwrap()));
+    selection.iter().for_each(|i| bench(colouring::factory(*i)));
 }
 
-criterion_group!(colourers, colour_pixel);
+fn colour_tile(c: &mut Criterion) {
+    let mut group = c.benchmark_group("tiles");
+    let spec = get_test_tile_spec(fractal::Selection::Original);
+    let mut tile = Tile::new(&spec, 0);
+    tile.plot(black_box(512));
+
+    let mut bench = |colourer: Instance| {
+        group.bench_function(format!("colour_{}", colourer), |b| {
+            let filename = "/dev/null";
+            b.iter_batched_ref(
+                || render::factory(render::Selection::Png),
+                |r| {
+                    let _ = r.render_file(filename, &tile, black_box(colourer));
+                },
+                BatchSize::SmallInput,
+            );
+        });
+    };
+    let selection = [LinearRainbow, White];
+    selection.iter().for_each(|i| bench(colouring::factory(*i)));
+}
+
+criterion_group!(colourers, colour_pixel, colour_tile);
 criterion_main!(fractals, colourers);
