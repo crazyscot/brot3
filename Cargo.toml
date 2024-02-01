@@ -38,11 +38,7 @@ criterion = { version = "0.5", features = ["html_reports"] }
 iai-callgrind = "0.10.2"
 
 [[bench]]
-name = "colourer"
-harness = false
-
-[[bench]]
-name = "fractal"
+name = "lib"
 harness = false
 
 [[bench]]
