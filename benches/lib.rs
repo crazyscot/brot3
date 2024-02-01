@@ -2,11 +2,12 @@
 // (c) 2024 Ross Youinger
 
 use brot3::colouring::{self, Instance, OutputsRgb8, Selection::*};
-use brot3::fractal::{self, Algorithm, Point, PointData, Tile, TileSpec};
+use brot3::fractal::{self, Algorithm, Point, PointData, SplitMethod, Tile, TileSpec};
 
 use brot3::render::{self, Renderer};
 use brot3::util::Rect;
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 // FRACTALS
@@ -106,4 +107,25 @@ fn colour_tile(c: &mut Criterion) {
 }
 
 criterion_group!(colourers, colour_pixel, colour_tile);
-criterion_main!(fractals, colourers);
+
+// //////////////////////////////////////////////////////////////////////////////////////////
+// TILE OPERATIONS
+
+fn tile_join(c: &mut Criterion) {
+    // prepare and iterate on a bunch of tiles; we only care about the joining
+    let mut group = c.benchmark_group("tiles");
+    let single = get_test_tile_spec(fractal::Selection::Original, 1000);
+    let specs = single.split(SplitMethod::RowsOfHeight(50), 0).unwrap();
+    let mut tiles: Vec<_> = specs.iter().map(|ts| Tile::new(ts, 0)).collect();
+    tiles.par_iter_mut().for_each(|t| t.plot(512));
+
+    group.bench_function("join", |b| {
+        b.iter(|| Tile::join(&single, black_box(&tiles)).unwrap());
+    });
+}
+
+criterion_group!(tiles, tile_join);
+
+// //////////////////////////////////////////////////////////////////////////////////////////
+
+criterion_main!(fractals, colourers, tiles);
