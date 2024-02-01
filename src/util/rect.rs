@@ -64,7 +64,7 @@ impl<T: std::ops::Add<Output = T>> Add for Rect<T> {
 
 #[cfg(test)]
 mod tests {
-    use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
+    use approx::assert_relative_eq;
 
     use super::Rect;
     use std::str::FromStr;
@@ -96,8 +96,8 @@ mod tests {
     #[test]
     fn parse_float() {
         let t = Rect::<f64>::from_str("(2.0,4.0)").unwrap();
-        assert_f64_near!(t.width, 2.0);
-        assert_f64_near!(t.height, 4.0);
+        assert_relative_eq!(t.width, 2.0);
+        assert_relative_eq!(t.height, 4.0);
 
         let u = Rect::<f64>::from_str("(inf,nan)").unwrap();
         assert!(u.width.is_infinite());
