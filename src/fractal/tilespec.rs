@@ -271,7 +271,7 @@ mod tests {
         },
         util::Rect,
     };
-    use assert_float_eq::{afe_is_f64_near, afe_near_error_msg, assert_f64_near};
+    use approx::assert_relative_eq;
 
     const ZERO: Point = Point { re: 0.0, im: 0.0 };
     const ONE: Point = Point { re: 1.0, im: 1.0 };
@@ -340,7 +340,7 @@ mod tests {
     }
     #[test]
     fn aspect_axes() {
-        assert_f64_near!(TD_ORIGIN_ZOOM.aspect_ratio(), 2.0);
+        assert_relative_eq!(TD_ORIGIN_ZOOM.aspect_ratio(), 2.0);
         let result = TileSpec::from(&TD_ORIGIN_ZOOM);
         assert_eq!(result.axes, TD_ORIGIN_ZOOM_AXES);
     }
@@ -423,7 +423,7 @@ mod tests {
             };
 
             // origin
-            assert_f64_near!(ts.origin().re, spec.origin().re);
+            assert_relative_eq!(ts.origin().re, spec.origin().re);
             assert!(ts.origin().im >= spec.origin().im);
             assert!(
                 ts.origin().im <= upper_corner.im,
@@ -432,8 +432,8 @@ mod tests {
                 upper_corner
             );
             // axes
-            assert_f64_near!(ts.axes().re, expected_axes_length.re);
-            assert_f64_near!(ts.axes().im, expected_axes_length.im, 150); // slippery in the remainder case!
+            assert_relative_eq!(ts.axes().re, expected_axes_length.re);
+            assert_relative_eq!(ts.axes().im, expected_axes_length.im); // slippery in the remainder case!
 
             // pixel offset
             let offset = ts.offset_within_plot().unwrap();
@@ -464,7 +464,7 @@ mod tests {
         // check no overflow.
         // The last tile added - the FIRST in the output vector - is the topmost, so subject to the most accumulated error.
         let first: &TileSpec = result.first().unwrap();
-        assert_f64_near!(first.origin().im + first.axes().im, upper_corner.im);
+        assert_relative_eq!(first.origin().im + first.axes().im, upper_corner.im);
     }
 
     #[test]
@@ -508,6 +508,6 @@ mod tests {
         assert_eq!(ts.centre(), previous_centre);
         // aspect ratio should now match pixel size
         let aspect = ts.axes().re / ts.axes().im;
-        assert_f64_near!(aspect, ts.size_in_pixels.aspect_ratio());
+        assert_relative_eq!(aspect, ts.size_in_pixels.aspect_ratio());
     }
 }

@@ -83,7 +83,7 @@ impl OutputsRgb8 for LchGradient {
 
 #[cfg(test)]
 mod tests {
-    use assert_float_eq::{afe_is_f32_near, afe_near_error_msg, assert_f32_near};
+    use approx::assert_relative_eq;
     use palette::{rgb::Srgb, FromColor, IntoColor, Lch, RgbHue};
 
     use super::{LinearRainbow, LINEAR_RAINBOW_WRAP};
@@ -106,7 +106,7 @@ mod tests {
             hue_accumulator += res.hue.into_degrees();
         }
         // Figure from current implementation, not critical
-        assert_f32_near!(hue_accumulator, 180.0);
+        assert_relative_eq!(hue_accumulator, 180.0);
     }
 
     #[test]
