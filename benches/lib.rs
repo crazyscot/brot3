@@ -38,11 +38,11 @@ fn iteration(c: &mut Criterion) {
     alg(fractal::Selection::Zero, TEST_POINT_M3);
 }
 
-fn get_test_tile_spec(alg: fractal::Selection) -> TileSpec {
+fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
     TileSpec::new(
         Point { re: -1.0, im: 0.0 },
         Point { re: 4.0, im: 4.0 },
-        Rect::new(100, 100),
+        Rect::new(dimension, dimension),
         fractal::factory(alg),
     )
 }
@@ -50,7 +50,7 @@ fn get_test_tile_spec(alg: fractal::Selection) -> TileSpec {
 fn plot_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
     let mut do_alg = |alg| {
-        let spec = get_test_tile_spec(alg);
+        let spec = get_test_tile_spec(alg, 100);
         group.bench_function(format!("plot_{alg:?}"), |b| {
             b.iter_batched_ref(
                 || Tile::new(&spec, 0),
@@ -85,7 +85,7 @@ fn colour_pixel(c: &mut Criterion) {
 
 fn colour_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
-    let spec = get_test_tile_spec(fractal::Selection::Original);
+    let spec = get_test_tile_spec(fractal::Selection::Original, 100);
     let mut tile = Tile::new(&spec, 0);
     tile.plot(black_box(512));
 
