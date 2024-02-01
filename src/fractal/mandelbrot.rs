@@ -56,7 +56,12 @@ impl Algorithm for Mandel3 {
     #[doc = r" The iteration function"]
     #[inline]
     fn iterate(&self, point: &mut PointData) {
-        point.value = point.value * point.value * point.value + point.origin;
+        // point.value = point.value * point.value * point.value + point.origin;
+        // (it is 8% faster to unroll in this way)
+        let (re, im) = (point.value.re, point.value.im);
+        let (re2, im2) = (re * re, im * im);
+        point.value.re = re * re2 - 3.0 * re * im2 + point.origin.re;
+        point.value.im = 3.0 * im * re2 - im * im2 + point.origin.im;
         point.iter += 1;
     }
 
