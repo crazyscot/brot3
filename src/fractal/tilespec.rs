@@ -112,7 +112,7 @@ impl TileSpec {
                 // We will start the height register at the top left point, which is where the first strip ENDS.
                 let mut offset = Rect::<u32>::new(0, self.height());
 
-                let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize);
+                let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize + 1);
                 for i in 0..n_whole {
                     // Note we subtract the offset height before using it.
                     // This has the property that after the last whole strip, height is either 0, or is the height of the remainder strip.
