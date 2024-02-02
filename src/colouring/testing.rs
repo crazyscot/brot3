@@ -27,7 +27,7 @@ mod tests {
     use crate::colouring::{framework::Rgb8, OutputsHsvf};
 
     use super::{OutputsRgb8, WhiteHSV};
-    use palette::{rgb, FromColor, Hsv, IntoColor, RgbHue, Srgb};
+    use palette::{convert::FromColorUnclamped, rgb, Hsv, IntoColor, RgbHue, Srgb};
 
     #[test]
     fn red_conversion() {
@@ -47,7 +47,7 @@ mod tests {
         {
             let rgb2 = Srgb::new(255u8, 255u8, 255u8);
             let rgb3 = Srgb::<f32>::from_format(rgb2);
-            let hsv2: Hsv = Hsv::from_color(rgb3);
+            let hsv2: Hsv = Hsv::from_color_unclamped(rgb3);
             println!("A {rgb2:?} -> {rgb3:?} -> {hsv2:?}");
             let yyy: Srgb<f32> = hsv2.into_color();
             let zzz: Srgb<u8> = yyy.into_format();
@@ -60,7 +60,7 @@ mod tests {
             let result = alg.colour_rgb8(42.0, 256);
             println!("C {raw:?} -> {result:?}");
 
-            let res2 = Srgb::<f32>::from_color(raw);
+            let res2 = Srgb::<f32>::from_color_unclamped(raw);
             println!("D {raw:?} -> {res2:?}");
             assert_eq!(result, Srgb::new(255, 255, 255));
             assert_eq!(res2.into_format::<u8>(), Srgb::new(255, 255, 255));
