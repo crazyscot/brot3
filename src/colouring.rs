@@ -12,5 +12,5 @@ pub mod huecycles;
 /// Direct-to-RGB algorithms
 pub mod direct_rgb;
 
-// Colour space and conversion helpers
-mod testing;
+/// Colour space and conversion helpers
+pub mod testing;
