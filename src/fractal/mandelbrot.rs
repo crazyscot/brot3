@@ -1,7 +1,7 @@
 // Mandelbrot set implementation
 // (c) 2024 Ross Younger
 
-use super::maths::{ln_3, Point, Scalar, LN_2};
+use super::maths::{ln_3_f32, Point};
 use super::{Algorithm, PointData};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -34,14 +34,18 @@ impl Algorithm for Original {
     #[doc = r"Finalises the point data once a pixel has escaped"]
     #[inline]
     fn finish(&self, point: &mut PointData) {
+        #![allow(clippy::cast_precision_loss)]
+        #![allow(clippy::cast_possible_truncation)]
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // A couple of extra iterations helps decrease the size of the error term
         self.iterate(point);
         self.iterate(point);
         // by the logarithm of a power law,
         // point.value.norm().ln().ln() === (point.value.norm_sqr().ln() * 0.5).ln())
-        point.result =
-            Some(Scalar::from(point.iter) - (point.value.norm_sqr().ln() * 0.5).ln() / LN_2);
+        point.result = Some(
+            (point.iter as f32)
+                - ((point.value.norm_sqr() as f32).ln() * 0.5).ln() / std::f32::consts::LN_2,
+        );
     }
 
     fn default_centre(&self) -> super::Point {
@@ -73,12 +77,15 @@ impl Algorithm for Mandel3 {
     #[doc = r"Finalises the point data once a pixel has escaped"]
     #[inline]
     fn finish(&self, point: &mut PointData) {
+        #![allow(clippy::cast_precision_loss)]
+        #![allow(clippy::cast_possible_truncation)]
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // A couple of extra iterations helps decrease the size of the error term
         self.iterate(point);
         self.iterate(point);
         // logarithm of a power law applies here too
-        point.result =
-            Some(Scalar::from(point.iter) - (point.value.norm_sqr().ln() * 0.5).ln() / ln_3());
+        point.result = Some(
+            (point.iter as f32) - ((point.value.norm_sqr() as f32).ln() * 0.5).ln() / ln_3_f32(),
+        );
     }
 }

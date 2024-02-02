@@ -44,7 +44,7 @@ impl Png {
                 if pd.iter == max_iter {
                     std::f32::INFINITY
                 } else {
-                    pd.iterations() as f32
+                    pd.iterations()
                 }
             })
             .for_each(|iters| {

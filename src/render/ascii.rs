@@ -35,16 +35,16 @@ impl Renderer for AsciiArt {
             .filter(|iters| iters.is_finite());
         let most = iter
             .clone()
-            .reduce(f64::max) // this syntax needed as f64 doesn't implement Ord
+            .reduce(f32::max) // this syntax needed as f64 doesn't implement Ord
             .unwrap();
-        let least = iter.reduce(f64::min).unwrap();
+        let least = iter.reduce(f32::min).unwrap();
 
         // Map the output levels to a set of characters
         let n_levels = DEFAULT_ASCII_ART_CHARSET.len();
         let range = most - least;
         // Infinity will take the last character, map the rest linearly for now
         #[allow(clippy::cast_precision_loss)] // this is a quick & dirty output module
-        let step = range / (n_levels - 1) as f64;
+        let step = range / (n_levels - 1) as f32;
 
         for row in data.as_rows() {
             let mut rowstr = row
