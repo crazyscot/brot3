@@ -2,6 +2,7 @@
 // (c) 2024 Ross Younger
 
 use enum_delegate;
+use palette::{convert::FromColorUnclamped, Hsv, Srgb};
 use strum_macros::{
     Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantArray, VariantNames,
 };
@@ -11,8 +12,6 @@ use super::direct_rgb::{
 };
 use super::huecycles::{HsvGradient, LchGradient, LinearRainbow, LogRainbow};
 use super::testing::White;
-
-use palette::{FromColor, Hsv, Srgb};
 
 /// Type sugar: Standard RGB, u8 storage
 pub type Rgb8 = palette::Srgb<u8>;
@@ -85,7 +84,7 @@ impl<T: OutputsHsvf> OutputsRgb8 for T {
     #[inline]
     fn colour_rgb8(&self, iters: f32, max_iters: u32) -> Rgb8 {
         let hsv = self.colour_hsvf(iters, max_iters);
-        Srgb::<f32>::from_color(hsv).into_format::<u8>()
+        Srgb::<f32>::from_color_unclamped(hsv).into_format::<u8>()
     }
 }
 

@@ -1,7 +1,7 @@
 // Colouring algorithms that cycle around a given hue
 // (c) 2024 Ross Younger
 
-use palette::{encoding::Srgb, FromColor, Hsv, LabHue, Lch, RgbHue};
+use palette::{convert::FromColorUnclamped, encoding::Srgb, Hsv, LabHue, Lch, RgbHue};
 
 use super::{OutputsHsvf, OutputsRgb8, Rgb8};
 
@@ -77,14 +77,14 @@ impl OutputsRgb8 for LchGradient {
         let lightness = 75.0 - (75.0 * v);
         let hue = LabHue::new((s * 360.0).powf(1.5) % 360.0);
         let lch = Lch::new(lightness, 28.0 + lightness, hue);
-        palette::Srgb::<f32>::from_color(lch).into_format::<u8>()
+        palette::Srgb::<f32>::from_color_unclamped(lch).into_format::<u8>()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
-    use palette::{rgb::Srgb, FromColor, IntoColor, Lch, RgbHue};
+    use palette::{convert::FromColorUnclamped, rgb::Srgb, IntoColor, Lch, RgbHue};
 
     use super::{LinearRainbow, LINEAR_RAINBOW_WRAP};
     use crate::colouring::{OutputsHsvf, Rgb8};
@@ -131,7 +131,7 @@ mod tests {
         let lch: Lch = rgb2.into_color();
         println!("A {rgb:?} -> {lch:?}");
 
-        let rgb3 = Srgb::<f32>::from_color(lch);
+        let rgb3 = Srgb::<f32>::from_color_unclamped(lch);
         let rgb4 = Rgb8::from_format(rgb3);
         println!("B {lch:?} -> {rgb4:?}");
         assert_eq!(rgb, rgb4);
