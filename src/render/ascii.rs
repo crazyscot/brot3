@@ -30,13 +30,10 @@ impl Renderer for AsciiArt {
         // Find the range of output levels, discounting INF.
         let data = tile.result();
         let iter = data
-            .elements_column_major_iter()
+            .iter()
             .map(PointData::iterations)
             .filter(|iters| iters.is_finite());
-        let most = iter
-            .clone()
-            .reduce(f32::max) // this syntax needed as f64 doesn't implement Ord
-            .unwrap();
+        let most = iter.clone().reduce(f32::max).unwrap();
         let least = iter.reduce(f32::min).unwrap();
 
         // Map the output levels to a set of characters
@@ -46,7 +43,7 @@ impl Renderer for AsciiArt {
         #[allow(clippy::cast_precision_loss)] // this is a quick & dirty output module
         let step = range / (n_levels - 1) as f32;
 
-        for row in data.as_rows() {
+        for row in data.outer_iter() {
             let mut rowstr = row
                 .iter()
                 .map(PointData::iterations)
