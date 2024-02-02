@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use super::{Point, Scalar};
+use super::Point;
 
 /// Everything we know about a plotted point
 #[derive(Clone, Copy, Default, Debug)]
@@ -14,7 +14,7 @@ pub struct PointData {
     /// Current value of this point (may not be valid if result is Some)
     pub value: Point,
     /// When we are finished with this point, this holds the smooth iteration count
-    pub result: Option<f64>,
+    pub result: Option<f32>,
 }
 
 impl PointData {
@@ -31,12 +31,13 @@ impl PointData {
 
     /// Set this point as infinite
     pub fn mark_infinite(&mut self) {
-        self.result = Some(Scalar::INFINITY);
+        self.result = Some(std::f32::INFINITY);
     }
     /// The result, if we have it, or the _working result_ (current iteration count) if not.
     #[must_use]
-    pub fn iterations(&self) -> f64 {
-        self.result.unwrap_or(f64::from(self.iter))
+    pub fn iterations(&self) -> f32 {
+        #![allow(clippy::cast_precision_loss)]
+        self.result.unwrap_or(self.iter as f32)
     }
     /// Standard output format
     pub fn fmt(&self, f: &mut std::fmt::Formatter<'_>, debug: u8) -> std::fmt::Result {

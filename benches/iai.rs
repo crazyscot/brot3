@@ -78,7 +78,7 @@ fn s_fini(point_to_use: Point, alg: fractal::Selection) -> BenchData {
 #[bench::m2(s_fini(TEST_POINT_M2, Original))]
 #[bench::m3(s_fini(TEST_POINT_M3, Mandel3))]
 #[bench::ship(s_fini(TEST_POINT_M3, BurningShip))]
-fn finish(mut bd: BenchData) -> Option<fractal::Scalar> {
+fn finish(mut bd: BenchData) -> Option<f32> {
     bd.fractal.finish(&mut bd.point);
     bd.point.result
 }
