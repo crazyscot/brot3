@@ -7,9 +7,7 @@ use std::str::FromStr;
 use std::time::SystemTime;
 
 use crate::colouring;
-use crate::fractal::{
-    self, Algorithm, Location, PlotSpec, Point, Scalar, Size, SplitMethod, Tile, TileSpec,
-};
+use crate::fractal::{self, Algorithm, PlotSpec, Point, Scalar, Size, SplitMethod, Tile, TileSpec};
 use crate::render::{self, Renderer};
 use crate::util::Rect;
 
@@ -190,13 +188,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let algorithm = fractal::factory(args.fractal);
 
     let user_plot_data = PlotSpec {
-        location: {
-            if let Some(o) = args.origin {
-                Location::Origin(o)
-            } else {
-                Location::Centre(args.centre.unwrap_or(algorithm.default_centre()))
-            }
-        },
+        location: args_location(args, &algorithm),
         axes: {
             if let Some(size) = args.pixel_size {
                 Size::PixelSize(check_fix_axes(size)?)
@@ -264,6 +256,15 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         }
         println!("{}", tile.info_string(&colourer));
         result
+    }
+}
+
+/// Unpick the possible user specifications for the plot location
+fn args_location(args: &Args, algorithm: &fractal::Instance) -> fractal::Location {
+    if let Some(o) = args.origin {
+        fractal::Location::Origin(o)
+    } else {
+        fractal::Location::Centre(args.centre.unwrap_or(algorithm.default_centre()))
     }
 }
 
