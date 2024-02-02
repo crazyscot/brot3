@@ -188,18 +188,8 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let algorithm = fractal::factory(args.fractal);
 
     let user_plot_data = PlotSpec {
-        location: args_location(args, &algorithm),
-        axes: {
-            if let Some(size) = args.pixel_size {
-                Size::PixelSize(check_fix_axes(size)?)
-            } else if let Some(zoom) = args.zoom {
-                Size::ZoomFactor(check_zoom(zoom)?)
-            } else {
-                Size::AxesLength(check_fix_axes(
-                    args.axes_length.unwrap_or(algorithm.default_axes()),
-                )?)
-            }
-        },
+        location: args_location(args, algorithm),
+        axes: args_axes(args, algorithm)?,
         size_in_pixels: Rect::new(args.width, args.height),
         algorithm,
     };
@@ -260,11 +250,24 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
 }
 
 /// Unpick the possible user specifications for the plot location
-fn args_location(args: &Args, algorithm: &fractal::Instance) -> fractal::Location {
+fn args_location(args: &Args, algorithm: fractal::Instance) -> fractal::Location {
     if let Some(o) = args.origin {
         fractal::Location::Origin(o)
     } else {
         fractal::Location::Centre(args.centre.unwrap_or(algorithm.default_centre()))
+    }
+}
+
+/// Unpick the possible user specifications for the plot axes
+fn args_axes(args: &Args, algorithm: fractal::Instance) -> anyhow::Result<fractal::Size> {
+    if let Some(size) = args.pixel_size {
+        Ok(Size::PixelSize(check_fix_axes(size)?))
+    } else if let Some(zoom) = args.zoom {
+        Ok(Size::ZoomFactor(check_zoom(zoom)?))
+    } else {
+        Ok(Size::AxesLength(check_fix_axes(
+            args.axes_length.unwrap_or(algorithm.default_axes()),
+        )?))
     }
 }
 
