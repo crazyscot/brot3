@@ -1,10 +1,10 @@
 // (c) 2024 Ross Younger
 
-use super::{Algorithm, Point, PointData, TileSpec};
+use super::{Algorithm, Point, PointData, Scalar, TileSpec};
 use crate::{colouring, util::Rect};
 
 use anyhow::{anyhow, ensure, Context};
-use array2d::Array2D;
+use ndarray::Array2;
 use num_complex::ComplexFloat;
 use std::{cmp::max, fmt};
 
@@ -15,7 +15,7 @@ pub struct Tile {
     debug: u8,
     /// Working data. Address as [(row,column)] aka (y,x).
     /// <div class="warning">CAUTION: This array is TOP LEFT oriented. The first row is the top row, not the Origin row.</div>
-    point_data: Array2D<PointData>,
+    point_data: ndarray::Array2<PointData>,
     /// Max iterations we plotted to
     pub max_iter_plotted: u32,
     /// Specification of this plot
@@ -39,12 +39,8 @@ impl Tile {
     fn new_internal(spec: &TileSpec, debug: u8) -> Self {
         Self {
             debug,
-            // Data for this tile. @warning Array2D square bracket syntax is (row,column) i.e. (y,x) !
-            point_data: Array2D::filled_with(
-                PointData::default(),
-                spec.height() as usize,
-                spec.width() as usize,
-            ),
+            // Data for this tile.
+            point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
             max_iter_plotted: 0,
             spec: *spec,
             algorithm: spec.algorithm(),
@@ -66,25 +62,18 @@ impl Tile {
                 .ok_or_else(|| anyhow!("joining subtile did not contain offset"))
                 .with_context(|| format!("{t:?}"))?;
 
-            // map source (0,0) => dest OFFSET
-            let dest_address = |s: Rect<u32>| s + offset;
-
-            // there's probably a nicer way to do this
-            for y in 0..t.spec.height() {
-                for x in 0..t.spec.width() {
-                    let a = dest_address(Rect::new(x, y));
-
-                    // Caution! PointData coordinates are in order (y,x)
-                    let val = t.point_data[(y as usize, x as usize)];
-                    result.point_data[(a.height as usize, a.width as usize)] = val;
-                }
-            }
+            let mut dest = result.point_data.slice_mut(ndarray::s![
+                offset.height as usize..(offset.height + t.spec.height()) as usize,
+                offset.width as usize..(offset.width + t.spec.width()) as usize
+            ]);
+            dest.assign(&t.point_data);
         }
         Ok(result)
     }
 
     /// Initialises the data for this tile
     fn prepare(&mut self, debug: u8) {
+        #![allow(clippy::cast_precision_loss)]
         // This is a compound step in both dimensions. We will step the dimensions separately (see `real` and `imag`).
         let step = self.spec.pixel_size();
 
@@ -103,34 +92,25 @@ impl Tile {
             );
         }
 
-        let mut imag = origin_pixel.im;
-        for y in 0..self.spec.height() {
-            let mut real = origin_pixel.re;
-            for x in 0..self.spec.width() {
-                let point = &mut self.point_data[(y as usize, x as usize)];
-                point.origin = Point { re: real, im: imag };
-                self.algorithm.prepare(point);
-                real += step.re;
-            }
+        for ((y, x), point) in self.point_data.indexed_iter_mut() {
+            point.origin = origin_pixel
+                + Point {
+                    re: x as Scalar * step.re,
+                    im: y as Scalar * -step.im, // note '-' as we are stepping down the imaginary dimension
+                };
             if debug > 1 {
-                println!(
-                    "Row {y} imag={imag} firstpix x={} lastpix x={real}",
-                    origin_pixel.re
-                );
+                println!("point {x},{y} => {}", point.origin);
             }
-            imag -= step.im;
+            self.algorithm.prepare(point);
         }
         // TODO: live_pixel count
     }
 
     /// Runs the fractal iteration for all points in this tile
     pub fn plot(&mut self, max_iter: u32) {
-        for y in 0..self.spec.height() as usize {
-            for x in 0..self.spec.width() as usize {
-                let point = &mut self.point_data[(y, x)];
-                if point.result.is_none() {
-                    self.algorithm.pixel(point, max_iter);
-                }
+        for p in &mut self.point_data {
+            if p.result.is_none() {
+                self.algorithm.pixel(p, max_iter);
             }
         }
         self.max_iter_plotted = max_iter;
@@ -140,7 +120,7 @@ impl Tile {
     /// Result accessor
     /// <div class="warning">CAUTION: This array is TOP LEFT oriented. The first row is the top row, not the Origin (bottom) row!</div>
     #[must_use]
-    pub fn result(&self) -> &Array2D<PointData> {
+    pub fn result(&self) -> &Array2<PointData> {
         &self.point_data
     }
 
@@ -210,7 +190,7 @@ mod tests {
         }
         let result = Tile::join(&spec, &tiles).unwrap();
         let data = result.result();
-        assert_eq!(data.num_rows(), spec.height() as usize);
-        assert_eq!(data.num_columns(), spec.width() as usize);
+        assert_eq!(data.nrows(), spec.height() as usize);
+        assert_eq!(data.ncols(), spec.width() as usize);
     }
 }

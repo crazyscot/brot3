@@ -37,7 +37,7 @@ impl Png {
         let tile_data = tile.result();
         let max_iter = tile.max_iter_plotted;
         tile_data
-            .elements_row_major_iter()
+            .iter()
             .map(|pd| {
                 #[allow(clippy::cast_possible_truncation)]
                 // Apply colouring function

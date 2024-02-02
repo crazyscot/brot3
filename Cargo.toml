@@ -22,9 +22,9 @@ lto = "thin"
 [dependencies]
 anstyle = "1.0.5"
 anyhow = "1.0.79"
-array2d = "0.3.2"
 clap = { version = "4.4.18", features = ["wrap_help", "derive"] }
 enum_delegate = "0.2.0"
+ndarray = "0.15.6"
 num-complex = "0.4.4"
 palette = "0.7.4"
 png = "0.17.11"
