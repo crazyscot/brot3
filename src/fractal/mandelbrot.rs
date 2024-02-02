@@ -38,7 +38,10 @@ impl Algorithm for Original {
         // A couple of extra iterations helps decrease the size of the error term
         self.iterate(point);
         self.iterate(point);
-        point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / LN_2);
+        // by the logarithm of a power law,
+        // point.value.norm().ln().ln() === (point.value.norm_sqr().ln() * 0.5).ln())
+        point.result =
+            Some(Scalar::from(point.iter) - (point.value.norm_sqr().ln() * 0.5).ln() / LN_2);
     }
 
     fn default_centre(&self) -> super::Point {
@@ -74,6 +77,8 @@ impl Algorithm for Mandel3 {
         // A couple of extra iterations helps decrease the size of the error term
         self.iterate(point);
         self.iterate(point);
-        point.result = Some(Scalar::from(point.iter) - point.value.norm().ln().ln() / ln_3());
+        // logarithm of a power law applies here too
+        point.result =
+            Some(Scalar::from(point.iter) - (point.value.norm_sqr().ln() * 0.5).ln() / ln_3());
     }
 }
