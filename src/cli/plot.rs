@@ -207,46 +207,45 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         println!("Computed plot data: {spec:#?}");
     }
 
-    let colourer = colouring::factory(args.colourer);
-
     // If they didn't specify an output file type, attempt to autodetect
     let render_selection: render::Selection = if let Some(s) = args.output_type {
         Ok::<render::Selection, anyhow::Error>(s)
     } else {
         autodetect_extension(&args.output_filename)
     }?;
-
     let renderer = render::factory(render_selection);
+    let colourer = colouring::factory(args.colourer);
 
-    if args.no_split {
-        let mut t = Tile::new(&spec, debug);
-        t.plot(args.max_iter);
-        println!("{}", t.info_string(&colourer));
-        renderer.render_file(&args.output_filename, &t, colourer)
+    let time0 = SystemTime::now();
+    let splits: Vec<TileSpec> = if args.no_split {
+        vec![spec]
     } else {
-        let time0 = SystemTime::now();
-        let splits = spec.split(SplitMethod::RowsOfHeight(50), debug)?;
-        let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
-        let time1 = SystemTime::now();
-        tiles.par_iter_mut().for_each(|t| t.plot(args.max_iter));
-        let time2 = SystemTime::now();
-        let tile = Tile::join(&spec, &tiles)?;
-        let time3 = SystemTime::now();
+        spec.split(SplitMethod::RowsOfHeight(50), debug)?
+    };
+    let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
+    let time1 = SystemTime::now();
+    tiles.par_iter_mut().for_each(|t| t.plot(args.max_iter));
+    let time2 = SystemTime::now();
+    let tile: Tile = if args.no_split {
+        tiles.remove(0)
+    } else {
+        Tile::join(&spec, &tiles)?
+    };
+    let time3 = SystemTime::now();
 
-        let result = renderer.render_file(&args.output_filename, &tile, colourer);
-        let time4 = SystemTime::now();
-        if args.show_timing {
-            println!(
-                "times: prepare {:?}, plot {:?}, join {:?}, render {:?}",
-                time1.duration_since(time0).unwrap_or_default(),
-                time2.duration_since(time1).unwrap_or_default(),
-                time3.duration_since(time2).unwrap_or_default(),
-                time4.duration_since(time3).unwrap_or_default(),
-            );
-        }
-        println!("{}", tile.info_string(&colourer));
-        result
+    let result = renderer.render_file(&args.output_filename, &tile, colourer);
+    let time4 = SystemTime::now();
+    if args.show_timing {
+        println!(
+            "times: prepare {:?}, plot {:?}, join {:?}, render {:?}",
+            time1.duration_since(time0).unwrap_or_default(),
+            time2.duration_since(time1).unwrap_or_default(),
+            time3.duration_since(time2).unwrap_or_default(),
+            time4.duration_since(time3).unwrap_or_default(),
+        );
     }
+    println!("{}", tile.info_string(&colourer));
+    result
 }
 
 /// Unpick the possible user specifications for the plot location
