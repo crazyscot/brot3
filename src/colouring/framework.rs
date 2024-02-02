@@ -71,19 +71,19 @@ pub enum Instance {
 #[enum_delegate::register]
 pub trait OutputsRgb8 {
     /// Colouring function
-    fn colour_rgb8(&self, iters: f64, max_iter: u64) -> Rgb8;
+    fn colour_rgb8(&self, iters: f32, max_iter: u64) -> Rgb8;
 }
 
 /// A colouring algorithm that outputs HSV colours
 pub trait OutputsHsvf {
     /// Colouring function
-    fn colour_hsvf(&self, iters: f64, max_iters: u64) -> Hsv<palette::encoding::Srgb, f32>;
+    fn colour_hsvf(&self, iters: f32, max_iters: u64) -> Hsv<palette::encoding::Srgb, f32>;
 }
 
 /// Auto conversion helper
 impl<T: OutputsHsvf> OutputsRgb8 for T {
     #[inline]
-    fn colour_rgb8(&self, iters: f64, max_iters: u64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f32, max_iters: u64) -> Rgb8 {
         let hsv = self.colour_hsvf(iters, max_iters);
         Srgb::<f32>::from_color(hsv).into_format::<u8>()
     }
