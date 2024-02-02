@@ -9,7 +9,7 @@ use super::framework::{OutputsHsvf, OutputsRgb8, Rgb8};
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct White {}
 impl OutputsRgb8 for White {
-    fn colour_rgb8(&self, _: f32, _: u64) -> Rgb8 {
+    fn colour_rgb8(&self, _: f32, _: u32) -> Rgb8 {
         Rgb8::new(255, 255, 255)
     }
 }
@@ -17,7 +17,7 @@ impl OutputsRgb8 for White {
 // Test algorithm
 struct WhiteHSV {}
 impl OutputsHsvf for WhiteHSV {
-    fn colour_hsvf(&self, _: f32, _: u64) -> Hsv<palette::encoding::Srgb, f32> {
+    fn colour_hsvf(&self, _: f32, _: u32) -> Hsv<palette::encoding::Srgb, f32> {
         Hsv::new(0.0, 0.0, 1.0)
     }
 }

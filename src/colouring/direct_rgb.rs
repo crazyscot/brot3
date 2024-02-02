@@ -15,7 +15,7 @@ const ITERS_CLAMP_EPSILON: f32 = 0.000_01;
 pub struct Mandy {}
 
 impl OutputsRgb8 for Mandy {
-    fn colour_rgb8(&self, iters: f32, _: u64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
         // inf -> black, that's all good with us.
@@ -35,7 +35,7 @@ impl OutputsRgb8 for Mandy {
 pub struct WhiteFade {}
 
 impl OutputsRgb8 for WhiteFade {
-    fn colour_rgb8(&self, iters: f32, _: u64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
         if iters < ITERS_CLAMP_EPSILON {
@@ -62,7 +62,7 @@ impl OutputsRgb8 for WhiteFade {
 pub struct BlackFade {}
 
 impl OutputsRgb8 for BlackFade {
-    fn colour_rgb8(&self, iters: f32, _: u64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
         if iters < ITERS_CLAMP_EPSILON {
@@ -89,7 +89,7 @@ impl OutputsRgb8 for BlackFade {
 pub struct Monochrome {}
 
 impl OutputsRgb8 for Monochrome {
-    fn colour_rgb8(&self, iters: f32, _: u64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
         if iters < ITERS_CLAMP_EPSILON {
@@ -109,7 +109,7 @@ impl OutputsRgb8 for Monochrome {
 pub struct MonochromeInverted {}
 
 impl OutputsRgb8 for MonochromeInverted {
-    fn colour_rgb8(&self, iters: f32, _: u64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
         if iters < ITERS_CLAMP_EPSILON {
@@ -134,7 +134,7 @@ pub struct OneLoneCoder {}
 #[allow(clippy::cast_possible_truncation)]
 #[allow(clippy::cast_sign_loss)]
 impl OutputsRgb8 for OneLoneCoder {
-    fn colour_rgb8(&self, iters: f32, _: u64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         if iters.is_infinite() {
             //return BLACK;
         }

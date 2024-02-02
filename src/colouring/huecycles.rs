@@ -16,7 +16,7 @@ const BLACK_RGB: Rgb8 = Rgb8::new(0, 0, 0);
 
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LinearRainbow {
-    fn colour_hsvf(&self, iters: f32, _: u64) -> Hsv<Srgb, f32> {
+    fn colour_hsvf(&self, iters: f32, _: u32) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
             return BLACK_HSV;
         }
@@ -34,7 +34,7 @@ impl OutputsHsvf for LinearRainbow {
 pub struct LogRainbow {}
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LogRainbow {
-    fn colour_hsvf(&self, iters: f32, _: u64) -> Hsv<Srgb, f32> {
+    fn colour_hsvf(&self, iters: f32, _: u32) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
             return BLACK_HSV;
         }
@@ -49,7 +49,7 @@ pub struct HsvGradient {}
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for HsvGradient {
-    fn colour_hsvf(&self, iters: f32, max_iters: u64) -> Hsv<Srgb, f32> {
+    fn colour_hsvf(&self, iters: f32, max_iters: u32) -> Hsv<Srgb, f32> {
         if iters.is_infinite() || iters >= (max_iters as f32 - 1.0) {
             return BLACK_HSV;
         }
@@ -67,7 +67,7 @@ pub struct LchGradient {}
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsRgb8 for LchGradient {
-    fn colour_rgb8(&self, iters: f32, max_iters: u64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f32, max_iters: u32) -> Rgb8 {
         if iters.is_infinite() {
             return BLACK_RGB;
         }

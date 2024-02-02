@@ -50,8 +50,8 @@ impl Png {
             .for_each(|iters| {
                 // PNG wants four u8s, in RGBA order
                 #[allow(clippy::cast_lossless)]
-                let (r, g, b) = Srgb::<u8>::from(colourer.colour_rgb8(iters, max_iter as u64))
-                    .into_components();
+                let (r, g, b) =
+                    Srgb::<u8>::from(colourer.colour_rgb8(iters, max_iter)).into_components();
                 image_data.push(r);
                 image_data.push(g);
                 image_data.push(b);
