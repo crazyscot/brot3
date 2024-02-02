@@ -231,33 +231,7 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let render_selection: render::Selection = if let Some(s) = args.output_type {
         Ok::<render::Selection, anyhow::Error>(s)
     } else {
-        let extension = Path::new(&args.output_filename)
-            .extension()
-            .and_then(OsStr::to_str)
-            .unwrap_or_default()
-            .to_ascii_lowercase();
-
-        let found = render::Selection::VARIANTS
-            .iter()
-            .flat_map(|name| render::Selection::from_str(name))
-            .find(|sel| {
-                let trial = sel.get_str("file_extension").map_or_else(
-                    || {
-                        // No property? use the enum name
-                        let r: &'static str = sel.into();
-                        r.to_ascii_lowercase()
-                    },
-                    // the property exists? convert &str to string
-                    std::string::ToString::to_string,
-                );
-                trial == extension
-            });
-        match found {
-            Some(s) => Ok(s),
-            None => anyhow::bail!(
-                "Could not autodetect desired output type from filename (try `--type ...')"
-            ),
-        }
+        autodetect_extension(&args.output_filename)
     }?;
 
     let renderer = render::factory(render_selection);
@@ -290,6 +264,37 @@ pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         }
         println!("{}", tile.info_string(&colourer));
         result
+    }
+}
+
+/// Attempt to auto-match a file extension to a renderer
+fn autodetect_extension(filename: &str) -> anyhow::Result<render::Selection> {
+    let extension = Path::new(&filename)
+        .extension()
+        .and_then(OsStr::to_str)
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+
+    let found = render::Selection::VARIANTS
+        .iter()
+        .flat_map(|name| render::Selection::from_str(name))
+        .find(|sel| {
+            let trial = sel.get_str("file_extension").map_or_else(
+                || {
+                    // No property? use the enum name
+                    let r: &'static str = sel.into();
+                    r.to_ascii_lowercase()
+                },
+                // the property exists? convert &str to string
+                std::string::ToString::to_string,
+            );
+            trial == extension
+        });
+    match found {
+        Some(s) => Ok(s),
+        None => anyhow::bail!(
+            "Could not autodetect desired output type from filename (try `--type ...')"
+        ),
     }
 }
 
