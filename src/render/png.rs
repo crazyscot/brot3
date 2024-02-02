@@ -3,7 +3,7 @@
 
 use super::Renderer;
 use crate::colouring::{Instance, OutputsRgb8};
-use crate::fractal::{Scalar, Tile};
+use crate::fractal::Tile;
 use crate::util::filename::Filename;
 
 use anyhow::{Context, Result};
@@ -39,11 +39,12 @@ impl Png {
         tile_data
             .elements_row_major_iter()
             .map(|pd| {
+                #[allow(clippy::cast_possible_truncation)]
                 // Apply colouring function
                 if pd.iter == max_iter {
-                    Scalar::INFINITY
+                    std::f32::INFINITY
                 } else {
-                    pd.iterations()
+                    pd.iterations() as f32
                 }
             })
             .for_each(|iters| {

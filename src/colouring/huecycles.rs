@@ -9,18 +9,18 @@ use super::{OutputsHsvf, OutputsRgb8, Rgb8};
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct LinearRainbow {}
 
-const LINEAR_RAINBOW_WRAP: f64 = 32.0; // TODO this might become a parameter later
+const LINEAR_RAINBOW_WRAP: f32 = 32.0; // TODO this might become a parameter later
 
 const BLACK_HSV: Hsv<Srgb, f32> = Hsv::new_const(RgbHue::new(0.0), 0.0, 0.0);
 const BLACK_RGB: Rgb8 = Rgb8::new(0, 0, 0);
 
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LinearRainbow {
-    fn colour_hsvf(&self, iters: f64, _: u64) -> Hsv<Srgb, f32> {
+    fn colour_hsvf(&self, iters: f32, _: u64) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
             return BLACK_HSV;
         }
-        let tau = (iters / LINEAR_RAINBOW_WRAP).fract() as f32;
+        let tau = (iters / LINEAR_RAINBOW_WRAP).fract();
         // this gives a number from 0..1, map that to the hue angle
         // TODO: offset becomes a parameter?
         // TODO: Wrap becomes a function of max_iter? with a parameter?
@@ -34,11 +34,11 @@ impl OutputsHsvf for LinearRainbow {
 pub struct LogRainbow {}
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LogRainbow {
-    fn colour_hsvf(&self, iters: f64, _: u64) -> Hsv<Srgb, f32> {
+    fn colour_hsvf(&self, iters: f32, _: u64) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
             return BLACK_HSV;
         }
-        let degrees = 60.0 * (iters.ln() as f32 + 0.0);
+        let degrees = 60.0 * iters.ln();
         Hsv::new(RgbHue::new(degrees), 1.0, 1.0)
     }
 }
@@ -49,11 +49,11 @@ pub struct HsvGradient {}
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for HsvGradient {
-    fn colour_hsvf(&self, iters: f64, max_iters: u64) -> Hsv<Srgb, f32> {
-        if iters.is_infinite() || iters >= (max_iters as f64 - 1.0) {
+    fn colour_hsvf(&self, iters: f32, max_iters: u64) -> Hsv<Srgb, f32> {
+        if iters.is_infinite() || iters >= (max_iters as f32 - 1.0) {
             return BLACK_HSV;
         }
-        let proportion = iters as f32 / max_iters as f32;
+        let proportion = iters / max_iters as f32;
         // TODO: 0.75 becomes a parameter
         let degrees = (proportion * 360.0).powf(1.5) % 360.0;
         // TODO: value 1.0 becomes a parameter of proportion?
@@ -67,12 +67,12 @@ pub struct LchGradient {}
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsRgb8 for LchGradient {
-    fn colour_rgb8(&self, iters: f64, max_iters: u64) -> Rgb8 {
+    fn colour_rgb8(&self, iters: f32, max_iters: u64) -> Rgb8 {
         if iters.is_infinite() {
             return BLACK_RGB;
         }
 
-        let s = iters as f32 / max_iters as f32;
+        let s = iters / max_iters as f32;
         let v = 1.0 - (std::f32::consts::PI * s).cos().powi(2);
         let lightness = 75.0 - (75.0 * v);
         let hue = LabHue::new((s * 360.0).powf(1.5) % 360.0);
@@ -93,6 +93,7 @@ mod tests {
     fn hue_cycles() {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_lossless)]
+        #![allow(clippy::cast_precision_loss)]
         let uut = LinearRainbow {};
         // The algorithm operates a linear cycle over the Wrap interval.
         // Therefore we expect it to average out fairly neatly.
@@ -100,7 +101,7 @@ mod tests {
         let mut previous = RgbHue::new(f32::NAN);
 
         for i in 0..(LINEAR_RAINBOW_WRAP as i32) {
-            let res = uut.colour_hsvf(i as f64, 256);
+            let res = uut.colour_hsvf(i as f32, 256);
             assert_ne!(res.hue, previous);
             previous = res.hue;
             hue_accumulator += res.hue.into_degrees();
