@@ -48,6 +48,7 @@ fn s_iter(point_to_use: Point, alg: fractal::Selection) -> BenchData {
 }
 
 #[library_benchmark]
+#[bench::zero(s_iter(TEST_POINT_M2, Zero))]
 #[bench::m2(s_iter(TEST_POINT_M2, Original))]
 #[bench::m3(s_iter(TEST_POINT_M3, Mandel3))]
 #[bench::bar(s_iter(TEST_POINT_M3, Mandelbar))]
@@ -76,6 +77,7 @@ fn s_fini(point_to_use: Point, alg: fractal::Selection) -> BenchData {
 #[library_benchmark]
 #[bench::m2(s_fini(TEST_POINT_M2, Original))]
 #[bench::m3(s_fini(TEST_POINT_M3, Mandel3))]
+#[bench::ship(s_fini(TEST_POINT_M3, BurningShip))]
 fn finish(mut bd: BenchData) -> Option<fractal::Scalar> {
     bd.fractal.finish(&mut bd.point);
     bd.point.result
@@ -91,10 +93,12 @@ library_benchmark_group!(
 // ////////////////////////////////////////////////////////////////
 // COLOURING
 
+use brot3::colouring::testing::White;
 use direct_rgb::*;
 use huecycles::*;
 
 #[library_benchmark]
+#[bench::white(White {}.into())]
 #[bench::linear_rainbow(LinearRainbow {}.into())]
 #[bench::log_rainbow(LogRainbow {}.into())]
 #[bench::mandy(Mandy {}.into())]
