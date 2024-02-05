@@ -146,14 +146,12 @@ dependencies = [
  "clap",
  "rayon",
  "strum",
- "strum_macros",
 ]
 
 [[package]]
 name = "brot3-engine"
 version = "0.1.0"
 dependencies = [
- "anstyle",
  "anyhow",
  "approx",
  "clap",

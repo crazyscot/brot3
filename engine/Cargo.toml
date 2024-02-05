@@ -8,7 +8,6 @@ description = "Yet Another Fractal Plotter"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anstyle = "1.0.5"
 anyhow = { workspace = true }
 clap = { workspace = true, features = ["wrap_help", "derive"] }
 enum_delegate = "0.2.0"
