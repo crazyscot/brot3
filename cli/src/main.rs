@@ -1,13 +1,15 @@
-// brot3 command line interface
+//! brot3 command line interface
 // (c) 2024 Ross Younger
-use brot3::cli::{self, list, plot};
-
 use clap::{ArgAction, Parser, Subcommand};
+
+mod list;
+mod plot;
+mod styles;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 #[command(disable_help_flag = true)]
-#[command(styles=cli::styles::get())]
+#[command(styles=styles::get())]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -25,6 +27,7 @@ struct Cli {
     debug: u8,
 
     #[arg(long, hide(true))]
+    #[allow(clippy::struct_field_names)]
     debug_cli: bool,
 }
 
@@ -39,7 +42,7 @@ enum Commands {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     if cli.debug_cli {
-        println!("{:#?}", cli);
+        println!("{cli:#?}");
         return Ok(());
     }
 

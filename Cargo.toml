@@ -1,11 +1,12 @@
-[package]
-name = "brot3"
-version = "0.1.0"
-edition = "2021"
-authors = ["Ross Younger <crazyscot@gmail.com>"]
-description = "Yet Another Fractal Plotter"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = [
+    "cli",
+    "engine",
+]
+resolver = "2"
+package.edition = "2021"
+package.authors = ["Ross Younger <crazyscot@gmail.com>"]
+package.version = "0.1.0"
 
 [profile.ci]
 inherits = "dev"
@@ -19,28 +20,34 @@ codegen-units = 256
 codegen-units = 1
 lto = "thin"
 
-[dependencies]
-anstyle = "1.0.6"
+[workspace.dependencies]
 anyhow = "1.0.79"
-clap = { version = "4.4.18", features = ["wrap_help", "derive"] }
-enum_delegate = "0.2.0"
-ndarray = "0.15.6"
-num-complex = "0.4.4"
-palette = "0.7.4"
-png = "0.17.11"
+clap = "4.4.18"
 rayon = "1.8.1"
 strum = { version = "0.26.1", features = ["derive"] }
 strum_macros = "0.26.1"
 
-[dev-dependencies]
-approx = "0.5.1"
-criterion = { version = "0.5", features = ["html_reports"] }
-iai-callgrind = "0.10.2"
+[workspace.lints.rust]
+elided_lifetimes_in_paths = "deny"
+meta_variable_misuse = "deny"
+missing_abi = "deny"
+missing_copy_implementations = "deny"
+missing_debug_implementations = "deny"
+missing_docs = "warn"
+non_ascii_idents = "deny"
+single_use_lifetimes = "deny"
+trivial_casts = "deny"
+trivial_numeric_casts = "deny"
+unsafe_code = "deny"
+unsafe_op_in_unsafe_fn = "deny"
+unreachable_pub = "deny"
+# unused_crate_dependencies = "deny" # false positives
+unused_extern_crates = "deny"
+unused_lifetimes = "deny"
+unused_results = "deny"
+unused_tuple_struct_fields = "warn"
+variant_size_differences = "deny"
 
-[[bench]]
-name = "lib"
-harness = false
-
-[[bench]]
-name = "iai"
-harness = false
+[workspace.lints.clippy]
+pedantic = "deny"
+missing_errors_doc = "allow"

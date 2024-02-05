@@ -1,11 +1,16 @@
-// brot3 library benchmarking
+//! brot3 engine benchmarking harness
 // (c) 2024 Ross Youinger
 
-use brot3::colouring::{self, Instance, OutputsRgb8, Selection::*};
-use brot3::fractal::{self, Algorithm, Point, PointData, SplitMethod, Tile, TileSpec};
+#![allow(missing_docs)]
 
-use brot3::render::{self, Renderer};
-use brot3::util::Rect;
+#[allow(clippy::enum_glob_use)]
+use brot3_engine::{
+    colouring::{self, Instance, OutputsRgb8, Selection::*},
+    fractal::{self, Algorithm, Point, PointData, SplitMethod, Tile, TileSpec},
+    render::{self, Renderer},
+    util::Rect,
+};
+
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 
@@ -20,7 +25,7 @@ fn iteration(c: &mut Criterion) {
     let mut group = c.benchmark_group("fractals");
     let mut alg = |alg, point: Point| {
         let fractal = fractal::factory(alg);
-        group.bench_function(format!("iter_{alg:?}"), |b| {
+        let _ = group.bench_function(format!("iter_{alg:?}"), |b| {
             b.iter_batched_ref(
                 || {
                     let mut pd = PointData::new(point);
@@ -52,7 +57,7 @@ fn plot_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
     let mut do_alg = |alg| {
         let spec = get_test_tile_spec(alg, 100);
-        group.bench_function(format!("plot_{alg:?}"), |b| {
+        let _ = group.bench_function(format!("plot_{alg:?}"), |b| {
             b.iter_batched_ref(
                 || Tile::new(&spec, 0),
                 |t| t.plot(black_box(512)),
@@ -72,9 +77,9 @@ criterion_group!(fractals, iteration, plot_tile);
 fn colour_pixel(c: &mut Criterion) {
     let mut group = c.benchmark_group("colourers");
     let mut bench = |instance: Instance| {
-        group.bench_function(format!("{}", instance), |b| {
+        let _ = group.bench_function(format!("{instance}"), |b| {
             b.iter(|| {
-                instance.colour_rgb8(black_box(42.0), 256);
+                let _ = instance.colour_rgb8(black_box(42.0), 256);
             });
         });
     };
@@ -91,7 +96,7 @@ fn colour_tile(c: &mut Criterion) {
     tile.plot(black_box(512));
 
     let mut bench = |colourer: Instance| {
-        group.bench_function(format!("colour_{}", colourer), |b| {
+        let _ = group.bench_function(format!("colour_{colourer}"), |b| {
             let filename = "/dev/null";
             b.iter_batched_ref(
                 || render::factory(render::Selection::Png),
@@ -119,7 +124,7 @@ fn tile_join(c: &mut Criterion) {
     let mut tiles: Vec<_> = specs.iter().map(|ts| Tile::new(ts, 0)).collect();
     tiles.par_iter_mut().for_each(|t| t.plot(512));
 
-    group.bench_function("join", |b| {
+    let _ = group.bench_function("join", |b| {
         b.iter(|| Tile::join(&single, black_box(&tiles)).unwrap());
     });
 }

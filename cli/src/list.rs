@@ -1,6 +1,6 @@
 // List subcommand
 // (c) 2024 Ross Younger
-use crate::{
+use brot3_engine::{
     colouring,
     fractal::{self},
     render,
@@ -23,7 +23,7 @@ enum ListableThings {
 /// Arguments to 'list'
 #[derive(Debug, clap::Args)]
 //#[command(flatten_help = true)]
-pub struct Args {
+pub(crate) struct Args {
     /// Machine-parseable output
     #[arg(short, long)]
     machine_parseable: bool,
@@ -33,7 +33,8 @@ pub struct Args {
 }
 
 /// Implementation of 'list'
-pub fn list(args: &Args) -> anyhow::Result<()> {
+#[allow(clippy::unnecessary_wraps)]
+pub(crate) fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => listable::list::<render::Selection>(args.machine_parseable),
         ListableThings::Fractals => listable::list::<fractal::Selection>(args.machine_parseable),
