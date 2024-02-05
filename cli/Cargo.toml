@@ -6,5 +6,6 @@ version.workspace = true
 
 [dependencies]
 brot3-engine = { path = "../engine" }
-clap = { version = "4.4.18", features = ["wrap_help", "derive"] }
 anyhow = "1.0.79"
+anstyle = "1.0.6"
+clap = { version = "4.4.18", features = ["wrap_help", "derive"] }

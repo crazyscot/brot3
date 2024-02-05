@@ -1,13 +1,15 @@
 // brot3 command line interface
 // (c) 2024 Ross Younger
-use brot3_engine::cli::{self, list, plot};
+use brot3_engine::cli::{list, plot};
 
 use clap::{ArgAction, Parser, Subcommand};
+
+mod styles;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 #[command(disable_help_flag = true)]
-#[command(styles=cli::styles::get())]
+#[command(styles=styles::get())]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
