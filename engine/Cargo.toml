@@ -28,7 +28,7 @@ iai-callgrind = "0.10.2"
 rayon = { workspace = true }
 
 [[bench]]
-name = "lib"
+name = "engine"
 harness = false
 
 [[bench]]

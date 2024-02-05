@@ -1,4 +1,4 @@
-//! brot3 library benchmarking
+//! brot3 engine benchmarking harness
 // (c) 2024 Ross Youinger
 
 #![allow(missing_docs)]
