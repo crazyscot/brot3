@@ -19,7 +19,7 @@ use strum::{EnumProperty, VariantNames};
 
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
-pub struct Args {
+pub(crate) struct Args {
     /// The fractal algorithm to use. Use the `list fractals` command to see the available schemes
     #[arg(
         short = 'f',
@@ -30,7 +30,7 @@ pub struct Args {
         help_heading("Plot control"),
         display_order(5)
     )]
-    pub fractal: fractal::Selection,
+    pub(crate) fractal: fractal::Selection,
 
     /// Maximum number of iterations before assuming a pixel has escaped
     #[arg(
@@ -41,7 +41,7 @@ pub struct Args {
         help_heading("Plot control"),
         display_order(6)
     )]
-    pub max_iter: u32,
+    pub(crate) max_iter: u32,
 
     /// The colouring algorithm to use. Use the `list colourers` command to see the available schemes
     #[arg(
@@ -56,7 +56,7 @@ pub struct Args {
         hide_possible_values = true,
         display_order(7)
     )]
-    pub colourer: colouring::Selection,
+    pub(crate) colourer: colouring::Selection,
 
     /// The origin (bottom-left) point of the plot, e.g. -3-3i.
     #[arg(
@@ -68,7 +68,7 @@ pub struct Args {
         help_heading("Plot location (specify once)"),
         display_order(10)
     )]
-    pub origin: Option<Point>,
+    pub(crate) origin: Option<Point>,
 
     /// The centre point of the plot, e.g. -1-1i.
     #[arg(
@@ -80,7 +80,7 @@ pub struct Args {
         help_heading("Plot location (specify once)"),
         display_order(10)
     )]
-    pub centre: Option<Point>,
+    pub(crate) centre: Option<Point>,
 
     /// The length of the axes, e.g. 3+3i. If the imaginary dimension is not specified it will be assumed to be the same as the real.
     #[arg(
@@ -91,7 +91,7 @@ pub struct Args {
         help_heading("Plot size (specify once)"),
         display_order(20)
     )]
-    pub axes_length: Option<Point>,
+    pub(crate) axes_length: Option<Point>,
     /// The size of a pixel, e.g. 0.003+0.003i. If the imaginary dimension is not specified it will be assumed to be the same as the real.
     #[arg(
         short = 'P',
@@ -101,7 +101,7 @@ pub struct Args {
         help_heading("Plot size (specify once)"),
         display_order(20)
     )]
-    pub pixel_size: Option<Point>,
+    pub(crate) pixel_size: Option<Point>,
     /// The zoom factor, relative to the plot default.
     #[arg(
         short = 'Z',
@@ -111,11 +111,11 @@ pub struct Args {
         help_heading("Plot size (specify once)"),
         display_order(20)
     )]
-    pub zoom: Option<Scalar>,
+    pub(crate) zoom: Option<Scalar>,
 
     /// Suppresses auto-aspect-adjustment. (By default we automatically grow the axes to make the pixels square, which is usually what you wanted.)
     #[arg(long, display_order(21), help_heading("Plot size (specify once)"))]
-    pub no_auto_aspect: bool,
+    pub(crate) no_auto_aspect: bool,
 
     /// Plot width
     #[arg(
@@ -126,7 +126,7 @@ pub struct Args {
         help_heading("Output"),
         display_order(100)
     )]
-    pub width: u32,
+    pub(crate) width: u32,
     /// Plot height
     #[arg(
         short,
@@ -136,7 +136,7 @@ pub struct Args {
         help_heading("Output"),
         display_order(100)
     )]
-    pub height: u32,
+    pub(crate) height: u32,
 
     /// Where to send the output (required; for stdout, use '-' and specify the --output-type)
     #[arg(
@@ -146,7 +146,7 @@ pub struct Args {
         help_heading("Output"),
         display_order(110)
     )]
-    pub output_filename: String,
+    pub(crate) output_filename: String,
 
     /// Explicitly specifies the output file type (default: autodetect from filename). Use the `list output-types` command to see the available formats.
     #[arg(
@@ -157,16 +157,16 @@ pub struct Args {
         help_heading("Output"),
         display_order(120)
     )]
-    pub output_type: Option<render::Selection>,
+    pub(crate) output_type: Option<render::Selection>,
 
     /// Prevents the internal processing of the plot as a series of strips.
     /// This disables parallelisation and may lead to slightly different numerical output as the plot co-ordinates shift subtly.
     #[arg(long, display_order(900), help_heading("Developer options"))]
-    pub no_split: bool,
+    pub(crate) no_split: bool,
 
     /// Measures and outputs the time to complete various parts of the process.
     #[arg(long, display_order(900), help_heading("Developer options"))]
-    pub show_timing: bool,
+    pub(crate) show_timing: bool,
 }
 
 fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
@@ -186,7 +186,7 @@ fn check_zoom(input: Scalar) -> anyhow::Result<Scalar> {
 }
 
 /// Implementation of 'plot'
-pub fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
+pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let algorithm = fractal::factory(args.fractal);
 
     let user_plot_data = PlotSpec {
