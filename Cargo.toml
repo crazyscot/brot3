@@ -3,6 +3,9 @@ members = [
     "engine",
 ]
 resolver = "2"
+package.edition = "2021"
+package.authors = ["Ross Younger <crazyscot@gmail.com>"]
+package.version = "0.1.0"
 
 [profile.ci]
 inherits = "dev"
