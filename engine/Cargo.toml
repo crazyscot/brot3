@@ -1,5 +1,5 @@
 [package]
-name = "brot3"
+name = "brot3-engine"
 edition.workspace = true
 authors.workspace = true
 version.workspace = true

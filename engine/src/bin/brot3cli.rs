@@ -1,6 +1,6 @@
 // brot3 command line interface
 // (c) 2024 Ross Younger
-use brot3::cli::{self, list, plot};
+use brot3_engine::cli::{self, list, plot};
 
 use clap::{ArgAction, Parser, Subcommand};
 
