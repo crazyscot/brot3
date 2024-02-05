@@ -3,7 +3,7 @@
 
 use std::str::FromStr;
 
-use strum::{EnumMessage, IntoEnumIterator, VariantNames};
+use strum::{EnumMessage, EnumProperty, IntoEnumIterator, VariantNames};
 
 /// Returns a list of all available items for a given type
 pub fn list_vec<T: IntoEnumIterator + std::fmt::Display>() -> impl Iterator<Item = String> {
@@ -11,7 +11,9 @@ pub fn list_vec<T: IntoEnumIterator + std::fmt::Display>() -> impl Iterator<Item
 }
 
 /// Prints a list of available items for a given type
-pub fn list<T: VariantNames + FromStr + std::fmt::Display + EnumMessage>(machine_parseable: bool) {
+pub fn list<T: VariantNames + FromStr + std::fmt::Display + EnumMessage + EnumProperty>(
+    machine_parseable: bool,
+) {
     let v = &T::VARIANTS;
 
     if machine_parseable {
@@ -27,6 +29,9 @@ pub fn list<T: VariantNames + FromStr + std::fmt::Display + EnumMessage>(machine
         // then query the enum member `val` for its docstring.
         let res = T::from_str(name);
         if let Ok(val) = res {
+            if val.get_str("hide_from_list") == Some("1") {
+                return;
+            }
             println!(
                 "  {:width$}  {}",
                 name,

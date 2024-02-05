@@ -4,7 +4,8 @@
 use enum_delegate;
 use palette::{convert::FromColorUnclamped, Hsv, Srgb};
 use strum_macros::{
-    Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantArray, VariantNames,
+    self, Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr,
+    VariantArray, VariantNames,
 };
 
 use super::direct_rgb::{
@@ -27,6 +28,7 @@ pub type Rgb8 = palette::Srgb<u8>;
         clap::ValueEnum,
         Display,
         EnumMessage,
+        EnumProperty,
         EnumString,
         VariantArray,
         VariantNames
@@ -63,6 +65,7 @@ pub enum Instance {
     LchGradient(LchGradient),
 
     /// Test algorithm that always outputs white pixels
+    #[strum_discriminants(strum(props(hide_from_list = "1")))]
     White(White),
 }
 

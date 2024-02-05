@@ -9,7 +9,8 @@ use super::misc_fractals::{BirdOfPrey, Buffalo, BurningShip, Celtic, Mandelbar, 
 
 use enum_delegate;
 use strum_macros::{
-    Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantArray, VariantNames,
+    Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, VariantArray,
+    VariantNames,
 };
 
 /// Selector for available Algorithms
@@ -23,6 +24,7 @@ use strum_macros::{
         clap::ValueEnum,
         Display,
         EnumMessage,
+        EnumProperty,
         EnumString,
         VariantArray,
         VariantNames
@@ -66,6 +68,7 @@ pub enum Instance {
     Buffalo(Buffalo),
 
     /// Test algorithm that always outputs zero
+    #[strum_discriminants(strum(props(hide_from_list = "1")))]
     Zero(Zero),
 }
 
