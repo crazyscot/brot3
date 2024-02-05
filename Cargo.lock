@@ -144,6 +144,9 @@ dependencies = [
  "anyhow",
  "brot3-engine",
  "clap",
+ "rayon",
+ "strum",
+ "strum_macros",
 ]
 
 [[package]]

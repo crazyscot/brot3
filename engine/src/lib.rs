@@ -23,8 +23,6 @@
 #![warn(unused_tuple_struct_fields)]
 #![deny(variant_size_differences)]
 
-/// Command Line Interface helpers
-pub mod cli;
 /// Fractal palettes
 pub mod colouring;
 /// Fractal interface

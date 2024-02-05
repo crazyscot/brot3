@@ -6,10 +6,12 @@ use std::path::Path;
 use std::str::FromStr;
 use std::time::SystemTime;
 
-use crate::colouring;
-use crate::fractal::{self, Algorithm, PlotSpec, Point, Scalar, Size, SplitMethod, Tile, TileSpec};
-use crate::render::{self, Renderer};
-use crate::util::Rect;
+use brot3_engine::colouring;
+use brot3_engine::fractal::{
+    self, Algorithm, PlotSpec, Point, Scalar, Size, SplitMethod, Tile, TileSpec,
+};
+use brot3_engine::render::{self, Renderer};
+use brot3_engine::util::Rect;
 
 use anyhow::ensure;
 use rayon::prelude::*;
@@ -304,7 +306,7 @@ fn autodetect_extension(filename: &str) -> anyhow::Result<render::Selection> {
 #[cfg(test)]
 mod tests {
     use super::check_fix_axes;
-    use crate::fractal::{Point, Scalar};
+    use brot3_engine::fractal::{Point, Scalar};
 
     #[test]
     fn axes_fixup_nonzero() {

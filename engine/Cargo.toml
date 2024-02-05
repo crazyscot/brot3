@@ -9,21 +9,21 @@ description = "Yet Another Fractal Plotter"
 
 [dependencies]
 anstyle = "1.0.5"
-anyhow = "1.0.79"
-clap = { version = "4.4.18", features = ["wrap_help", "derive"] }
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["wrap_help", "derive"] }
 enum_delegate = "0.2.0"
 ndarray = "0.15.6"
 num-complex = "0.4.4"
 palette = "0.7.4"
 png = "0.17.11"
-rayon = "1.8.1"
-strum = { version = "0.26.1", features = ["derive"] }
-strum_macros = "0.26.1"
+strum = { workspace = true }
+strum_macros = { workspace = true }
 
 [dev-dependencies]
 approx = "0.5.1"
 criterion = { version = "0.5", features = ["html_reports"] }
 iai-callgrind = "0.10.2"
+rayon = { workspace = true }
 
 [[bench]]
 name = "lib"
