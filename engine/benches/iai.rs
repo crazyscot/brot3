@@ -1,8 +1,11 @@
+//! Benchmark harness for iai-callgrind
+// (c) 2024 Ross Younger
 use iai_callgrind::{library_benchmark, library_benchmark_group, main};
 use std::hint::black_box;
 
+#[allow(clippy::wildcard_imports)]
 use brot3_engine::{
-    colouring::{self, direct_rgb, huecycles, OutputsRgb8, Rgb8},
+    colouring::{self, direct_rgb::*, huecycles::*, OutputsRgb8, Rgb8},
     fractal::{self, Algorithm, Point, PointData},
 };
 #[allow(clippy::enum_glob_use)]
@@ -95,10 +98,6 @@ library_benchmark_group!(
 // COLOURING
 
 use brot3_engine::colouring::testing::White;
-#[allow(clippy::wildcard_imports)]
-use direct_rgb::*;
-#[allow(clippy::wildcard_imports)]
-use huecycles::*;
 
 #[library_benchmark]
 #[bench::white(White {}.into())]

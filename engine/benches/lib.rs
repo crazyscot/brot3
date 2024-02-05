@@ -1,5 +1,7 @@
-// brot3 library benchmarking
+//! brot3 library benchmarking
 // (c) 2024 Ross Youinger
+
+#![allow(missing_docs)]
 
 #[allow(clippy::enum_glob_use)]
 use brot3_engine::{

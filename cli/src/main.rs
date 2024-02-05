@@ -1,6 +1,5 @@
-// brot3 command line interface
+//! brot3 command line interface
 // (c) 2024 Ross Younger
-
 use clap::{ArgAction, Parser, Subcommand};
 
 mod list;
