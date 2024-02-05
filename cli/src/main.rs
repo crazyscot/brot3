@@ -1,9 +1,10 @@
 // brot3 command line interface
 // (c) 2024 Ross Younger
-use brot3_engine::cli::{list, plot};
+use brot3_engine::cli::plot;
 
 use clap::{ArgAction, Parser, Subcommand};
 
+mod list;
 mod styles;
 
 #[derive(Debug, Parser)]
