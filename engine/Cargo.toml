@@ -7,6 +7,9 @@ description = "Yet Another Fractal Plotter"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow = { workspace = true }
 clap = { workspace = true, features = ["wrap_help", "derive"] }

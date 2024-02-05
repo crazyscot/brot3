@@ -33,6 +33,7 @@ pub struct Args {
 }
 
 /// Implementation of 'list'
+#[allow(clippy::unnecessary_wraps)]
 pub fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => listable::list::<render::Selection>(args.machine_parseable),

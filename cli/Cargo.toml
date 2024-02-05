@@ -4,6 +4,9 @@ edition.workspace = true
 authors.workspace = true
 version.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 brot3-engine = { path = "../engine" }
 anyhow = { workspace = true }

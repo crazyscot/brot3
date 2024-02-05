@@ -5,6 +5,7 @@ use brot3_engine::{
     colouring::{self, direct_rgb, huecycles, OutputsRgb8, Rgb8},
     fractal::{self, Algorithm, Point, PointData},
 };
+#[allow(clippy::enum_glob_use)]
 use fractal::Selection::*;
 
 struct BenchData {
@@ -94,7 +95,9 @@ library_benchmark_group!(
 // COLOURING
 
 use brot3_engine::colouring::testing::White;
+#[allow(clippy::wildcard_imports)]
 use direct_rgb::*;
+#[allow(clippy::wildcard_imports)]
 use huecycles::*;
 
 #[library_benchmark]

@@ -28,6 +28,7 @@ struct Cli {
     debug: u8,
 
     #[arg(long, hide(true))]
+    #[allow(clippy::struct_field_names)]
     debug_cli: bool,
 }
 
@@ -42,7 +43,7 @@ enum Commands {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     if cli.debug_cli {
-        println!("{:#?}", cli);
+        println!("{cli:#?}");
         return Ok(());
     }
 
