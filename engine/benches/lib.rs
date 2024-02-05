@@ -1,11 +1,13 @@
 // brot3 library benchmarking
 // (c) 2024 Ross Youinger
 
-use brot3::colouring::{self, Instance, OutputsRgb8, Selection::*};
-use brot3::fractal::{self, Algorithm, Point, PointData, SplitMethod, Tile, TileSpec};
+use brot3_engine::{
+    colouring::{self, Instance, OutputsRgb8, Selection::*},
+    fractal::{self, Algorithm, Point, PointData, SplitMethod, Tile, TileSpec},
+    render::{self, Renderer},
+    util::Rect,
+};
 
-use brot3::render::{self, Renderer};
-use brot3::util::Rect;
 use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
 use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 

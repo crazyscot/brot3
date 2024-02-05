@@ -1,7 +1,7 @@
 use iai_callgrind::{library_benchmark, library_benchmark_group, main};
 use std::hint::black_box;
 
-use brot3::{
+use brot3_engine::{
     colouring::{self, direct_rgb, huecycles, OutputsRgb8, Rgb8},
     fractal::{self, Algorithm, Point, PointData},
 };
@@ -93,7 +93,7 @@ library_benchmark_group!(
 // ////////////////////////////////////////////////////////////////
 // COLOURING
 
-use brot3::colouring::testing::White;
+use brot3_engine::colouring::testing::White;
 use direct_rgb::*;
 use huecycles::*;
 
