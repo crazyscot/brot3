@@ -1,0 +1,7 @@
+[package]
+name = "brot3-cli"
+edition.workspace = true
+authors.workspace = true
+version.workspace = true
+
+[dependencies]
