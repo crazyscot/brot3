@@ -24,10 +24,6 @@ enum ListableThings {
 #[derive(Debug, clap::Args)]
 //#[command(flatten_help = true)]
 pub(crate) struct Args {
-    /// Machine-parseable output
-    #[arg(short, long)]
-    machine_parseable: bool,
-
     #[command(subcommand)]
     thing: ListableThings,
 }
@@ -36,10 +32,10 @@ pub(crate) struct Args {
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
-        ListableThings::Renderers => listable::list::<render::Selection>(args.machine_parseable),
-        ListableThings::Fractals => listable::list::<fractal::Selection>(args.machine_parseable),
+        ListableThings::Renderers => listable::list::<render::Selection>(),
+        ListableThings::Fractals => listable::list::<fractal::Selection>(),
         ListableThings::Colourers => {
-            listable::list::<colouring::Selection>(args.machine_parseable);
+            listable::list::<colouring::Selection>();
         }
     };
     Ok(())

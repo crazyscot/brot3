@@ -3,7 +3,6 @@
 
 use std::ffi::OsStr;
 use std::path::Path;
-use std::str::FromStr;
 use std::time::SystemTime;
 
 use brot3_engine::colouring;
@@ -15,7 +14,7 @@ use brot3_engine::util::Rect;
 
 use anyhow::ensure;
 use rayon::prelude::*;
-use strum::{EnumProperty, VariantNames};
+use strum::{EnumProperty, VariantArray};
 
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
@@ -282,13 +281,12 @@ fn autodetect_extension(filename: &str) -> anyhow::Result<render::Selection> {
 
     let found = render::Selection::VARIANTS
         .iter()
-        .flat_map(|name| render::Selection::from_str(name))
+        //.flat_map(|name| render::Selection::from_str(name))
         .find(|sel| {
             let trial = sel.get_str("file_extension").map_or_else(
                 || {
                     // No property? use the enum name
-                    let r: &'static str = sel.into();
-                    r.to_ascii_lowercase()
+                    sel.to_string().to_ascii_lowercase()
                 },
                 // the property exists? convert &str to string
                 std::string::ToString::to_string,
@@ -296,7 +294,7 @@ fn autodetect_extension(filename: &str) -> anyhow::Result<render::Selection> {
             trial == extension
         });
     match found {
-        Some(s) => Ok(s),
+        Some(s) => Ok(*s),
         None => anyhow::bail!(
             "Could not autodetect desired output type from filename (try `--type ...')"
         ),
