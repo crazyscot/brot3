@@ -1,38 +1,37 @@
 // Common support code for enums which the user can select from
 // (c) 2024 Ross Younger
 
-use std::str::FromStr;
+use std::fmt::Display;
 
-use strum::{EnumMessage, IntoEnumIterator, VariantNames};
+use strum::{EnumMessage, EnumProperty, VariantArray};
 
-/// Returns a list of all available items for a given type
-pub fn list_vec<T: IntoEnumIterator + std::fmt::Display>() -> impl Iterator<Item = String> {
-    T::iter().map(|a| a.to_string())
+/// A compound trait for Listable operations
+/// see e.g. ``fractal::framework::Selection``
+pub trait Listable: Display + EnumMessage + EnumProperty + VariantArray {}
+
+/// Returns an iterator of elements of a listable type
+pub fn elements<T: Listable>(include_hidden: bool) -> impl Iterator<Item = &'static T> {
+    T::VARIANTS
+        .iter()
+        .filter(move |x| include_hidden || x.get_str("hide_from_list").is_none())
 }
 
-/// Prints a list of available items for a given type
-pub fn list<T: VariantNames + FromStr + std::fmt::Display + EnumMessage>(machine_parseable: bool) {
-    let v = &T::VARIANTS;
+/// Prints a list of available items for a given type, respecting the ``hide_from_list`` flag
+pub fn list<T: Listable>() {
+    let v: Vec<_> = elements::<T>(false).collect();
 
-    if machine_parseable {
-        println!("{v:?}");
-        return;
+    let longest = v
+        .iter()
+        .map(|item| item.to_string().len())
+        .max()
+        .unwrap_or(1);
+
+    for item in v {
+        println!(
+            "  {:width$}  {}",
+            item,
+            item.get_documentation().unwrap_or_default(),
+            width = longest
+        );
     }
-
-    let longest = v.iter().map(|r| r.len()).max().unwrap_or(1);
-
-    v.iter().for_each(|name| {
-        // Due to an issue with EnumIter that appeared in strum 0.26.1,
-        // we iterate over the names, turn them back into enum members (sigh!),
-        // then query the enum member `val` for its docstring.
-        let res = T::from_str(name);
-        if let Ok(val) = res {
-            println!(
-                "  {:width$}  {}",
-                name,
-                val.get_documentation().unwrap_or_default(),
-                width = longest
-            );
-        }
-    });
 }

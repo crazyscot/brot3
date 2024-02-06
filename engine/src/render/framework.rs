@@ -6,8 +6,7 @@ use crate::fractal::Tile;
 
 use anyhow;
 use strum_macros::{
-    Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, IntoStaticStr,
-    VariantArray, VariantNames,
+    Display, EnumDiscriminants, EnumMessage, EnumProperty, FromRepr, IntoStaticStr, VariantArray,
 };
 
 use super::ascii::{AsciiArt, Csv};
@@ -24,10 +23,8 @@ use super::png::Png;
         Display,
         EnumMessage,
         EnumProperty,
-        EnumString,
         IntoStaticStr,
         VariantArray,
-        VariantNames,
     )
 )] // ... and specifies what it derives from
 /// Selector for available Renderers
@@ -45,6 +42,7 @@ pub enum RenderInstance {
     /// Portable Network Graphics (.png) file
     Png(Png),
 }
+impl crate::util::listable::Listable for Selection {}
 
 /// A Renderer accepts ``PointData`` and deals with it completely.
 /// This is distinct from a Palette, which accepts ``PointData`` and returns colour data.
@@ -66,10 +64,10 @@ pub fn factory(selection: Selection) -> RenderInstance {
 #[cfg(test)]
 mod tests {
     use super::Selection;
-    use strum::VariantNames;
+    use crate::util::listable;
 
     #[test]
     fn renderers_list() {
-        assert_ne!(Selection::VARIANTS.len(), 0);
+        assert_ne!(listable::elements::<Selection>(false).count(), 0);
     }
 }

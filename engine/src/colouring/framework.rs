@@ -4,7 +4,7 @@
 use enum_delegate;
 use palette::{convert::FromColorUnclamped, Hsv, Srgb};
 use strum_macros::{
-    Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantArray, VariantNames,
+    self, Display, EnumDiscriminants, EnumMessage, EnumProperty, FromRepr, VariantArray,
 };
 
 use super::direct_rgb::{
@@ -23,16 +23,8 @@ pub type Rgb8 = palette::Srgb<u8>;
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
     name(Selection),
-    derive(
-        clap::ValueEnum,
-        Display,
-        EnumMessage,
-        EnumString,
-        VariantArray,
-        VariantNames
-    )
+    derive(clap::ValueEnum, Display, EnumMessage, EnumProperty, VariantArray,)
 )] // ... and specifies what it derives from
-
 pub enum Instance {
     /// Cyclic rainbow
     LinearRainbow(LinearRainbow),
@@ -63,8 +55,11 @@ pub enum Instance {
     LchGradient(LchGradient),
 
     /// Test algorithm that always outputs white pixels
+    #[strum_discriminants(strum(props(hide_from_list = "1")))]
     White(White),
 }
+
+impl crate::util::listable::Listable for Selection {}
 
 /// A colouring algorithm that outputs Rgb8 directly.
 #[enum_delegate::register]
@@ -95,4 +90,20 @@ pub fn factory(selection: Selection) -> Instance {
     Instance::from_repr(selection as usize).unwrap_or_else(|| {
         panic!("Failed to convert enum discriminant {selection} into instance (can't happen)")
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Selection;
+    use crate::util::listable;
+
+    #[test]
+    fn iter_works() {
+        assert!(listable::elements::<Selection>(false).any(|s| s == &Selection::LinearRainbow));
+    }
+
+    #[test]
+    fn test_algorithms_should_not_be_listed() {
+        assert!(listable::elements::<Selection>(false).all(|s| s != &Selection::White));
+    }
 }

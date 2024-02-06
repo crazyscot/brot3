@@ -8,9 +8,7 @@ use super::mandeldrop::{Mandeldrop, Mandeldrop3};
 use super::misc_fractals::{BirdOfPrey, Buffalo, BurningShip, Celtic, Mandelbar, Variant};
 
 use enum_delegate;
-use strum_macros::{
-    Display, EnumDiscriminants, EnumMessage, EnumString, FromRepr, VariantArray, VariantNames,
-};
+use strum_macros::{Display, EnumDiscriminants, EnumMessage, EnumProperty, FromRepr, VariantArray};
 
 /// Selector for available Algorithms
 #[enum_delegate::implement(Algorithm)]
@@ -19,14 +17,7 @@ use strum_macros::{
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
     name(Selection),
-    derive(
-        clap::ValueEnum,
-        Display,
-        EnumMessage,
-        EnumString,
-        VariantArray,
-        VariantNames
-    )
+    derive(clap::ValueEnum, Display, EnumMessage, EnumProperty, VariantArray,)
 )] // ... and specifies what it derives from
 pub enum Instance {
     /// The original Mandelbrot set, `z := z^2+c` (aliases: "m", "m2")
@@ -66,8 +57,11 @@ pub enum Instance {
     Buffalo(Buffalo),
 
     /// Test algorithm that always outputs zero
+    #[strum_discriminants(strum(props(hide_from_list = "1")))]
     Zero(Zero),
 }
+
+impl crate::util::listable::Listable for Selection {}
 
 /// Factory method for fractals
 #[must_use]
