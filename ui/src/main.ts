@@ -1,13 +1,13 @@
 import './style.css'
 import { invoke } from '@tauri-apps/api'
 import OpenSeadragon from 'openseadragon'
-import $ from 'jquery'
+import jQuery from 'jquery'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
 <div id="seadragon-viewer"></div>
 `;
 // Dynamically size to fill the window. This is also used to resize.
-let viewerElement = $('#seadragon-viewer');
+let viewerElement = jQuery('#seadragon-viewer');
 if (viewerElement.height() == 0) {
   viewerElement.height(window.innerHeight);
   console.log(`H set to ${viewerElement.height()}`)
