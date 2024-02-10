@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
   // prevent vite from obscuring rust errors
@@ -17,4 +18,14 @@ export default defineConfig({
     // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_DEBUG,
   },
+  plugins: [
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'node_modules/openseadragon/build/openseadragon/images/*',
+          dest: 'openseadragon/images'
+        }
+      ]
+    })
+  ]
 })
