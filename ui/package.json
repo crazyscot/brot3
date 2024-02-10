@@ -10,12 +10,14 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.9",
+    "@types/jquery": "^3.5.29",
     "@types/openseadragon": "^3.0.10",
     "typescript": "^5.2.2",
     "vite": "^5.1.0"
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.3",
+    "jquery": "^3.7.1",
     "openseadragon": "^4.1.0"
   }
 }
