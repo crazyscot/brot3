@@ -12,7 +12,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <button id="counter" type="button"></button>
     </div>
   </div>
-  <div id="openseadragon1" style="width: 400px; height: 400px;"></div>
+  <div id="seadragon-viewer" style="width: 400px; height: 400px;"></div>
 `
 
 setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
@@ -24,8 +24,22 @@ invoke('greet', { name: 'World' })
   // `invoke` returns a Promise
   .then((response) => console.log(response))
 
+var duomo = {
+  Image: {
+    xmlns: "http://schemas.microsoft.com/deepzoom/2008",
+    Url: "//openseadragon.github.io/example-images/duomo/duomo_files/",
+    Format: "jpg",
+    Overlap: "2",
+    TileSize: "256",
+    Size: {
+      Width:  "13920",
+      Height: "10200"
+    }
+  }
+};
+
 var viewer = OpenSeadragon({
-    id: "openseadragon1",
-    prefixUrl: "/openseadragon/images/",
-    tileSources: "/path/to/my/image.dzi"
+  id: "seadragon-viewer",
+  prefixUrl: "//openseadragon.github.io/openseadragon/images/",
+  tileSources: duomo
 });
