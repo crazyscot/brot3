@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.9",
+    "@types/openseadragon": "^3.0.10",
     "typescript": "^5.2.2",
     "vite": "^5.1.0"
   },
