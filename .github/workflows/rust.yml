@@ -21,18 +21,18 @@ jobs:
     - run: rustup toolchain install stable --profile minimal --no-self-update
     - run: sudo apt-get -y install mold
     - name: Code style check
-      run: cargo fmt --all -- --check --verbose
+      run: cargo fmt --all -- --check
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2
     # we used to use actions/cache@v4
     - name: Build (debug)
-      run: cargo build --profile ci --verbose --all-targets
+      run: cargo build --profile ci --all-targets
     #- name: Build (release)
-    #  run: cargo build --release --verbose --benches
+    #  run: cargo build --release --benches
     #  # we want to ensure the benches build... but we already do that in debug with --all-targets
     - name: Run tests
-      run: cargo test --profile ci --verbose
+      run: cargo test --profile ci
     #- name: Run tests (release config)
     #  run: cargo test --release --verbose
     - name: Clippy Checks
-      run: cargo clippy --profile ci --verbose --all-features --all-targets
+      run: cargo clippy --profile ci --all-features --all-targets

@@ -35,7 +35,7 @@ impl Tile {
         new1
     }
 
-    /// Internal constructor used by new() and join()
+    /// Internal constructor used by `new()` and `join()`
     fn new_internal(spec: &TileSpec, debug: u8) -> Self {
         Self {
             debug,
