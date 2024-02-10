@@ -2,8 +2,8 @@ import './style.css'
 import { invoke } from '@tauri-apps/api'
 import OpenSeadragon from 'openseadragon'
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div id="seadragon-viewer" style="width: 400px; height: 400px;"></div>
+document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
+  <div id="seadragon-viewer" style="width: ${window.innerWidth}px; height: ${window.innerHeight}px;"></div>
 `
 
 // now we can call our Command!
@@ -30,5 +30,6 @@ var duomo = {
 var viewer = OpenSeadragon({
   id: "seadragon-viewer",
   prefixUrl: "//openseadragon.github.io/openseadragon/images/",
-  tileSources: duomo
+  tileSources: duomo,
+  homeFillsViewer: true
 });
