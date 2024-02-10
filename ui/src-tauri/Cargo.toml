@@ -1,13 +1,13 @@
 [package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+name = "brot3-ui"
+description = "Yet Another Fractal Plotter"
 license = ""
 repository = ""
-default-run = "app"
-edition = "2021"
+default-run = "brot3-ui"
 rust-version = "1.60"
+edition.workspace = true
+authors.workspace = true
+version.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
