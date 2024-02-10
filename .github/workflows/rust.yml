@@ -35,4 +35,5 @@ jobs:
     #- name: Run tests (release config)
     #  run: cargo test --release --verbose
     - name: Clippy Checks
-      run: cargo clippy --profile ci --all-features --all-targets
+      # N.B. --all-features doesn't build; we're not using tauri custom-protocol
+      run: cargo clippy --profile ci --all-targets
