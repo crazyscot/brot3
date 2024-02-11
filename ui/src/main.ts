@@ -10,19 +10,11 @@ document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
 let viewerElement = jQuery('#seadragon-viewer');
 if (viewerElement.height() == 0) {
   viewerElement.height(window.innerHeight);
-  console.log(`H set to ${viewerElement.height()}`)
 }
 if (viewerElement.width() == 0) {
   viewerElement.width(window.innerWidth);
-  console.log(`W set to ${viewerElement.width()}`)
 }
-
-// now we can call our Command!
-// Right-click the application background and open the developer tools.
-// You will see "Hello, World!" printed in the console!
-invoke('greet', { name: 'World' })
-  // `invoke` returns a Promise
-  .then((response) => console.log(response))
+console.log(`Window size is ${window.innerWidth} x ${window.innerHeight}`);
 
 class TilePostData {
   dx: number;
@@ -37,6 +29,21 @@ class TilePostData {
     return `${this.level}/${this.dx}-${this.dy}`;
   }
 };
+
+class TileSpec {
+  level: number;
+  dx: number;
+  dy: number;
+  width: number;
+  height: number;
+  constructor(data: TilePostData, width: number, height: number) {
+    this.level = data.level;
+    this.dx = data.dx;
+    this.dy = data.dy;
+    this.width = width;
+    this.height = height;
+  }
+}
 
 const TILE_SIZE = 256;
 const IMAGE_DIMENSION = 1024 * 1024;
@@ -78,16 +85,49 @@ var viewer = OpenSeadragon({
       // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
       // => At zoom level X, the image is 2^X pixels across.
 
-      let data = context.userData;
-      data.image = new Image(1, 1);
-      context.finish(data.image);
+      // context.postData...
 
-      // NEXT: Rust should call back ASYNC when there is image data.
+      let data = context.userData;
+      invoke('tile', {
+        spec: new TileSpec(context.postData, TILE_SIZE, TILE_SIZE)
+      })
+        .then((response) => {
+          // "convert the data to a canvas and return its 2D context"
+          // response.blob is a byte array
+          let blob = new Uint8ClampedArray(response.blob);
+          let image = new ImageData(blob, TILE_SIZE, TILE_SIZE, { "colorSpace": "srgb" });
+          let canvas = document.createElement("canvas");
+          let ctx2d = canvas.getContext("2d");
+          ctx2d?.putImageData(image, 0, 0);
+          context.finish(ctx2d);
+        })
+        .catch((e) => {
+          context.finish(null, null, e.toString());
+        });
     },
     downloadTileAbort: function (context) {
       // TODO halt (remove from queue?) // This is a Rust call.
     },
-    // TODO tileCache functions?
+    createTileCache: function (cache, data) {
+      cache._data = data;
+    },
+    destroyTileCache: function (cache) {
+      cache._data = null;
+    },
+    getTileCacheData: function(cache) {
+      return cache._data;
+    },
+    getTileCacheDataAsImage: function() {
+      // not implementing all the features brings limitations to the
+      // system, namely tile.getImage() will not work and also
+      // html-based drawing approach will not work
+      throw "getTileCacheDataAsImage not implemented";
+    },
+
+    getTileCacheDataAsContext2D: function(cache) {
+      // our data is already context2D - what a luck!
+      return cache._data;
+    }
   },
 });
 
