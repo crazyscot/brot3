@@ -1,6 +1,8 @@
 // Fractal algorithm selection, dispatch framework & shared code
 // (c) 2024 Ross Younger
 
+use std::str::FromStr;
+
 use super::{Point, PointData, ESCAPE_THRESHOLD_SQ};
 
 use super::mandelbrot::{Mandel3, Original};
@@ -8,7 +10,9 @@ use super::mandeldrop::{Mandeldrop, Mandeldrop3};
 use super::misc_fractals::{BirdOfPrey, Buffalo, BurningShip, Celtic, Mandelbar, Variant};
 
 use enum_delegate;
-use strum_macros::{Display, EnumDiscriminants, EnumMessage, EnumProperty, FromRepr, VariantArray};
+use strum_macros::{
+    Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, VariantArray,
+};
 
 /// Selector for available Algorithms
 #[enum_delegate::implement(Algorithm)]
@@ -17,7 +21,14 @@ use strum_macros::{Display, EnumDiscriminants, EnumMessage, EnumProperty, FromRe
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
     name(Selection),
-    derive(clap::ValueEnum, Display, EnumMessage, EnumProperty, VariantArray,)
+    derive(
+        clap::ValueEnum,
+        Display,
+        EnumMessage,
+        EnumProperty,
+        EnumString,
+        VariantArray,
+    )
 )] // ... and specifies what it derives from
 pub enum Instance {
     /// The original Mandelbrot set, `z := z^2+c` (aliases: "m", "m2")
@@ -70,6 +81,13 @@ pub fn factory(selection: Selection) -> Instance {
     Instance::from_repr(selection as usize).unwrap_or_else(|| {
         panic!("Failed to convert enum discriminant {selection} into instance (can't happen)")
     })
+}
+/// Factory-from-string method
+pub fn decode(request: &str) -> anyhow::Result<Instance> {
+    match Selection::from_str(request) {
+        Ok(s) => Ok(factory(s)),
+        Err(_) => anyhow::bail!("unknown fractal name"),
+    }
 }
 
 /// A fractal algorithm
