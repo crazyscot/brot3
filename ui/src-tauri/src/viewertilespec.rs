@@ -1,6 +1,10 @@
 // Tile spec from the OpenSeadragon viewer's point of view
 // (c) 2024 Ross Younger
 
+use brot3_engine::{
+    fractal::{self, Algorithm, Point, Scalar, TileSpec},
+    util::Rect,
+};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -15,4 +19,163 @@ pub struct ViewerTileSpec {
     pub width: usize,
     /// Tile height
     pub height: usize,
+}
+
+impl TryFrom<&ViewerTileSpec> for TileSpec {
+    type Error = anyhow::Error;
+
+    fn try_from(spec: &ViewerTileSpec) -> anyhow::Result<Self> {
+        let alg_requested = "Original"; // TODO this will come from spec
+        let algorithm = fractal::decode(alg_requested)?;
+        anyhow::ensure!(spec.level < 64, "zoom too deep");
+        anyhow::ensure!(spec.width == spec.height, "only square tiles supported");
+        // Map the total number of pixels across the zoom level into the algorithm's full axes
+        let total_dimension: u64 = 1 << spec.level;
+        let tile_count: u64 = total_dimension / spec.width as u64;
+        // now we know where we are in integer co-ordinates, map into reals.
+        // axes are easy :-)
+        let tile_axes = algorithm.default_axes() / tile_count as Scalar;
+
+        // origin is a little more work... we again face the top-left vs bottom-left war.
+        let total_bottom_left = algorithm.default_centre() - 0.5 * algorithm.default_axes();
+        let total_top_left = Point {
+            re: total_bottom_left.re,
+            im: total_bottom_left.im + algorithm.default_axes().im,
+        };
+
+        let tile_top_left = Point {
+            re: total_top_left.re + spec.dx as Scalar * tile_axes.re,
+            im: total_top_left.im - spec.dy as Scalar * tile_axes.im,
+        };
+        let tile_bottom_left = Point {
+            re: tile_top_left.re,
+            im: tile_top_left.im - tile_axes.im,
+        };
+
+        let output_size = Rect::new(spec.width as u32, spec.height as u32);
+        Ok(TileSpec::new(
+            tile_bottom_left,
+            tile_axes,
+            output_size,
+            algorithm,
+        ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ViewerTileSpec;
+    use approx::assert_relative_eq;
+    use brot3_engine::fractal::{self, Algorithm, Point, TileSpec};
+
+    const DEFAULT_SPEC: ViewerTileSpec = ViewerTileSpec {
+        level: 9,
+        dx: 0,
+        dy: 0,
+        width: 256,
+        height: 256,
+        // TODO this will be Original fractal
+    };
+
+    #[test]
+    fn convert_level_9() {
+        // at level 9, a 256x256 tile is exactly a quarter of the total image
+        // therefore, tile(0,0) top-left should match the overall top-left and end at the centre
+        // and tile (1,1) should start at the centre and end bottom-right
+        let alg = fractal::factory(fractal::Selection::Original);
+        let alg_centre = alg.default_centre();
+        let alg_origin = alg_centre - 0.5 * alg.default_axes();
+        let alg_top_left = alg_origin
+            + Point {
+                re: 0.0,
+                im: alg.default_axes().im,
+            };
+        let alg_end = alg_origin + alg.default_axes();
+        let mut td = DEFAULT_SPEC;
+        {
+            // tile(0,0) top-left (NOT ORIGIN) should match the overall top-left; its bottom-right should be the centre
+            let ts = TileSpec::try_from(&td).unwrap();
+            let top_left = ts.top_left();
+            assert_relative_eq!(top_left.re, alg_top_left.re);
+            assert_relative_eq!(top_left.im, alg_top_left.im);
+            let bottom_right = ts.bottom_right();
+            assert_relative_eq!(bottom_right.re, alg.default_centre().re);
+            assert_relative_eq!(bottom_right.im, alg.default_centre().im);
+        }
+        {
+            // tile (1,1) should start (top-left) at the centre and end bottom-right
+            td.dx = 1;
+            td.dy = 1;
+            let ts = TileSpec::try_from(&td).unwrap();
+            assert_relative_eq!(ts.top_left().re, alg_centre.re);
+            assert_relative_eq!(ts.top_left().im, alg_centre.im);
+            assert_relative_eq!(ts.bottom_right().re, alg_end.re);
+            assert_relative_eq!(ts.bottom_right().im, -alg_end.im);
+        }
+    }
+
+    #[test]
+    fn convert_level_13() {
+        // at level 13, the total image is 2^13 pixels across
+        // therefore there are 32 256x256 tiles in either dimension
+        let alg = fractal::factory(fractal::Selection::Original);
+        let alg_centre = alg.default_centre();
+        let alg_origin = alg_centre - 0.5 * alg.default_axes();
+        let alg_end = alg_origin + alg.default_axes();
+
+        let mut td = DEFAULT_SPEC;
+        td.level = 13;
+        // 1. check tile (0,0) has the same top left as overall
+        {
+            let ts = TileSpec::try_from(&td).unwrap();
+            assert_relative_eq!(ts.top_left().re, alg_origin.re);
+            assert_relative_eq!(ts.top_left().im, alg_end.im);
+        }
+        // 2. tile(15,15) should bottom-right at the centre
+        {
+            td.dx = 15;
+            td.dy = 15;
+            let ts = TileSpec::try_from(&td).unwrap();
+            assert_relative_eq!(ts.bottom_right().re, alg_centre.re);
+            assert_relative_eq!(ts.bottom_right().im, alg_centre.im);
+        }
+        // 3. tile (16,16) should top-left at the centre
+        {
+            td.dx = 16;
+            td.dy = 16;
+            let ts = TileSpec::try_from(&td).unwrap();
+            assert_relative_eq!(ts.top_left().re, alg_centre.re);
+            assert_relative_eq!(ts.top_left().im, alg_centre.im);
+        }
+        // 4. tile (31,0) is the top right tile, so the real axis ends where the overall plot's real axis does
+        {
+            td.dx = 31;
+            td.dy = 0;
+            let ts = TileSpec::try_from(&td).unwrap();
+            assert_relative_eq!(ts.bottom_right().re, alg_end.re);
+        }
+        // 5. tile (0,31) is the bottom left, so the imaginary axis ends where the overall plot's imag axis starts
+        {
+            td.dx = 0;
+            td.dy = 31;
+            let ts = TileSpec::try_from(&td).unwrap();
+            assert_relative_eq!(ts.bottom_right().im, alg_origin.im);
+        }
+    }
+
+    #[test]
+    fn invalid_conversions() {
+        let mut td = ViewerTileSpec {
+            level: 65,
+            dx: 0,
+            dy: 0,
+            width: 256,
+            height: 256,
+        };
+        TileSpec::try_from(&td).expect_err("should have failed");
+        td.level = 10;
+        TileSpec::try_from(&td).expect("should have succeeded");
+        td.width += 1;
+        TileSpec::try_from(&td).expect_err("should have failed");
+    }
 }
