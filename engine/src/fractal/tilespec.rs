@@ -34,7 +34,7 @@ pub enum SplitMethod {
 }
 
 /// Canonicalised data about a plot.
-/// For convenient construction, use From<&``UserPlotData``>.
+/// For convenient construction, use ``From<&PlotSpec>``.
 impl TileSpec {
     /// Computes the pixel size for this spec.
     #[must_use]
@@ -155,7 +155,7 @@ impl TileSpec {
 
     /// Automatically adjusts this spec to make the pixels square.
     /// This is done by growing the real or imaginary axis to suit.
-    /// Obviously, you must call this before ``Tilespec::split()`` !
+    /// Obviously, you must call this before ``split()`` !
     /// Return: If we did anything, returns the new Axes value.
     pub fn auto_adjust_aspect_ratio(&mut self) -> anyhow::Result<Option<Point>> {
         let axes_aspect = self.axes.re / self.axes.im;

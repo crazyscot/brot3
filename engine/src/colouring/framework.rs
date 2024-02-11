@@ -1,10 +1,12 @@
 // Palette selection & dispatch framework
 // (c) 2024 Ross Younger
 
+use std::str::FromStr;
+
 use enum_delegate;
 use palette::{convert::FromColorUnclamped, Hsv, Srgb};
 use strum_macros::{
-    self, Display, EnumDiscriminants, EnumMessage, EnumProperty, FromRepr, VariantArray,
+    self, Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, VariantArray,
 };
 
 use super::direct_rgb::{
@@ -23,7 +25,14 @@ pub type Rgb8 = palette::Srgb<u8>;
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
     name(Selection),
-    derive(clap::ValueEnum, Display, EnumMessage, EnumProperty, VariantArray,)
+    derive(
+        clap::ValueEnum,
+        Display,
+        EnumMessage,
+        EnumProperty,
+        EnumString,
+        VariantArray,
+    )
 )] // ... and specifies what it derives from
 pub enum Instance {
     /// Cyclic rainbow
@@ -90,6 +99,14 @@ pub fn factory(selection: Selection) -> Instance {
     Instance::from_repr(selection as usize).unwrap_or_else(|| {
         panic!("Failed to convert enum discriminant {selection} into instance (can't happen)")
     })
+}
+
+/// Factory-from-string method
+pub fn decode(request: &str) -> anyhow::Result<Instance> {
+    match Selection::from_str(request) {
+        Ok(s) => Ok(factory(s)),
+        Err(_) => anyhow::bail!("unknown colourer name"),
+    }
 }
 
 #[cfg(test)]

@@ -14,7 +14,7 @@ mod tilespec;
 mod userplotspec;
 
 #[allow(clippy::module_name_repetitions)]
-pub use framework::{factory, Algorithm, Instance, Selection};
+pub use framework::{decode, factory, Algorithm, Instance, Selection};
 pub use maths::{Point, Scalar};
 pub use pointdata::PointData;
 pub use tile::Tile;
