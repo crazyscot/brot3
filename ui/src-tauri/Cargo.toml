@@ -15,6 +15,7 @@ version.workspace = true
 tauri-build = { version = "1.5.1", features = [] }
 
 [dependencies]
+brot3-engine = { path = "../../engine" }
 anyhow = { workspace = true }
 bytes = { version = "1", features = ["serde"] }
 png = { workspace = true }
