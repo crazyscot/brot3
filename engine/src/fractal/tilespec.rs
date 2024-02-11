@@ -36,20 +36,6 @@ pub enum SplitMethod {
 /// Canonicalised data about a plot.
 /// For convenient construction, use ``From<&PlotSpec>``.
 impl TileSpec {
-    /// Computes the pixel size for this spec.
-    #[must_use]
-    pub fn pixel_size(&self) -> Point {
-        Point {
-            re: self.axes.re / Scalar::from(self.width()),
-            im: self.axes.im / Scalar::from(self.height()),
-        }
-    }
-    /// Computes the centre for this spec.
-    #[must_use]
-    pub fn centre(&self) -> Point {
-        self.origin + 0.5 * self.axes
-    }
-
     /// Constructor
     #[must_use]
     pub fn new(
@@ -188,22 +174,52 @@ impl TileSpec {
         }
     }
 
-    /// Accessor
+    /// Computing accessor for the pixel size for this spec.
+    #[must_use]
+    pub fn pixel_size(&self) -> Point {
+        Point {
+            re: self.axes.re / Scalar::from(self.width()),
+            im: self.axes.im / Scalar::from(self.height()),
+        }
+    }
+    /// Computing accessor for the centre of this spec.
+    #[must_use]
+    pub fn centre(&self) -> Point {
+        self.origin + 0.5 * self.axes
+    }
+    /// Accessor - Fractal origin i.e. smallest points in both axes; bottom-left point as drawn
     #[must_use]
     pub fn origin(&self) -> Point {
         self.origin
     }
+    /// Computing accessor - top left point as drawn (smallest real, largest imaginary)
+    #[must_use]
+    pub fn top_left(&self) -> Point {
+        Point {
+            re: self.origin.re,
+            im: self.origin.im + self.axes.im,
+        }
+    }
+    /// Computing accessor - bottom right point as drawn (largest real, smallest imaginary)
+    #[must_use]
+    pub fn bottom_right(&self) -> Point {
+        Point {
+            re: self.origin.re + self.axes.re,
+            im: self.origin.im,
+        }
+    }
+
     /// Accessor
     #[must_use]
     pub fn axes(&self) -> Point {
         self.axes
     }
-    /// Accessor
+    /// Accessor - height in pixels
     #[must_use]
     pub fn height(&self) -> u32 {
         self.size_in_pixels.height
     }
-    /// Accessor
+    /// Accessor - width in pixels
     #[must_use]
     pub fn width(&self) -> u32 {
         self.size_in_pixels.width
@@ -354,6 +370,20 @@ mod tests {
     fn centre_computed() {
         let result = TileSpec::from(&TD_CENTRE);
         assert_eq!(result.origin, TD_CENTRE_ORIGIN);
+    }
+    #[test]
+    fn top_left_computed() {
+        let ts = TileSpec::from(&TD_CENTRE);
+        // centre(1,2) & axes (1,1) => top-left (0.5,2.5)
+        let expected = Point { re: 0.5, im: 2.5 };
+        assert_eq!(ts.top_left(), expected);
+    }
+    #[test]
+    fn bottom_right_computed() {
+        let ts = TileSpec::from(&TD_CENTRE);
+        // centre(1,2) & axes (1,1) => top-left (1.5,1.5)
+        let expected = Point { re: 1.5, im: 1.5 };
+        assert_eq!(ts.bottom_right(), expected);
     }
 
     const TD_200H: PlotSpec = PlotSpec {
