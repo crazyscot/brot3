@@ -31,6 +31,7 @@ class TilePostData {
 };
 
 class TileSpec {
+  // TODO: fractal, colourer
   level: number;
   dx: number;
   dy: number;
@@ -53,15 +54,15 @@ var viewer = OpenSeadragon({
   prefixUrl: "/openseadragon/images/",
   homeFillsViewer: true,
   autoResize: true,
-  preserveImageSizeOnResize:true,
+  preserveImageSizeOnResize: true,
   visibilityRatio: 1.0,
-  debugMode: true,
+  debugMode: false,
   tileSources: {
     height: IMAGE_DIMENSION,
     width: IMAGE_DIMENSION,
     tileSize: TILE_SIZE,
-    minLevel: 9,
-    tileOverlap: 1,
+    minLevel: 8,
+    tileOverlap: 0,
     getTileUrl: function (level, x, y) {
       // TODO add fractal, colour (or we'll break cacheing!)
       return `${level}/${x}-${y}`;
@@ -72,22 +73,10 @@ var viewer = OpenSeadragon({
       return new TilePostData(level, x, y);
     },
     downloadTileStart: function (context) {
-      // TODO shell out to rust. we can put our stuff (e.g. memos) in userData. call ctx.finish() when done.
-      // A queue of outstanding jobs, parallelisable? Manage these in Rust, I think.
-      // See https://tauri.app/v1/guides/features/command : they can be async.
-      // All returns must be serde::Serialize.
-      // looks like commands are async to JS. Are they allowed to block? They can be async.
-
-      // Data for Rust:
-      // Fractal, Colourer, Level/X/Y [we'll have rust figure it out]
-      //console.log(`DLTS ${context.postData}`);
       // tile dx and dy are the column and row numbers FOR THE ZOOM LEVEL.
       // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
       // => At zoom level X, the image is 2^X pixels across.
 
-      // context.postData...
-
-      let data = context.userData;
       invoke('tile', {
         spec: new TileSpec(context.postData, TILE_SIZE, TILE_SIZE)
       })
@@ -97,6 +86,8 @@ var viewer = OpenSeadragon({
           let blob = new Uint8ClampedArray(response.blob);
           let image = new ImageData(blob, TILE_SIZE, TILE_SIZE, { "colorSpace": "srgb" });
           let canvas = document.createElement("canvas");
+          canvas.width = TILE_SIZE;
+          canvas.height = TILE_SIZE;
           let ctx2d = canvas.getContext("2d");
           ctx2d?.putImageData(image, 0, 0);
           context.finish(ctx2d);
