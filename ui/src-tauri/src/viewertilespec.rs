@@ -1,6 +1,8 @@
 // Tile spec from the OpenSeadragon viewer's point of view
 // (c) 2024 Ross Younger
 
+use std::fmt;
+
 use brot3_engine::{
     fractal::{self, Algorithm, Point, Scalar, TileSpec},
     util::Rect,
@@ -10,15 +12,21 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct ViewerTileSpec {
     /// Zoom level (OpenSeadragon spec; level X means a square image is represented by 2^X pixels in either dimension)
-    pub level: usize,
+    pub level: u32,
     /// Column indicator for the tile (0-based)
-    pub dx: usize,
+    pub dx: u64,
     /// Row indicator for the tile (0-based)
-    pub dy: usize,
-    /// Tile width
-    pub width: usize,
-    /// Tile height
-    pub height: usize,
+    pub dy: u64,
+    /// Tile width (pixels)
+    pub width: u32,
+    /// Tile height (pixels)
+    pub height: u32,
+}
+
+impl fmt::Display for ViewerTileSpec {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}/{}-{}", self.level, self.dx, self.dy)
+    }
 }
 
 impl TryFrom<&ViewerTileSpec> for TileSpec {
@@ -52,7 +60,7 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
             im: tile_top_left.im - tile_axes.im,
         };
 
-        let output_size = Rect::new(spec.width as u32, spec.height as u32);
+        let output_size = Rect::new(spec.width, spec.height);
         Ok(TileSpec::new(
             tile_bottom_left,
             tile_axes,
