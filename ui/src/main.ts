@@ -46,7 +46,7 @@ class TileSpec {
   }
 }
 
-const TILE_SIZE = 256;
+const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024;
 
 var viewer = OpenSeadragon({
@@ -57,6 +57,8 @@ var viewer = OpenSeadragon({
   preserveImageSizeOnResize: true,
   visibilityRatio: 1.0,
   debugMode: false,
+  showRotationControl: false,
+  rotationIncrement: 15,
   tileSources: {
     height: IMAGE_DIMENSION,
     width: IMAGE_DIMENSION,
