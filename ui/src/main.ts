@@ -89,8 +89,8 @@ var viewer = OpenSeadragon({
       })
         .then((response) => {
           // "convert the data to a canvas and return its 2D context"
-          // response.blob is a byte array
-          let blob = new Uint8ClampedArray(response.blob);
+          // response.rgba_blob is a byte array
+          let blob = new Uint8ClampedArray(response.rgba_blob);
           let image = new ImageData(blob, TILE_SIZE, TILE_SIZE, { "colorSpace": "srgb" });
           let canvas = document.createElement("canvas");
           canvas.width = TILE_SIZE;

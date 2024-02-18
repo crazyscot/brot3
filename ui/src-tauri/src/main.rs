@@ -14,6 +14,6 @@ fn main() {
 }
 
 #[tauri::command]
-fn tile(spec: ViewerTileSpec) -> Result<tile_bridge::RGBABlob, String> {
+fn tile(spec: ViewerTileSpec) -> Result<tile_bridge::TileResponse, String> {
     tile_bridge::render_tile(spec).map_err(|e| e.to_string())
 }
