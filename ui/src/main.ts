@@ -2,6 +2,7 @@ import './style.css'
 import { invoke } from '@tauri-apps/api'
 import OpenSeadragon from 'openseadragon'
 import jQuery from 'jquery'
+import { SerialAllocator } from './serial_allocator'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
 <div id="seadragon-viewer"></div>
@@ -30,14 +31,18 @@ class TilePostData {
   }
 };
 
+var gSerial = new SerialAllocator();
+
 class TileSpec {
   // TODO: fractal, colourer
+  serial: number;
   level: number;
   dx: number;
   dy: number;
   width: number;
   height: number;
-  constructor(data: TilePostData, width: number, height: number) {
+  constructor(serial: number, data: TilePostData, width: number, height: number) {
+    this.serial = serial; // Always obtain from gSerial.next() !
     this.level = data.level;
     this.dx = data.dx;
     this.dy = data.dy;
@@ -74,13 +79,13 @@ var viewer = OpenSeadragon({
       // TODO add fractal, colour
       return new TilePostData(level, x, y);
     },
-    downloadTileStart: function (context) {
+    downloadTileStart: async function (context) {
       // tile dx and dy are the column and row numbers FOR THE ZOOM LEVEL.
       // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
       // => At zoom level X, the image is 2^X pixels across.
 
       invoke('tile', {
-        spec: new TileSpec(context.postData, TILE_SIZE, TILE_SIZE)
+        spec: new TileSpec(await gSerial.next(), context.postData, TILE_SIZE, TILE_SIZE)
       })
         .then((response) => {
           // "convert the data to a canvas and return its 2D context"

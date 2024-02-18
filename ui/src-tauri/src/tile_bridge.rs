@@ -12,6 +12,7 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct RGBABlob {
+    serial: u64,
     blob: bytes::Bytes,
 }
 
@@ -24,6 +25,7 @@ pub fn render_tile(spec: ViewerTileSpec) -> anyhow::Result<RGBABlob> {
     tile.plot(512); // TODO specify max_iter, or even go dynamic
 
     Ok(RGBABlob {
+        serial: spec.serial,
         blob: render::as_rgba(&tile, colourer).into(),
     })
 }

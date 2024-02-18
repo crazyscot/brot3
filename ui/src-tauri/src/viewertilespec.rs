@@ -11,6 +11,8 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct ViewerTileSpec {
+    /// Request serial number from viewer
+    pub serial: u64,
     /// Zoom level (OpenSeadragon spec; level X means a square image is represented by 2^X pixels in either dimension)
     pub level: u32,
     /// Column indicator for the tile (0-based)
@@ -77,6 +79,7 @@ mod tests {
     use brot3_engine::fractal::{self, Algorithm, Point, TileSpec};
 
     const DEFAULT_SPEC: ViewerTileSpec = ViewerTileSpec {
+        serial: 42,
         level: 9,
         dx: 0,
         dy: 0,
@@ -174,6 +177,7 @@ mod tests {
     #[test]
     fn invalid_conversions() {
         let mut td = ViewerTileSpec {
+            serial: 42,
             level: 65,
             dx: 0,
             dy: 0,
