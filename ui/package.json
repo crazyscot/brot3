@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.3",
+    "async-mutex": "^0.4.1",
     "jquery": "^3.7.1",
     "openseadragon": "^4.1.0"
   }
