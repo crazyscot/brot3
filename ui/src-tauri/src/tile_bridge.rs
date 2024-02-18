@@ -11,12 +11,12 @@ use brot3_engine::{
 use serde::Serialize;
 
 #[derive(Serialize)]
-pub struct RGBABlob {
+pub struct TileResponse {
     serial: u64,
-    blob: bytes::Bytes,
+    rgba_blob: bytes::Bytes,
 }
 
-pub fn render_tile(spec: ViewerTileSpec) -> anyhow::Result<RGBABlob> {
+pub fn render_tile(spec: ViewerTileSpec) -> anyhow::Result<TileResponse> {
     let colourer_requested = "LogRainbow"; // TODO this will come from spec
     let colourer = colouring::decode(colourer_requested)?;
 
@@ -24,8 +24,8 @@ pub fn render_tile(spec: ViewerTileSpec) -> anyhow::Result<RGBABlob> {
     let mut tile = Tile::new(&engine_spec, 0);
     tile.plot(512); // TODO specify max_iter, or even go dynamic
 
-    Ok(RGBABlob {
+    Ok(TileResponse {
         serial: spec.serial,
-        blob: render::as_rgba(&tile, colourer).into(),
+        rgba_blob: render::as_rgba(&tile, colourer).into(),
     })
 }
