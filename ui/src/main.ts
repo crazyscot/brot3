@@ -1,5 +1,6 @@
 import './style.css'
 import { invoke } from '@tauri-apps/api'
+import { listen } from '@tauri-apps/api/event'
 import OpenSeadragon from 'openseadragon'
 import jQuery from 'jquery'
 import { SerialAllocator } from './serial_allocator'
@@ -51,8 +52,37 @@ class TileSpec {
   }
 }
 
+class TileResponse {
+  serial: number;
+  rgba_blob: Uint8Array;
+  constructor() {
+    this.serial = 0;
+    this.rgba_blob = new Uint8Array();
+  }
+}
+
 const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024;
+
+let outstanding_requests = new Map<number, any/*OpenSeadragon.ImageJob*/>();
+
+const unlisten_tile_complete = await listen<TileResponse>('tile_complete', (event) => {
+  let response: TileResponse = event.payload;
+  let context = outstanding_requests.get(response.serial);
+  console.log(`got ${response.serial}`);
+
+  // "convert the data to a canvas and return its 2D context"
+  // response.rgba_blob is a byte array
+  let blob = new Uint8ClampedArray(response.rgba_blob);
+  let image = new ImageData(blob, TILE_SIZE, TILE_SIZE, { "colorSpace": "srgb" });
+  let canvas = document.createElement("canvas");
+  canvas.width = TILE_SIZE;
+  canvas.height = TILE_SIZE;
+  let ctx2d = canvas.getContext("2d");
+  ctx2d?.putImageData(image, 0, 0);
+  context.finish(ctx2d);
+});
+// Note the before-destroy handler we set up below.
 
 var viewer = OpenSeadragon({
   id:         "seadragon-viewer",
@@ -64,12 +94,14 @@ var viewer = OpenSeadragon({
   debugMode: false,
   showRotationControl: false,
   rotationIncrement: 15,
+
   tileSources: {
     height: IMAGE_DIMENSION,
     width: IMAGE_DIMENSION,
     tileSize: TILE_SIZE,
     minLevel: 8,
     tileOverlap: 0,
+
     getTileUrl: function (level, x, y) {
       // TODO add fractal, colour (or we'll break cacheing!)
       return `${level}/${x}-${y}`;
@@ -84,24 +116,14 @@ var viewer = OpenSeadragon({
       // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
       // => At zoom level X, the image is 2^X pixels across.
 
-      invoke('tile', {
-        spec: new TileSpec(await gSerial.next(), context.postData, TILE_SIZE, TILE_SIZE)
+      let spec = new TileSpec(await gSerial.next(), context.postData, TILE_SIZE, TILE_SIZE);
+      outstanding_requests.set(spec.serial, context);
+      invoke('start_tile', {
+        spec: spec
       })
-        .then((response) => {
-          // "convert the data to a canvas and return its 2D context"
-          // response.rgba_blob is a byte array
-          let blob = new Uint8ClampedArray(response.rgba_blob);
-          let image = new ImageData(blob, TILE_SIZE, TILE_SIZE, { "colorSpace": "srgb" });
-          let canvas = document.createElement("canvas");
-          canvas.width = TILE_SIZE;
-          canvas.height = TILE_SIZE;
-          let ctx2d = canvas.getContext("2d");
-          ctx2d?.putImageData(image, 0, 0);
-          context.finish(ctx2d);
-        })
-        .catch((e) => {
-          context.finish(null, null, e.toString());
-        });
+      .catch((e) => {
+        context.finish(null, null, e.toString());
+      });
     },
     downloadTileAbort: function (context) {
       // TODO halt (remove from queue?) // This is a Rust call.
@@ -125,10 +147,11 @@ var viewer = OpenSeadragon({
     getTileCacheDataAsContext2D: function(cache) {
       // our data is already context2D - what a luck!
       return cache._data;
-    }
+    },
   },
 });
 
+viewer.addHandler("before-destroy", function () { unlisten_tile_complete(); });
 
 // Rather than caning the system as we get a resize event for every pixel, add a slight debounce
 let redrawer: number|undefined = undefined;
