@@ -22,7 +22,7 @@ lto = "thin"
 
 [workspace.dependencies]
 anyhow = "1.0.79"
-clap = "4.5.0"
+clap = "4.5.1"
 rayon = "1.8.1"
 strum = { version = "0.26.1", features = ["derive"] }
 strum_macros = "0.26.1"
