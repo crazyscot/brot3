@@ -7,12 +7,14 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "brot3",
-    "version": "0.1.0"
+    "productName": "brot3"
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false,
+      "window": {
+        "setTitle": true
+      }
     },
     "bundle": {
       "active": true,
