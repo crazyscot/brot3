@@ -38,6 +38,7 @@ class TilePostData {
 
 var gSerial = new SerialAllocator();
 
+/// Twin of Rust ViewerTileSpec struct. This class is also the userData element of ImageJob.userData.
 class TileSpec {
   // TODO: fractal, colourer
   serial: number;
@@ -73,7 +74,8 @@ let outstanding_requests = new Map<number, any/*OpenSeadragon.ImageJob*/>();
 const unlisten_tile_complete = await listen<TileResponse>('tile_complete', (event) => {
   let response: TileResponse = event.payload;
   let context = outstanding_requests.get(response.serial);
-  console.log(`got ${response.serial}`);
+  let spec:TileSpec = context.userData;
+  console.log(`got tile #${response.serial} = ${spec.level}/${spec.dx}-${spec.dy}`);
 
   // "convert the data to a canvas and return its 2D context"
   // response.rgba_blob is a byte array
@@ -115,12 +117,13 @@ var viewer = OpenSeadragon({
       // TODO add fractal, colour
       return new TilePostData(level, x, y);
     },
-    downloadTileStart: async function (context) {
+    downloadTileStart: async function (context /*OpenSeadragon.ImageJob*/) {
       // tile dx and dy are the column and row numbers FOR THE ZOOM LEVEL.
       // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
       // => At zoom level X, the image is 2^X pixels across.
 
       let spec = new TileSpec(await gSerial.next(), context.postData, TILE_SIZE, TILE_SIZE);
+      context.userData = spec;
       outstanding_requests.set(spec.serial, context);
       invoke('start_tile', {
         spec: spec
