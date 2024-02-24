@@ -1,6 +1,8 @@
 import './style.css'
 import { invoke } from '@tauri-apps/api'
+import { getVersion } from '@tauri-apps/api/app'
 import { listen } from '@tauri-apps/api/event'
+import { appWindow } from '@tauri-apps/api/window'
 import OpenSeadragon from 'openseadragon'
 import jQuery from 'jquery'
 import { SerialAllocator } from './serial_allocator'
@@ -17,6 +19,8 @@ if (viewerElement.width() == 0) {
   viewerElement.width(window.innerWidth);
 }
 console.log(`Window size is ${window.innerWidth} x ${window.innerHeight}`);
+
+getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
 
 class TilePostData {
   dx: number;

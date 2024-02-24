@@ -21,7 +21,7 @@ bytes = { version = "1", features = ["serde"] }
 png = { workspace = true }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.5.4", features = [] }
+tauri = { version = "1.5.4", features = ["window-set-title"] }
 
 [dev-dependencies]
 approx = "0.5.1"
