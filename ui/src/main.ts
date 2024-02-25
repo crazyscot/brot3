@@ -1,3 +1,6 @@
+// brot3 main UI
+// (c) 2024 Ross Younger
+
 import './style.css'
 import { invoke } from '@tauri-apps/api'
 import { getVersion } from '@tauri-apps/api/app'
@@ -6,6 +9,7 @@ import { appWindow } from '@tauri-apps/api/window'
 import OpenSeadragon from 'openseadragon'
 import jQuery from 'jquery'
 import { SerialAllocator } from './serial_allocator'
+import { TileSpec, TileResponse, TilePostData } from './engine_types'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
 <div id="seadragon-viewer"></div>
@@ -27,49 +31,7 @@ async function setupWindow() {
 
 setupWindow();
 
-class TilePostData {
-  dx: number;
-  dy: number;
-  level: number;
-  constructor(l: number, x: number, y: number) {
-    this.dx = x;
-    this.dy = y;
-    this.level = l;
-  }
-  toString(): string {
-    return `${this.level}/${this.dx}-${this.dy}`;
-  }
-};
-
 var gSerial = new SerialAllocator();
-
-/// Twin of Rust ViewerTileSpec struct. This class is also the userData element of ImageJob.userData.
-class TileSpec {
-  // TODO: fractal, colourer
-  serial: number;
-  level: number;
-  dx: number;
-  dy: number;
-  width: number;
-  height: number;
-  constructor(serial: number, data: TilePostData, width: number, height: number) {
-    this.serial = serial; // Always obtain from gSerial.next() !
-    this.level = data?.level || 0;
-    this.dx = data?.dx || 0;
-    this.dy = data?.dy || 0;
-    this.width = width;
-    this.height = height;
-  }
-}
-
-class TileResponse {
-  serial: number;
-  rgba_blob: Uint8Array;
-  constructor() {
-    this.serial = 0;
-    this.rgba_blob = new Uint8Array();
-  }
-}
 
 const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
