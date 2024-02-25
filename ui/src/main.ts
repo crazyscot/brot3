@@ -1,7 +1,7 @@
 import './style.css'
 import { invoke } from '@tauri-apps/api'
 import { getVersion } from '@tauri-apps/api/app'
-import { listen } from '@tauri-apps/api/event'
+import { UnlistenFn, listen } from '@tauri-apps/api/event'
 import { appWindow } from '@tauri-apps/api/window'
 import OpenSeadragon from 'openseadragon'
 import jQuery from 'jquery'
@@ -20,7 +20,12 @@ if (viewerElement.width() == 0) {
 }
 console.log(`Window size is ${window.innerWidth} x ${window.innerHeight}`);
 
-getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
+async function setWindowTitle()
+{
+  getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
+}
+
+setWindowTitle();
 
 class TilePostData {
   dx: number;
@@ -71,24 +76,30 @@ const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
 
 let outstanding_requests = new Map<number, any/*OpenSeadragon.ImageJob*/>();
 
-const unlisten_tile_complete = await listen<TileResponse>('tile_complete', (event) => {
-  let response: TileResponse = event.payload;
-  let context = outstanding_requests.get(response.serial);
-  let spec:TileSpec = context.userData;
-  console.log(`got tile #${response.serial} = ${spec.level}/${spec.dx}-${spec.dy}`);
+let g_unlisten_tile_complete: UnlistenFn|null = null;
 
-  // "convert the data to a canvas and return its 2D context"
-  // response.rgba_blob is a byte array
-  let blob = new Uint8ClampedArray(response.rgba_blob);
-  let image = new ImageData(blob, TILE_SIZE, TILE_SIZE, { "colorSpace": "srgb" });
-  let canvas = document.createElement("canvas");
-  canvas.width = TILE_SIZE;
-  canvas.height = TILE_SIZE;
-  let ctx2d = canvas.getContext("2d");
-  ctx2d?.putImageData(image, 0, 0);
-  context.finish(ctx2d);
-});
+async function bind_tile_complete_event() {
+    g_unlisten_tile_complete = await listen<TileResponse>('tile_complete', (event) => {
+    let response: TileResponse = event.payload;
+    let context = outstanding_requests.get(response.serial);
+    let spec:TileSpec = context.userData;
+    console.log(`got tile #${response.serial} = ${spec.level}/${spec.dx}-${spec.dy}`);
+
+    // "convert the data to a canvas and return its 2D context"
+    // response.rgba_blob is a byte array
+    let blob = new Uint8ClampedArray(response.rgba_blob);
+    let image = new ImageData(blob, TILE_SIZE, TILE_SIZE, { "colorSpace": "srgb" });
+    let canvas = document.createElement("canvas");
+    canvas.width = TILE_SIZE;
+    canvas.height = TILE_SIZE;
+    let ctx2d = canvas.getContext("2d");
+    ctx2d?.putImageData(image, 0, 0);
+    context.finish(ctx2d);
+  });
+}
 // Note the before-destroy handler we set up below.
+
+bind_tile_complete_event();
 
 var viewer = OpenSeadragon({
   id:         "seadragon-viewer",
@@ -162,7 +173,7 @@ var viewer = OpenSeadragon({
   },
 });
 
-viewer.addHandler("before-destroy", function () { unlisten_tile_complete(); });
+viewer.addHandler("before-destroy", function () { g_unlisten_tile_complete?.(); });
 
 // Rather than caning the system as we get a resize event for every pixel, add a slight debounce
 let redrawer: number|undefined = undefined;
