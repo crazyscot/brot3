@@ -67,7 +67,7 @@ class TileResponse {
 }
 
 const TILE_SIZE = 128;
-const IMAGE_DIMENSION = 1024 * 1024;
+const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
 
 let outstanding_requests = new Map<number, any/*OpenSeadragon.ImageJob*/>();
 
