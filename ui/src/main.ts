@@ -132,8 +132,12 @@ var viewer = OpenSeadragon({
         context.finish(null, null, e.toString());
       });
     },
-    downloadTileAbort: function (context) {
-      // TODO halt (remove from queue?) // This is a Rust call.
+    downloadTileAbort: function (context /*OpenSeadragon.ImageJob*/) {
+      console.log(`OSD abort: tile #${context.userData.serial}`);
+      invoke('abort_tile', { serial: context.userData.serial })
+      .catch((e) => {
+        context.finish(null, null, e.toString());
+      });
     },
     createTileCache: function (cache, data) {
       cache._data = data;

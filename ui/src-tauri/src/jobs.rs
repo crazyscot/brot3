@@ -15,6 +15,8 @@ impl OutstandingJobs {
     pub fn add(self: &OutstandingJobs, serial: u64, handle: tauri::async_runtime::JoinHandle<()>) {
         (*self.map.blocking_write()).insert(serial, handle);
     }
+
+    // this is NOT marked as must_use, because it is legitimate to ignore the returned value.
     pub fn remove_and_return(
         self: &OutstandingJobs,
         serial: u64,
