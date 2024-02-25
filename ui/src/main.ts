@@ -54,9 +54,9 @@ class TileSpec {
   height: number;
   constructor(serial: number, data: TilePostData, width: number, height: number) {
     this.serial = serial; // Always obtain from gSerial.next() !
-    this.level = data.level;
-    this.dx = data.dx;
-    this.dy = data.dy;
+    this.level = data?.level || 0;
+    this.dx = data?.dx || 0;
+    this.dy = data?.dy || 0;
     this.width = width;
     this.height = height;
   }
@@ -133,21 +133,21 @@ var viewer = OpenSeadragon({
       // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
       // => At zoom level X, the image is 2^X pixels across.
 
-      let spec = new TileSpec(await gSerial.next(), context.postData, TILE_SIZE, TILE_SIZE);
+      let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE);
       context.userData = spec;
       outstanding_requests.set(spec.serial, context);
       invoke('start_tile', {
         spec: spec
       })
       .catch((e) => {
-        context.finish(null, null, e.toString());
+        context?.finish?.(null, null, e.toString());
       });
     },
     downloadTileAbort: function (context: any /*OpenSeadragon.ImageJob*/) {
       console.log(`OSD abort: tile #${context.userData.serial}`);
       invoke('abort_tile', { serial: context.userData.serial })
       .catch((e) => {
-        context.finish(null, null, e.toString());
+        context.finish?.(null, null, e.toString());
       });
     },
     createTileCache: function (cache: any/*CacheObject*/, data: any) {
