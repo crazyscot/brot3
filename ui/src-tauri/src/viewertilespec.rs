@@ -9,6 +9,7 @@ use brot3_engine::{
 };
 use serde::Deserialize;
 
+/// Twin of TS TileSpec class
 #[derive(Deserialize)]
 pub struct ViewerTileSpec {
     /// Request serial number from viewer
