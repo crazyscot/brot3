@@ -10,22 +10,22 @@ import { SerialAllocator } from './serial_allocator'
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
 <div id="seadragon-viewer"></div>
 `;
-// Dynamically size to fill the window. This is also used to resize.
-let viewerElement = jQuery('#seadragon-viewer');
-if (viewerElement.height() == 0) {
-  viewerElement.height(window.innerHeight);
-}
-if (viewerElement.width() == 0) {
-  viewerElement.width(window.innerWidth);
-}
-console.log(`Window size is ${window.innerWidth} x ${window.innerHeight}`);
 
-async function setWindowTitle()
-{
+async function setupWindow() {
+  // Dynamically size to fill the window
+  let viewerElement = jQuery('#seadragon-viewer');
+  if (viewerElement.height() == 0) {
+    viewerElement.height(window.innerHeight);
+  }
+  if (viewerElement.width() == 0) {
+    viewerElement.width(window.innerWidth);
+  }
+  console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
+
   getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
 }
 
-setWindowTitle();
+setupWindow();
 
 class TilePostData {
   dx: number;
@@ -183,6 +183,7 @@ window.addEventListener('resize', function (_event) {
     this.clearTimeout(redrawer);
   }
   redrawer = setTimeout(function () {
+    let viewerElement = jQuery('#seadragon-viewer');
     console.log(`resizing to ${window.innerWidth} x ${window.innerHeight}`);
     viewerElement.height(window.innerHeight);
     viewerElement.width(window.innerWidth);
