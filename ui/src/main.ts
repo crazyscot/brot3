@@ -108,7 +108,7 @@ var viewer = OpenSeadragon({
     minLevel: 8,
     tileOverlap: 0,
 
-    getTileUrl: function (level, x, y) {
+    getTileUrl: function (level: number, x: number, y: number) {
       // TODO add fractal, colour (or we'll break cacheing!)
       return `${level}/${x}-${y}`;
     },
@@ -117,7 +117,7 @@ var viewer = OpenSeadragon({
       // TODO add fractal, colour
       return new TilePostData(level, x, y);
     },
-    downloadTileStart: async function (context /*OpenSeadragon.ImageJob*/) {
+    downloadTileStart: async function (context: any /* OpenSeadragon.ImageJob */) {
       // tile dx and dy are the column and row numbers FOR THE ZOOM LEVEL.
       // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
       // => At zoom level X, the image is 2^X pixels across.
@@ -132,20 +132,20 @@ var viewer = OpenSeadragon({
         context.finish(null, null, e.toString());
       });
     },
-    downloadTileAbort: function (context /*OpenSeadragon.ImageJob*/) {
+    downloadTileAbort: function (context: any /*OpenSeadragon.ImageJob*/) {
       console.log(`OSD abort: tile #${context.userData.serial}`);
       invoke('abort_tile', { serial: context.userData.serial })
       .catch((e) => {
         context.finish(null, null, e.toString());
       });
     },
-    createTileCache: function (cache, data) {
+    createTileCache: function (cache: any/*CacheObject*/, data: any) {
       cache._data = data;
     },
-    destroyTileCache: function (cache) {
+    destroyTileCache: function (cache: any/*CacheObject*/) {
       cache._data = null;
     },
-    getTileCacheData: function(cache) {
+    getTileCacheData: function(cache: any/*CacheObject*/) {
       return cache._data;
     },
     getTileCacheDataAsImage: function() {
@@ -155,7 +155,7 @@ var viewer = OpenSeadragon({
       throw "getTileCacheDataAsImage not implemented";
     },
 
-    getTileCacheDataAsContext2D: function(cache) {
+    getTileCacheDataAsContext2D: function(cache: any/*CacheObject*/) {
       // our data is already context2D - what a luck!
       return cache._data;
     },
