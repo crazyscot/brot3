@@ -7,7 +7,7 @@ import jQuery from 'jquery'
 import OpenSeadragon from 'openseadragon'
 
 import { SerialAllocator } from './serial_allocator'
-import { TileSpec, TileResponse, TilePostData } from './engine_types'
+import { TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
 
 var gSerial = new SerialAllocator();
 const TILE_SIZE = 128;
@@ -17,6 +17,7 @@ export class Viewer {
     osd: any | null;  // OpenSeadragon.Viewer
     redraw_event: number | undefined; // setTimeout / clearTimeout
     unlisten_tile_complete: UnlistenFn | null = null;
+    unlisten_tile_error: UnlistenFn | null = null;
     outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
 
     constructor() {
@@ -94,8 +95,11 @@ export class Viewer {
             },
         });
 
-        this.bind_tile_complete().then(() => {
-            this.osd.addHandler("before-destroy", function () { self.unlisten_tile_complete?.(); });
+        this.bind_events().then(() => {
+          this.osd.addHandler("before-destroy", function () {
+            self.unlisten_tile_complete?.();
+            self.unlisten_tile_error?.();
+          });
         });
 
         // Window resize
@@ -114,15 +118,17 @@ export class Viewer {
         }, true);
     }
 
-    async bind_tile_complete() {
-        this.unlisten_tile_complete = await listen<TileResponse>('tile_complete', (event) => {
-            this.on_tile_complete(event);
-        });
-        // Note the before-destroy handler we set up elsewhere.
+    async bind_events() {
+      this.unlisten_tile_complete = await listen<TileResponse>('tile_complete', (event) => {
+          this.on_tile_complete(event.payload);
+      });
+      this.unlisten_tile_error = await listen<TileError>('tile_error', (event) => {
+        this.on_tile_error(event.payload);
+      });
+      // Note the before-destroy handler we set up elsewhere.
     }
 
-    on_tile_complete(event: any) {
-        let response: TileResponse = event.payload;
+    on_tile_complete(response: TileResponse) {
         let context = this.outstanding_requests.get(response.serial);
         let spec:TileSpec = context.userData;
         console.log(`got tile #${response.serial} = ${spec.level}/${spec.dx}-${spec.dy}`);
@@ -138,6 +144,12 @@ export class Viewer {
         ctx2d?.putImageData(image, 0, 0);
         context.finish(ctx2d);
     }
+    on_tile_error(err: TileError) {
+      let context = this.outstanding_requests.get(err.serial);
+      //let spec:TileSpec = context.userData;
+      context?.finish?.(null, null, err.error);
+    }
 
+    // dummy function to shut up a linter warning in main.ts
     noop() { }
 }
