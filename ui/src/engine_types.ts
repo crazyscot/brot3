@@ -30,6 +30,16 @@ export class TileResponse {
   }
 }
 
+/// Twin of Rust TileError struct.
+export class TileError {
+  serial: number;
+  error: string;
+  constructor() {
+    this.serial = 0;
+    this.error = "";
+  }
+}
+
 /// Class used within OpenSeadragon as a bridge to our TileSpec
 export class TilePostData {
     dx: number;

@@ -18,39 +18,58 @@ pub struct TileResponse {
     rgba_blob: bytes::Bytes,
 }
 
-#[tauri::command]
-pub fn start_tile(spec: ViewerTileSpec, app_handle: tauri::AppHandle) -> Result<(), String> {
-    let serial = spec.serial;
+#[derive(Serialize, Clone)]
+pub struct TileError {
+    serial: u64,
+    error: String,
+}
+
+fn draw_tile(spec: &ViewerTileSpec, app_handle: &tauri::AppHandle) -> anyhow::Result<(), String> {
     let colourer_requested = "LogRainbow"; // TODO this will come from spec
     let colourer = colouring::decode(colourer_requested).map_err(|e| e.to_string())?;
-    let engine_spec = TileSpec::try_from(&spec).map_err(|e| e.to_string())?;
-
-    let app_handle_for_cb = app_handle.clone();
-
-    let job = ::tauri::async_runtime::spawn_blocking(move || {
-        let mut tile = Tile::new(&engine_spec, 0);
-        tile.plot(512); // TODO specify max_iter, or even go dynamic
-        let jobs = app_handle_for_cb.state::<OutstandingJobs>();
-        app_handle_for_cb
-            .emit_all(
-                "tile_complete",
-                TileResponse {
-                    serial: spec.serial,
-                    rgba_blob: render::as_rgba(&tile, colourer).into(),
-                },
-            )
-            .unwrap_or_else(|e| println!("Error notifying: {e}"));
-        jobs.remove_and_return(serial);
-    });
-
-    app_handle.state::<OutstandingJobs>().add(serial, job);
+    let engine_spec = TileSpec::try_from(spec).map_err(|e| e.to_string())?;
+    let mut tile = Tile::new(&engine_spec, 0);
+    tile.plot(512); // TODO specify max_iter, or even go dynamic
+    app_handle
+        .emit_all(
+            "tile_complete",
+            TileResponse {
+                serial: spec.serial,
+                rgba_blob: render::as_rgba(&tile, colourer).into(),
+            },
+        )
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
 
 #[tauri::command]
-pub fn abort_tile(serial: u64, jobs: tauri::State<OutstandingJobs>) -> Result<(), String> {
-    if let Some(h) = jobs.remove_and_return(serial) {
-        h.abort();
+pub async fn start_tile(spec: ViewerTileSpec, app_handle: tauri::AppHandle) {
+    let app_handle_copy = app_handle.clone();
+    let serial = spec.serial;
+
+    let job = tauri::async_runtime::spawn(async move {
+        let serial = spec.serial;
+        if let Err(error) = draw_tile(&spec, &app_handle) {
+            let _ = app_handle.emit_all("tile_error", TileError { serial, error });
+        }
+        app_handle
+            .state::<OutstandingJobs>()
+            .remove_and_return(serial)
+            .await;
+    });
+    app_handle_copy
+        .state::<OutstandingJobs>()
+        .add(serial, job)
+        .await;
+}
+
+#[tauri::command]
+pub async fn abort_tile(
+    serial: u64,
+    jobs: tauri::State<'_, OutstandingJobs>,
+) -> Result<(), String> {
+    if let Some(h) = jobs.remove_and_return(serial).await {
+        h.handle.abort();
     }
     Ok(())
 }
