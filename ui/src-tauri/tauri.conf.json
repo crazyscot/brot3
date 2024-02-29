@@ -18,10 +18,10 @@
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
+      "category": "GraphicsAndDesign",
       "copyright": "",
       "deb": {
-        "depends": []
+        "depends": ["libc6"]
       },
       "externalBin": [],
       "icon": [
