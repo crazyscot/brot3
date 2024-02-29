@@ -36,12 +36,11 @@ jobs:
       run: cargo clippy --all-targets
 
   tauri:
-    #needs: rust # overlaps a little, but different profile so there's no cache win
+    #needs: rust # overlaps a little, but different rustc profile so there's no cache win
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-22.04]
-        #platform: [macos-latest, ubuntu-22.04, windows-latest]
+        platform: [macos-latest, ubuntu-22.04, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -52,6 +51,9 @@ jobs:
           #cache-dependency-path: ui/yarn.lock
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2 # wry added
+        with:
+          shared-key: "tauri-${{matrix.platform}}" # aligns with release.yml
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |

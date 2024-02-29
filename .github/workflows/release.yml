@@ -32,7 +32,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2 # wry added
         with:
-          key: "${{matrix.platform}}"
+          shared-key: "tauri-${{matrix.platform}}" # aligns with ci.yml
+          save-if: false
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
