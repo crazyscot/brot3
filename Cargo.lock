@@ -249,13 +249,11 @@ dependencies = [
  "approx",
  "brot3-engine",
  "bytes",
- "png",
  "rustc-hash",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
- "tokio",
 ]
 
 [[package]]
