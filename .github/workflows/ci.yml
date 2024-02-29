@@ -49,7 +49,14 @@ jobs:
           node-version: 20
           #cache: yarn
           #cache-dependency-path: ui/yarn.lock
-      - uses: dtolnay/rust-toolchain@stable
+      - name: dtolnay/rust-toolchain@stable (non-macos)
+        uses: dtolnay/rust-toolchain@stable
+        if: matrix.platform != 'macos-latest'
+      - name: dtolnay/rust-toolchain@stable (macos)
+        uses: dtolnay/rust-toolchain@stable
+        if: matrix.platform == 'macos-latest'
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
       - uses: Swatinem/rust-cache@v2 # wry added
         with:
           shared-key: "tauri-${{matrix.platform}}" # aligns with release.yml
@@ -69,3 +76,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: ui
+          # On MacOS, explicitly specify target
+          args: |
+            ${{ (matrix.platform == 'macos-latest' && '--target universal-apple-darwin') || '' }}
