@@ -1,9 +1,9 @@
 [package]
-name = "brot3-ui"
+name = "brot3"
 description = "Yet Another Fractal Plotter"
 license = ""
 repository = ""
-default-run = "brot3-ui"
+default-run = "brot3"
 rust-version = "1.60"
 edition.workspace = true
 authors.workspace = true
