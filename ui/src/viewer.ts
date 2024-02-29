@@ -66,7 +66,7 @@ export class Viewer {
                 });
               },
               downloadTileAbort: function (context: any /*OpenSeadragon.ImageJob*/) {
-                console.log(`OSD abort: tile #${context.userData.serial}`);
+                console.log(`OSD requested tile abort: tile #${context.userData.serial}`);
                 invoke('abort_tile', { serial: context.userData.serial })
                 .catch((e) => {
                   context.finish?.(null, null, e.toString());
@@ -130,8 +130,8 @@ export class Viewer {
 
     on_tile_complete(response: TileResponse) {
         let context = this.outstanding_requests.get(response.serial);
-        let spec:TileSpec = context.userData;
-        console.log(`got tile #${response.serial} = ${spec.level}/${spec.dx}-${spec.dy}`);
+        //let spec:TileSpec = context.userData;
+        //console.log(`got tile #${response.serial} = ${spec.level}/${spec.dx}-${spec.dy}`);
 
         // "convert the data to a canvas and return its 2D context"
         // response.rgba_blob is a byte array
