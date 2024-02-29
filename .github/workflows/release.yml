@@ -48,8 +48,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: ui
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
-          releaseName: "App v__VERSION__"
-          releaseBody: "See the assets to download this version and install."
+          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
+          releaseName: "brot3 v__VERSION__"
+          releaseBody: |
+            Choose the appropriate version for your platform:
+            - .AppImage: Linux (standalone)
+            - .deb: Debian/Ubuntu package (built on Ubuntu 22.04)
+            - .dmg: MacOS 10.13+
+            - .msi: Windows 10+  x86_64Installer
           releaseDraft: true
           prerelease: false
