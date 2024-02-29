@@ -277,6 +277,7 @@ dependencies = [
  "clap",
  "criterion",
  "enum_delegate",
+ "heck 0.4.1",
  "iai-callgrind",
  "ndarray",
  "num-complex",
