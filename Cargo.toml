@@ -11,15 +11,17 @@ package.version = "0.1.0"
 
 [profile.ci]
 inherits = "dev"
-opt-level = 0
-debug = 0
-incremental = false
-codegen-units = 256
+#incremental = false # implicit by rust-cache
 
 [profile.release]
 # See https://nnethercote.github.io/perf-book/build-configuration.html
 codegen-units = 1
 lto = "thin"
+strip = "debuginfo"
+#incremental = false # implicit by rust-cache
+
+[profile.bench]
+strip = false
 
 [workspace.dependencies]
 anyhow = "1.0.80"
