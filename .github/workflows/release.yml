@@ -52,9 +52,9 @@ jobs:
           releaseName: "brot3 v__VERSION__"
           releaseBody: |
             Choose the appropriate version for your platform:
-            - .AppImage: Linux (standalone)
+            - .AppImage: Linux (standalone; simply give it execute permission and run)
             - .deb: Debian/Ubuntu package (built on Ubuntu 22.04)
             - .dmg: MacOS 10.13+
-            - .msi: Windows 10+  x86_64Installer
+            - .msi: Windows 10+ Installer
           releaseDraft: true
           prerelease: false
