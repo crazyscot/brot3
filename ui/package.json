@@ -12,7 +12,7 @@
     "@types/jquery": "^3.5.29",
     "@types/openseadragon": "^3.0.10",
     "typescript": "^5.2.2",
-    "vite": "^5.1.0",
+    "vite": "^5.1.4",
     "vite-plugin-static-copy": "^1.0.1"
   },
   "dependencies": {
