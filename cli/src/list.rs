@@ -32,10 +32,10 @@ pub(crate) struct Args {
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
-        ListableThings::Renderers => listable::list::<render::Selection>(),
-        ListableThings::Fractals => listable::list::<fractal::Selection>(),
+        ListableThings::Renderers => listable::print_list::<render::Selection>(),
+        ListableThings::Fractals => listable::print_list::<fractal::Selection>(),
         ListableThings::Colourers => {
-            listable::list::<colouring::Selection>();
+            listable::print_list::<colouring::Selection>();
         }
     };
     Ok(())
