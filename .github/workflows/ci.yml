@@ -1,4 +1,4 @@
-name: Rust
+name: CI
 
 on:
   pull_request:
@@ -24,13 +24,13 @@ jobs:
       run: cargo fmt --all -- --check
     # we used to use actions/cache@v4
     - name: Build
-      run: cargo build --profile ci --all-targets
+      run: cargo build --all-targets
     # we want to ensure the benches build... but we already do that in debug with --all-targets
     - name: Test
-      run: cargo test --profile ci
+      run: cargo test
     - name: Lint
       # N.B. --all-features doesn't build; we're not using tauri custom-protocol
-      run: cargo clippy --profile ci --all-targets
+      run: cargo clippy --all-targets
 
   tauri:
     #needs: rust # overlaps a little, but different profile so there's no cache win
