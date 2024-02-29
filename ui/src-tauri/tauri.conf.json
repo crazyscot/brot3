@@ -19,7 +19,7 @@
     "bundle": {
       "active": true,
       "category": "GraphicsAndDesign",
-      "copyright": "",
+      "copyright": "(c) 2024 Ross Younger",
       "deb": {
         "depends": ["libc6"]
       },
@@ -37,6 +37,7 @@
         "entitlements": null,
         "exceptionDomain": "",
         "frameworks": [],
+        "license": "../COPYING",
         "providerShortName": null,
         "signingIdentity": null
       },

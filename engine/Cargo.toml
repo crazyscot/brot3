@@ -3,6 +3,7 @@ name = "brot3-engine"
 edition.workspace = true
 authors.workspace = true
 version.workspace = true
+license.workspace = true
 description = "Yet Another Fractal Plotter"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

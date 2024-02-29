@@ -1,13 +1,13 @@
 [package]
 name = "brot3"
 description = "Yet Another Fractal Plotter"
-license = ""
 repository = ""
 default-run = "brot3"
 rust-version = "1.60"
 edition.workspace = true
 authors.workspace = true
 version.workspace = true
+license.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
