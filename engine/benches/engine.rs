@@ -7,7 +7,7 @@
 use brot3_engine::{
     colouring::{self, Instance, OutputsRgb8, Selection::*},
     fractal::{self, Algorithm, Point, PointData, SplitMethod, Tile, TileSpec},
-    render::{self, Renderer},
+    render::Png,
     util::Rect,
 };
 
@@ -97,14 +97,9 @@ fn colour_tile(c: &mut Criterion) {
 
     let mut bench = |colourer: Instance| {
         let _ = group.bench_function(format!("colour_{colourer}"), |b| {
-            let filename = "/dev/null";
-            b.iter_batched_ref(
-                || render::factory(render::Selection::Png),
-                |r| {
-                    let _ = r.render_file(filename, &tile, black_box(colourer));
-                },
-                BatchSize::SmallInput,
-            );
+            b.iter(|| {
+                let _ = black_box(Png::render_rgba(black_box(&tile), colourer));
+            });
         });
     };
     let selection = [LinearRainbow, White];

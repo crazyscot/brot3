@@ -11,12 +11,14 @@ use palette::Srgb;
 use std::io::BufWriter;
 
 #[derive(Clone, Copy, Debug, Default)]
+/// Render output to a PNG file (or, if you call it directly, to pixels in PNG format)
 pub struct Png {}
 
 impl Png {
     /// Renders a tile as a low-level array of RGBA values.
     /// These are returned in the obvious left to right, top to bottom order.
-    pub(crate) fn render_rgba(tile: &Tile, colourer: Instance) -> Vec<u8> {
+    #[must_use]
+    pub fn render_rgba(tile: &Tile, colourer: Instance) -> Vec<u8> {
         let mut image_data =
             Vec::<u8>::with_capacity(4 * tile.spec.width() as usize * tile.spec.height() as usize);
         let tile_data = tile.result();
