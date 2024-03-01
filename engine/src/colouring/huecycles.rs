@@ -92,7 +92,6 @@ mod tests {
     #[test]
     fn hue_cycles() {
         #![allow(clippy::cast_possible_truncation)]
-        #![allow(clippy::cast_lossless)]
         #![allow(clippy::cast_precision_loss)]
         let uut = LinearRainbow {};
         // The algorithm operates a linear cycle over the Wrap interval.
