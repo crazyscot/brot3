@@ -6,6 +6,7 @@ mod png;
 
 #[allow(clippy::module_name_repetitions)]
 pub use framework::{factory, RenderInstance, Renderer, Selection};
+pub use png::Png; // to allow direct benchmarking
 
 use crate::colouring::Instance;
 use crate::fractal::Tile;
