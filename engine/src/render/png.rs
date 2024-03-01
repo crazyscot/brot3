@@ -24,8 +24,7 @@ impl Png {
         tile_data
             .iter()
             .map(|pd| {
-                #[allow(clippy::cast_possible_truncation)]
-                // Apply colouring function
+                // if it's still alive, assume infinity
                 if pd.iter == max_iter {
                     std::f32::INFINITY
                 } else {
@@ -33,13 +32,11 @@ impl Png {
                 }
             })
             .for_each(|iters| {
-                // PNG wants four u8s, in RGBA order
-                #[allow(clippy::cast_lossless)]
-                let (r, g, b) =
-                    Srgb::<u8>::from(colourer.colour_rgb8(iters, max_iter)).into_components();
-                image_data.push(r);
-                image_data.push(g);
-                image_data.push(b);
+                // Colour and output
+                let pixel = Srgb::<u8>::from(colourer.colour_rgb8(iters, max_iter));
+                image_data.push(pixel.red);
+                image_data.push(pixel.green);
+                image_data.push(pixel.blue);
                 image_data.push(255);
             });
         image_data
