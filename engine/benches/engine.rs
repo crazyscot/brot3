@@ -30,6 +30,7 @@ fn iteration(c: &mut Criterion) {
                 || {
                     let mut pd = PointData::new(point);
                     fractal.prepare(&mut pd);
+                    assert!(pd.result.is_none());
                     pd
                 },
                 |pd| fractal.iterate(black_box(pd)),
