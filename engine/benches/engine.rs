@@ -32,7 +32,7 @@ fn iteration(c: &mut Criterion) {
                     fractal.prepare(&mut pd);
                     pd
                 },
-                |pd| fractal.iterate(pd),
+                |pd| fractal.iterate(black_box(pd)),
                 BatchSize::SmallInput,
             );
         });
