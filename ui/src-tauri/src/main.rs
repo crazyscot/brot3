@@ -5,6 +5,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod jobs;
+mod menu;
 mod tile_bridge;
 mod viewertilespec;
 
@@ -19,6 +20,8 @@ fn main() {
             tile_bridge::start_tile,
             tile_bridge::abort_tile
         ])
+        .menu(menu::make_menu())
+        .on_menu_event(menu::on_menu)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
