@@ -24,7 +24,7 @@ enum ListableThings {
 
 /// Arguments to 'list'
 #[derive(Debug, clap::Args)]
-//#[command(flatten_help = true)]
+#[command(flatten_help = true)]
 pub(crate) struct Args {
     #[arg(
         long, hide(true), action = ArgAction::Help, required(false)
