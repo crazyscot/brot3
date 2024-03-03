@@ -4,6 +4,7 @@ use clap::{ArgAction, Parser, Subcommand};
 
 mod list;
 mod plot;
+mod show;
 mod styles;
 
 #[derive(Debug, Parser)]
@@ -45,6 +46,9 @@ enum Commands {
 
     /// Lists things [short form: "l"]
     List(list::Args),
+
+    /// Shows information about this program
+    Show(show::Args),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -57,5 +61,6 @@ fn main() -> anyhow::Result<()> {
     match cli.command {
         Commands::Plot(args) => plot::plot(&args, cli.debug),
         Commands::List(what) => list::list(&what),
+        Commands::Show(what) => show::show(&what),
     }
 }
