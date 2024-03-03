@@ -7,6 +7,8 @@ use brot3_engine::{
     util::listable,
 };
 
+use clap::ArgAction;
+
 #[derive(Debug, clap::Subcommand)]
 enum ListableThings {
     /// Lists available fractal algorithms
@@ -24,6 +26,11 @@ enum ListableThings {
 #[derive(Debug, clap::Args)]
 //#[command(flatten_help = true)]
 pub(crate) struct Args {
+    #[arg(
+        long, hide(true), action = ArgAction::Help, required(false)
+    )]
+    help: Option<bool>,
+
     #[command(subcommand)]
     thing: ListableThings,
 }

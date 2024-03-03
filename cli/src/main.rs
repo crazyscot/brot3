@@ -29,6 +29,12 @@ struct Cli {
     #[arg(long, hide(true))]
     #[allow(clippy::struct_field_names)]
     debug_cli: bool,
+
+    // include --help at the top level as an alias to the 'help' subcommand
+    #[arg(
+        long, hide(true), action = ArgAction::Help, required(false)
+    )]
+    help: Option<bool>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -36,6 +42,8 @@ enum Commands {
     /// Plots fractals [short form: "p"]
     #[clap(alias = "p")]
     Plot(plot::Args),
+
+    /// Lists things [short form: "l"]
     List(list::Args),
 }
 
