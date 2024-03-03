@@ -13,12 +13,19 @@ use brot3_engine::render::{self, Renderer};
 use brot3_engine::util::Rect;
 
 use anyhow::ensure;
+use clap::ArgAction;
 use rayon::prelude::*;
 use strum::{EnumProperty, VariantArray};
 
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
+#[allow(clippy::struct_excessive_bools)]
 pub(crate) struct Args {
+    #[arg(
+        long, hide(true), action = ArgAction::Help, required(false)
+    )]
+    help: Option<bool>,
+
     /// The fractal algorithm to use. Use the `list fractals` command to see the available schemes
     #[arg(
         short = 'f',
