@@ -18,7 +18,7 @@ enum ShowableThings {
 
 /// Arguments to 'show'
 #[derive(Debug, clap::Args)]
-//#[command(flatten_help = true)]
+#[command(flatten_help = true)]
 pub(crate) struct Args {
     #[arg(
         long, hide(true), action = clap::ArgAction::Help, required(false)

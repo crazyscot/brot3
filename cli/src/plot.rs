@@ -20,13 +20,14 @@ use strum::{EnumProperty, VariantArray};
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
 #[allow(clippy::struct_excessive_bools)]
+//#[command(flatten_help = true)] // doesn't do much for this subcommand
 pub(crate) struct Args {
     #[arg(
         long, hide(true), action = ArgAction::Help, required(false)
     )]
     help: Option<bool>,
 
-    /// The fractal algorithm to use. Use the `list fractals` command to see the available schemes
+    /// The fractal algorithm to use (see also the `list fractals` command)
     #[arg(
         short = 'f',
         long,
@@ -49,7 +50,7 @@ pub(crate) struct Args {
     )]
     pub(crate) max_iter: u32,
 
-    /// The colouring algorithm to use. Use the `list colourers` command to see the available schemes
+    /// The colouring algorithm to use. (see also the `list colourers` command)
     #[arg(
         short = 'c',
         long,
@@ -154,7 +155,7 @@ pub(crate) struct Args {
     )]
     pub(crate) output_filename: String,
 
-    /// Explicitly specifies the output file type (default: autodetect from filename). Use the `list output-types` command to see the available formats.
+    /// Explicitly specifies the output file type (default: autodetect from filename). See also the `list output-types` command.
     #[arg(
         short = 't',
         long,

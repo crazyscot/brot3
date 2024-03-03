@@ -39,6 +39,7 @@ struct Cli {
 }
 
 #[derive(Debug, Subcommand)]
+#[command(flatten_help = true)]
 enum Commands {
     /// Plots fractals [short form: "p"]
     #[clap(alias = "p")]
