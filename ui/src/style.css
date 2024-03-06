@@ -94,3 +94,30 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+#topbar,#bottombar
+{
+  position: absolute !important;
+  width: 100%;
+  z-index: 1;
+
+  > span
+  {
+    margin:5px 5px;
+  }
+}
+
+#topbar
+{
+  top: 0px;
+}
+
+#bottombar
+{
+  bottom: 0px;
+}
+
+.right-align
+{
+  float: right;
+}

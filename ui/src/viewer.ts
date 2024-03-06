@@ -24,7 +24,7 @@ export class Viewer {
         let self = this; // Closure helper
 
         this.osd = OpenSeadragon({
-            id:         "seadragon-viewer",
+            id:         "openseadragon",
             prefixUrl: "/openseadragon/images/",
             homeFillsViewer: true,
             autoResize: true,
@@ -32,7 +32,9 @@ export class Viewer {
             visibilityRatio: 1.0,
             debugMode: false,
             showRotationControl: false,
-            rotationIncrement: 15,
+            showNavigator: false,
+            zoomPerSecond: 2.0,
+            toolbar: "topbar",
 
             tileSources: {
               height: IMAGE_DIMENSION,
@@ -109,7 +111,7 @@ export class Viewer {
             this.clearTimeout(self.redraw_event);
           }
           self.redraw_event = this.setTimeout(function () {
-            let viewerElement = jQuery('#seadragon-viewer');
+            let viewerElement = jQuery('#openseadragon');
             console.log(`resizing to ${window.innerWidth} x ${window.innerHeight}`);
             viewerElement.height(window.innerHeight);
             viewerElement.width(window.innerWidth);

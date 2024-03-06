@@ -8,12 +8,22 @@ import jQuery from 'jquery'
 import { Viewer } from './viewer.ts'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
-<div id="seadragon-viewer"></div>
+<div id="topbar">
+  <span class="right-align">
+    <-- our tools go here -->
+  </span>
+</div>
+<div id="openseadragon"/>
+<div id="bottombar">
+  <span id="info-display">
+    <-- Bottom line info bar -->
+  </span>
+</div>
 `;
 
 async function setupWindow() {
   // Dynamically size to fill the window
-  let viewerElement = jQuery('#seadragon-viewer');
+  let viewerElement = jQuery('#openseadragon');
   if (viewerElement.height() == 0) {
     viewerElement.height(window.innerHeight);
   }
