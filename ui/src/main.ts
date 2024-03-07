@@ -5,15 +5,17 @@ import './style.css'
 import { getVersion } from '@tauri-apps/api/app'
 import { appWindow } from '@tauri-apps/api/window'
 import jQuery from 'jquery'
+
+import { Menu } from './menu.ts'
 import { Viewer } from './viewer.ts'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
 <div id="topbar">
   <span class="right-align">
-    <-- our tools go here -->
+    <nav id="menu"></nav>
   </span>
 </div>
-<div id="openseadragon"/>
+<div id="openseadragon"></div>
 <div id="bottombar">
   <span id="info-display">
     <-- Bottom line info bar -->
@@ -38,4 +40,6 @@ async function setupWindow() {
 setupWindow();
 
 let gViewer = new Viewer();
+let gMenu = new Menu(document);
 gViewer.noop();
+gMenu.noop();
