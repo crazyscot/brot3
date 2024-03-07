@@ -19,6 +19,7 @@
     "@tauri-apps/api": "^1.5.3",
     "async-mutex": "^0.4.1",
     "jquery": "^3.7.1",
+    "material-icons": "^1.13.12",
     "openseadragon": "^4.1.0"
   }
 }
