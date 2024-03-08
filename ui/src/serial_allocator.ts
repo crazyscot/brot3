@@ -1,3 +1,6 @@
+// Serial number allocator
+// (c) 2024 Ross Younger
+
 import { Mutex } from 'async-mutex'
 
 export class SerialAllocator {
