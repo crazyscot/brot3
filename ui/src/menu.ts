@@ -1,6 +1,8 @@
 import './menu.css'
 import '../node_modules/material-icons/iconfont/filled.css'
 
+import { About } from './about.ts'
+
 const MENU_HTML = `
 <ul class="drop-down closed" id="menu-inner">
 <li><a href="#" class="nav-button"><span class="material-icons">menu</span></a></a></li>
@@ -23,6 +25,7 @@ class MenuItem {
 export class Menu {
     doc: Document;
     dropdown: Element | null;
+    about: About | null = null;
 
     constructor(doc: Document) {
         let self = this; // for closures
@@ -60,7 +63,14 @@ export class Menu {
     }
 
     build() {
-        this.addItem(new MenuItem("foo", function (_ev: MouseEvent) { console.log("foo!!"); }));
+        let self = this;
+        this.addItem(new MenuItem("About", function (_ev: MouseEvent) {
+            let modal = self.doc.getElementById("aboutModal");
+            if (self.about === null) {
+                self.about = new About(modal!);
+            }
+            self.about.show();
+        }));
     }
 
     noop() { }

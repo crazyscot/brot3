@@ -6,10 +6,13 @@ import { getVersion } from '@tauri-apps/api/app'
 import { appWindow } from '@tauri-apps/api/window'
 import jQuery from 'jquery'
 
+import { About } from './about.ts'
 import { Menu } from './menu.ts'
 import { Viewer } from './viewer.ts'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
+${About.html}
+</div>
 <div id="topbar">
   <span class="right-align">
     <nav id="menu"></nav>
