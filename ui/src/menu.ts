@@ -1,5 +1,10 @@
+// brot3 JS menu
+// (c) 2024 Ross Younger
+
 import './menu.css'
 import '../node_modules/material-icons/iconfont/filled.css'
+
+import { listen } from '@tauri-apps/api/event'
 
 import { About } from './about.ts'
 
@@ -25,7 +30,7 @@ class MenuItem {
 export class Menu {
     doc: Document;
     dropdown: Element | null;
-    about: About | null = null;
+    about: About;
 
     constructor(doc: Document) {
         let self = this; // for closures
@@ -41,7 +46,11 @@ export class Menu {
               hiding all LI apart from the first */
             self.dropdown!.classList.toggle('closed');
         }, false);
+
+        this.about = new About(self.doc.getElementById("aboutModal")!);
+
         this.build();
+        this.bind_events();
     }
 
     addItem(item: MenuItem) {
@@ -65,12 +74,15 @@ export class Menu {
     build() {
         let self = this;
         this.addItem(new MenuItem("About", function (_ev: MouseEvent) {
-            let modal = self.doc.getElementById("aboutModal");
-            if (self.about === null) {
-                self.about = new About(modal!);
-            }
-            self.about.show();
+            self.about!.show();
         }));
+    }
+
+    async bind_events() {
+        let self = this;
+        await listen<void>('showAbout', (_event) => {
+            self.about!.show();
+        });
     }
 
     noop() { }

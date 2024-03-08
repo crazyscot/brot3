@@ -1,3 +1,6 @@
+// brot3 about dialog
+// (c) 2024 Ross Younger
+
 import './modal.css'
 
 export class About implements EventListenerObject {
