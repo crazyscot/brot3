@@ -121,3 +121,10 @@ button:focus-visible {
 {
   float: right;
 }
+
+.info
+{
+  background: navy;
+  color: gold;
+  padding: 3px;
+}
