@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use serde::Serialize;
-use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Submenu, WindowMenuEvent};
+use tauri::{CustomMenuItem, Manager, Menu, Submenu, WindowMenuEvent};
 
 #[derive(Serialize, Clone)]
 pub struct GenericError {
@@ -11,11 +11,7 @@ pub struct GenericError {
 
 pub(crate) fn make_menu() -> Menu {
     let about = CustomMenuItem::new("about".to_string(), "About");
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    Menu::new()
-        .add_native_item(MenuItem::Copy)
-        .add_submenu(Submenu::new("File", Menu::new().add_item(quit)))
-        .add_submenu(Submenu::new("Help", Menu::new().add_item(about)))
+    Menu::os_default("brot3").add_submenu(Submenu::new("Help", Menu::new().add_item(about)))
 }
 
 pub(crate) fn on_menu(event: WindowMenuEvent) {
@@ -35,9 +31,6 @@ fn on_menu_guts(event: &WindowMenuEvent) -> anyhow::Result<()> {
     match event.menu_item_id() {
         "about" => {
             event.window().emit("showAbout", ())?;
-        }
-        "quit" => {
-            std::process::exit(0);
         }
         _ => {}
     }
