@@ -21,8 +21,9 @@ ${About.html}
 <!-- Trap: Modals not within this div won't be cloned into fullscreen mode -->
 </div>
 <div id="bottombar">
-  <span id="info-display">
-    <-- Bottom line info bar -->
+  <span class="info">
+    <span class="position"></span>
+    <span class="zoom"></span>
   </span>
 </div>
 `;

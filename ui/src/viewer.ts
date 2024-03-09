@@ -19,6 +19,8 @@ export class Viewer {
   unlisten_tile_complete: UnlistenFn | null = null;
   unlisten_tile_error: UnlistenFn | null = null;
   outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
+  position_element: Element | null;
+  zoom_element: Element | null;
 
   constructor() {
     let self = this; // Closure helper
@@ -119,6 +121,23 @@ export class Viewer {
         self.osd.viewport.applyConstraints();
       }, 100);
     }, true);
+
+    // Zoom/Position indicator
+    this.position_element = document.querySelectorAll('.info .position')[0];
+    this.zoom_element = document.querySelectorAll('.info .zoom')[0];
+    console.log(this.position_element);
+    let viewer = this.osd;
+    var updateZoom = function() {
+      var zoom = viewer.viewport.getZoom(true);
+      var imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+
+      self.zoom_element!.innerHTML = '<b>Zoom:</b> ' + zoom.toPrecision(4) +
+          ' <b>Image Zoom:</b> ' + imageZoom.toPrecision(4);
+    }
+    viewer.addHandler('open', function () {
+      viewer.addHandler('animation', updateZoom);   
+      updateZoom(); // update on startup
+  });
   }
 
   async bind_events() {
