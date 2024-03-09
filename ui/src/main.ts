@@ -11,14 +11,15 @@ import { Menu } from './menu.ts'
 import { Viewer } from './viewer.ts'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
-${About.html}
-</div>
 <div id="topbar">
   <span class="right-align">
     <nav id="menu"></nav>
   </span>
 </div>
-<div id="openseadragon"></div>
+<div id="openseadragon">
+${About.html}
+<!-- Trap: Modals not within this div won't be cloned into fullscreen mode -->
+</div>
 <div id="bottombar">
   <span id="info-display">
     <-- Bottom line info bar -->
