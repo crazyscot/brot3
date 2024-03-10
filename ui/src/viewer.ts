@@ -137,7 +137,6 @@ export class Viewer {
       var topLeft = new OpenSeadragon.Point(0, 0);
       var bottomRight = new OpenSeadragon.Point(self.width - 1, self.height - 1);
       // Convert to viewport:
-      // ISSUE: On initial load this is bogus (looks like a pixel point unconverted)
       var topLeftView = vp.pointFromPixelNoRotate(topLeft);
       var bottomRightView = vp.pointFromPixelNoRotate(bottomRight);
 
@@ -146,8 +145,8 @@ export class Viewer {
       var topLeftImage = vp.viewportToImageCoordinates(topLeftView);
       var bottomRightImage = vp.viewportToImageCoordinates(bottomRightView);
 
-      // Bottom Left is the origin (in complex plane)
-      var origin = new OpenSeadragon.Point(topLeftImage.x, bottomRightImage.y);
+      // Bottom Left is the origin (as a graph in the complex plane, so the bottom-left)
+      var origin = new OpenSeadragon.Point(topLeftView.x, bottomRightView.y);
 
       // Axes := BR - TL
       var axesLength = new OpenSeadragon.Point(bottomRightImage.x - topLeftImage.x, bottomRightImage.y - topLeftImage.y);
@@ -199,6 +198,7 @@ export class Viewer {
     viewerElement.width(window.innerWidth);
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+    this.osd.viewport.resize({x: window.innerWidth, y:window.innerHeight});
     this.osd.viewport.applyConstraints();
     console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
   }
