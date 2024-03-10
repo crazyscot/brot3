@@ -54,3 +54,28 @@ export class TilePostData {
       return `${this.level}/${this.dx}-${this.dy}`;
     }
 };
+
+/// Twin of Rust SerializablePoint struct.
+/// Named EnginePoint to distinguish from OpenSeadragon.Point
+export class EnginePoint {
+  re: number = 0.0;
+  im: number = 0.0;
+  constructor(re: number, im: number) {
+    this.re = re;
+    this.im = im;
+  }
+  toString(): string {
+    return `{${this.re}, ${this.im}}`;
+  }
+}
+/// Twin of Rust FractalMetadata struct
+export class FractalMetadata {
+  origin: EnginePoint = new EnginePoint(0.0, 0.0);
+  axes_length: EnginePoint = new EnginePoint(0.0, 0.0);
+  end_corner(): EnginePoint {
+    return new EnginePoint(this.origin.re + this.axes_length.re, this.origin.im + this.axes_length.im);
+  }
+  centre(): EnginePoint {
+    return new EnginePoint(this.origin.re + 0.5 * this.axes_length.re, this.origin.im + 0.5 * this.axes_length.im);
+  }
+}

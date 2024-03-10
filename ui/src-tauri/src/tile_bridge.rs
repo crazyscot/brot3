@@ -5,7 +5,7 @@ use super::ViewerTileSpec;
 use crate::OutstandingJobs;
 use brot3_engine::{
     colouring,
-    fractal::{Tile, TileSpec},
+    fractal::{self, Algorithm, Point, Scalar, Tile, TileSpec},
     render,
 };
 
@@ -22,6 +22,26 @@ pub struct TileResponse {
 pub struct TileError {
     serial: u64,
     error: String,
+}
+
+#[derive(Serialize, Clone)]
+pub struct SerializablePoint {
+    re: Scalar,
+    im: Scalar,
+}
+impl From<Point> for SerializablePoint {
+    fn from(item: Point) -> Self {
+        SerializablePoint {
+            re: item.re,
+            im: item.im,
+        }
+    }
+}
+
+#[derive(Serialize, Clone)]
+pub struct FractalMetadata {
+    origin: SerializablePoint,
+    axes_length: SerializablePoint,
 }
 
 fn draw_tile(spec: &ViewerTileSpec, app_handle: &tauri::AppHandle) -> anyhow::Result<(), String> {
@@ -72,4 +92,16 @@ pub async fn abort_tile(
         h.handle.abort();
     }
     Ok(())
+}
+
+#[tauri::command]
+/// Retrieve metadata for the [implicitly selected] fractal
+pub fn get_metadata() -> anyhow::Result<FractalMetadata, String> {
+    let alg_requested = "Original"; // TODO this will be passed in when we have fractal selection going
+    let algorithm = fractal::decode(alg_requested).map_err(|e| e.to_string())?;
+    let origin = algorithm.default_centre() - 0.5 * algorithm.default_axes();
+    Ok(FractalMetadata {
+        origin: origin.into(),
+        axes_length: algorithm.default_axes().into(),
+    })
 }
