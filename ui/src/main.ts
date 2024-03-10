@@ -28,23 +28,15 @@ ${About.html}
 </div>
 `;
 
-async function setupWindow() {
-  // Dynamically size to fill the window
-  let viewerElement = jQuery('#openseadragon');
-  if (viewerElement.height() == 0) {
-    viewerElement.height(window.innerHeight);
-  }
-  if (viewerElement.width() == 0) {
-    viewerElement.width(window.innerWidth);
-  }
-  console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
+let gViewer = new Viewer();
 
+async function setupWindow() {
+  gViewer.resize();
   getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
 }
 
 setupWindow();
 
-let gViewer = new Viewer();
 let gMenu = new Menu(document);
 gViewer.noop();
 gMenu.noop();
