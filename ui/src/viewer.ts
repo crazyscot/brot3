@@ -22,6 +22,10 @@ export class Viewer {
   position_element: Element | null;
   zoom_element: Element | null;
 
+  // width, height used by coordinate display
+  width: number = NaN;
+  height: number = NaN;
+
   constructor() {
     let self = this; // Closure helper
 
@@ -108,17 +112,14 @@ export class Viewer {
     });
 
     // Window resize
-    // Rather than caning the system as we get a resize event for every pixel, add a slight debounce
+    // Rather than caning the system as we get a resize event for every pixel, add a slight debounce.
+    // Note we call out to the Viewer class ('self') to resize.
     window.addEventListener('resize', function (_event) {
       if (self.redraw_event !== undefined) {
         this.clearTimeout(self.redraw_event);
       }
       self.redraw_event = this.setTimeout(function () {
-        let viewerElement = jQuery('#openseadragon');
-        console.log(`resizing to ${window.innerWidth} x ${window.innerHeight}`);
-        viewerElement.height(window.innerHeight);
-        viewerElement.width(window.innerWidth);
-        self.osd.viewport.applyConstraints();
+        self.resize();
       }, 100);
     }, true);
 
@@ -170,6 +171,17 @@ export class Viewer {
     let context = this.outstanding_requests.get(err.serial);
     //let spec:TileSpec = context.userData;
     context?.finish?.(null, null, err.error);
+  }
+
+  resize() {
+    // Dynamically size to fill the window
+    let viewerElement = jQuery('#openseadragon');
+    viewerElement.height(window.innerHeight);
+    viewerElement.width(window.innerWidth);
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.osd.viewport.applyConstraints();
+    console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
   }
 
   // dummy function to shut up a linter warning in main.ts
