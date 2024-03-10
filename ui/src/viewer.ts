@@ -129,11 +129,30 @@ export class Viewer {
     console.log(this.position_element);
     let viewer = this.osd;
     var updateZoom = function() {
-      var zoom = viewer.viewport.getZoom(true);
-      var imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+      let vp = viewer.viewport;
+      var zoom = vp.getZoom(true);
+      var imageZoom = vp.viewportToImageZoom(zoom);
+      // We know that top left is webPoint 0,0; bottom right is W-1,H-1.
+      // These are the web (pixel) coordinates.
+      var topLeft = new OpenSeadragon.Point(0, 0);
+      var bottomRight = new OpenSeadragon.Point(self.width - 1, self.height - 1);
+      // Convert to viewport:
+      // ISSUE: On initial load this is bogus (looks like a pixel point unconverted)
+      var topLeftView = vp.pointFromPixelNoRotate(topLeft);
+      var bottomRightView = vp.pointFromPixelNoRotate(bottomRight);
 
-      self.zoom_element!.innerHTML = '<b>Zoom:</b> ' + zoom.toPrecision(4) +
-          ' <b>Image Zoom:</b> ' + imageZoom.toPrecision(4);
+      // Convert to pixel locations within the overall image:
+      // Top Left is the origin (in imaging system)
+      var topLeftImage = vp.viewportToImageCoordinates(topLeftView);
+      var bottomRightImage = vp.viewportToImageCoordinates(bottomRightView);
+
+      // Bottom Left is the origin (in complex plane)
+      var origin = new OpenSeadragon.Point(topLeftImage.x, bottomRightImage.y);
+
+      // Axes := BR - TL
+      var axesLength = new OpenSeadragon.Point(bottomRightImage.x - topLeftImage.x, bottomRightImage.y - topLeftImage.y);
+
+      self.zoom_element!.innerHTML = `<b>Zoom:</b> ${zoom.toPrecision(4)} <b>origin:</b> ${origin} <b>axes:</b> ${axesLength}`;
     }
     viewer.addHandler('open', function () {
       viewer.addHandler('animation', updateZoom);   
