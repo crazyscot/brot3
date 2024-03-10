@@ -7,7 +7,7 @@ import jQuery from 'jquery'
 import OpenSeadragon from 'openseadragon'
 
 import { SerialAllocator } from './serial_allocator'
-import { TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
+import { EnginePoint, FractalMetadata, TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
 
 var gSerial = new SerialAllocator();
 const TILE_SIZE = 128;
@@ -21,6 +21,7 @@ export class Viewer {
   outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   position_element: Element | null;
   zoom_element: Element | null;
+  current_metadata: FractalMetadata = new FractalMetadata();
 
   // width, height used by coordinate display
   width: number = NaN;
@@ -102,7 +103,7 @@ export class Viewer {
           return cache._data;
         },
       },
-    });
+    }); // ---------------- end this.osd initialiser ---------------------------
 
     this.bind_events().then(() => {
       this.osd.addHandler("before-destroy", function () {
@@ -128,35 +129,58 @@ export class Viewer {
     this.zoom_element = document.querySelectorAll('.info .zoom')[0];
     console.log(this.position_element);
     let viewer = this.osd;
-    var updateZoom = function() {
+    var updateIndicator = function() {
       let vp = viewer.viewport;
       var zoom = vp.getZoom(true);
-      var imageZoom = vp.viewportToImageZoom(zoom);
+      //var imageZoom = vp.viewportToImageZoom(zoom);
       // We know that top left is webPoint 0,0; bottom right is W-1,H-1.
       // These are the web (pixel) coordinates.
       var topLeft = new OpenSeadragon.Point(0, 0);
       var bottomRight = new OpenSeadragon.Point(self.width - 1, self.height - 1);
-      // Convert to viewport:
+      // Convert to viewport coordinates:
       var topLeftView = vp.pointFromPixelNoRotate(topLeft);
       var bottomRightView = vp.pointFromPixelNoRotate(bottomRight);
 
-      // Convert to pixel locations within the overall image:
-      // Top Left is the origin (in imaging system)
-      var topLeftImage = vp.viewportToImageCoordinates(topLeftView);
-      var bottomRightImage = vp.viewportToImageCoordinates(bottomRightView);
-
-      // Bottom Left is the origin (as a graph in the complex plane, so the bottom-left)
-      var origin = new OpenSeadragon.Point(topLeftView.x, bottomRightView.y);
+      // Bottom Left is the origin (as mathematicians would call it, not computer images!)
+      var originView = new OpenSeadragon.Point(topLeftView.x, bottomRightView.y);
 
       // Axes := BR - TL
-      var axesLength = new OpenSeadragon.Point(bottomRightImage.x - topLeftImage.x, bottomRightImage.y - topLeftImage.y);
+      var axesLengthView = bottomRightView.minus(topLeftView);
 
-      self.zoom_element!.innerHTML = `<b>Zoom:</b> ${zoom.toPrecision(4)} <b>origin:</b> ${origin} <b>axes:</b> ${axesLength}`;
+      // Convert to complex
+      let meta = self.current_metadata; // Caution, closure capture!
+      let meta_axes = meta.axes_length;
+
+      var originComplex = new EnginePoint(
+        meta.origin.re + originView.x * meta_axes.re,
+        // Flip the Y axis at the point we go into mathematician-speak:
+        meta.origin.im + (1.0 - originView.y) * meta_axes.im
+      );
+      var axesComplex = new EnginePoint(
+        axesLengthView.x * meta_axes.re,
+        axesLengthView.y * meta_axes.im
+      );
+
+      self.zoom_element!.innerHTML = `<b>Zoom:</b> ${zoom.toPrecision(4)} <b>origin:</b> ${originComplex} <b>axes:</b> ${axesComplex}`;
+      // TODO maybe this becomes something tabular, easier to read? Several fields, perhaps?
     }
     viewer.addHandler('open', function () {
-      viewer.addHandler('animation', updateZoom);   
-      updateZoom(); // update on startup
-  });
+      viewer.addHandler('animation', updateIndicator);
+      updateIndicator(); // update on startup
+    });
+    // Retrieve initial metadata. This might need to happen before the initial updateIndicator().
+    invoke('get_metadata')
+      .then((reply) => {
+        // TODO when we have selectable fractals, this will need to be updated.
+        // Careful, current_metadata is captured by a closure.
+        let meta = reply as FractalMetadata;
+        this.current_metadata.axes_length = meta.axes_length;
+        this.current_metadata.origin = meta.origin;
+      })
+      .catch((e) => {
+        console.log(`Error retrieving metadata: ${e}`);
+      }
+    );
   }
 
   async bind_events() {
