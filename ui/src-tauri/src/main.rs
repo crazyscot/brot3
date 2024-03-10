@@ -18,7 +18,8 @@ fn main() {
         .manage(OutstandingJobs::default())
         .invoke_handler(tauri::generate_handler![
             tile_bridge::start_tile,
-            tile_bridge::abort_tile
+            tile_bridge::abort_tile,
+            tile_bridge::get_metadata,
         ])
         .menu(menu::make_menu())
         .on_menu_event(menu::on_menu)
