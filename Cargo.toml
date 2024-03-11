@@ -27,7 +27,7 @@ anyhow = "1.0.80"
 clap = "4.5.2"
 png = "0.17.13"
 rayon = "1.9.0"
-strum = { version = "0.26.1", features = ["derive"] }
+strum = { version = "0.26.2", features = ["derive"] }
 strum_macros = "0.26.2"
 
 [workspace.lints.rust]
