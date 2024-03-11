@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.10",
+    "@tauri-apps/cli": "^1.5.11",
     "@types/jquery": "^3.5.29",
     "@types/openseadragon": "^3.0.10",
     "typescript": "^5.2.2",
