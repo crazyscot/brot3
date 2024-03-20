@@ -21,10 +21,13 @@ ${About.html}
 <!-- Trap: Modals not within this div won't be cloned into fullscreen mode -->
 </div>
 <div id="bottombar">
-  <span class="info">
-    <span class="position"></span>
-    <span class="zoom"></span>
-  </span>
+  <div class="info">
+  <table>
+    <tr><th>Zoom:</th><td id="zoom"></td></tr>
+    <tr><th>Origin:</th><td><span id="originReal"></span>,</td><td><span id="originImag"></span>i</td></tr>
+    <tr><th>Axes:</th><td><span id="axesReal"></span>,</td><td><span id="axesImag"></span>i</td></tr>
+  </table>
+  </div>
 </div>
 `;
 

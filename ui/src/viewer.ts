@@ -13,14 +13,35 @@ var gSerial = new SerialAllocator();
 const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
 
+class HeadsUpDisplay {
+  zoom: Element | null;
+  originReal: Element | null;
+  originImag: Element | null;
+  axesReal: Element | null;
+  axesImag: Element | null;
+  constructor(doc : Document) {
+    this.zoom = doc.querySelectorAll('#zoom')[0];
+    this.originReal = doc.querySelectorAll('#originReal')[0];
+    this.originImag = doc.querySelectorAll('#originImag')[0];
+    this.axesReal = doc.querySelectorAll('#axesReal')[0];
+    this.axesImag = doc.querySelectorAll('#axesImag')[0];
+  }
+  update(zoom: number, origin: EnginePoint, axes: EnginePoint) {
+    this.zoom!.innerHTML = `${zoom.toPrecision(4)}`;
+    this.axesReal!.innerHTML = `${axes.re}`;
+    this.axesImag!.innerHTML = `${axes.im}`;
+    this.originReal!.innerHTML = `${origin.re}`;
+    this.originImag!.innerHTML = `${origin.im}`;
+  }
+}
+
 export class Viewer {
   osd: any | null;  // OpenSeadragon.Viewer
   redraw_event: number | undefined; // setTimeout / clearTimeout
   unlisten_tile_complete: UnlistenFn | null = null;
   unlisten_tile_error: UnlistenFn | null = null;
   outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
-  position_element: Element | null;
-  zoom_element: Element | null;
+  hud: HeadsUpDisplay;
   current_metadata: FractalMetadata = new FractalMetadata();
 
   // width, height used by coordinate display
@@ -125,13 +146,11 @@ export class Viewer {
     }, true);
 
     // Zoom/Position indicator
-    this.position_element = document.querySelectorAll('.info .position')[0];
-    this.zoom_element = document.querySelectorAll('.info .zoom')[0];
-    console.log(this.position_element);
+    this.hud = new HeadsUpDisplay(document);
     let viewer = this.osd;
     var updateIndicator = function() {
       let vp = viewer.viewport;
-      var zoom = vp.getZoom(true);
+      var zoom : number = vp.getZoom(true);
       //var imageZoom = vp.viewportToImageZoom(zoom);
       // We know that top left is webPoint 0,0; bottom right is W-1,H-1.
       // These are the web (pixel) coordinates.
@@ -160,9 +179,7 @@ export class Viewer {
         axesLengthView.x * meta_axes.re,
         axesLengthView.y * meta_axes.im
       );
-
-      self.zoom_element!.innerHTML = `<b>Zoom:</b> ${zoom.toPrecision(4)} <b>origin:</b> ${originComplex} <b>axes:</b> ${axesComplex}`;
-      // TODO maybe this becomes something tabular, easier to read? Several fields, perhaps?
+      self.hud.update(zoom, originComplex, axesComplex);
     }
     viewer.addHandler('open', function () {
       viewer.addHandler('animation', updateIndicator);

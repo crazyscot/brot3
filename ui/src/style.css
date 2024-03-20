@@ -122,7 +122,7 @@ button:focus-visible {
   float: right;
 }
 
-.info
+.info > *
 {
   background: navy;
   color: gold;
