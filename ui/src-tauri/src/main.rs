@@ -14,6 +14,7 @@ use viewertilespec::ViewerTileSpec;
 
 fn main() {
     #![allow(clippy::disallowed_types)]
+    let my_menu = menu::ApplicationMenu::new();
     tauri::Builder::default()
         .manage(OutstandingJobs::default())
         .invoke_handler(tauri::generate_handler![
@@ -21,8 +22,8 @@ fn main() {
             tile_bridge::abort_tile,
             tile_bridge::get_metadata,
         ])
-        .menu(menu::make_menu())
-        .on_menu_event(menu::on_menu)
+        .menu(my_menu.build())
+        .on_menu_event(move |event| my_menu.on_menu(event))
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

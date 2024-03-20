@@ -9,30 +9,41 @@ pub struct GenericError {
     error: String,
 }
 
-pub(crate) fn make_menu() -> Menu {
-    let about = CustomMenuItem::new("about".to_string(), "About");
-    Menu::os_default("brot3").add_submenu(Submenu::new("Help", Menu::new().add_item(about)))
-}
+pub(crate) struct ApplicationMenu {}
 
-pub(crate) fn on_menu(event: WindowMenuEvent) {
-    if let Err(error) = on_menu_guts(&event) {
-        println!("Error: {error}");
-        let _ = event.window().emit_all(
-            "genericError",
-            GenericError {
-                error: error.to_string(),
-            },
-        ); // if this goes wrong, ¯\_(ツ)_/¯
+impl ApplicationMenu {
+    pub(crate) fn new() -> ApplicationMenu {
+        ApplicationMenu {}
     }
-}
 
-fn on_menu_guts(event: &WindowMenuEvent) -> anyhow::Result<()> {
-    #[allow(clippy::single_match)]
-    match event.menu_item_id() {
-        "about" => {
-            event.window().emit("showAbout", ())?;
+    pub(crate) fn build(&self) -> Menu {
+        Menu::os_default("brot3")
+            .add_submenu(Submenu::new(
+                "Help",
+                Menu::new().add_item(CustomMenuItem::new("about".to_string(), "About")),
+            ))
+    }
+
+    pub(crate) fn on_menu(&self, event: WindowMenuEvent) {
+        if let Err(error) = self.on_menu_guts(&event) {
+            println!("Error: {error}");
+            let _ = event.window().emit_all(
+                "genericError",
+                GenericError {
+                    error: error.to_string(),
+                },
+            ); // if this goes wrong, ¯\_(ツ)_/¯
         }
-        _ => {}
     }
-    Ok(())
+
+    fn on_menu_guts(&self, event: &WindowMenuEvent) -> anyhow::Result<()> {
+        #[allow(clippy::single_match)]
+        match event.menu_item_id() {
+            "about" => {
+                event.window().emit("showAbout", ())?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
 }
