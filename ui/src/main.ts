@@ -4,7 +4,6 @@
 import './style.css'
 import { getVersion } from '@tauri-apps/api/app'
 import { appWindow } from '@tauri-apps/api/window'
-import jQuery from 'jquery'
 
 import { About } from './about.ts'
 import { Menu } from './menu.ts'
@@ -23,7 +22,7 @@ ${About.html}
 <div id="bottombar">
   <div class="info">
   <table>
-    <tr><th>Zoom:</th><td id="zoom"></td></tr>
+    <tr id="zoom-panel"><th>Zoom:</th><td id="zoom"></td></tr>
     <tr><th>Origin:</th><td><span id="originReal"></span>,</td><td><span id="originImag"></span>i</td></tr>
     <tr><th>Axes:</th><td><span id="axesReal"></span>,</td><td><span id="axesImag"></span>i</td></tr>
   </table>
