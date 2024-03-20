@@ -29,8 +29,9 @@ class MenuItem {
 
 export class Menu {
     doc: Document;
-    dropdown: Element | null;
     about: About;
+    dropdown: HTMLElement | null;
+    zoom_panel: HTMLElement | null;
 
     constructor(doc: Document) {
         let self = this; // for closures
@@ -39,6 +40,7 @@ export class Menu {
         element!.innerHTML = MENU_HTML;
         this.dropdown = doc.querySelector('#menu-inner');
         this.dropdown?.appendChild(doc.createElement("li"))
+        this.zoom_panel = doc.querySelector('#zoom-panel');
 
         // Bind Click event to the drop down navigation button
         doc.querySelector('.nav-button')!.addEventListener('click', function () {
@@ -83,6 +85,17 @@ export class Menu {
         await listen<void>('showAbout', (_event) => {
             self.about!.show();
         });
+        await listen<void>('toggle_zoom', (_event) => {
+            this.toggle_tr_visibility(this.zoom_panel!);
+        });
+    }
+
+    toggle_tr_visibility(e: HTMLElement) {
+        if (e.style.display === "none") {
+            e.style.display = "table-row";
+        } else {
+            e.style.display = "none";
+        }
     }
 
     noop() { }
