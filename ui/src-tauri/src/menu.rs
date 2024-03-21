@@ -9,6 +9,19 @@ pub struct GenericError {
     error: String,
 }
 
+#[derive(Serialize, Clone)]
+/// Twin of JS menu.DisplayMessageDetail
+pub struct DisplayMessageDetail {
+    what: String,
+}
+impl DisplayMessageDetail {
+    pub fn new(what: &str) -> DisplayMessageDetail {
+        DisplayMessageDetail {
+            what: what.to_string(),
+        }
+    }
+}
+
 pub(crate) struct ApplicationMenu {}
 
 impl ApplicationMenu {
@@ -41,16 +54,22 @@ impl ApplicationMenu {
     }
 
     fn on_menu_guts(&self, event: &WindowMenuEvent) -> anyhow::Result<()> {
-        #[allow(clippy::single_match)]
         match event.menu_item_id() {
             "about" => {
                 event.window().emit("showAbout", ())?;
             }
             "show_zoom" => {
-                event.window().emit("toggle_zoom", ())?;
+                self.display_message(event, "toggle_zoom")?;
             }
             _ => {}
         }
+        Ok(())
+    }
+
+    fn display_message(&self, event: &WindowMenuEvent, what: &str) -> anyhow::Result<()> {
+        event
+            .window()
+            .emit("display_message", DisplayMessageDetail::new(what))?;
         Ok(())
     }
 }
