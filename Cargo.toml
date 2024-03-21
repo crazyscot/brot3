@@ -23,7 +23,7 @@ strip = "debuginfo"
 strip = false
 
 [workspace.dependencies]
-anyhow = "1.0.80"
+anyhow = "1.0.81"
 clap = "4.5.3"
 png = "0.17.13"
 rayon = "1.9.0"
