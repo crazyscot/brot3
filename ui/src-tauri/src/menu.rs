@@ -30,8 +30,8 @@ impl ApplicationMenu {
     }
 
     pub(crate) fn build(&self) -> Menu {
-        let mut show_zoom = CustomMenuItem::new("show_zoom".to_string(), "Show Zoom");
-        show_zoom.selected = true;
+        let mut toggle_zoom = CustomMenuItem::new("toggle_zoom".to_string(), "Show Zoom");
+        toggle_zoom.selected = true;
 
         Menu::os_default("brot3")
             .add_submenu(Submenu::new("View", Menu::new().add_item(toggle_zoom)))
@@ -54,12 +54,10 @@ impl ApplicationMenu {
     }
 
     fn on_menu_guts(&self, event: &WindowMenuEvent) -> anyhow::Result<()> {
-        match event.menu_item_id() {
-            "about" => {
-                event.window().emit("showAbout", ())?;
-            }
-            "show_zoom" => {
-                self.display_message(event, "toggle_zoom")?;
+        let id = event.menu_item_id();
+        match id {
+            "show_about" | "toggle_zoom" => {
+                self.display_message(event, id)?;
             }
             _ => {}
         }

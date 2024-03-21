@@ -90,12 +90,12 @@ export class Menu {
 
     async bind_events() {
         let self = this;
-        await listen<void>('showAbout', (_event) => {
-            self.about!.show();
-        });
         await listen<DisplayMessageDetail>('display_message', (event) => {
             console.log(event);
             switch (event.payload.what) {
+                case "show_about":
+                    self.about!.show();
+                    break;
                 case "toggle_zoom":
                     this.toggle_tr_visibility(this.zoom_panel!);
                     break;
