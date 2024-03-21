@@ -2,6 +2,7 @@
 // (c) 2024 Ross Younger
 
 use serde::Serialize;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{CustomMenuItem, Manager, Menu, Submenu, WindowMenuEvent};
 
 #[derive(Serialize, Clone)]
@@ -22,11 +23,17 @@ impl DisplayMessageDetail {
     }
 }
 
-pub(crate) struct ApplicationMenu {}
+pub(crate) struct ApplicationMenu {
+    show_zoom: AtomicBool,
+    show_position: AtomicBool,
+}
 
 impl ApplicationMenu {
     pub(crate) fn new() -> ApplicationMenu {
-        ApplicationMenu {}
+        ApplicationMenu {
+            show_zoom: true.into(),
+            show_position: true.into(),
+        }
     }
 
     pub(crate) fn build(&self) -> Menu {
@@ -61,6 +68,27 @@ impl ApplicationMenu {
 
     fn on_menu_guts(&self, event: &WindowMenuEvent) -> anyhow::Result<()> {
         let id = event.menu_item_id();
+        match id {
+            "toggle_zoom" => {
+                let new_state = !self.show_zoom.load(Ordering::Relaxed);
+                self.show_zoom.store(new_state, Ordering::Relaxed);
+                event
+                    .window()
+                    .menu_handle()
+                    .get_item(id)
+                    .set_selected(new_state)?;
+            }
+            "toggle_position" => {
+                let new_state = !self.show_position.load(Ordering::Relaxed);
+                self.show_position.store(new_state, Ordering::Relaxed);
+                event
+                    .window()
+                    .menu_handle()
+                    .get_item(id)
+                    .set_selected(new_state)?;
+            }
+            _ => {}
+        }
         match id {
             "show_about" | "toggle_zoom" | "toggle_position" => {
                 self.display_message(event, id)?;
