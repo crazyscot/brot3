@@ -45,7 +45,7 @@ impl ApplicationMenu {
 
         Menu::os_default("brot3")
             .add_submenu(Submenu::new(
-                "View",
+                "Display",
                 Menu::new().add_item(toggle_zoom).add_item(toggle_position),
             ))
             .add_submenu(Submenu::new(
