@@ -34,11 +34,11 @@ impl ApplicationMenu {
         show_zoom.selected = true;
 
         Menu::os_default("brot3")
+            .add_submenu(Submenu::new("View", Menu::new().add_item(toggle_zoom)))
             .add_submenu(Submenu::new(
                 "Help",
-                Menu::new().add_item(CustomMenuItem::new("about".to_string(), "About")),
+                Menu::new().add_item(CustomMenuItem::new("show_about".to_string(), "About")),
             ))
-            .add_submenu(Submenu::new("View", Menu::new().add_item(show_zoom)))
     }
 
     pub(crate) fn on_menu(&self, event: WindowMenuEvent) {
