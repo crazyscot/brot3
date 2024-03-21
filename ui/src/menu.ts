@@ -27,6 +27,14 @@ class MenuItem {
     }
 }
 
+// Twin of rust menu::DisplayMessageDetail
+class DisplayMessageDetail {
+    what: string;
+    constructor(what: string) {
+        this.what = what;
+    }
+}
+
 export class Menu {
     doc: Document;
     about: About;
@@ -85,8 +93,15 @@ export class Menu {
         await listen<void>('showAbout', (_event) => {
             self.about!.show();
         });
-        await listen<void>('toggle_zoom', (_event) => {
-            this.toggle_tr_visibility(this.zoom_panel!);
+        await listen<DisplayMessageDetail>('display_message', (event) => {
+            console.log(event);
+            switch (event.payload.what) {
+                case "toggle_zoom":
+                    this.toggle_tr_visibility(this.zoom_panel!);
+                    break;
+                default:
+                    console.error(`unknown display_message detail ${event.payload.what}`);
+            }
         });
     }
 
