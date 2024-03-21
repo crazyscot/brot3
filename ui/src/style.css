@@ -122,9 +122,12 @@ button:focus-visible {
   float: right;
 }
 
-.info > *
+.info table
 {
   background: navy;
   color: gold;
-  padding: 3px;
+  border-spacing: 0px;
+  * th,td {
+    padding-left: 0.5em;
+  }
 }
