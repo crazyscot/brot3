@@ -183,9 +183,8 @@ export class Viewer {
     }
     viewer.addHandler('open', function () {
       viewer.addHandler('animation', updateIndicator);
-      updateIndicator(); // update on startup
     });
-    // Retrieve initial metadata. This might need to happen before the initial updateIndicator().
+    // Retrieve initial metadata.
     invoke('get_metadata')
       .then((reply) => {
         // TODO when we have selectable fractals, this will need to be updated.
@@ -193,6 +192,7 @@ export class Viewer {
         let meta = reply as FractalMetadata;
         this.current_metadata.axes_length = meta.axes_length;
         this.current_metadata.origin = meta.origin;
+        updateIndicator();
       })
       .catch((e) => {
         console.log(`Error retrieving metadata: ${e}`);
