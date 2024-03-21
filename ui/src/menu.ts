@@ -40,6 +40,7 @@ export class Menu {
     about: About;
     dropdown: HTMLElement | null;
     zoom_panel: HTMLElement | null;
+    position_panel: HTMLElement[];
 
     constructor(doc: Document) {
         let self = this; // for closures
@@ -48,7 +49,8 @@ export class Menu {
         element!.innerHTML = MENU_HTML;
         this.dropdown = doc.querySelector('#menu-inner');
         this.dropdown?.appendChild(doc.createElement("li"))
-        this.zoom_panel = doc.querySelector('#zoom-panel');
+        this.zoom_panel = doc.querySelector('#zoom-panel') as HTMLElement;
+        this.position_panel = Array.from(doc.querySelectorAll('.position-panel'), e => e as HTMLElement);
 
         // Bind Click event to the drop down navigation button
         doc.querySelector('.nav-button')!.addEventListener('click', function () {
@@ -91,13 +93,15 @@ export class Menu {
     async bind_events() {
         let self = this;
         await listen<DisplayMessageDetail>('display_message', (event) => {
-            console.log(event);
             switch (event.payload.what) {
                 case "show_about":
                     self.about!.show();
                     break;
                 case "toggle_zoom":
                     this.toggle_tr_visibility(this.zoom_panel!);
+                    break;
+                case "toggle_position":
+                    this.position_panel.forEach(e => this.toggle_tr_visibility(e));
                     break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);
