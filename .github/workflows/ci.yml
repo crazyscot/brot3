@@ -27,7 +27,7 @@ jobs:
       run: cargo fmt --all -- --check
     # we used to use actions/cache@v4
     - name: Build
-      run: cargo build --all-targets
+      run: cargo build --all-targets --frozen
     # we want to ensure the benches build... but we already do that in debug with --all-targets
     - name: Test
       run: cargo test
@@ -77,5 +77,7 @@ jobs:
         with:
           projectPath: ui
           # On MacOS, explicitly specify target
+          # On all platforms, build with --frozen
           args: |
             ${{ (matrix.platform == 'macos-latest' && '--target universal-apple-darwin') || '' }}
+            -- -- --frozen
