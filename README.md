@@ -15,7 +15,7 @@ Prerequisites:
 * Rust toolchain (we target _stable_)
 * (Linux only) `mold` (linker; see `.cargo/config.toml`)
 
-Use `cargo build` in the usual way.
+Use `cargo build` or `cargo build --locked` in the usual way.
 There are unit tests, benchmarks and a reasonably strict `clippy` config.
 
 There is no packaging configuration set up for the CLI at present.
@@ -23,14 +23,17 @@ There is no packaging configuration set up for the CLI at present.
 ## GUI
 
 Prerequisites:
-* Rust toolchain
+* All engine prerequisites (see above)
 * Tauri prerequisites for your platform, if any (check Tauri documentation; on Linux some developer libraries are necessary)
+* yarn ([classic](https://classic.yarnpkg.com/lang/en/docs/install/))
 
-All these commands are in the `ui` directory.
+The following commands are run from the `ui` directory:
 
 * To install the node packages: `yarn install --immutable`
 * To run in development mode: `yarn tauri dev`. There is live reload.
+  * To run without updating node packages: `yarn tauri dev -- -- --locked`
 * To build and bundle the application: `yarn tauri build`. This takes a while because we enable LTO in this configuration.
+  * To build without updating node packages: `yarn tauri build -- -- --locked`
 
 In release mode, Tauri builds the GUI application for the target, plus one or more bundles.
 * Linux: .deb package and appImage (standalone)
