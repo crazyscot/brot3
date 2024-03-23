@@ -11,7 +11,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: 1.76
+  RUST_TOOLCHAIN: 1.77
+  # remember to update RUST_VERSION in release.yml too
 
 jobs:
   rust:
