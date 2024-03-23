@@ -30,6 +30,8 @@ export class Menu {
         this.position_display = Array.from(doc.querySelectorAll('tr.position-display'), e => e as HTMLElement);
         this.position_entry_rows = Array.from(doc.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
 
+        // Hide the form by default
+        this.position_entry_rows.forEach(e => this.toggle_tr_visibility(e));
 
         this.about = new About(self.doc.getElementById("aboutModal")!);
         this.bind_events();
