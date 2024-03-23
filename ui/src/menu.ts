@@ -19,14 +19,14 @@ class DisplayMessageDetail {
 export class Menu {
     doc: Document;
     about: About;
-    zoom_display: HTMLElement | null;
+    zoom_display: HTMLElement[];
     position_display: HTMLElement[];
     position_entry_rows: HTMLElement[];
 
     constructor(doc: Document) {
         let self = this; // for closures
         this.doc = doc;
-        this.zoom_display = doc.querySelector('#zoom-display') as HTMLElement;
+        this.zoom_display = Array.from(doc.querySelectorAll('tr.zoom-display'), e => e as HTMLElement);
         this.position_display = Array.from(doc.querySelectorAll('.position-display'), e => e as HTMLElement);
         this.position_entry_rows = Array.from(doc.querySelectorAll('.position-entry'), e => e as HTMLElement);
 
@@ -42,7 +42,7 @@ export class Menu {
                     self.about!.show();
                     break;
                 case "toggle_zoom":
-                    this.toggle_tr_visibility(this.zoom_display!);
+                    this.zoom_display.forEach(e => this.toggle_tr_visibility(e));
                     break;
                 case "toggle_position":
                     this.position_display.forEach(e => this.toggle_tr_visibility(e));
