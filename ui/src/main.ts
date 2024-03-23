@@ -22,7 +22,7 @@ ${About.html}
 <div id="bottombar">
   <div class="info">
   <table>
-    <tr id="zoom-display"><th>Zoom:</th><td id="zoom"></td></tr>
+    <tr class="zoom-display"><th>Zoom:</th><td id="zoom"></td></tr>
     <tr class="position-display"><th>Origin:</th><td><span id="originReal"></span></td><td><span id="originImag"></span>i</td></tr>
     <tr class="position-display"><th>Axes:</th><td><span id="axesReal"></span></td><td><span id="axesImag"></span>i</td></tr>
     <tr class="position-entry"><th>Zoom:</th><td colspan="2"><input type="text" id="enter_zoom" /></td></tr>
