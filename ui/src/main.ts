@@ -22,9 +22,9 @@ ${About.html}
 <div id="bottombar">
   <div class="info">
   <table>
-    <tr id="zoom-panel"><th>Zoom:</th><td id="zoom"></td></tr>
-    <tr class="position-panel"><th>Origin:</th><td><span id="originReal"></span></td><td><span id="originImag"></span>i</td></tr>
-    <tr class="position-panel"><th>Axes:</th><td><span id="axesReal"></span></td><td><span id="axesImag"></span>i</td></tr>
+    <tr id="zoom-display"><th>Zoom:</th><td id="zoom"></td></tr>
+    <tr class="position-display"><th>Origin:</th><td><span id="originReal"></span></td><td><span id="originImag"></span>i</td></tr>
+    <tr class="position-display"><th>Axes:</th><td><span id="axesReal"></span></td><td><span id="axesImag"></span>i</td></tr>
     <tr class="position-entry"><th>Zoom:</th><td colspan="2"><input type="text" id="enter_zoom" /></td></tr>
     <tr class="position-entry"><th>Origin:</th><td><input type="text" id="enter_originReal" /></td><td>+ <input type="text" id="enter_originImg" /> i</td></tr>
     <tr class="position-entry"><th>Axes:</th><td><input type="text" id="enter_axisReal" /></td><td>+ <input type="text" id="enter_originReal" /> i</td></tr>
