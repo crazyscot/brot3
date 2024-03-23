@@ -27,8 +27,9 @@ export class Menu {
         let self = this; // for closures
         this.doc = doc;
         this.zoom_display = Array.from(doc.querySelectorAll('tr.zoom-display'), e => e as HTMLElement);
-        this.position_display = Array.from(doc.querySelectorAll('.position-display'), e => e as HTMLElement);
-        this.position_entry_rows = Array.from(doc.querySelectorAll('.position-entry'), e => e as HTMLElement);
+        this.position_display = Array.from(doc.querySelectorAll('tr.position-display'), e => e as HTMLElement);
+        this.position_entry_rows = Array.from(doc.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
+
 
         this.about = new About(self.doc.getElementById("aboutModal")!);
         this.bind_events();
@@ -57,7 +58,7 @@ export class Menu {
     }
 
     toggle_tr_visibility(e: HTMLElement) {
-        if (e.style.display === "none" || e.style.display === "") {
+        if (e.style.display === "none") {
             e.style.display = "table-row";
         } else {
             e.style.display = "none";
