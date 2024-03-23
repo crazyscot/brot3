@@ -21,12 +21,14 @@ export class Menu {
     about: About;
     zoom_panel: HTMLElement | null;
     position_panel: HTMLElement[];
+    position_entry_rows: HTMLElement[];
 
     constructor(doc: Document) {
         let self = this; // for closures
         this.doc = doc;
         this.zoom_panel = doc.querySelector('#zoom-panel') as HTMLElement;
         this.position_panel = Array.from(doc.querySelectorAll('.position-panel'), e => e as HTMLElement);
+        this.position_entry_rows = Array.from(doc.querySelectorAll('.position-entry'), e => e as HTMLElement);
 
         this.about = new About(self.doc.getElementById("aboutModal")!);
         this.bind_events();
@@ -45,6 +47,9 @@ export class Menu {
                 case "toggle_position":
                     this.position_panel.forEach(e => this.toggle_tr_visibility(e));
                     break;
+                case "go_to_position":
+                    this.position_entry_rows.forEach(e => this.toggle_tr_visibility(e));
+                    break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);
             }
@@ -52,7 +57,7 @@ export class Menu {
     }
 
     toggle_tr_visibility(e: HTMLElement) {
-        if (e.style.display === "none") {
+        if (e.style.display === "none" || e.style.display === "") {
             e.style.display = "table-row";
         } else {
             e.style.display = "none";
