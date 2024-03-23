@@ -11,6 +11,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: 1.76
 
 jobs:
   rust:
@@ -20,7 +21,10 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@stable
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        components: clippy, rustfmt
+        toolchain: ${{ env.RUST_TOOLCHAIN }}
     - uses: Swatinem/rust-cache@v2
     - run: sudo apt-get update && sudo apt-get -y --no-install-recommends install curl wget file mold libwebkit2gtk-4.0-dev libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
     - name: Code style check
@@ -49,14 +53,17 @@ jobs:
           node-version: 20
           #cache: yarn
           #cache-dependency-path: ui/yarn.lock
-      - name: dtolnay/rust-toolchain@stable (non-macos)
-        uses: dtolnay/rust-toolchain@stable
+      - name: dtolnay/rust-toolchain (non-macos)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
         if: matrix.platform != 'macos-latest'
-      - name: dtolnay/rust-toolchain@stable (macos)
-        uses: dtolnay/rust-toolchain@stable
+      - name: dtolnay/rust-toolchain (macos)
+        uses: dtolnay/rust-toolchain@master
         if: matrix.platform == 'macos-latest'
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
       - uses: Swatinem/rust-cache@v2 # wry added
         with:
           shared-key: "tauri-${{matrix.platform}}" # aligns with release.yml
