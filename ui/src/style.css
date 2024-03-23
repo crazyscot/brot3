@@ -131,9 +131,7 @@ button:focus-visible {
     padding-left: 0.5em;
   }
 }
-
-.position-entry
+tr.position-entry
 {
-  display: none;
   background: blue;
 }
