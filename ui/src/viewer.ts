@@ -13,6 +13,13 @@ var gSerial = new SerialAllocator();
 const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
 
+function maybe_leading(symbol: string, n: number) : string
+{
+  if (n >= 0.0)
+    return `${symbol}${n}`;
+  return `${n}`;
+}
+
 class HeadsUpDisplay {
   zoom: Element | null;
   originReal: Element | null;
@@ -28,10 +35,10 @@ class HeadsUpDisplay {
   }
   update(zoom: number, origin: EnginePoint, axes: EnginePoint) {
     this.zoom!.innerHTML = `${zoom.toPrecision(4)}`;
-    this.axesReal!.innerHTML = `${axes.re}`;
-    this.axesImag!.innerHTML = `${axes.im}`;
-    this.originReal!.innerHTML = `${origin.re}`;
-    this.originImag!.innerHTML = `${origin.im}`;
+    this.axesReal!.innerHTML = maybe_leading("&nbsp;", axes.re);
+    this.axesImag!.innerHTML = maybe_leading("+", axes.im);
+    this.originReal!.innerHTML = maybe_leading("&nbsp;", origin.re);
+    this.originImag!.innerHTML = maybe_leading("+", origin.im);
   }
 }
 

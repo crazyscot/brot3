@@ -23,8 +23,8 @@ ${About.html}
   <div class="info">
   <table>
     <tr id="zoom-panel"><th>Zoom:</th><td id="zoom"></td></tr>
-    <tr class="position-panel"><th>Origin:</th><td><span id="originReal"></span>,</td><td><span id="originImag"></span>i</td></tr>
-    <tr class="position-panel"><th>Axes:</th><td><span id="axesReal"></span>,</td><td><span id="axesImag"></span>i</td></tr>
+    <tr class="position-panel"><th>Origin:</th><td><span id="originReal"></span></td><td><span id="originImag"></span>i</td></tr>
+    <tr class="position-panel"><th>Axes:</th><td><span id="axesReal"></span></td><td><span id="axesImag"></span>i</td></tr>
   </table>
   </div>
 </div>
