@@ -16,6 +16,15 @@ class DisplayMessageDetail {
     }
 }
 
+// Fields we read from the Enter Position form.
+// N.B. Fields in the DOM are prefixed with "enter_". These field names are in the output object.
+const position_entry_fields = [
+    "zoom",
+    "originReal",
+    "originImag",
+    "axisReal",
+    "axisImag",
+];
 export class Menu {
     doc: Document;
     about: About;
@@ -26,12 +35,17 @@ export class Menu {
     constructor(doc: Document) {
         let self = this; // for closures
         this.doc = doc;
+
         this.zoom_display = Array.from(doc.querySelectorAll('tr.zoom-display'), e => e as HTMLElement);
         this.position_display = Array.from(doc.querySelectorAll('tr.position-display'), e => e as HTMLElement);
-        this.position_entry_rows = Array.from(doc.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
 
+        // Position entry form
+        this.position_entry_rows = Array.from(doc.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
         // Hide the form by default
         this.position_entry_rows.forEach(e => this.toggle_tr_visibility(e));
+        doc.getElementById("action_go_to_position")!.onclick = function () {
+            self.go_to_position();
+        }
 
         this.about = new About(self.doc.getElementById("aboutModal")!);
         this.bind_events();
@@ -65,6 +79,34 @@ export class Menu {
         } else {
             e.style.display = "none";
         }
+    }
+
+
+    go_to_position() {
+        let destination = this.parse_entered_position();
+    }
+
+    parse_entered_position() : Map<string, number> {
+        let result = new Map<string, number>();
+        let errors = new Array<string>;
+        for (let f of position_entry_fields) {
+            let fieldId = "#enter_" + f;
+            let fieldElement = this.doc.querySelector<HTMLInputElement>(fieldId);
+            if (fieldElement === null) {
+                errors.unshift(`missing HTML element ${fieldId}`);
+                continue;
+            }
+            let value = parseFloat(fieldElement.value);
+            if (!Number.isFinite(value)) {
+                errors.unshift(`cannot parse ${f}`);
+            }
+            result.set(f, value);
+        };
+        if (errors.length !== 0) {
+            let message = `Form data error: ${errors.join(", ")}`;
+            throw new Error(message);
+        }
+        return result;
     }
 
     noop() { }
