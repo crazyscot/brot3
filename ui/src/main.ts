@@ -28,6 +28,7 @@ ${About.html}
       <tr class="position-entry"><th>Origin:</th><td><input type="text" id="enter_originReal" /></td><td>+ <input type="text" id="enter_originImag" /> i</td><td colspan="3"/></tr>
       <tr class="position-entry"><th>Axes:</th><td><input type="text" id="enter_axisReal" /> real</td><td><em>or</em> <input type="text" id="enter_axisImag" /> im</td>
         <td><em>or</em> Zoom:</td><td><input type="text" id="enter_zoom" /></td><td><input type="submit" id="action_go_to_position" value="Go"></td></tr>
+      <tr class="position-entry"><td colspan="6" id="position-error-text" /></tr>
     </table>
   </form>
   </div>

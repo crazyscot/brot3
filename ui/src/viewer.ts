@@ -256,6 +256,17 @@ export class Viewer {
   }
 
   go_to(destination: Map<string, number>) {
+    let messageBox = document.getElementById("position-error-text");
+    try {
+      let result = this.go_to_inner(destination);
+      messageBox!.innerHTML = "";
+      return result;
+    } catch (e) {
+      console.error(e);
+      messageBox!.innerHTML = (e as Error)!.toString();
+    }
+  }
+  private go_to_inner(destination: Map<string, number>) {
     let viewport = this.osd.viewport;
     // this is essentially the inverse of updateIndicator()
 
@@ -265,7 +276,6 @@ export class Viewer {
     let originComplex = new EnginePoint(destination.get("originReal")!, destination.get("originImag")!);
     if (!Number.isFinite(originComplex.re) || !Number.isFinite(originComplex.im)) {
       throw new Error("Origin is required");
-      // TODO report exception to the user.. clear when panel closed?
     }
 
     // Which axis-controlling coordinates are we using?

@@ -135,3 +135,9 @@ tr.position-entry
 {
   background: blue;
 }
+
+#position-error-text
+{
+  color: red;
+  font-weight: bold;
+}
