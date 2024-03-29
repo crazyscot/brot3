@@ -7,7 +7,6 @@ import '../node_modules/material-icons/iconfont/filled.css'
 import { listen } from '@tauri-apps/api/event'
 
 import { About } from './about.ts'
-import { EnginePoint } from './engine_types'
 import { Viewer } from './viewer.ts'
 
 // Twin of rust menu::DisplayMessageDetail
@@ -70,7 +69,7 @@ export class Menu {
                     let visible = false;
                     this.position_entry_rows.forEach(e => visible = this.toggle_tr_visibility(e));
                     if (visible) {
-                        let element = document.getElementById(`enter_originReal`);
+                        let element = document.getElementById(`enter_originReal`) as HTMLInputElement;
                         element!.focus();
                         element!.select();
                     }
