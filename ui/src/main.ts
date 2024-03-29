@@ -45,6 +45,6 @@ async function setupWindow() {
 
 setupWindow();
 
-let gMenu = new Menu(document);
+let gMenu = new Menu(document, gViewer);
 gViewer.noop();
 gMenu.noop();

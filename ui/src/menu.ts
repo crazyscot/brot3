@@ -7,6 +7,8 @@ import '../node_modules/material-icons/iconfont/filled.css'
 import { listen } from '@tauri-apps/api/event'
 
 import { About } from './about.ts'
+import { EnginePoint } from './engine_types'
+import { Viewer } from './viewer.ts'
 
 // Twin of rust menu::DisplayMessageDetail
 class DisplayMessageDetail {
@@ -27,14 +29,16 @@ const position_entry_fields = [
 ];
 export class Menu {
     doc: Document;
+    viewer: Viewer;
     about: About;
     zoom_display: HTMLElement[];
     position_display: HTMLElement[];
     position_entry_rows: HTMLElement[];
 
-    constructor(doc: Document) {
+    constructor(doc: Document, viewer: Viewer) {
         let self = this; // for closures
         this.doc = doc;
+        this.viewer = viewer;
 
         this.zoom_display = Array.from(doc.querySelectorAll('tr.zoom-display'), e => e as HTMLElement);
         this.position_display = Array.from(doc.querySelectorAll('tr.position-display'), e => e as HTMLElement);
