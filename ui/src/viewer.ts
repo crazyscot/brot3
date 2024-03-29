@@ -187,6 +187,10 @@ export class Viewer {
         axesLengthView.y * meta_axes.im
       );
       self.hud.update(zoom, originComplex, axesComplex);
+      /*
+      let checkZoom = self.current_metadata.axes_length.re / axesComplex.re;
+      console.log(`real: meta ${self.current_metadata.axes_length.re}, axis ${axesComplex.re}, zoom ${zoom}, computed zoom = ${checkZoom}`);
+      */
     }
     viewer.addHandler('open', function () {
       viewer.addHandler('animation', updateIndicator);
@@ -252,7 +256,69 @@ export class Viewer {
   }
 
   go_to(destination: Map<string, number>) {
+    let viewport = this.osd.viewport;
+    // this is essentially the inverse of updateIndicator()
+
+    let meta = this.current_metadata;
+    let meta_axes = meta.axes_length;
+
+    let originComplex = new EnginePoint(destination.get("originReal")!, destination.get("originImag")!);
+    if (!Number.isFinite(originComplex.re) || !Number.isFinite(originComplex.im)) {
+      throw new Error("Origin is required");
+      // TODO report exception to the user.. clear when panel closed?
+    }
+
+    // Which axis-controlling coordinates are we using?
+    // The first one (left to right) takes precedence.
+    let axisReal = destination.get("axisReal")!;
+    let axisImag = destination.get("axisImag")!;
+    let zoom = destination.get("zoom")!;
+    // Assume square pixels.
+    let aspectRatio = this.width / this.height;
+    if (Number.isFinite(axisReal)) {
+      axisImag = axisReal / aspectRatio;
+      zoom = this.current_metadata.axes_length.re / axisReal;
+    } else if (Number.isFinite(axisImag)) {
+      axisReal = axisImag * aspectRatio;
+      zoom = this.current_metadata.axes_length.re / axisReal;
+    } else if (Number.isFinite(zoom)) {
+      axisReal = this.current_metadata.axes_length.re / zoom;
+      axisImag = axisReal / aspectRatio;
+    } else {
+      throw new Error("One of axis real, axis imaginary or zoom must be specified");
+    }
+    console.log("Go to origin:", originComplex);
+    console.log("destination axis", new EnginePoint(axisReal, axisImag));
+    console.log("destination zoom", zoom);
+
+    // 1. Compute axes in viewport coordinates (0..1)
+    let axesLengthView = new OpenSeadragon.Point(
+      axisReal / meta_axes.re,
+      axisImag / meta_axes.im,
+    );
+
+    // 2. Compute origin in viewport coordinates
+    // (this is a mathematician's origin i.e. bottom left)
+    let originView = new OpenSeadragon.Point(
+      ( originComplex.re - meta.origin.re ) / meta_axes.re,
+      // flip the Y axis as we're going between maths and computer science coordinates here
+      1.0 - ( originComplex.im - meta.origin.im ) / meta_axes.im,
+    );
+
+    // 3. Use origin point & axes length to compute top-left & bottom-right points, all in viewport coordinates.
+    // AxesLength = BR - TL
+    let topLeftView = new OpenSeadragon.Point(originView.x, originView.y - axesLengthView.y);
+    let bottomRightView = topLeftView.plus(axesLengthView);
+    let centreView = new OpenSeadragon.Point(
+      (topLeftView.x + bottomRightView.x) / 2.0,
+      (topLeftView.y + bottomRightView.y) / 2.0,
+    );
+
+    console.log("Destination centre", centreView);
+    viewport.zoomTo(zoom).panTo(centreView);
+    viewport.applyConstraints();
   }
+
 
   // dummy function to shut up a linter warning in main.ts
   noop() { }

@@ -20,6 +20,7 @@ class DisplayMessageDetail {
 
 // Fields we read from the Enter Position form.
 // N.B. Fields in the DOM are prefixed with "enter_". These field names are in the output object.
+// Not all fields need be present; origin OR centre, plus one of zoom/axisReal/axisImag.
 const position_entry_fields = [
     "zoom",
     "originReal",
@@ -27,6 +28,7 @@ const position_entry_fields = [
     "axisReal",
     "axisImag",
 ];
+
 export class Menu {
     doc: Document;
     viewer: Viewer;
@@ -91,6 +93,7 @@ export class Menu {
 
     action_go_to_position() {
         let destination = this.parse_entered_position();
+        this.viewer.go_to(destination);
     }
 
     parse_entered_position() : Map<string, number> {
@@ -104,9 +107,7 @@ export class Menu {
                 continue;
             }
             let value = parseFloat(fieldElement.value);
-            if (!Number.isFinite(value)) {
-                errors.unshift(`cannot parse ${f}`);
-            }
+            // this results in NaN if a field is empty; that's OK as not all are mandatory. Viewer will figure it out.
             result.set(f, value);
         };
         if (errors.length !== 0) {
