@@ -31,7 +31,6 @@ export class Menu {
     doc: Document;
     viewer: Viewer;
     about: About;
-    zoom_display: HTMLElement[];
     position_display: HTMLElement[];
     position_entry_rows: HTMLElement[];
 
@@ -40,7 +39,6 @@ export class Menu {
         this.doc = doc;
         this.viewer = viewer;
 
-        this.zoom_display = Array.from(doc.querySelectorAll('tr.zoom-display'), e => e as HTMLElement);
         this.position_display = Array.from(doc.querySelectorAll('tr.position-display'), e => e as HTMLElement);
 
         // Position entry form
@@ -62,9 +60,6 @@ export class Menu {
             switch (event.payload.what) {
                 case "show_about":
                     self.about!.show();
-                    break;
-                case "toggle_zoom":
-                    this.zoom_display.forEach(e => this.toggle_tr_visibility(e));
                     break;
                 case "toggle_position":
                     this.position_display.forEach(e => this.toggle_tr_visibility(e));

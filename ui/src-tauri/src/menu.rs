@@ -24,23 +24,20 @@ impl DisplayMessageDetail {
 }
 
 pub(crate) struct ApplicationMenu {
-    show_zoom: AtomicBool,
     show_position: AtomicBool,
 }
 
 impl ApplicationMenu {
     pub(crate) fn new() -> ApplicationMenu {
         ApplicationMenu {
-            show_zoom: true.into(),
             show_position: true.into(),
         }
     }
 
     pub(crate) fn build(&self) -> Menu {
-        let mut toggle_zoom = CustomMenuItem::new("toggle_zoom".to_string(), "Show Zoom");
-        toggle_zoom.selected = true;
         let mut toggle_position =
-            CustomMenuItem::new("toggle_position".to_string(), "Show Position");
+            CustomMenuItem::new("toggle_position".to_string(), "Show Position")
+                .accelerator("Ctrl+P");
         toggle_position.selected = true;
         let go_to_position = CustomMenuItem::new("go_to_position".to_string(), "Go To Position")
             .accelerator("Ctrl+G");
@@ -49,7 +46,6 @@ impl ApplicationMenu {
             .add_submenu(Submenu::new(
                 "Display",
                 Menu::new()
-                    .add_item(toggle_zoom)
                     .add_item(toggle_position)
                     .add_native_item(MenuItem::Separator)
                     .add_item(go_to_position),
@@ -75,15 +71,6 @@ impl ApplicationMenu {
     fn on_menu_guts(&self, event: &WindowMenuEvent) -> anyhow::Result<()> {
         let id = event.menu_item_id();
         match id {
-            "toggle_zoom" => {
-                let new_state = !self.show_zoom.load(Ordering::Relaxed);
-                self.show_zoom.store(new_state, Ordering::Relaxed);
-                event
-                    .window()
-                    .menu_handle()
-                    .get_item(id)
-                    .set_selected(new_state)?;
-            }
             "toggle_position" => {
                 let new_state = !self.show_position.load(Ordering::Relaxed);
                 self.show_position.store(new_state, Ordering::Relaxed);
