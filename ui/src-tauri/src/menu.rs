@@ -42,12 +42,17 @@ impl ApplicationMenu {
         let mut toggle_position =
             CustomMenuItem::new("toggle_position".to_string(), "Show Position");
         toggle_position.selected = true;
-        let go_to_position = CustomMenuItem::new("go_to_position".to_string(), "Go To Position");
+        let go_to_position = CustomMenuItem::new("go_to_position".to_string(), "Go To Position")
+            .accelerator("Ctrl+G");
 
         Menu::os_default("brot3")
             .add_submenu(Submenu::new(
                 "Display",
-                Menu::new().add_item(toggle_zoom).add_item(toggle_position).add_native_item(MenuItem::Separator).add_item(go_to_position),
+                Menu::new()
+                    .add_item(toggle_zoom)
+                    .add_item(toggle_position)
+                    .add_native_item(MenuItem::Separator)
+                    .add_item(go_to_position),
             ))
             .add_submenu(Submenu::new(
                 "Help",
