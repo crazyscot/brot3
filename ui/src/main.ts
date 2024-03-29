@@ -23,12 +23,12 @@ ${About.html}
   <div class="info">
   <form id="form_go_to_position">
     <table>
-      <tr class="zoom-display"><th>Zoom:</th><td id="zoom"></td></tr>
       <tr class="position-display"><th>Origin:</th><td><span id="originReal"></span></td><td><span id="originImag"></span>i</td></tr>
       <tr class="position-display"><th>Axes:</th><td><span id="axesReal"></span></td><td><span id="axesImag"></span>i</td></tr>
-      <tr class="position-entry"><th>Zoom:</th><td colspan="2"><input type="text" id="enter_zoom" /></td></tr>
+      <tr class="zoom-display"><th>Zoom:</th><td id="zoom"></td></tr>
       <tr class="position-entry"><th>Origin:</th><td><input type="text" id="enter_originReal" /></td><td>+ <input type="text" id="enter_originImag" /> i</td></tr>
       <tr class="position-entry"><th>Axes:</th><td><input type="text" id="enter_axisReal" /></td><td>+ <input type="text" id="enter_axisImag" /> i</td></tr>
+      <tr class="position-entry"><th>Zoom:</th><td colspan="2"><input type="text" id="enter_zoom" /></td></tr>
       <tr class="position-entry"><th><input type="submit" id="action_go_to_position" value="Go"></th><td colspan="2" id="go_to_position_message"/></tr>
     </table>
   </form>

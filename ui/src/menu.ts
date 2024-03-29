@@ -73,7 +73,7 @@ export class Menu {
                     let visible = false;
                     this.position_entry_rows.forEach(e => visible = this.toggle_tr_visibility(e));
                     if (visible) {
-                        let element = document.getElementById(`enter_${position_entry_fields[0]}`);
+                        let element = document.getElementById(`enter_originReal`);
                         element!.focus();
                         element!.select();
                     }
