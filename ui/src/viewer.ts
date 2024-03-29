@@ -251,6 +251,9 @@ export class Viewer {
     console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
   }
 
+  go_to(destination: Map<string, number>) {
+  }
+
   // dummy function to shut up a linter warning in main.ts
   noop() { }
 }

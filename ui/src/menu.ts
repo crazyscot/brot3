@@ -43,8 +43,9 @@ export class Menu {
         this.position_entry_rows = Array.from(doc.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
         // Hide the form by default
         this.position_entry_rows.forEach(e => this.toggle_tr_visibility(e));
-        doc.getElementById("action_go_to_position")!.onclick = function () {
-            self.go_to_position();
+        doc.getElementById("form_go_to_position")!.onsubmit = function (e) {
+            e.preventDefault();
+            self.action_go_to_position();
         }
 
         this.about = new About(self.doc.getElementById("aboutModal")!);
@@ -65,7 +66,13 @@ export class Menu {
                     this.position_display.forEach(e => this.toggle_tr_visibility(e));
                     break;
                 case "go_to_position":
-                    this.position_entry_rows.forEach(e => this.toggle_tr_visibility(e));
+                    let visible = false;
+                    this.position_entry_rows.forEach(e => visible = this.toggle_tr_visibility(e));
+                    if (visible) {
+                        let element = document.getElementById(`enter_${position_entry_fields[0]}`);
+                        element!.focus();
+                        element!.select();
+                    }
                     break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);
@@ -73,16 +80,17 @@ export class Menu {
         });
     }
 
-    toggle_tr_visibility(e: HTMLElement) {
+    toggle_tr_visibility(e: HTMLElement) : boolean {
         if (e.style.display === "none") {
             e.style.display = "table-row";
+            return true;
         } else {
             e.style.display = "none";
+            return false;
         }
     }
 
-
-    go_to_position() {
+    action_go_to_position() {
         let destination = this.parse_entered_position();
     }
 
