@@ -21,11 +21,16 @@ ${About.html}
 </div>
 <div id="bottombar">
   <div class="info">
-  <table>
-    <tr id="zoom-panel"><th>Zoom:</th><td id="zoom"></td></tr>
-    <tr class="position-panel"><th>Origin:</th><td><span id="originReal"></span>,</td><td><span id="originImag"></span>i</td></tr>
-    <tr class="position-panel"><th>Axes:</th><td><span id="axesReal"></span>,</td><td><span id="axesImag"></span>i</td></tr>
-  </table>
+  <form id="form_go_to_position">
+    <table>
+      <tr class="position-display"><th>Origin:</th><td><span id="originReal"></span></td><td><span id="originImag"></span>i</td></tr>
+      <tr class="position-display"><th>Axes:</th><td><span id="axesReal"></span></td><td><span id="axesImag"></span>i</td><th>Zoom:</th><td id="zoom"></td></tr>
+      <tr class="position-entry"><th>Origin:</th><td><input type="text" id="enter_originReal" /></td><td>+ <input type="text" id="enter_originImag" /> i</td><td colspan="3"/></tr>
+      <tr class="position-entry"><th>Axes:</th><td><input type="text" id="enter_axisReal" /> real</td><td><em>or</em> <input type="text" id="enter_axisImag" /> im</td>
+        <td><em>or</em> Zoom:</td><td><input type="text" id="enter_zoom" /></td><td><input type="submit" id="action_go_to_position" value="Go"></td></tr>
+      <tr class="position-entry"><td colspan="6" id="position-error-text" /></tr>
+    </table>
+  </form>
   </div>
 </div>
 `;
@@ -39,6 +44,6 @@ async function setupWindow() {
 
 setupWindow();
 
-let gMenu = new Menu(document);
+let gMenu = new Menu(document, gViewer);
 gViewer.noop();
 gMenu.noop();
