@@ -155,38 +155,11 @@ export class Viewer {
     // Zoom/Position indicator
     this.hud = new HeadsUpDisplay(document);
     let viewer = this.osd;
-    var updateIndicator = function() {
+    var updateIndicator = function () {
       let vp = viewer.viewport;
-      var zoom : number = vp.getZoom(true);
-      //var imageZoom = vp.viewportToImageZoom(zoom);
-      // We know that top left is webPoint 0,0; bottom right is W-1,H-1.
-      // These are the web (pixel) coordinates.
-      var topLeft = new OpenSeadragon.Point(0, 0);
-      var bottomRight = new OpenSeadragon.Point(self.width - 1, self.height - 1);
-      // Convert to viewport coordinates:
-      var topLeftView = vp.pointFromPixelNoRotate(topLeft);
-      var bottomRightView = vp.pointFromPixelNoRotate(bottomRight);
-
-      // Bottom Left is the origin (as mathematicians would call it, not computer images!)
-      var originView = new OpenSeadragon.Point(topLeftView.x, bottomRightView.y);
-
-      // Axes := BR - TL
-      var axesLengthView = bottomRightView.minus(topLeftView);
-
-      // Convert to complex
-      let meta = self.current_metadata; // Caution, closure capture!
-      let meta_axes = meta.axes_length;
-
-      var originComplex = new EnginePoint(
-        meta.origin.re + originView.x * meta_axes.re,
-        // Flip the Y axis at the point we go into mathematician-speak:
-        meta.origin.im + (1.0 - originView.y) * meta_axes.im
-      );
-      var axesComplex = new EnginePoint(
-        axesLengthView.x * meta_axes.re,
-        axesLengthView.y * meta_axes.im
-      );
-      self.hud.update(zoom, originComplex, axesComplex);
+      var zoom: number = vp.getZoom(true);
+      let position = self.get_position();
+      self.hud.update(zoom, position.origin, position.axes_length);
       /*
       let checkZoom = self.current_metadata.axes_length.re / axesComplex.re;
       console.log(`real: meta ${self.current_metadata.axes_length.re}, axis ${axesComplex.re}, zoom ${zoom}, computed zoom = ${checkZoom}`);
@@ -211,6 +184,40 @@ export class Viewer {
         console.log(`Error retrieving metadata: ${e}`);
       }
     );
+  } // ---------------- end constructor --------------------
+
+  get_position() : FractalMetadata {
+    let viewer = this.osd;
+    let vp = viewer.viewport;
+    // We know that top left is webPoint 0,0; bottom right is W-1,H-1.
+    // These are the web (pixel) coordinates.
+    var topLeft = new OpenSeadragon.Point(0, 0);
+    var bottomRight = new OpenSeadragon.Point(this.width - 1, this.height - 1);
+    // Convert to viewport coordinates:
+    var topLeftView = vp.pointFromPixelNoRotate(topLeft);
+    var bottomRightView = vp.pointFromPixelNoRotate(bottomRight);
+
+    // Bottom Left is the origin (as mathematicians would call it, not computer images!)
+    var originView = new OpenSeadragon.Point(topLeftView.x, bottomRightView.y);
+
+    // Axes := BR - TL
+    var axesLengthView = bottomRightView.minus(topLeftView);
+
+    // Convert to complex
+    let meta = this.current_metadata; // Caution, closure capture!
+    let meta_axes = meta.axes_length;
+
+    var originComplex = new EnginePoint(
+      meta.origin.re + originView.x * meta_axes.re,
+      // Flip the Y axis at the point we go into mathematician-speak:
+      meta.origin.im + (1.0 - originView.y) * meta_axes.im
+    );
+    var axesComplex = new EnginePoint(
+      axesLengthView.x * meta_axes.re,
+      axesLengthView.y * meta_axes.im
+    );
+
+    return new FractalMetadata(originComplex, axesComplex);
   }
 
   async bind_events() {
