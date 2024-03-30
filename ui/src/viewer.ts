@@ -20,6 +20,21 @@ function maybe_leading(symbol: string, n: number) : string
   return `${n}`;
 }
 
+function tr_is_visible(e: HTMLElement): boolean {
+  return e.style.display !== "none";
+}
+
+// Toggles visibility of a TR element, returning true iff it is now visible.
+function toggle_tr_visibility(e: HTMLElement) : boolean {
+  if (e.style.display === "none") {
+      e.style.display = "table-row";
+      return true;
+  } else {
+      e.style.display = "none";
+      return false;
+  }
+}
+
 class HeadsUpDisplay {
   zoom: Element | null;
   originReal: Element | null;
@@ -184,6 +199,10 @@ export class Viewer {
         console.log(`Error retrieving metadata: ${e}`);
       }
     );
+
+    // Hide the position entry rows by default
+    this.position_entry_rows().forEach(e => { if (tr_is_visible(e)) toggle_tr_visibility(e); });
+
   } // ---------------- end constructor --------------------
 
   get_position() : FractalMetadata {
@@ -262,6 +281,25 @@ export class Viewer {
     this.osd.viewport.resize({x: window.innerWidth, y:window.innerHeight});
     this.osd.viewport.applyConstraints();
     console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
+  }
+
+  toggle_hud() {
+    let elements = Array.from(document.querySelectorAll('tr.position-display'), e => e as HTMLElement);
+    elements.forEach(e => toggle_tr_visibility(e));
+  }
+
+  private position_entry_rows() : HTMLElement[] {
+    return Array.from(document.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
+  }
+
+  toggle_position_entry_panel() {
+    let visible = false;
+    this.position_entry_rows().forEach(e => visible = toggle_tr_visibility(e));
+    if (visible) {
+        let element = document.getElementById(`enter_originReal`) as HTMLInputElement;
+        element!.focus();
+        element!.select();
+    }
   }
 
   go_to(destination: Map<string, number>) {
