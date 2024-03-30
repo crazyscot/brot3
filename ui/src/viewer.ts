@@ -411,6 +411,21 @@ export class Viewer {
     viewport.applyConstraints();
   }
 
+  // Copy the current position into the Go To Position form
+  copy_current_position() {
+    let pos = this.get_position();
+    let f = document.getElementById("enter_originReal")! as HTMLInputElement;
+    f.value = pos.origin.re.toString();
+    f = document.getElementById("enter_originImag")! as HTMLInputElement;
+    f.value = pos.origin.im.toString();
+    f = document.getElementById("enter_axesReal")! as HTMLInputElement;
+    f.value = pos.axes_length.re.toString();
+    // clear out: Axes Im, Zoom
+    ["axesImag", "zoom"].forEach(f => {
+      let field = document.getElementById("enter_" + f)! as HTMLInputElement;
+      field.value = "";
+    });
+  }
 
   // dummy function to shut up a linter warning in main.ts
   noop() { }
