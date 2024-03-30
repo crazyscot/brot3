@@ -23,15 +23,11 @@ impl DisplayMessageDetail {
     }
 }
 
-pub(crate) struct ApplicationMenu {
-    show_position: AtomicBool,
-}
+pub(crate) struct ApplicationMenu {}
 
 impl ApplicationMenu {
     pub(crate) fn new() -> ApplicationMenu {
-        ApplicationMenu {
-            show_position: true.into(),
-        }
+        ApplicationMenu {}
     }
 
     pub(crate) fn build(&self) -> Menu {
@@ -39,7 +35,7 @@ impl ApplicationMenu {
             CustomMenuItem::new("toggle_position".to_string(), "Show Position")
                 .accelerator("Ctrl+P");
         toggle_position.selected = true;
-        let go_to_position = CustomMenuItem::new("go_to_position".to_string(), "Go To Position")
+        let go_to_position = CustomMenuItem::new("go_to_position".to_string(), "Go To Position...")
             .accelerator("Ctrl+G");
 
         Menu::os_default("brot3")
@@ -70,20 +66,7 @@ impl ApplicationMenu {
 
     fn on_menu_guts(&self, event: &WindowMenuEvent) -> anyhow::Result<()> {
         let id = event.menu_item_id();
-        match id {
-            "toggle_position" => {
-                let new_state = !self.show_position.load(Ordering::Relaxed);
-                self.show_position.store(new_state, Ordering::Relaxed);
-                event
-                    .window()
-                    .menu_handle()
-                    .get_item(id)
-                    .set_selected(new_state)?;
-            }
-            _ => {}
-        }
-        self.display_message(event, id)?;
-        Ok(())
+        self.display_message(event, id)
     }
 
     fn display_message(&self, event: &WindowMenuEvent, what: &str) -> anyhow::Result<()> {
