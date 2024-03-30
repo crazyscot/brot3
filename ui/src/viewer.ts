@@ -64,6 +64,21 @@ class HeadsUpDisplay {
   }
 }
 
+class ClickEventListener implements EventListenerObject {
+  clickable: Element;
+  action: Function;
+  constructor(target: Element, action: Function) {
+    this.clickable = target;
+    this.clickable.addEventListener("click", this);
+    this.action = action;
+  }
+  handleEvent(event: Event): void | Promise<void> {
+    if (event.type === "click") {
+        this.action(event);
+    }
+  }
+}
+
 export class Viewer {
   osd: any | null;  // OpenSeadragon.Viewer
   redraw_event: number | undefined; // setTimeout / clearTimeout
@@ -72,6 +87,8 @@ export class Viewer {
   outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   hud: HeadsUpDisplay;
   current_metadata: FractalMetadata = new FractalMetadata();
+  hud_closer: ClickEventListener;
+  position_entry_closer: ClickEventListener;
 
   // width, height used by coordinate display
   width: number = NaN;
@@ -209,7 +226,18 @@ export class Viewer {
 
     // Hide the position entry rows by default
     this.position_entry_rows().forEach(e => { if (tr_is_visible(e)) toggle_tr_visibility(e); });
-
+    this.hud_closer = new ClickEventListener(
+      document.getElementById("close-hud")!,
+      function (_event: Event) {
+        self.toggle_hud();
+      }
+    );
+    this.position_entry_closer = new ClickEventListener(
+      document.getElementById("close-entry")!,
+      function (_event: Event) {
+        self.toggle_position_entry_panel();
+      }
+    );
   } // ---------------- end constructor --------------------
 
   get_position() : FractalMetadata {
