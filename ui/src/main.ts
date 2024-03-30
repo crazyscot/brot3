@@ -20,7 +20,7 @@ ${About.html}
 <!-- Trap: Modals not within this div won't be cloned into fullscreen mode -->
 </div>
 <div id="bottombar">
-  <div class="info">
+  <div class="info" id="info-panel">
   <form id="form_go_to_position">
     <table>
       <tr class="position-display"><th>Origin:</th><td><span id="originReal"></span></td><td><span id="originImag"></span> i</td></tr>

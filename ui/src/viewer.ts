@@ -43,14 +43,15 @@ class HeadsUpDisplay {
   centreImag: Element | null;
   axesReal: Element | null;
   axesImag: Element | null;
-  constructor(doc : Document) {
-    this.zoom = doc.querySelectorAll('#zoom')[0];
-    this.originReal = doc.querySelectorAll('#originReal')[0];
-    this.originImag = doc.querySelectorAll('#originImag')[0];
-    this.centreReal = doc.querySelectorAll('#centreReal')[0];
-    this.centreImag = doc.querySelectorAll('#centreImag')[0];
-    this.axesReal = doc.querySelectorAll('#axesReal')[0];
-    this.axesImag = doc.querySelectorAll('#axesImag')[0];
+  constructor(doc: Document) {
+    var panel = doc.querySelectorAll('#info-panel')[0];
+    this.zoom = panel.querySelectorAll('#zoom')[0];
+    this.originReal = panel.querySelectorAll('#originReal')[0];
+    this.originImag = panel.querySelectorAll('#originImag')[0];
+    this.centreReal = panel.querySelectorAll('#centreReal')[0];
+    this.centreImag = panel.querySelectorAll('#centreImag')[0];
+    this.axesReal = panel.querySelectorAll('#axesReal')[0];
+    this.axesImag = panel.querySelectorAll('#axesImag')[0];
   }
   update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint) {
     this.zoom!.innerHTML = `${zoom.toPrecision(4)}`;
