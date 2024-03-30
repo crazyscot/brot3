@@ -39,19 +39,25 @@ class HeadsUpDisplay {
   zoom: Element | null;
   originReal: Element | null;
   originImag: Element | null;
+  centreReal: Element | null;
+  centreImag: Element | null;
   axesReal: Element | null;
   axesImag: Element | null;
   constructor(doc : Document) {
     this.zoom = doc.querySelectorAll('#zoom')[0];
     this.originReal = doc.querySelectorAll('#originReal')[0];
     this.originImag = doc.querySelectorAll('#originImag')[0];
+    this.centreReal = doc.querySelectorAll('#centreReal')[0];
+    this.centreImag = doc.querySelectorAll('#centreImag')[0];
     this.axesReal = doc.querySelectorAll('#axesReal')[0];
     this.axesImag = doc.querySelectorAll('#axesImag')[0];
   }
-  update(zoom: number, origin: EnginePoint, axes: EnginePoint) {
+  update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint) {
     this.zoom!.innerHTML = `${zoom.toPrecision(4)}`;
     this.axesReal!.innerHTML = maybe_leading("&nbsp;", axes.re);
     this.axesImag!.innerHTML = maybe_leading("+", axes.im);
+    this.centreReal!.innerHTML = maybe_leading("&nbsp;", centre.re);
+    this.centreImag!.innerHTML = maybe_leading("+", centre.im);
     this.originReal!.innerHTML = maybe_leading("&nbsp;", origin.re);
     this.originImag!.innerHTML = maybe_leading("+", origin.im);
   }
@@ -174,7 +180,7 @@ export class Viewer {
       let vp = viewer.viewport;
       var zoom: number = vp.getZoom(true);
       let position = self.get_position();
-      self.hud.update(zoom, position.origin, position.axes_length);
+      self.hud.update(zoom, position.origin, position.centre(), position.axes_length);
       /*
       let checkZoom = self.current_metadata.axes_length.re / axesComplex.re;
       console.log(`real: meta ${self.current_metadata.axes_length.re}, axis ${axesComplex.re}, zoom ${zoom}, computed zoom = ${checkZoom}`);
