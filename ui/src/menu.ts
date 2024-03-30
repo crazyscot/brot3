@@ -32,20 +32,13 @@ export class Menu {
     doc: Document;
     viewer: Viewer;
     about: About;
-    position_display: HTMLElement[];
-    position_entry_rows: HTMLElement[];
 
     constructor(doc: Document, viewer: Viewer) {
         let self = this; // for closures
         this.doc = doc;
         this.viewer = viewer;
 
-        this.position_display = Array.from(doc.querySelectorAll('tr.position-display'), e => e as HTMLElement);
-
-        // Position entry form
-        this.position_entry_rows = Array.from(doc.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
-        // Hide the form by default
-        this.position_entry_rows.forEach(e => this.toggle_tr_visibility(e));
+        // Bind action to position entry form
         doc.getElementById("form_go_to_position")!.onsubmit = function (e) {
             e.preventDefault();
             self.action_go_to_position();
@@ -63,16 +56,10 @@ export class Menu {
                     self.about!.show();
                     break;
                 case "toggle_position":
-                    this.position_display.forEach(e => this.toggle_tr_visibility(e));
+                    this.viewer.toggle_hud();
                     break;
                 case "go_to_position":
-                    let visible = false;
-                    this.position_entry_rows.forEach(e => visible = this.toggle_tr_visibility(e));
-                    if (visible) {
-                        let element = document.getElementById(`enter_originReal`) as HTMLInputElement;
-                        element!.focus();
-                        element!.select();
-                    }
+                    this.viewer.toggle_position_entry_panel()
                     break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);
