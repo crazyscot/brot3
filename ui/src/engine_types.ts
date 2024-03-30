@@ -68,7 +68,7 @@ export class EnginePoint {
     return `{${this.re}, ${this.im}}`;
   }
 }
-/// Twin of Rust FractalMetadata struct
+/// Twin of Rust FractalMetadata struct. Also used to hold the viewport current/target position.
 export class FractalMetadata {
   origin: EnginePoint = new EnginePoint(0.0, 0.0);
   axes_length: EnginePoint = new EnginePoint(0.0, 0.0);
@@ -77,5 +77,13 @@ export class FractalMetadata {
   }
   centre(): EnginePoint {
     return new EnginePoint(this.origin.re + 0.5 * this.axes_length.re, this.origin.im + 0.5 * this.axes_length.im);
+  }
+  constructor(origin: EnginePoint|null = null, axes: EnginePoint|null = null) {
+    if (origin !== null) {
+      this.origin = origin;
+    }
+    if (axes !== null) {
+      this.axes_length = axes;
+    }
   }
 }
