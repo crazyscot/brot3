@@ -342,7 +342,7 @@ export class Viewer {
     }
   }
 
-  go_to(destination: Map<string, number>) {
+  go_to_position(destination: Map<string, number>) {
     let messageBox = document.getElementById("position-error-text");
     try {
       let result = this.go_to_inner(destination);
