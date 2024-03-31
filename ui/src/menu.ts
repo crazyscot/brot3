@@ -43,10 +43,11 @@ export class Menu {
         // Bind form actions
         doc.getElementById("form_go_to_position")!.onsubmit = function (e) {
             e.preventDefault();
-            self.action_go_to_position();
+            let destination = self.parse_entered_position();
+            self.viewer.go_to_position(destination);
         }
         doc.getElementById("action_copy_current_position")!.onclick = function (_e) {
-            self.action_copy_current_position();
+            self.viewer.copy_current_position();
         }
 
         this.about = new About(self.doc.getElementById("aboutModal")!);
@@ -73,15 +74,6 @@ export class Menu {
                     console.error(`unknown display_message detail ${event.payload.what}`);
             }
         });
-    }
-
-    action_go_to_position() {
-        let destination = this.parse_entered_position();
-        this.viewer.go_to(destination);
-    }
-
-    action_copy_current_position() {
-        this.viewer.copy_current_position();
     }
 
     parse_entered_position() : Map<string, number> {
