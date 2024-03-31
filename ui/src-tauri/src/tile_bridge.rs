@@ -38,8 +38,10 @@ impl From<Point> for SerializablePoint {
     }
 }
 
+/// Description of a view into the fractal.
+/// This could also be the overall fractal dimensions (which we refer to as its _metadata_).
 #[derive(Serialize, Clone)]
-pub struct FractalMetadata {
+pub struct FractalView {
     origin: SerializablePoint,
     axes_length: SerializablePoint,
 }
@@ -96,11 +98,11 @@ pub async fn abort_tile(
 
 #[tauri::command]
 /// Retrieve metadata for the [implicitly selected] fractal
-pub fn get_metadata() -> anyhow::Result<FractalMetadata, String> {
+pub fn get_metadata() -> anyhow::Result<FractalView, String> {
     let alg_requested = "Original"; // TODO this will be passed in when we have fractal selection going
     let algorithm = fractal::decode(alg_requested).map_err(|e| e.to_string())?;
     let origin = algorithm.default_centre() - 0.5 * algorithm.default_axes();
-    Ok(FractalMetadata {
+    Ok(FractalView {
         origin: origin.into(),
         axes_length: algorithm.default_axes().into(),
     })

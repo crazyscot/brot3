@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 import { ClickEventListener, tr_is_visible, toggle_tr_visibility } from './dom_util'
-import { EnginePoint, FractalMetadata } from './engine_types'
+import { EnginePoint, FractalView } from './engine_types'
 
 function maybe_leading(symbol: string, n: number): string {
     if (n >= 0.0)
@@ -127,7 +127,7 @@ export class HeadsUpDisplay {
     }
 
     // Copy the current position into the Go To Position form
-    set_go_to_position(pos: FractalMetadata) {
+    set_go_to_position(pos: FractalView) {
         let f = document.getElementById("enter_axesReal")! as HTMLInputElement;
         f.value = pos.axes_length.re.toString();
 
