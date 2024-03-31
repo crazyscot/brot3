@@ -19,13 +19,13 @@ class DisplayMessageDetail {
 
 // Fields we read from the Enter Position form.
 // N.B. Fields in the DOM are prefixed with "enter_". These field names are in the output object.
-// Not all fields need be present; origin OR centre, plus one of zoom/axisReal/axisImag.
+// Not all fields need be present; origin OR centre, plus one of zoom/axesReal/axesImag.
 const position_entry_fields = [
     "zoom",
     "originReal",
     "originImag",
-    "axisReal",
-    "axisImag",
+    "axesReal",
+    "axesImag",
 ];
 
 export class Menu {

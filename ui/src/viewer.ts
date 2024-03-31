@@ -362,31 +362,31 @@ export class Viewer {
 
     // Which axis-controlling coordinates are we using?
     // The first one (left to right) takes precedence.
-    let axisReal = destination.get("axisReal")!;
-    let axisImag = destination.get("axisImag")!;
+    let axesReal = destination.get("axesReal")!;
+    let axesImag = destination.get("axesImag")!;
     let zoom = destination.get("zoom")!;
     // Assume square pixels.
     let aspectRatio = this.width / this.height;
-    if (Number.isFinite(axisReal)) {
-      axisImag = axisReal / aspectRatio;
-      zoom = this.current_metadata.axes_length.re / axisReal;
-    } else if (Number.isFinite(axisImag)) {
-      axisReal = axisImag * aspectRatio;
-      zoom = this.current_metadata.axes_length.re / axisReal;
+    if (Number.isFinite(axesReal)) {
+      axesImag = axesReal / aspectRatio;
+      zoom = this.current_metadata.axes_length.re / axesReal;
+    } else if (Number.isFinite(axesImag)) {
+      axesReal = axesImag * aspectRatio;
+      zoom = this.current_metadata.axes_length.re / axesReal;
     } else if (Number.isFinite(zoom)) {
-      axisReal = this.current_metadata.axes_length.re / zoom;
-      axisImag = axisReal / aspectRatio;
+      axesReal = this.current_metadata.axes_length.re / zoom;
+      axesImag = axesReal / aspectRatio;
     } else {
       throw new Error("One of axis real, axis imaginary or zoom must be specified");
     }
     console.log("Go to origin:", originComplex);
-    console.log("destination axis", new EnginePoint(axisReal, axisImag));
+    console.log("destination axis", new EnginePoint(axesReal, axesImag));
     console.log("destination zoom", zoom);
 
     // 1. Compute axes in viewport coordinates (0..1)
     let axesLengthView = new OpenSeadragon.Point(
-      axisReal / meta_axes.re,
-      axisImag / meta_axes.im,
+      axesReal / meta_axes.re,
+      axesImag / meta_axes.im,
     );
 
     // 2. Compute origin in viewport coordinates

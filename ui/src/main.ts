@@ -38,8 +38,8 @@ ${About.html}
       </tr>
       <tr class="position-entry">
         <th>Axes:</th>
-        <td><input type="text" id="enter_axisReal" /> real</td>
-        <td><em>or</em> <input type="text" id="enter_axisImag" /> im</td>
+        <td><input type="text" id="enter_axesReal" /> real</td>
+        <td><em>or</em> <input type="text" id="enter_axesImag" /> im</td>
         <td><em>or</em> Zoom:</td><td><input type="text" id="enter_zoom" /></td>
         <td><button type="submit" id="action_go_to_position">Go</button></td>
       </tr>
