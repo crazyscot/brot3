@@ -6,6 +6,7 @@ import { UnlistenFn, listen } from '@tauri-apps/api/event'
 import jQuery from 'jquery'
 import OpenSeadragon from 'openseadragon'
 
+import { ClickEventListener, tr_is_visible, toggle_tr_visibility } from './dom_util'
 import { SerialAllocator } from './serial_allocator'
 import { EnginePoint, FractalMetadata, TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
 
@@ -18,21 +19,6 @@ function maybe_leading(symbol: string, n: number) : string
   if (n >= 0.0)
     return `${symbol}${n}`;
   return `${n}`;
-}
-
-function tr_is_visible(e: HTMLElement): boolean {
-  return e.style.display !== "none";
-}
-
-// Toggles visibility of a TR element, returning true iff it is now visible.
-function toggle_tr_visibility(e: HTMLElement) : boolean {
-  if (e.style.display === "none") {
-      e.style.display = "table-row";
-      return true;
-  } else {
-      e.style.display = "none";
-      return false;
-  }
 }
 
 class HeadsUpDisplay {
@@ -61,21 +47,6 @@ class HeadsUpDisplay {
     this.centreImag!.innerHTML = maybe_leading("+", centre.im);
     this.originReal!.innerHTML = maybe_leading("&nbsp;", origin.re);
     this.originImag!.innerHTML = maybe_leading("+", origin.im);
-  }
-}
-
-class ClickEventListener implements EventListenerObject {
-  clickable: Element;
-  action: Function;
-  constructor(target: Element, action: Function) {
-    this.clickable = target;
-    this.clickable.addEventListener("click", this);
-    this.action = action;
-  }
-  handleEvent(event: Event): void | Promise<void> {
-    if (event.type === "click") {
-        this.action(event);
-    }
   }
 }
 
