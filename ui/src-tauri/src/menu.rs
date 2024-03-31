@@ -2,7 +2,6 @@
 // (c) 2024 Ross Younger
 
 use serde::Serialize;
-use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Submenu, WindowMenuEvent};
 
 #[derive(Serialize, Clone)]
@@ -31,20 +30,22 @@ impl ApplicationMenu {
     }
 
     pub(crate) fn build(&self) -> Menu {
-        let mut toggle_position =
-            CustomMenuItem::new("toggle_position".to_string(), "Show Position")
+        let toggle_position =
+            CustomMenuItem::new("toggle_position".to_string(), "Show/Hide Position")
                 .accelerator("Ctrl+P");
-        toggle_position.selected = true;
         let go_to_position = CustomMenuItem::new("go_to_position".to_string(), "Go To Position...")
             .accelerator("Ctrl+G");
+        let toggle_origin_centre =
+            CustomMenuItem::new("toggle_origin_centre".to_string(), "Toggle Origin/Centre");
 
         Menu::os_default("brot3")
             .add_submenu(Submenu::new(
                 "Display",
                 Menu::new()
                     .add_item(toggle_position)
+                    .add_item(go_to_position)
                     .add_native_item(MenuItem::Separator)
-                    .add_item(go_to_position),
+                    .add_item(toggle_origin_centre),
             ))
             .add_submenu(Submenu::new(
                 "Help",

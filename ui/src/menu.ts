@@ -22,6 +22,8 @@ class DisplayMessageDetail {
 // Not all fields need be present; origin OR centre, plus one of zoom/axesReal/axesImag.
 const position_entry_fields = [
     "zoom",
+    "centreReal",
+    "centreImag",
     "originReal",
     "originImag",
     "axesReal",
@@ -64,20 +66,13 @@ export class Menu {
                 case "go_to_position":
                     this.viewer.toggle_position_entry_panel()
                     break;
+                case "toggle_origin_centre":
+                    this.viewer.toggle_origin_centre();
+                    break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);
             }
         });
-    }
-
-    toggle_tr_visibility(e: HTMLElement) : boolean {
-        if (e.style.display === "none") {
-            e.style.display = "table-row";
-            return true;
-        } else {
-            e.style.display = "none";
-            return false;
-        }
     }
 
     action_go_to_position() {
@@ -96,7 +91,7 @@ export class Menu {
             let fieldId = "#enter_" + f;
             let fieldElement = this.doc.querySelector<HTMLInputElement>(fieldId);
             if (fieldElement === null) {
-                errors.unshift(`missing HTML element ${fieldId}`);
+                // quietly ignore it
                 continue;
             }
             let value = parseFloat(fieldElement.value);
