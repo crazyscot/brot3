@@ -7,7 +7,7 @@ import jQuery from 'jquery'
 import OpenSeadragon from 'openseadragon'
 
 import { EnginePoint, FractalView, TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
-import { HeadsUpDisplay } from './hud'
+import { HeadsUpDisplay, UserDestination } from './hud'
 import { SerialAllocator } from './serial_allocator'
 
 var gSerial = new SerialAllocator();
@@ -237,7 +237,7 @@ export class Viewer {
     console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
   }
 
-  go_to_position(destination: Map<string, number>) {
+  go_to_position(destination: UserDestination) {
     let messageBox = document.getElementById("position-error-text");
     try {
       let result = this.go_to_inner(destination);
@@ -248,7 +248,7 @@ export class Viewer {
       messageBox!.innerHTML = (e as Error)!.toString();
     }
   }
-  private go_to_inner(destination: Map<string, number>) {
+  private go_to_inner(destination: UserDestination) {
     let viewport = this.osd.viewport;
     // this is essentially the inverse of updateIndicator()
 
@@ -258,13 +258,13 @@ export class Viewer {
     let originComplex = undefined;
     let centreComplex = undefined;
     if (this.hud.origin_is_currently_visible()) {
-      originComplex = new EnginePoint(destination.get("originReal")!, destination.get("originImag")!);
+      originComplex = new EnginePoint(destination.originReal, destination.originImag);
       if (!Number.isFinite(originComplex.re) || !Number.isFinite(originComplex.im)) {
         throw new Error("Origin is required");
       }
       console.log("Go to origin:", originComplex);
     } else {
-      centreComplex = new EnginePoint(destination.get("centreReal")!, destination.get("centreImag")!);
+      centreComplex = new EnginePoint(destination.centreReal, destination.centreImag);
       if (!Number.isFinite(centreComplex.re) || !Number.isFinite(centreComplex.im)) {
         throw new Error("Centre is required");
       }
@@ -274,9 +274,9 @@ export class Viewer {
 
     // Which axis-controlling coordinates are we using?
     // The first one (left to right) takes precedence.
-    let axesReal = destination.get("axesReal")!;
-    let axesImag = destination.get("axesImag")!;
-    let zoom = destination.get("zoom")!;
+    let axesReal = destination.axesReal;
+    let axesImag = destination.axesImag;
+    let zoom = destination.zoom;
     // Assume square pixels.
     let aspectRatio = this.width / this.height;
     if (Number.isFinite(axesReal)) {

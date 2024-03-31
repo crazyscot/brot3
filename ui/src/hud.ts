@@ -195,11 +195,12 @@ export class HeadsUpDisplay {
         }
     }
 
-    parse_entered_position() : Map<string, number> {
-        let result = new Map<string, number>();
+    parse_entered_position() : UserDestination {
+        let result = new UserDestination();
         let errors = new Array<string>;
-        for (let f of position_entry_fields) {
-            let fieldId = "#enter_" + f;
+        let k: keyof UserDestination;
+        for (k in result) {
+            let fieldId = "#enter_" + k;
             let fieldElement = document.querySelector<HTMLInputElement>(fieldId);
             if (fieldElement === null) {
                 // quietly ignore it
@@ -207,7 +208,7 @@ export class HeadsUpDisplay {
             }
             let value = parseFloat(fieldElement.value);
             // this results in NaN if a field is empty; that's OK as not all are mandatory. Viewer will figure it out.
-            result.set(f, value);
+            result[k] = value;
         };
         if (errors.length !== 0) {
             let message = `Form data error: ${errors.join(", ")}`;
@@ -220,4 +221,16 @@ export class HeadsUpDisplay {
         let originDisplay = document.getElementById("show-origin");
         return !originDisplay?.classList.contains("hidden");
     }
+}
+
+// Where does the user want to go today?
+// Not all these fields will necessarily be visible at once.
+export class UserDestination {
+    zoom: number = NaN;
+    centreReal: number = NaN;
+    centreImag: number = NaN;
+    originReal: number = NaN;
+    originImag: number = NaN;
+    axesReal: number = NaN;
+    axesImag: number = NaN;
 }
