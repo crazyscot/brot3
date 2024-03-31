@@ -12,6 +12,10 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "dialog": {
+        "message": true,
+        "save": true
+      },
       "window": {
         "setTitle": true
       }
