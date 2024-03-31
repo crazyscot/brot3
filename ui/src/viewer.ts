@@ -6,7 +6,7 @@ import { UnlistenFn, listen } from '@tauri-apps/api/event'
 import jQuery from 'jquery'
 import OpenSeadragon from 'openseadragon'
 
-import { EnginePoint, FractalMetadata, TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
+import { EnginePoint, FractalView, TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
 import { HeadsUpDisplay } from './hud'
 import { SerialAllocator } from './serial_allocator'
 
@@ -21,7 +21,7 @@ export class Viewer {
   unlisten_tile_error: UnlistenFn | null = null;
   outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   hud: HeadsUpDisplay;
-  current_metadata: FractalMetadata = new FractalMetadata();
+  current_metadata: FractalView = new FractalView();
 
   // width, height used by coordinate display
   width: number = NaN;
@@ -146,7 +146,7 @@ export class Viewer {
       .then((reply) => {
         // TODO when we have selectable fractals, this will need to be updated.
         // Careful, current_metadata is captured by a closure.
-        let meta = reply as FractalMetadata;
+        let meta = reply as FractalView;
         this.current_metadata.axes_length = meta.axes_length;
         this.current_metadata.origin = meta.origin;
         // Initial position at constructor time is not correct, so defer it; only a tiny deferral seems needed
@@ -159,7 +159,7 @@ export class Viewer {
     );
   } // ---------------- end constructor --------------------
 
-  get_position() : FractalMetadata {
+  get_position() : FractalView {
     let viewer = this.osd;
     let vp = viewer.viewport;
     // We know that top left is webPoint 0,0; bottom right is W-1,H-1.
@@ -190,7 +190,7 @@ export class Viewer {
       axesLengthView.y * meta_axes.im
     );
 
-    return new FractalMetadata(originComplex, axesComplex);
+    return new FractalView(originComplex, axesComplex);
   }
 
   async bind_events() {

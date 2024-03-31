@@ -68,8 +68,11 @@ export class EnginePoint {
     return `{${this.re}, ${this.im}}`;
   }
 }
-/// Twin of Rust FractalMetadata struct. Also used to hold the viewport current/target position.
-export class FractalMetadata {
+
+/// Description of a view into the fractal.
+/// This could also be the overall fractal dimensions (which we refer to as its _metadata_).
+/// Twin of Rust FractalView struct.
+export class FractalView {
   origin: EnginePoint = new EnginePoint(0.0, 0.0);
   axes_length: EnginePoint = new EnginePoint(0.0, 0.0);
   end_corner(): EnginePoint {
