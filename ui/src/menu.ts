@@ -17,19 +17,6 @@ class DisplayMessageDetail {
     }
 }
 
-// Fields we read from the Enter Position form.
-// N.B. Fields in the DOM are prefixed with "enter_". These field names are in the output object.
-// Not all fields need be present; origin OR centre, plus one of zoom/axesReal/axesImag.
-const position_entry_fields = [
-    "zoom",
-    "centreReal",
-    "centreImag",
-    "originReal",
-    "originImag",
-    "axesReal",
-    "axesImag",
-];
-
 export class Menu {
     doc: Document;
     viewer: Viewer;
@@ -43,7 +30,7 @@ export class Menu {
         // Bind form actions
         doc.getElementById("form_go_to_position")!.onsubmit = function (e) {
             e.preventDefault();
-            let destination = self.parse_entered_position();
+            let destination = self.viewer.hud.parse_entered_position();
             self.viewer.go_to_position(destination);
         }
         doc.getElementById("action_copy_current_position")!.onclick = function (_e) {
@@ -62,39 +49,18 @@ export class Menu {
                     self.about!.show();
                     break;
                 case "toggle_position":
-                    this.viewer.toggle_hud();
+                    this.viewer.hud.toggle_visibility();
                     break;
                 case "go_to_position":
-                    this.viewer.toggle_position_entry_panel()
+                    this.viewer.hud.toggle_position_entry_panel()
                     break;
                 case "toggle_origin_centre":
-                    this.viewer.toggle_origin_centre();
+                    this.viewer.hud.toggle_origin_centre();
                     break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);
             }
         });
-    }
-
-    parse_entered_position() : Map<string, number> {
-        let result = new Map<string, number>();
-        let errors = new Array<string>;
-        for (let f of position_entry_fields) {
-            let fieldId = "#enter_" + f;
-            let fieldElement = this.doc.querySelector<HTMLInputElement>(fieldId);
-            if (fieldElement === null) {
-                // quietly ignore it
-                continue;
-            }
-            let value = parseFloat(fieldElement.value);
-            // this results in NaN if a field is empty; that's OK as not all are mandatory. Viewer will figure it out.
-            result.set(f, value);
-        };
-        if (errors.length !== 0) {
-            let message = `Form data error: ${errors.join(", ")}`;
-            throw new Error(message);
-        }
-        return result;
     }
 
     noop() { }
