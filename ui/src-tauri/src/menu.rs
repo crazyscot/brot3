@@ -4,6 +4,9 @@
 use serde::Serialize;
 use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Submenu, WindowMenuEvent};
 
+#[cfg(target_os = "macos")]
+use tauri::AboutMetadata;
+
 #[derive(Serialize, Clone)]
 pub struct GenericError {
     error: String,
@@ -30,6 +33,7 @@ impl ApplicationMenu {
     }
 
     pub(crate) fn build(&self) -> Menu {
+        // Here are our custom menu items:
         let toggle_position =
             CustomMenuItem::new("toggle_position".to_string(), "Show/Hide Position")
                 .accelerator("Ctrl+P");
@@ -38,19 +42,91 @@ impl ApplicationMenu {
         let toggle_origin_centre =
             CustomMenuItem::new("toggle_origin_centre".to_string(), "Toggle Origin/Centre");
 
-        Menu::os_default("brot3")
-            .add_submenu(Submenu::new(
-                "Display",
+        // menu::os_default is lame in tauri1, doesn't support modifying the default menus.
+        // For now we will clone and hack. TODO(tauri2) - overhaul this.
+        #[allow(unused)]
+        let app_name = "brot3";
+        let mut menu = Menu::new();
+        #[cfg(target_os = "macos")]
+        {
+            menu = menu.add_submenu(Submenu::new(
+                app_name,
                 Menu::new()
-                    .add_item(toggle_position)
-                    .add_item(go_to_position)
+                    .add_native_item(MenuItem::About(
+                        app_name.to_string(),
+                        AboutMetadata::default(),
+                    ))
                     .add_native_item(MenuItem::Separator)
-                    .add_item(toggle_origin_centre),
-            ))
-            .add_submenu(Submenu::new(
-                "Help",
-                Menu::new().add_item(CustomMenuItem::new("show_about".to_string(), "About")),
-            ))
+                    .add_native_item(MenuItem::Services)
+                    .add_native_item(MenuItem::Separator)
+                    .add_native_item(MenuItem::Hide)
+                    .add_native_item(MenuItem::HideOthers)
+                    .add_native_item(MenuItem::ShowAll)
+                    .add_native_item(MenuItem::Separator)
+                    .add_native_item(MenuItem::Quit),
+            ));
+        }
+
+        let mut file_menu = Menu::new();
+        file_menu = file_menu.add_native_item(MenuItem::CloseWindow);
+        #[cfg(not(target_os = "macos"))]
+        {
+            file_menu = file_menu.add_native_item(MenuItem::Quit);
+        }
+        menu = menu.add_submenu(Submenu::new("File", file_menu));
+
+        #[cfg(not(target_os = "linux"))]
+        let mut edit_menu = Menu::new();
+        #[cfg(target_os = "macos")]
+        {
+            edit_menu = edit_menu.add_native_item(MenuItem::Undo);
+            edit_menu = edit_menu.add_native_item(MenuItem::Redo);
+            edit_menu = edit_menu.add_native_item(MenuItem::Separator);
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            edit_menu = edit_menu.add_native_item(MenuItem::Cut);
+            edit_menu = edit_menu.add_native_item(MenuItem::Copy);
+            edit_menu = edit_menu.add_native_item(MenuItem::Paste);
+        }
+        #[cfg(target_os = "macos")]
+        {
+            edit_menu = edit_menu.add_native_item(MenuItem::SelectAll);
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            menu = menu.add_submenu(Submenu::new("Edit", edit_menu));
+        }
+        #[cfg(target_os = "macos")]
+        {
+            menu = menu.add_submenu(Submenu::new(
+                "View",
+                Menu::new().add_native_item(MenuItem::EnterFullScreen),
+            ));
+        }
+        let mut window_menu = Menu::new();
+        window_menu = window_menu.add_native_item(MenuItem::Minimize);
+        #[cfg(target_os = "macos")]
+        {
+            window_menu = window_menu.add_native_item(MenuItem::Zoom);
+            window_menu = window_menu.add_native_item(MenuItem::Separator);
+        }
+        window_menu = window_menu.add_native_item(MenuItem::CloseWindow);
+        menu = menu.add_submenu(Submenu::new("Window", window_menu));
+
+        // brot3 custom menus:
+        menu.add_submenu(Submenu::new(
+            "Display",
+            Menu::new()
+                .add_item(toggle_position)
+                .add_item(go_to_position)
+                .add_native_item(MenuItem::Separator)
+                .add_item(toggle_origin_centre),
+        ))
+        .add_submenu(Submenu::new(
+            "Help",
+            Menu::new().add_item(CustomMenuItem::new("show_about".to_string(), "About")),
+        ))
     }
 
     pub(crate) fn on_menu(&self, event: WindowMenuEvent) {
