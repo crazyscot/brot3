@@ -6,49 +6,13 @@ import { UnlistenFn, listen } from '@tauri-apps/api/event'
 import jQuery from 'jquery'
 import OpenSeadragon from 'openseadragon'
 
-import { ClickEventListener, tr_is_visible, toggle_tr_visibility } from './dom_util'
-import { SerialAllocator } from './serial_allocator'
 import { EnginePoint, FractalMetadata, TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
+import { HeadsUpDisplay } from './hud'
+import { SerialAllocator } from './serial_allocator'
 
 var gSerial = new SerialAllocator();
 const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
-
-function maybe_leading(symbol: string, n: number) : string
-{
-  if (n >= 0.0)
-    return `${symbol}${n}`;
-  return `${n}`;
-}
-
-class HeadsUpDisplay {
-  zoom: Element | null;
-  originReal: Element | null;
-  originImag: Element | null;
-  centreReal: Element | null;
-  centreImag: Element | null;
-  axesReal: Element | null;
-  axesImag: Element | null;
-  constructor(doc: Document) {
-    var panel = doc.querySelectorAll('#info-panel')[0];
-    this.zoom = panel.querySelectorAll('#zoom')[0];
-    this.originReal = panel.querySelectorAll('#originReal')[0];
-    this.originImag = panel.querySelectorAll('#originImag')[0];
-    this.centreReal = panel.querySelectorAll('#centreReal')[0];
-    this.centreImag = panel.querySelectorAll('#centreImag')[0];
-    this.axesReal = panel.querySelectorAll('#axesReal')[0];
-    this.axesImag = panel.querySelectorAll('#axesImag')[0];
-  }
-  update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint) {
-    this.zoom!.innerHTML = `${zoom.toPrecision(4)} &times;`;
-    this.axesReal!.innerHTML = maybe_leading("&nbsp;", axes.re);
-    this.axesImag!.innerHTML = maybe_leading("&nbsp;", axes.im);
-    this.centreReal!.innerHTML = maybe_leading("&nbsp;", centre.re);
-    this.centreImag!.innerHTML = maybe_leading("+", centre.im);
-    this.originReal!.innerHTML = maybe_leading("&nbsp;", origin.re);
-    this.originImag!.innerHTML = maybe_leading("+", origin.im);
-  }
-}
 
 export class Viewer {
   osd: any | null;  // OpenSeadragon.Viewer
@@ -58,8 +22,6 @@ export class Viewer {
   outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   hud: HeadsUpDisplay;
   current_metadata: FractalMetadata = new FractalMetadata();
-  hud_closer: ClickEventListener;
-  position_entry_closer: ClickEventListener;
 
   // width, height used by coordinate display
   width: number = NaN;
@@ -178,6 +140,7 @@ export class Viewer {
     viewer.addHandler('open', function () {
       viewer.addHandler('animation', updateIndicator);
     });
+
     // Retrieve initial metadata.
     invoke('get_metadata')
       .then((reply) => {
@@ -192,21 +155,6 @@ export class Viewer {
       })
       .catch((e) => {
         console.log(`Error retrieving metadata: ${e}`);
-      }
-    );
-
-    // Hide the position entry rows by default
-    this.position_entry_rows().forEach(e => { if (tr_is_visible(e)) toggle_tr_visibility(e); });
-    this.hud_closer = new ClickEventListener(
-      document.getElementById("close-hud")!,
-      function (_event: Event) {
-        self.toggle_hud();
-      }
-    );
-    this.position_entry_closer = new ClickEventListener(
-      document.getElementById("close-entry")!,
-      function (_event: Event) {
-        self.toggle_position_entry_panel();
       }
     );
   } // ---------------- end constructor --------------------
@@ -289,30 +237,6 @@ export class Viewer {
     console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
   }
 
-  toggle_hud() {
-    let elements = Array.from(document.querySelectorAll('tr.position-display'), e => e as HTMLElement);
-    elements.forEach(e => toggle_tr_visibility(e));
-  }
-
-  private position_entry_rows() : HTMLElement[] {
-    return Array.from(document.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
-  }
-
-  toggle_position_entry_panel() {
-    let visible = false;
-    this.position_entry_rows().forEach(e => visible = toggle_tr_visibility(e));
-    if (visible) {
-      let element = undefined;
-      if (this.origin_is_currently_visible()) {
-        element = document.getElementById(`enter_originReal`) as HTMLInputElement;
-      } else {
-        element = document.getElementById(`enter_centreReal`) as HTMLInputElement;
-      }
-      element!.focus();
-      element!.select();
-    }
-  }
-
   go_to_position(destination: Map<string, number>) {
     let messageBox = document.getElementById("position-error-text");
     try {
@@ -333,7 +257,7 @@ export class Viewer {
 
     let originComplex = undefined;
     let centreComplex = undefined;
-    if (this.origin_is_currently_visible()) {
+    if (this.hud.origin_is_currently_visible()) {
       originComplex = new EnginePoint(destination.get("originReal")!, destination.get("originImag")!);
       if (!Number.isFinite(originComplex.re) || !Number.isFinite(originComplex.im)) {
         throw new Error("Origin is required");
@@ -412,58 +336,7 @@ export class Viewer {
   // Copy the current position into the Go To Position form
   copy_current_position() {
     let pos = this.get_position();
-
-    let f = document.getElementById("enter_axesReal")! as HTMLInputElement;
-    f.value = pos.axes_length.re.toString();
-
-    if (this.origin_is_currently_visible()) {
-      f = document.getElementById("enter_originReal")! as HTMLInputElement;
-      f.value = pos.origin.re.toString();
-      f = document.getElementById("enter_originImag")! as HTMLInputElement;
-      f.value = pos.origin.im.toString();
-    } else {
-      f = document.getElementById("enter_centreReal")! as HTMLInputElement;
-      f.value = pos.centre().re.toString();
-      f = document.getElementById("enter_centreImag")! as HTMLInputElement;
-      f.value = pos.centre().im.toString();
-    }
-
-    // clear out: Axes Im, Zoom
-    ["axesImag", "zoom"].forEach(f => {
-      let field = document.getElementById("enter_" + f)! as HTMLInputElement;
-      if (field !== null) {
-        field.value = "";
-      }
-    });
-  }
-
-  origin_is_currently_visible() : boolean {
-    let originDisplay = document.getElementById("show-origin");
-    return !originDisplay?.classList.contains("hidden");
-  }
-
-  toggle_origin_centre() {
-    if (this.origin_is_currently_visible()) {
-      document.getElementById("show-origin")?.classList.add("hidden");
-      document.getElementById("show-centre")?.classList.remove("hidden");
-      document.getElementById("enter-origin")?.classList.add("hidden");
-      document.getElementById("enter-centre")?.classList.remove("hidden");
-      // Clear out fields we just hid
-      let field = document.getElementById("enter_originReal") as HTMLInputElement;
-      field.value = "";
-      field = document.getElementById("enter_originImag") as HTMLInputElement;
-      field.value = "";
-    } else {
-      document.getElementById("show-origin")?.classList.remove("hidden");
-      document.getElementById("show-centre")?.classList.add("hidden");
-      document.getElementById("enter-origin")?.classList.remove("hidden");
-      document.getElementById("enter-centre")?.classList.add("hidden");
-      // Clear out fields we just hid
-      let field = document.getElementById("enter_centreReal") as HTMLInputElement;
-      field.value = "";
-      field = document.getElementById("enter_centreImag") as HTMLInputElement;
-      field.value = "";
-    }
+    this.hud.set_go_to_position(pos);
   }
 
   // dummy function to shut up a linter warning in main.ts
