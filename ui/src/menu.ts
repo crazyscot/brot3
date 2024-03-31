@@ -1,7 +1,6 @@
 // brot3 UI/menu elements & event handling
 // (c) 2024 Ross Younger
 
-import './menu.css'
 import '../node_modules/material-icons/iconfont/filled.css'
 
 import { listen } from '@tauri-apps/api/event'
