@@ -203,7 +203,9 @@ export class Viewer {
         let meta = reply as FractalMetadata;
         this.current_metadata.axes_length = meta.axes_length;
         this.current_metadata.origin = meta.origin;
-        updateIndicator();
+        // Initial position at constructor time is not correct, so defer it; only a tiny deferral seems needed
+        // TODO figure out why this is and make it suitably event-based; could be waiting on OSD ?
+        window.setTimeout(function () { updateIndicator(); }, 10);
       })
       .catch((e) => {
         console.log(`Error retrieving metadata: ${e}`);
