@@ -81,6 +81,15 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.position-entry button {
+  min-width: 8em;
+}
+
+.hidden {
+  display: none !important;
+  visibility: none !important;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

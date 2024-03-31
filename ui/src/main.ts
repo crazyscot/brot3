@@ -23,25 +23,39 @@ ${About.html}
   <div class="info" id="info-panel">
   <form id="form_go_to_position">
     <table>
-      <tr class="position-display"><td rowspan="3"><span class="close" id="close-hud">&times;</span></td> <th>Origin:</th><td><span id="originReal"></span></td><td><span id="originImag"></span> i</td></tr>
-      <tr class="position-display"><th>Centre:</th><td><span id="centreReal"></span></td><td><span id="centreImag"></span> i</td></tr>
-      <tr class="position-display"><th>Axes:</th><td><span id="axesReal"></span></td><td><span id="axesImag"></span> i</td><th>Zoom:</th><td id="zoom"></td></tr>
-      <tr class="position-entry">
-        <td rowspan="4"><span class="close" id="close-entry">&times;</span></td>
-        <td colspan="6"><button type="button" id="action_copy_current_position">Copy Current</button></td>
+      <tr class="position-display"><td rowspan="4"><span class="close" id="close-hud">&times;</span></td></tr>
+      <tr class="position-display hidden" id="show-origin"><th>Origin:</th><td><span id="originReal"></span></td><td><span id="originImag"></span> i</td></tr>
+      <tr class="position-display" id="show-centre"><th>Centre:</th><td><span id="centreReal"></span></td><td><span id="centreImag"></span> i</td></tr>
+      <tr class="position-display">
+        <th>Axes:</th><td><span id="axesReal"></span> re,</td><td><span id="axesImag"></span> im</td>
       </tr>
-      <tr class="position-entry">
+      <tr class="position-display">
+        <th>Zoom:</th><td id="zoom"></td>
+      </tr>
+      <!--------------------------------------------->
+      <tr class="position-entry"><td rowspan="5"><span class="close" id="close-entry">&times;</span></td></tr>
+      <tr class="position-entry hidden" id="enter-origin">
         <th>Origin:</th>
         <td><input type="text" id="enter_originReal" /></td>
         <td>+ <input type="text" id="enter_originImag" /> i</td>
         <td colspan="3"/>
       </tr>
+      <tr class="position-entry" id="enter-centre">
+        <th>Centre:</th>
+        <td><input type="text" id="enter_centreReal" /></td>
+        <td>+ <input type="text" id="enter_centreImag" /> i</td>
+        <td colspan="3"/>
+      </tr>
       <tr class="position-entry">
-        <th>Axes:</th>
-        <td><input type="text" id="enter_axesReal" /> real</td>
-        <td><em>or</em> <input type="text" id="enter_axesImag" /> im</td>
-        <td><em>or</em> Zoom:</td><td><input type="text" id="enter_zoom" /></td>
+        <th>Axis:</th>
+        <td colspan="2"><input type="text" id="enter_axesReal" /> real</td>
+        <td colspan="2"/>
+      </tr>
+      <tr class="position-entry">
+        <td />
         <td><button type="submit" id="action_go_to_position">Go</button></td>
+        <td><button type="button" id="action_copy_current_position">Copy Current</button></td>
+        <td colspan="2" />
       </tr>
       <tr class="position-entry"><td colspan="6" id="position-error-text" /></tr>
     </table>

@@ -54,9 +54,9 @@ class HeadsUpDisplay {
     this.axesImag = panel.querySelectorAll('#axesImag')[0];
   }
   update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint) {
-    this.zoom!.innerHTML = `${zoom.toPrecision(4)}`;
+    this.zoom!.innerHTML = `${zoom.toPrecision(4)} &times;`;
     this.axesReal!.innerHTML = maybe_leading("&nbsp;", axes.re);
-    this.axesImag!.innerHTML = maybe_leading("+", axes.im);
+    this.axesImag!.innerHTML = maybe_leading("&nbsp;", axes.im);
     this.centreReal!.innerHTML = maybe_leading("&nbsp;", centre.re);
     this.centreImag!.innerHTML = maybe_leading("+", centre.im);
     this.originReal!.innerHTML = maybe_leading("&nbsp;", origin.re);
@@ -331,9 +331,14 @@ export class Viewer {
     let visible = false;
     this.position_entry_rows().forEach(e => visible = toggle_tr_visibility(e));
     if (visible) {
-        let element = document.getElementById(`enter_originReal`) as HTMLInputElement;
-        element!.focus();
-        element!.select();
+      let element = undefined;
+      if (this.origin_is_currently_visible()) {
+        element = document.getElementById(`enter_originReal`) as HTMLInputElement;
+      } else {
+        element = document.getElementById(`enter_centreReal`) as HTMLInputElement;
+      }
+      element!.focus();
+      element!.select();
     }
   }
 
@@ -355,10 +360,22 @@ export class Viewer {
     let meta = this.current_metadata;
     let meta_axes = meta.axes_length;
 
-    let originComplex = new EnginePoint(destination.get("originReal")!, destination.get("originImag")!);
-    if (!Number.isFinite(originComplex.re) || !Number.isFinite(originComplex.im)) {
-      throw new Error("Origin is required");
+    let originComplex = undefined;
+    let centreComplex = undefined;
+    if (this.origin_is_currently_visible()) {
+      originComplex = new EnginePoint(destination.get("originReal")!, destination.get("originImag")!);
+      if (!Number.isFinite(originComplex.re) || !Number.isFinite(originComplex.im)) {
+        throw new Error("Origin is required");
+      }
+      console.log("Go to origin:", originComplex);
+    } else {
+      centreComplex = new EnginePoint(destination.get("centreReal")!, destination.get("centreImag")!);
+      if (!Number.isFinite(centreComplex.re) || !Number.isFinite(centreComplex.im)) {
+        throw new Error("Centre is required");
+      }
+      console.log("Go to centre:", centreComplex);
     }
+
 
     // Which axis-controlling coordinates are we using?
     // The first one (left to right) takes precedence.
@@ -377,9 +394,8 @@ export class Viewer {
       axesReal = this.current_metadata.axes_length.re / zoom;
       axesImag = axesReal / aspectRatio;
     } else {
-      throw new Error("One of axis real, axis imaginary or zoom must be specified");
+      throw new Error("Axis length must be specified");
     }
-    console.log("Go to origin:", originComplex);
     console.log("destination axis", new EnginePoint(axesReal, axesImag));
     console.log("destination zoom", zoom);
 
@@ -389,7 +405,18 @@ export class Viewer {
       axesImag / meta_axes.im,
     );
 
-    // 2. Compute origin in viewport coordinates
+    // 2. Convert centre to origin (both complex)
+    if (originComplex === undefined) {
+      if (centreComplex === undefined) {
+        throw new Error("Need centre or origin");
+      }
+      originComplex = new EnginePoint(
+        centreComplex.re - 0.5 * axesReal,
+        centreComplex.im - 0.5 * axesImag,
+      );
+    }
+
+    // 3. Compute origin in viewport coordinates
     // (this is a mathematician's origin i.e. bottom left)
     let originView = new OpenSeadragon.Point(
       ( originComplex.re - meta.origin.re ) / meta_axes.re,
@@ -397,7 +424,7 @@ export class Viewer {
       1.0 - ( originComplex.im - meta.origin.im ) / meta_axes.im,
     );
 
-    // 3. Use origin point & axes length to compute top-left & bottom-right points, all in viewport coordinates.
+    // 4. Use origin point & axes length to compute top-left & bottom-right points, all in viewport coordinates.
     // AxesLength = BR - TL
     let topLeftView = new OpenSeadragon.Point(originView.x, originView.y - axesLengthView.y);
     let bottomRightView = topLeftView.plus(axesLengthView);
@@ -414,17 +441,58 @@ export class Viewer {
   // Copy the current position into the Go To Position form
   copy_current_position() {
     let pos = this.get_position();
-    let f = document.getElementById("enter_originReal")! as HTMLInputElement;
-    f.value = pos.origin.re.toString();
-    f = document.getElementById("enter_originImag")! as HTMLInputElement;
-    f.value = pos.origin.im.toString();
-    f = document.getElementById("enter_axesReal")! as HTMLInputElement;
+
+    let f = document.getElementById("enter_axesReal")! as HTMLInputElement;
     f.value = pos.axes_length.re.toString();
+
+    if (this.origin_is_currently_visible()) {
+      f = document.getElementById("enter_originReal")! as HTMLInputElement;
+      f.value = pos.origin.re.toString();
+      f = document.getElementById("enter_originImag")! as HTMLInputElement;
+      f.value = pos.origin.im.toString();
+    } else {
+      f = document.getElementById("enter_centreReal")! as HTMLInputElement;
+      f.value = pos.centre().re.toString();
+      f = document.getElementById("enter_centreImag")! as HTMLInputElement;
+      f.value = pos.centre().im.toString();
+    }
+
     // clear out: Axes Im, Zoom
     ["axesImag", "zoom"].forEach(f => {
       let field = document.getElementById("enter_" + f)! as HTMLInputElement;
-      field.value = "";
+      if (field !== null) {
+        field.value = "";
+      }
     });
+  }
+
+  origin_is_currently_visible() : boolean {
+    let originDisplay = document.getElementById("show-origin");
+    return !originDisplay?.classList.contains("hidden");
+  }
+
+  toggle_origin_centre() {
+    if (this.origin_is_currently_visible()) {
+      document.getElementById("show-origin")?.classList.add("hidden");
+      document.getElementById("show-centre")?.classList.remove("hidden");
+      document.getElementById("enter-origin")?.classList.add("hidden");
+      document.getElementById("enter-centre")?.classList.remove("hidden");
+      // Clear out fields we just hid
+      let field = document.getElementById("enter_originReal") as HTMLInputElement;
+      field.value = "";
+      field = document.getElementById("enter_originImag") as HTMLInputElement;
+      field.value = "";
+    } else {
+      document.getElementById("show-origin")?.classList.remove("hidden");
+      document.getElementById("show-centre")?.classList.add("hidden");
+      document.getElementById("enter-origin")?.classList.remove("hidden");
+      document.getElementById("enter-centre")?.classList.add("hidden");
+      // Clear out fields we just hid
+      let field = document.getElementById("enter_centreReal") as HTMLInputElement;
+      field.value = "";
+      field = document.getElementById("enter_centreImag") as HTMLInputElement;
+      field.value = "";
+    }
   }
 
   // dummy function to shut up a linter warning in main.ts
