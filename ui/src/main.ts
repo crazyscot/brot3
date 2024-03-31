@@ -28,8 +28,8 @@ ${HeadsUpDisplay.html}
 let gViewer = new Viewer();
 
 async function setupWindow() {
-  gViewer.resize();
-  getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
+    gViewer.resize();
+    getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
 }
 
 setupWindow();
