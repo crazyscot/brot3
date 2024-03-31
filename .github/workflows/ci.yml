@@ -72,7 +72,7 @@ jobs:
         with:
           shared-key: "tauri-${{matrix.platform}}" # aligns with release.yml
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - name: install dependencies (ubuntu only)
+      - name: install packages (ubuntu)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
