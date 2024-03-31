@@ -54,7 +54,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends mold libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev patchelf
           
-      - run: yarn install --immutable
+      - name: install frontend dependencies
+        run: yarn install --frozen-lockfile --immutable
         working-directory: ui
 
       - uses: tauri-apps/tauri-action@v0
