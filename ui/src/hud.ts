@@ -100,14 +100,14 @@ export class HeadsUpDisplay {
         this.hud_closer = new ClickEventListener(
             document.getElementById("close-hud")!,
             function (_event: Event) {
-            self.toggle_visibility();
-          }
+                self.toggle_visibility();
+            }
         );
         this.position_entry_closer = new ClickEventListener(
-          document.getElementById("close-entry")!,
-          function (_event: Event) {
-            self.toggle_position_entry_panel();
-          }
+            document.getElementById("close-entry")!,
+            function (_event: Event) {
+                self.toggle_position_entry_panel();
+            }
         );
     }
 
@@ -176,7 +176,7 @@ export class HeadsUpDisplay {
         }
     }
 
-    private position_entry_rows() : HTMLElement[] {
+    private position_entry_rows(): HTMLElement[] {
         return Array.from(document.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
     }
 
@@ -184,18 +184,18 @@ export class HeadsUpDisplay {
         let visible = false;
         this.position_entry_rows().forEach(e => visible = toggle_tr_visibility(e));
         if (visible) {
-          let element = undefined;
-          if (this.origin_is_currently_visible()) {
-            element = document.getElementById(`enter_originReal`) as HTMLInputElement;
-          } else {
-            element = document.getElementById(`enter_centreReal`) as HTMLInputElement;
-          }
-          element!.focus();
-          element!.select();
+            let element = undefined;
+            if (this.origin_is_currently_visible()) {
+                element = document.getElementById(`enter_originReal`) as HTMLInputElement;
+            } else {
+                element = document.getElementById(`enter_centreReal`) as HTMLInputElement;
+            }
+            element!.focus();
+            element!.select();
         }
     }
 
-    parse_entered_position() : UserDestination {
+    parse_entered_position(): UserDestination {
         let result = new UserDestination();
         let errors = new Array<string>;
         let k: keyof UserDestination;
@@ -216,7 +216,7 @@ export class HeadsUpDisplay {
         }
         return result;
     }
-  
+
     origin_is_currently_visible(): boolean {
         let originDisplay = document.getElementById("show-origin");
         return !originDisplay?.classList.contains("hidden");

@@ -31,7 +31,7 @@ export class Viewer {
     let self = this; // Closure helper
 
     this.osd = OpenSeadragon({
-      id:         "openseadragon",
+      id: "openseadragon",
       prefixUrl: "/openseadragon/images/",
       homeFillsViewer: true,
       autoResize: true,
@@ -71,16 +71,16 @@ export class Viewer {
           invoke('start_tile', {
             spec: spec
           })
-          .catch((e) => {
-            context?.finish?.(null, null, e.toString());
-          });
+            .catch((e) => {
+              context?.finish?.(null, null, e.toString());
+            });
         },
         downloadTileAbort: function (context: any /*OpenSeadragon.ImageJob*/) {
           console.log(`OSD requested tile abort: tile #${context.userData.serial}`);
           invoke('abort_tile', { serial: context.userData.serial })
-          .catch((e) => {
-            context.finish?.(null, null, e.toString());
-          });
+            .catch((e) => {
+              context.finish?.(null, null, e.toString());
+            });
         },
         createTileCache: function (cache: any/*CacheObject*/, data: any) {
           cache._data = data;
@@ -88,17 +88,17 @@ export class Viewer {
         destroyTileCache: function (cache: any/*CacheObject*/) {
           cache._data = null;
         },
-        getTileCacheData: function(cache: any/*CacheObject*/) {
+        getTileCacheData: function (cache: any/*CacheObject*/) {
           return cache._data;
         },
-        getTileCacheDataAsImage: function() {
+        getTileCacheDataAsImage: function () {
           // not implementing all the features brings limitations to the
           // system, namely tile.getImage() will not work and also
           // html-based drawing approach will not work
           throw "getTileCacheDataAsImage not implemented";
         },
 
-        getTileCacheDataAsContext2D: function(cache: any/*CacheObject*/) {
+        getTileCacheDataAsContext2D: function (cache: any/*CacheObject*/) {
           // our data is already context2D - what a luck!
           return cache._data;
         },
@@ -156,10 +156,10 @@ export class Viewer {
       .catch((e) => {
         console.log(`Error retrieving metadata: ${e}`);
       }
-    );
+      );
   } // ---------------- end constructor --------------------
 
-  get_position() : FractalView {
+  get_position(): FractalView {
     let viewer = this.osd;
     let vp = viewer.viewport;
     // We know that top left is webPoint 0,0; bottom right is W-1,H-1.
@@ -195,7 +195,7 @@ export class Viewer {
 
   async bind_events() {
     this.unlisten_tile_complete = await listen<TileResponse>('tile_complete', (event) => {
-        this.on_tile_complete(event.payload);
+      this.on_tile_complete(event.payload);
     });
     this.unlisten_tile_error = await listen<TileError>('tile_error', (event) => {
       this.on_tile_error(event.payload);
@@ -232,7 +232,7 @@ export class Viewer {
     viewerElement.width(window.innerWidth);
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.osd.viewport.resize({x: window.innerWidth, y:window.innerHeight});
+    this.osd.viewport.resize({ x: window.innerWidth, y: window.innerHeight });
     this.osd.viewport.applyConstraints();
     console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
   }
@@ -314,9 +314,9 @@ export class Viewer {
     // 3. Compute origin in viewport coordinates
     // (this is a mathematician's origin i.e. bottom left)
     let originView = new OpenSeadragon.Point(
-      ( originComplex.re - meta.origin.re ) / meta_axes.re,
+      (originComplex.re - meta.origin.re) / meta_axes.re,
       // flip the Y axis as we're going between maths and computer science coordinates here
-      1.0 - ( originComplex.im - meta.origin.im ) / meta_axes.im,
+      1.0 - (originComplex.im - meta.origin.im) / meta_axes.im,
     );
 
     // 4. Use origin point & axes length to compute top-left & bottom-right points, all in viewport coordinates.
