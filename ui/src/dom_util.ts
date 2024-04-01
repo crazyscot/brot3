@@ -1,7 +1,7 @@
 // utility code affecting the Document Object Model
 // (c) 2024 Ross Younger
 
-export function tr_is_visible(e: HTMLElement): boolean {
+export function element_is_displayed(e: HTMLElement): boolean {
     return e.style.display !== "none";
 }
 

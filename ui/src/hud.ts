@@ -1,7 +1,7 @@
 // brot3 heads up display
 // (c) 2024 Ross Younger
 
-import { ClickEventListener, tr_is_visible, toggle_tr_visibility } from './dom_util'
+import { ClickEventListener, element_is_displayed, toggle_tr_visibility } from './dom_util'
 import { EnginePoint, FractalView } from './engine_types'
 
 function maybe_leading(symbol: string, n: number): string {
@@ -96,7 +96,7 @@ export class HeadsUpDisplay {
         this.axesImag = panel.querySelectorAll('#axesImag')[0];
 
         // Hide the position entry rows by default
-        this.position_entry_rows().forEach(e => { if (tr_is_visible(e)) toggle_tr_visibility(e); });
+        this.position_entry_rows().forEach(e => { if (element_is_displayed(e)) toggle_tr_visibility(e); });
         this.hud_closer = new ClickEventListener(
             document.getElementById("close-hud")!,
             function (_event: Event) {
