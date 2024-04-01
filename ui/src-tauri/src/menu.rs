@@ -7,10 +7,7 @@ use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Submenu, WindowMenuEvent};
 #[cfg(target_os = "macos")]
 use tauri::AboutMetadata;
 
-#[derive(Serialize, Clone)]
-pub struct GenericError {
-    error: String,
-}
+use crate::util::GenericError;
 
 #[derive(Serialize, Clone)]
 /// Twin of JS menu.DisplayMessageDetail
