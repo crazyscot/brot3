@@ -76,5 +76,4 @@ jobs:
           # On MacOS, explicitly specify target
           # On all platforms, build with --locked
           args: |
-            ${{ (matrix.platform == 'macos-latest' && '--target universal-apple-darwin') || '' }}
-            -- -- --locked
+            ${{ (matrix.platform == 'macos-latest' && '-- --target universal-apple-darwin -- --locked') || '-- -- --locked' }}
