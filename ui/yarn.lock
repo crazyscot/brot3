@@ -494,10 +494,10 @@ normalize-path@^3.0.0, normalize-path@~3.0.0:
   resolved "https://registry.yarnpkg.com/normalize-path/-/normalize-path-3.0.0.tgz#0dcd69ff23a1c9b11fd0978316644a0388216a65"
   integrity sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==
 
-openseadragon@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/openseadragon/-/openseadragon-4.1.0.tgz#194dce8c2c347d3dd45cdd5de4c278b41c8f5d3c"
-  integrity sha512-XMMzf5apmshvIvxvqMwiW9dJ07dol4zudvV1oFnoZuIpSZP3c3tlFjGbyOKHGhb1k4jmHQ7b7koG9vCHdKvC/A==
+openseadragon@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/openseadragon/-/openseadragon-4.1.1.tgz#1aba37c9e36ed17264511fa1b86db2204ea93b81"
+  integrity sha512-owU9gsasAcobLN+LM8lN58Xc2VDSDotY9mkrwS/NB6g9KX/PcusV4RZvhHng2RF/Q0pMziwldf62glwXoGnuzg==
 
 picocolors@^1.0.0:
   version "1.0.0"
