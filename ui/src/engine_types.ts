@@ -1,6 +1,11 @@
 // Type information 
 // (c) 2024 Ross Younger
 
+/// Twin of Rust GenericError.
+export class GenericError {
+    error: string = "";
+}
+
 /// Twin of Rust ViewerTileSpec struct. This class is also the userData element of ImageJob.userData.
 export class TileSpec {
     // TODO: fractal, colourer

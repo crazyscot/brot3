@@ -6,6 +6,7 @@ import { getVersion } from '@tauri-apps/api/app'
 import { appWindow } from '@tauri-apps/api/window'
 
 import { About } from './about.ts'
+import { ErrorHandler } from './error_handler.ts'
 import { HeadsUpDisplay } from './hud.ts'
 import { Menu } from './menu.ts'
 import { Viewer } from './viewer.ts'
@@ -25,15 +26,16 @@ ${HeadsUpDisplay.html}
 </div>
 `;
 
+let gErrorHandler = new ErrorHandler();
+gErrorHandler.bind_events();
+
 let gViewer = new Viewer();
 
 async function setupWindow() {
-    gViewer.resize();
-    getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
+  gViewer.resize();
+  getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
 }
-
 setupWindow();
 
 let gMenu = new Menu(document, gViewer);
-gViewer.noop();
 gMenu.noop();
