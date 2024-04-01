@@ -5,6 +5,15 @@ export function element_is_displayed(e: HTMLElement): boolean {
     return e.style.display !== "none";
 }
 
+// Toggles display style of an element between block and none
+export function toggle_element_visibility(e: HTMLElement) {
+    if (e.style.display === "none") {
+        e.style.display = "block";
+    } else {
+        e.style.display = "none";
+    }
+}
+
 // Toggles visibility of a TR element, returning true iff it is now visible.
 export function toggle_tr_visibility(e: HTMLElement): boolean {
     if (e.style.display === "none") {
