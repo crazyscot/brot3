@@ -1,13 +1,13 @@
 // Rendering selection & dispatch
 // (c) 2024 Ross Younger
 
+use std::ffi::OsStr;
+
 use crate::colouring::Instance;
 use crate::fractal::Tile;
 
 use anyhow;
-use strum_macros::{
-    Display, EnumDiscriminants, EnumMessage, EnumProperty, FromRepr, IntoStaticStr, VariantArray,
-};
+use strum_macros::{Display, EnumDiscriminants, EnumMessage, FromRepr, IntoStaticStr};
 
 use super::ascii::{AsciiArt, Csv};
 use super::png::Png;
@@ -22,9 +22,9 @@ use super::png::Png;
         clap::ValueEnum,
         Display,
         EnumMessage,
-        EnumProperty,
+        strum_macros::EnumProperty,
         IntoStaticStr,
-        VariantArray,
+        strum_macros::VariantArray,
     )
 )] // ... and specifies what it derives from
 /// Selector for available Renderers
@@ -59,6 +59,32 @@ pub trait Renderer {
 pub fn factory(selection: Selection) -> RenderInstance {
     RenderInstance::from_repr(selection as usize)
         .expect("Failed to convert enum discriminant into instance (can't happen)")
+}
+
+/// Attempt to auto-match a file extension to a renderer
+pub fn autodetect_extension(filename: &str) -> Option<&Selection> {
+    use strum::{EnumProperty, VariantArray};
+
+    let extension = std::path::Path::new(&filename)
+        .extension()
+        .and_then(OsStr::to_str)
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+
+    Selection::VARIANTS
+        .iter()
+        //.flat_map(|name| render::Selection::from_str(name))
+        .find(|sel| {
+            let trial = sel.get_str("file_extension").map_or_else(
+                || {
+                    // No property? use the enum name
+                    sel.to_string().to_ascii_lowercase()
+                },
+                // the property exists? convert &str to string
+                std::string::ToString::to_string,
+            );
+            trial == extension
+        })
 }
 
 #[cfg(test)]
