@@ -8,6 +8,7 @@ mod jobs;
 mod menu;
 mod mutable_util;
 mod tile_bridge;
+mod util;
 mod viewertilespec;
 
 use jobs::OutstandingJobs;
