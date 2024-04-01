@@ -3,9 +3,11 @@
 
 import '../node_modules/material-icons/iconfont/filled.css'
 
+import { invoke } from '@tauri-apps/api'
 import { listen } from '@tauri-apps/api/event'
 
 import { About } from './about.ts'
+import { RenderSpec } from './engine_types.ts'
 import { Viewer } from './viewer.ts'
 
 // Twin of rust menu::DisplayMessageDetail
@@ -55,6 +57,12 @@ export class Menu {
                     break;
                 case "toggle_origin_centre":
                     this.viewer.hud.toggle_origin_centre();
+                    break;
+                case "save_image":
+                    let position = this.viewer.get_position();
+                    invoke('save_image_workflow', {
+                        spec: new RenderSpec(position.origin, position.axes_length, this.viewer.width, this.viewer.height)
+                    });
                     break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);

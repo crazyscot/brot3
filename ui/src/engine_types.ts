@@ -95,3 +95,21 @@ export class FractalView {
         }
     }
 }
+
+/// A complete spec for a fractal plot the user wants drawn.
+/// Twin of Rust RenderSpec struct.
+export class RenderSpec {
+    origin: EnginePoint;
+    axes: EnginePoint;
+    width: Number;
+    height: Number;
+    maxiter: Number = 1024;
+    algorithm: String = "Original";
+    colourer: String = "LogRainbow";
+    constructor(origin: EnginePoint, axes: EnginePoint, width: Number, height: Number) {
+        this.origin = origin;
+        this.axes = axes;
+        this.width = width;
+        this.height = height;
+    }
+}
