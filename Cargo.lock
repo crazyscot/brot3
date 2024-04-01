@@ -249,6 +249,7 @@ dependencies = [
  "approx",
  "brot3-engine",
  "bytes",
+ "rayon",
  "rustc-hash",
  "serde",
  "serde_json",

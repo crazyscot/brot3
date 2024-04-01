@@ -16,6 +16,9 @@
         "message": true,
         "save": true
       },
+      "path": {
+        "all": true
+      },
       "window": {
         "setTitle": true
       }

@@ -7,11 +7,14 @@
 mod jobs;
 mod menu;
 mod mutable_util;
+mod render_spec;
+mod save_image;
 mod tile_bridge;
 mod util;
 mod viewertilespec;
 
 use jobs::OutstandingJobs;
+use save_image::SaveState;
 use viewertilespec::ViewerTileSpec;
 
 fn main() {
@@ -19,7 +22,9 @@ fn main() {
     let my_menu = menu::ApplicationMenu::new();
     tauri::Builder::default()
         .manage(OutstandingJobs::default())
+        .manage(SaveState::default())
         .invoke_handler(tauri::generate_handler![
+            save_image::save_image_workflow,
             tile_bridge::start_tile,
             tile_bridge::abort_tile,
             tile_bridge::get_metadata,

@@ -38,6 +38,8 @@ impl ApplicationMenu {
             .accelerator("Ctrl+G");
         let toggle_origin_centre =
             CustomMenuItem::new("toggle_origin_centre".to_string(), "Toggle Origin/Centre");
+        let save_image =
+            CustomMenuItem::new("save_image".to_string(), "Save image...").accelerator("Ctrl+S");
 
         // menu::os_default is lame in tauri1, doesn't support modifying the default menus.
         // For now we will clone and hack. TODO(tauri2) - overhaul this.
@@ -65,6 +67,11 @@ impl ApplicationMenu {
         }
 
         let mut file_menu = Menu::new();
+        // brot3 custom items:
+        file_menu = file_menu
+            .add_item(save_image)
+            .add_native_item(MenuItem::Separator);
+
         file_menu = file_menu.add_native_item(MenuItem::CloseWindow);
         #[cfg(not(target_os = "macos"))]
         {

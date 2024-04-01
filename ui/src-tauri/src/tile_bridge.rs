@@ -9,7 +9,7 @@ use brot3_engine::{
     render,
 };
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::Manager;
 
 #[derive(Serialize, Clone)]
@@ -24,7 +24,7 @@ pub struct TileError {
     error: String,
 }
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SerializablePoint {
     re: Scalar,
     im: Scalar,
@@ -37,13 +37,21 @@ impl From<Point> for SerializablePoint {
         }
     }
 }
+impl From<SerializablePoint> for Point {
+    fn from(item: SerializablePoint) -> Self {
+        Point {
+            re: item.re,
+            im: item.im,
+        }
+    }
+}
 
 /// Description of a view into the fractal.
 /// This could also be the overall fractal dimensions (which we refer to as its _metadata_).
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct FractalView {
-    origin: SerializablePoint,
-    axes_length: SerializablePoint,
+    pub origin: SerializablePoint,
+    pub axes_length: SerializablePoint,
 }
 
 fn draw_tile(spec: &ViewerTileSpec, app_handle: &tauri::AppHandle) -> anyhow::Result<(), String> {

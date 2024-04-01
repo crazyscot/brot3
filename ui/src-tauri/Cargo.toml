@@ -24,6 +24,7 @@ tauri = { version = "1.6.1", features = [ "dialog-message", "path-all", "dialog-
 rustc-hash = "1.1.0"
 tokio = "1.37.0"
 tokio-macros = "2.2.0"
+rayon.workspace = true
 
 [dev-dependencies]
 approx = "0.5.1"
