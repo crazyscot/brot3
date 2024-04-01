@@ -5,7 +5,7 @@ mod framework;
 mod png;
 
 #[allow(clippy::module_name_repetitions)]
-pub use framework::{factory, RenderInstance, Renderer, Selection};
+pub use framework::{autodetect_extension, factory, RenderInstance, Renderer, Selection};
 pub use png::Png; // to allow direct benchmarking
 
 use crate::colouring::Instance;

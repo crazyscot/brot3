@@ -1,21 +1,18 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
-use std::ffi::OsStr;
-use std::path::Path;
 use std::time::SystemTime;
 
 use brot3_engine::colouring;
 use brot3_engine::fractal::{
     self, Algorithm, PlotSpec, Point, Scalar, Size, SplitMethod, Tile, TileSpec,
 };
-use brot3_engine::render::{self, Renderer};
+use brot3_engine::render::{self, autodetect_extension, Renderer};
 use brot3_engine::util::Rect;
 
-use anyhow::ensure;
+use anyhow::{ensure, Context};
 use clap::ArgAction;
 use rayon::prelude::*;
-use strum::{EnumProperty, VariantArray};
 
 /// Arguments for the 'plot' subcommand
 #[derive(Debug, clap::Args)]
@@ -220,7 +217,9 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let render_selection: render::Selection = if let Some(s) = args.output_type {
         Ok::<render::Selection, anyhow::Error>(s)
     } else {
-        autodetect_extension(&args.output_filename)
+        let v = autodetect_extension(&args.output_filename)
+            .context("Could not autodetect desired output type from filename (try `--type ...')")?;
+        Ok(*v)
     }?;
     let renderer = render::factory(render_selection);
     let colourer = colouring::factory(args.colourer);
@@ -276,36 +275,6 @@ fn args_axes(args: &Args, algorithm: fractal::Instance) -> anyhow::Result<fracta
         Ok(Size::AxesLength(check_fix_axes(
             args.axes_length.unwrap_or(algorithm.default_axes()),
         )?))
-    }
-}
-
-/// Attempt to auto-match a file extension to a renderer
-fn autodetect_extension(filename: &str) -> anyhow::Result<render::Selection> {
-    let extension = Path::new(&filename)
-        .extension()
-        .and_then(OsStr::to_str)
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-
-    let found = render::Selection::VARIANTS
-        .iter()
-        //.flat_map(|name| render::Selection::from_str(name))
-        .find(|sel| {
-            let trial = sel.get_str("file_extension").map_or_else(
-                || {
-                    // No property? use the enum name
-                    sel.to_string().to_ascii_lowercase()
-                },
-                // the property exists? convert &str to string
-                std::string::ToString::to_string,
-            );
-            trial == extension
-        });
-    match found {
-        Some(s) => Ok(*s),
-        None => anyhow::bail!(
-            "Could not autodetect desired output type from filename (try `--type ...')"
-        ),
     }
 }
 
