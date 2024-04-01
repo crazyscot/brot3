@@ -268,11 +268,7 @@ impl From<&PlotSpec> for TileSpec {
 
 impl Display for TileSpec {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(
-            f,
-            "alg={} origin={} axes={}",
-            self.algorithm, self.origin, self.axes
-        )
+        write!(f, "{}@{},axes={}", self.algorithm, self.origin, self.axes)
     }
 }
 
@@ -539,5 +535,17 @@ mod tests {
         // aspect ratio should now match pixel size
         let aspect = ts.axes().re / ts.axes().im;
         assert_relative_eq!(aspect, ts.size_in_pixels.aspect_ratio());
+    }
+
+    #[test]
+    fn stringify() {
+        let uut = TileSpec::new(
+            Point::new(0.0, 0.5),
+            Point::new(1.0, 2.0),
+            Rect::new(200, 400),
+            fractal::framework::factory(fractal::framework::Selection::Original),
+        );
+        let result = uut.to_string();
+        assert_eq!(result, "original@0+0.5i,axes=1+2i");
     }
 }
