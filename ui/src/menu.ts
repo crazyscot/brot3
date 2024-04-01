@@ -3,11 +3,10 @@
 
 import '../node_modules/material-icons/iconfont/filled.css'
 
-import { invoke } from '@tauri-apps/api'
 import { listen } from '@tauri-apps/api/event'
 
 import { About } from './about.ts'
-import { RenderSpec } from './engine_types.ts'
+import { SaveSizeBox } from './save_size.ts'
 import { Viewer } from './viewer.ts'
 
 // Twin of rust menu::DisplayMessageDetail
@@ -22,11 +21,13 @@ export class Menu {
     doc: Document;
     viewer: Viewer;
     about: About;
+    save_size: SaveSizeBox;
 
-    constructor(doc: Document, viewer: Viewer) {
+    constructor(doc: Document, viewer: Viewer, save_size: SaveSizeBox) {
         let self = this; // for closures
         this.doc = doc;
         this.viewer = viewer;
+        this.save_size = save_size;
 
         // Bind form actions
         doc.getElementById("form_go_to_position")!.onsubmit = function (e) {
@@ -59,10 +60,10 @@ export class Menu {
                     this.viewer.hud.toggle_origin_centre();
                     break;
                 case "save_image":
-                    let position = this.viewer.get_position();
-                    invoke('save_image_workflow', {
-                        spec: new RenderSpec(position.origin, position.axes_length, this.viewer.width, this.viewer.height)
-                    });
+                    this.save_size.save_at_one_size_or_other(this.viewer.width, this.viewer.height);
+                    break;
+                case "save_size":
+                    this.save_size.show();
                     break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);

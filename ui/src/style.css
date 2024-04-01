@@ -144,6 +144,11 @@ button:focus-visible {
   }
 }
 
+.user-form table {
+  background: black;
+  color: white;
+}
+
 tr.position-entry {
   background: blue;
 }

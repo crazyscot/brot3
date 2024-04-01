@@ -9,6 +9,7 @@ import { About } from './about.ts'
 import { ErrorHandler } from './error_handler.ts'
 import { HeadsUpDisplay } from './hud.ts'
 import { Menu } from './menu.ts'
+import { SaveSizeBox } from './save_size.ts'
 import { Viewer } from './viewer.ts'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
@@ -22,6 +23,7 @@ ${About.html}
 <!-- Trap: Modals not within this div won't be cloned into fullscreen mode -->
 </div>
 <div id="bottombar">
+${SaveSizeBox.html}
 ${HeadsUpDisplay.html}
 </div>
 `;
@@ -37,5 +39,6 @@ async function setupWindow() {
 }
 setupWindow();
 
-let gMenu = new Menu(document, gViewer);
+let gSaveSizeBox = new SaveSizeBox(document, gViewer);
+let gMenu = new Menu(document, gViewer, gSaveSizeBox);
 gMenu.noop();
