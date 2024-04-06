@@ -55,18 +55,12 @@ export class IterationLimitBox {
         if (!element_is_displayed(this.our_div)) {
             toggle_element_visibility(this.our_div);
         }
-        // TODO: Populate from current value
-        //this.maxIterField.value = ...;
+        this.maxIterField!.value = this.viewer.get_max_iter().toString();
         this.maxIterField!.focus();
         this.maxIterField!.select();
     }
 
     apply() {
-        let new_max = Number.parseInt(this.maxIterField.value);
-        if (Number.isFinite(new_max)) {
-            console.log(`TODO: apply new max_iter ${new_max}`);
-        } else {
-            console.warn(`failed to parse max_iter ${new_max}`);
-        }
+        this.viewer.set_max_iter(Number.parseInt(this.maxIterField.value));
     }
 }
