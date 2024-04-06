@@ -22,6 +22,7 @@ export class Viewer {
   outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   hud: HeadsUpDisplay;
   current_metadata: FractalView = new FractalView();
+  max_iter: number = 2048;
 
   // width, height used by coordinate display
   width: number = NaN;
@@ -65,7 +66,7 @@ export class Viewer {
           // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
           // => At zoom level X, the image is 2^X pixels across.
 
-          let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE);
+          let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, self.max_iter);
           context.userData = spec;
           self.outstanding_requests.set(spec.serial, context);
           invoke('start_tile', {

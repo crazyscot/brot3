@@ -24,6 +24,8 @@ pub struct ViewerTileSpec {
     pub width: u32,
     /// Tile height (pixels)
     pub height: u32,
+    /// Iteration limit
+    pub max_iter: u32,
 }
 
 impl fmt::Display for ViewerTileSpec {
@@ -86,6 +88,7 @@ mod tests {
         dy: 0,
         width: 256,
         height: 256,
+        max_iter: 1024,
         // TODO this will be Original fractal
     };
 
@@ -184,6 +187,7 @@ mod tests {
             dy: 0,
             width: 256,
             height: 256,
+            max_iter: 1024,
         };
         TileSpec::try_from(&td).expect_err("should have failed");
         td.level = 10;
