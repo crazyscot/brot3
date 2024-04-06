@@ -30,16 +30,22 @@ impl ApplicationMenu {
     }
 
     pub(crate) fn build(&self) -> Menu {
+        // work around tauri/tao accelerator misbehaviour
+        #[cfg(target_os = "macos")]
+        let cmd_or_ctrl = "Cmd";
+        #[cfg(not(target_os = "macos"))]
+        let cmd_or_ctrl = "Ctrl";
+
         // Here are our custom menu items:
         let toggle_position =
             CustomMenuItem::new("toggle_position".to_string(), "Show/Hide Position")
-                .accelerator("Ctrl+P");
+                .accelerator(format!("{cmd_or_ctrl}+P"));
         let go_to_position = CustomMenuItem::new("go_to_position".to_string(), "Go To Position...")
-            .accelerator("Ctrl+G");
+            .accelerator(format!("{cmd_or_ctrl}+G"));
         let toggle_origin_centre =
             CustomMenuItem::new("toggle_origin_centre".to_string(), "Toggle Origin/Centre");
-        let save_image =
-            CustomMenuItem::new("save_image".to_string(), "Save image...").accelerator("Ctrl+S");
+        let save_image = CustomMenuItem::new("save_image".to_string(), "Save image...")
+            .accelerator(format!("{cmd_or_ctrl}+S"));
         let save_size = CustomMenuItem::new("save_size".to_string(), "Save at size...");
 
         // menu::os_default is lame in tauri1, doesn't support modifying the default menus.
