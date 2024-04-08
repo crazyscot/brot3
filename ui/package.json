@@ -11,8 +11,8 @@
     "@tauri-apps/cli": "^1.5.11",
     "@types/jquery": "^3.5.29",
     "@types/openseadragon": "^3.0.10",
-    "typescript": "^5.4.3",
-    "vite": "^5.2.7",
+    "typescript": "^5.4.4",
+    "vite": "^5.2.8",
     "vite-plugin-static-copy": "^1.0.2"
   },
   "dependencies": {
