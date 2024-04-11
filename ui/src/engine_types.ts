@@ -15,13 +15,15 @@ export class TileSpec {
     dy: number;
     width: number;
     height: number;
-    constructor(serial: number, data: TilePostData, width: number, height: number) {
+    max_iter: number;
+    constructor(serial: number, data: TilePostData, width: number, height: number, max_iter: number) {
         this.serial = serial; // Always obtain from gSerial.next() !
         this.level = data?.level || 0;
         this.dx = data?.dx || 0;
         this.dy = data?.dy || 0;
         this.width = width;
         this.height = height;
+        this.max_iter = max_iter;
     }
 }
 
@@ -103,13 +105,14 @@ export class RenderSpec {
     axes: EnginePoint;
     width: Number;
     height: Number;
-    maxiter: Number = 1024;
+    maxiter: Number;
     algorithm: String = "Original";
     colourer: String = "LogRainbow";
-    constructor(origin: EnginePoint, axes: EnginePoint, width: Number, height: Number) {
+    constructor(origin: EnginePoint, axes: EnginePoint, width: Number, height: Number, max_iter: Number) {
         this.origin = origin;
         this.axes = axes;
         this.width = width;
         this.height = height;
+        this.maxiter = max_iter;
     }
 }

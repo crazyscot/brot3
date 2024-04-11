@@ -95,8 +95,9 @@ export class SaveSizeBox {
         let position = this.viewer.get_position();
         let view = new FractalView(position.origin, position.axes_length);
         let fixed = this.fix_aspect_ratio(view, width, height);
+        let max_iter = this.viewer.get_max_iter();
         invoke('save_image_workflow', {
-            spec: new RenderSpec(fixed.origin, fixed.axes_length, width, height)
+            spec: new RenderSpec(fixed.origin, fixed.axes_length, width, height, max_iter)
         });
     }
 

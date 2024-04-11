@@ -22,6 +22,7 @@ export class Viewer {
   outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   hud: HeadsUpDisplay;
   current_metadata: FractalView = new FractalView();
+  private max_iter: number = 2048; // TODO: this will move into the tile source
 
   // width, height used by coordinate display
   width: number = NaN;
@@ -53,7 +54,7 @@ export class Viewer {
 
         getTileUrl: function (level: number, x: number, y: number) {
           // TODO add fractal, colour (or we'll break cacheing!)
-          return `${level}/${x}-${y}`;
+          return `${level}/${x}-${y}/${self.max_iter}`;
         },
         // caution: @types/openseadragon 3.0.10 doesn't know about these functions
         getTilePostData: function (level: number, x: number, y: number) {
@@ -65,7 +66,7 @@ export class Viewer {
           // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
           // => At zoom level X, the image is 2^X pixels across.
 
-          let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE);
+          let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, self.max_iter);
           context.userData = spec;
           self.outstanding_requests.set(spec.serial, context);
           invoke('start_tile', {
@@ -337,6 +338,48 @@ export class Viewer {
   copy_current_position() {
     let pos = this.get_position();
     this.hud.set_go_to_position(pos);
+  }
+
+  get_max_iter() {
+    return this.max_iter;
+  }
+  set_max_iter(new_max: number) {
+    if (Number.isFinite(new_max)) {
+      this.max_iter = new_max;
+      this.redraw();
+    } else {
+      console.warn(`failed to parse max_iter ${new_max}`);
+    }
+  }
+
+  // Force a redraw of all tiles because something important changed (colourer, max_iter, etc)
+  private redraw() {
+    // First attempt was this.osd.world.resetItems() but that caused a nasty canvas flash.
+    // This technique is based on the workaround described in https://github.com/openseadragon/openseadragon/issues/1991
+    this.osd._cancelPendingImages();
+
+    // ASSUMPTION: the current image is always the latest-added
+    let previousCount = this.osd.world.getItemCount();
+    let oldImage = this.osd.world.getItemAt(previousCount - 1);
+    console.log(`item count was ${previousCount}`);
+    let oldBounds = oldImage.getBounds();
+    let oldSource = oldImage.source;
+    let self = this;
+    this.osd.addTiledImage({
+      tileSource: oldSource,
+      x: oldBounds.x,
+      y: oldBounds.y,
+      width: oldBounds.width, // height is automatic
+      opacity: 0.01,
+      success: function () {
+        // ASSUMPTION: fully-loaded-change doesn't trigger before this success function is called.
+        let newItem = self.osd.world.getItemAt(previousCount);
+        newItem.setOpacity(1.0);
+        newItem.addOnceHandler('fully-loaded-change', function (_event: any) {
+          self.osd.world.removeItem(oldImage);
+        });
+      }
+    });
   }
 
   // dummy function to shut up a linter warning in main.ts

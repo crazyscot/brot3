@@ -47,6 +47,8 @@ impl ApplicationMenu {
         let save_image = CustomMenuItem::new("save_image".to_string(), "Save image...")
             .accelerator(format!("{cmd_or_ctrl}+S"));
         let save_size = CustomMenuItem::new("save_size".to_string(), "Save at size...");
+        let show_max_iter = CustomMenuItem::new("show_max_iter".to_string(), "Max Iterations...")
+            .accelerator(format!("{cmd_or_ctrl}+M"));
 
         // menu::os_default is lame in tauri1, doesn't support modifying the default menus.
         // For now we will clone and hack. TODO(tauri2) - overhaul this.
@@ -135,6 +137,7 @@ impl ApplicationMenu {
                 .add_native_item(MenuItem::Separator)
                 .add_item(toggle_origin_centre),
         ))
+        .add_submenu(Submenu::new("Fractal", Menu::new().add_item(show_max_iter)))
         .add_submenu(Submenu::new(
             "Help",
             Menu::new().add_item(CustomMenuItem::new("show_about".to_string(), "About")),
