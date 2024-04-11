@@ -137,6 +137,7 @@ button:focus-visible {
   background: navy;
   color: gold;
   border-spacing: 0px;
+  opacity: 0.85;
 
   * th,
   td {
@@ -147,6 +148,7 @@ button:focus-visible {
 .user-form table {
   background: black;
   color: white;
+  opacity: 0.85;
 }
 
 tr.position-entry {
