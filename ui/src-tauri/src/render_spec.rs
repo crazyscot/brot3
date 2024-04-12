@@ -1,10 +1,11 @@
 // Specification of a rendering
 // (c) 2024 Ross Younger
 
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
 use anyhow::Context;
 use brot3_engine::{
+    colouring,
     fractal::{self, TileSpec},
     util::Rect,
 };
@@ -36,13 +37,18 @@ impl TryFrom<RenderSpec> for TileSpec {
     fn try_from(input: RenderSpec) -> Result<Self, Self::Error> {
         let alg_selection =
             fractal::Selection::from_str(&input.algorithm).context("fractal selection")?;
-        let alg = fractal::factory(alg_selection);
+        let alg = Arc::new(fractal::factory(alg_selection));
+        let col_selection =
+            colouring::Selection::from_str(&input.colourer).context("colourer selection")?;
+        let col = Arc::new(colouring::factory(col_selection));
 
         Ok(TileSpec::new(
             input.origin.into(),
             input.axes.into(),
             Rect::new(input.width, input.height),
-            alg,
+            &alg,
+            input.maxiter,
+            &col,
         ))
     }
 }

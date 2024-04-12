@@ -3,6 +3,8 @@
 
 #![allow(missing_docs)]
 
+use std::sync::Arc;
+
 #[allow(clippy::enum_glob_use)]
 use brot3_engine::{
     colouring::{self, Instance, OutputsRgb8, Selection::*},
@@ -20,6 +22,7 @@ use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 /// A point (found by experiment) that's in the set but not in the special-case cut-off regions
 const TEST_POINT_M2: Point = Point::new(-0.158_653_6, 1.034_804);
 const TEST_POINT_M3: Point = Point::new(-0.573_133_7, 0.569_299_8);
+const TEST_COLOURER: colouring::Selection = colouring::Selection::LinearRainbow;
 
 fn iteration(c: &mut Criterion) {
     let mut group = c.benchmark_group("fractals");
@@ -50,7 +53,9 @@ fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
         Point { re: -1.0, im: 0.0 },
         Point { re: 4.0, im: 4.0 },
         Rect::new(dimension, dimension),
-        fractal::factory(alg),
+        &Arc::new(fractal::factory(alg)),
+        512,
+        &Arc::new(colouring::factory(TEST_COLOURER)),
     )
 }
 
@@ -61,7 +66,7 @@ fn plot_tile(c: &mut Criterion) {
         let _ = group.bench_function(format!("plot_{alg:?}"), |b| {
             b.iter_batched_ref(
                 || Tile::new(&spec, 0),
-                |t| t.plot(black_box(512)),
+                |t| black_box(t).plot(),
                 BatchSize::SmallInput,
             );
         });
@@ -94,7 +99,7 @@ fn colour_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
     let spec = get_test_tile_spec(fractal::Selection::Original, 100);
     let mut tile = Tile::new(&spec, 0);
-    tile.plot(black_box(512));
+    tile.plot();
 
     let mut bench = |colourer: Instance| {
         let _ = group.bench_function(format!("colour_{colourer}"), |b| {
@@ -118,7 +123,7 @@ fn tile_join(c: &mut Criterion) {
     let single = get_test_tile_spec(fractal::Selection::Original, 1000);
     let specs = single.split(SplitMethod::RowsOfHeight(50), 0).unwrap();
     let mut tiles: Vec<_> = specs.iter().map(|ts| Tile::new(ts, 0)).collect();
-    tiles.par_iter_mut().for_each(|t| t.plot(512));
+    tiles.par_iter_mut().for_each(|t| black_box(t).plot());
 
     let _ = group.bench_function("join", |b| {
         b.iter(|| Tile::join(&single, black_box(&tiles)).unwrap());

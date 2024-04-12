@@ -50,7 +50,7 @@ impl Png {
         encoder.set_depth(png::BitDepth::Eight);
 
         encoder.add_text_chunk("software".to_string(), "brot3".to_string())?;
-        let info = tile.info_string(&colourer);
+        let info = tile.spec.to_string();
         encoder.add_text_chunk("comment".to_string(), info)?;
 
         // MAYBE: allow user to specify gamma of their monitor?

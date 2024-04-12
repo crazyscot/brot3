@@ -1,12 +1,12 @@
 // (c) 2024 Ross Younger
 
 use super::{Algorithm, Point, PointData, Scalar, TileSpec};
-use crate::{colouring, util::Rect};
+use crate::util::Rect;
 
 use anyhow::{anyhow, ensure, Context};
 use ndarray::Array2;
 use num_complex::ComplexFloat;
-use std::{cmp::max, fmt};
+use std::{cmp::max, fmt, sync::Arc};
 
 /// A section of a fractal plot
 #[derive(Debug)]
@@ -21,7 +21,7 @@ pub struct Tile {
     /// Specification of this plot
     pub spec: TileSpec,
     /// The algorithm to use
-    algorithm: super::Instance,
+    algorithm: Arc<super::Instance>,
     /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, relative to the TOP LEFT of the plot.
     offset_within_plot: Option<Rect<u32>>,
 }
@@ -42,8 +42,8 @@ impl Tile {
             // Data for this tile.
             point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
             max_iter_plotted: 0,
-            spec: *spec,
-            algorithm: spec.algorithm(),
+            spec: spec.clone(),
+            algorithm: Arc::clone(&spec.algorithm()),
             offset_within_plot: spec.offset_within_plot(),
         }
     }
@@ -107,7 +107,8 @@ impl Tile {
     }
 
     /// Runs the fractal iteration for all points in this tile
-    pub fn plot(&mut self, max_iter: u32) {
+    pub fn plot(&mut self) {
+        let max_iter = self.spec.max_iter_requested();
         for p in &mut self.point_data {
             if p.result.is_none() {
                 self.algorithm.pixel(p, max_iter);
@@ -129,15 +130,6 @@ impl Tile {
     pub fn offset_within_plot(&self) -> Option<Rect<u32>> {
         self.offset_within_plot
     }
-
-    /// Info string quasi-accessor
-    #[must_use]
-    pub fn info_string(&self, colourer: &colouring::Instance) -> String {
-        format!(
-            "{} maxiter={} colourer={}",
-            self.spec, self.max_iter_plotted, colourer
-        )
-    }
 }
 
 /// CSV format output
@@ -158,18 +150,19 @@ impl fmt::Display for Tile {
 #[cfg(test)]
 mod tests {
     use crate::{
+        colouring::{self, testing::White},
         fractal::{
-            framework::Zero, tilespec::SplitMethod, Instance, Location, PlotSpec, Point, Size,
-            TileSpec,
+            self, framework::Zero, tilespec::SplitMethod, Location, PlotSpec, Point, Size, TileSpec,
         },
         util::Rect,
     };
 
     use super::Tile;
 
-    const ZERO_ALG: Instance = Instance::Zero(Zero {});
+    const ZERO_ALG: fractal::Instance = fractal::Instance::Zero(Zero {});
     const ZERO: Point = Point { re: 0.0, im: 0.0 };
     const ONE: Point = Point { re: 1.0, im: 1.0 };
+    const WHITE: colouring::Instance = colouring::Instance::White(White {});
 
     const TD_TILE: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
@@ -179,6 +172,8 @@ mod tests {
             height: 101, // not dividable by 10
         },
         algorithm: ZERO_ALG,
+        max_iter: 256,
+        colourer: WHITE,
     };
     #[test]
     fn rejoin() {
@@ -186,7 +181,7 @@ mod tests {
         let split = spec.split(SplitMethod::RowsOfHeight(10), 0);
         let mut tiles: Vec<Tile> = split.unwrap().iter().map(|ts| Tile::new(ts, 0)).collect();
         for t in &mut tiles {
-            t.plot(1);
+            t.plot();
         }
         let result = Tile::join(&spec, &tiles).unwrap();
         let data = result.result();
