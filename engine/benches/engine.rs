@@ -3,6 +3,8 @@
 
 #![allow(missing_docs)]
 
+use std::sync::Arc;
+
 #[allow(clippy::enum_glob_use)]
 use brot3_engine::{
     colouring::{self, Instance, OutputsRgb8, Selection::*},
@@ -50,7 +52,7 @@ fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
         Point { re: -1.0, im: 0.0 },
         Point { re: 4.0, im: 4.0 },
         Rect::new(dimension, dimension),
-        fractal::factory(alg),
+        &Arc::new(fractal::factory(alg)),
         512,
     )
 }

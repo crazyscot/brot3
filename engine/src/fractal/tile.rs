@@ -6,7 +6,7 @@ use crate::{colouring, util::Rect};
 use anyhow::{anyhow, ensure, Context};
 use ndarray::Array2;
 use num_complex::ComplexFloat;
-use std::{cmp::max, fmt};
+use std::{cmp::max, fmt, sync::Arc};
 
 /// A section of a fractal plot
 #[derive(Debug)]
@@ -21,7 +21,7 @@ pub struct Tile {
     /// Specification of this plot
     pub spec: TileSpec,
     /// The algorithm to use
-    algorithm: super::Instance,
+    algorithm: Arc<super::Instance>,
     /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, relative to the TOP LEFT of the plot.
     offset_within_plot: Option<Rect<u32>>,
 }
@@ -42,8 +42,8 @@ impl Tile {
             // Data for this tile.
             point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
             max_iter_plotted: 0,
-            spec: *spec,
-            algorithm: spec.algorithm(),
+            spec: spec.clone(),
+            algorithm: Arc::clone(&spec.algorithm()),
             offset_within_plot: spec.offset_within_plot(),
         }
     }
