@@ -1,8 +1,8 @@
 // Specification of a plot, human-friendly form
 // (c) 2024 Ross Younger
 
-use super::{Instance, Point, Scalar};
-use crate::util::Rect;
+use super::{Point, Scalar};
+use crate::{fractal, util::Rect};
 
 /// The user is allowed to specify the plot location in multiple ways.
 #[derive(Debug, Clone, Copy)]
@@ -35,7 +35,7 @@ pub struct PlotSpec {
     /// Size of the plot in pixels
     pub size_in_pixels: Rect<u32>,
     /// The selected algorithm
-    pub algorithm: Instance,
+    pub algorithm: fractal::Instance,
     /// The iteration limit
     pub max_iter: u32,
 }

@@ -4,8 +4,8 @@
 use anyhow::ensure;
 
 use super::userplotspec::{Location, Size};
-use super::{Instance, PlotSpec, Point, Scalar};
-use crate::util::Rect;
+use super::{PlotSpec, Point, Scalar};
+use crate::{fractal, util::Rect};
 
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
@@ -23,7 +23,7 @@ pub struct TileSpec {
     offset_within_plot: Option<Rect<u32>>,
 
     /// The selected algorithm
-    algorithm: Arc<Instance>,
+    algorithm: Arc<fractal::Instance>,
     /// Iteration limit
     max_iter: u32,
 }
@@ -45,7 +45,7 @@ impl TileSpec {
         origin: Point,
         axes: Point,
         size_in_pixels: Rect<u32>,
-        algorithm: &Arc<Instance>,
+        algorithm: &Arc<fractal::Instance>,
         max_iter: u32,
     ) -> TileSpec {
         TileSpec {
@@ -65,7 +65,7 @@ impl TileSpec {
         size_in_pixels: Rect<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
         offset_within_plot: Option<Rect<u32>>,
-        algorithm: &Arc<Instance>,
+        algorithm: &Arc<fractal::Instance>,
         max_iter: u32,
     ) -> TileSpec {
         TileSpec {
@@ -235,7 +235,7 @@ impl TileSpec {
     }
     /// Accessor (clones reference)
     #[must_use]
-    pub fn algorithm(&self) -> Arc<Instance> {
+    pub fn algorithm(&self) -> Arc<fractal::Instance> {
         Arc::clone(&self.algorithm)
     }
     /// Accessor
@@ -296,7 +296,7 @@ mod tests {
             self,
             tilespec::SplitMethod,
             userplotspec::{Location, Size},
-            Instance, PlotSpec, Point, Scalar, TileSpec,
+            PlotSpec, Point, Scalar, TileSpec,
         },
         util::Rect,
     };
@@ -307,7 +307,8 @@ mod tests {
     const ONETWO: Point = Point { re: 1.0, im: 2.0 };
     const CENTI: Point = Point { re: 0.01, im: 0.01 };
 
-    const MANDELBROT: Instance = Instance::Original(fractal::mandelbrot::Original {});
+    const MANDELBROT: fractal::Instance =
+        fractal::Instance::Original(fractal::mandelbrot::Original {});
 
     const TD_ORIGIN_AXES: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),

@@ -160,15 +160,14 @@ impl fmt::Display for Tile {
 mod tests {
     use crate::{
         fractal::{
-            framework::Zero, tilespec::SplitMethod, Instance, Location, PlotSpec, Point, Size,
-            TileSpec,
+            self, framework::Zero, tilespec::SplitMethod, Location, PlotSpec, Point, Size, TileSpec,
         },
         util::Rect,
     };
 
     use super::Tile;
 
-    const ZERO_ALG: Instance = Instance::Zero(Zero {});
+    const ZERO_ALG: fractal::Instance = fractal::Instance::Zero(Zero {});
     const ZERO: Point = Point { re: 0.0, im: 0.0 };
     const ONE: Point = Point { re: 1.0, im: 1.0 };
 
