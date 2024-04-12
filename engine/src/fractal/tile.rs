@@ -1,7 +1,7 @@
 // (c) 2024 Ross Younger
 
 use super::{Algorithm, Point, PointData, Scalar, TileSpec};
-use crate::{colouring, util::Rect};
+use crate::util::Rect;
 
 use anyhow::{anyhow, ensure, Context};
 use ndarray::Array2;
@@ -129,15 +129,6 @@ impl Tile {
     #[must_use]
     pub fn offset_within_plot(&self) -> Option<Rect<u32>> {
         self.offset_within_plot
-    }
-
-    /// Info string quasi-accessor
-    #[must_use]
-    pub fn info_string(&self, colourer: &colouring::Instance) -> String {
-        format!(
-            "{} maxiter={} colourer={}",
-            self.spec, self.max_iter_plotted, colourer
-        )
     }
 }
 

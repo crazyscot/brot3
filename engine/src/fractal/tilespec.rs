@@ -292,7 +292,11 @@ impl From<&PlotSpec> for TileSpec {
 
 impl Display for TileSpec {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
-        write!(f, "{}@{},axes={}", self.algorithm, self.origin, self.axes)
+        write!(
+            f,
+            "{},origin={},axes={},max={},col={}",
+            self.algorithm, self.origin, self.axes, self.max_iter, self.colourer
+        )
     }
 }
 
@@ -597,6 +601,9 @@ mod tests {
             &Arc::new(BLACK_FADE),
         );
         let result = uut.to_string();
-        assert_eq!(result, "original@0+0.5i,axes=1+2i");
+        assert_eq!(
+            result,
+            "original,origin=0+0.5i,axes=1+2i,max=256,col=black-fade"
+        );
     }
 }

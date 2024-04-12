@@ -256,7 +256,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
             time4.duration_since(time3).unwrap_or_default(),
         );
     }
-    println!("{}", tile.info_string(&colourer));
+    println!("{}", tile.spec);
     result
 }
 
