@@ -22,6 +22,7 @@ use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 /// A point (found by experiment) that's in the set but not in the special-case cut-off regions
 const TEST_POINT_M2: Point = Point::new(-0.158_653_6, 1.034_804);
 const TEST_POINT_M3: Point = Point::new(-0.573_133_7, 0.569_299_8);
+const TEST_COLOURER: colouring::Selection = colouring::Selection::LinearRainbow;
 
 fn iteration(c: &mut Criterion) {
     let mut group = c.benchmark_group("fractals");
@@ -54,6 +55,7 @@ fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
         Rect::new(dimension, dimension),
         &Arc::new(fractal::factory(alg)),
         512,
+        &Arc::new(colouring::factory(TEST_COLOURER)),
     )
 }
 

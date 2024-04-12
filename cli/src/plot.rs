@@ -192,6 +192,7 @@ fn check_zoom(input: Scalar) -> anyhow::Result<Scalar> {
 /// Implementation of 'plot'
 pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let algorithm = fractal::factory(args.fractal);
+    let colourer = colouring::factory(args.colourer);
 
     let user_plot_data = PlotSpec {
         location: args_location(args, algorithm),
@@ -199,6 +200,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         size_in_pixels: Rect::new(args.width, args.height),
         algorithm,
         max_iter: args.max_iter,
+        colourer,
     };
     if debug > 0 {
         println!("Entered plot data: {user_plot_data:#?}");
@@ -223,7 +225,6 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         Ok(*v)
     }?;
     let renderer = render::factory(render_selection);
-    let colourer = colouring::factory(args.colourer);
 
     let time0 = SystemTime::now();
     let splits: Vec<TileSpec> = if args.no_split {

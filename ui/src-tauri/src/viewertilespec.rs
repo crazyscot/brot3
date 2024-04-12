@@ -4,6 +4,7 @@
 use std::{fmt, sync::Arc};
 
 use brot3_engine::{
+    colouring,
     fractal::{self, Algorithm, Point, Scalar, TileSpec},
     util::Rect,
 };
@@ -40,6 +41,8 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
     fn try_from(spec: &ViewerTileSpec) -> anyhow::Result<Self> {
         let alg_requested = "Original"; // TODO this will come from spec
         let algorithm = Arc::new(fractal::decode(alg_requested)?);
+        let col_requested = "LogRainbow"; // TODO this will come from spec
+        let colourer = Arc::new(colouring::decode(col_requested)?);
         anyhow::ensure!(spec.level < 64, "zoom too deep");
         anyhow::ensure!(spec.width == spec.height, "only square tiles supported");
         // Map the total number of pixels across the zoom level into the algorithm's full axes
@@ -72,6 +75,7 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
             output_size,
             &algorithm,
             spec.max_iter,
+            &colourer,
         ))
     }
 }

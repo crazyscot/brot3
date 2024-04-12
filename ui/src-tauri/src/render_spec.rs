@@ -5,6 +5,7 @@ use std::{str::FromStr, sync::Arc};
 
 use anyhow::Context;
 use brot3_engine::{
+    colouring,
     fractal::{self, TileSpec},
     util::Rect,
 };
@@ -37,6 +38,9 @@ impl TryFrom<RenderSpec> for TileSpec {
         let alg_selection =
             fractal::Selection::from_str(&input.algorithm).context("fractal selection")?;
         let alg = Arc::new(fractal::factory(alg_selection));
+        let col_selection =
+            colouring::Selection::from_str(&input.colourer).context("colourer selection")?;
+        let col = Arc::new(colouring::factory(col_selection));
 
         Ok(TileSpec::new(
             input.origin.into(),
@@ -44,6 +48,7 @@ impl TryFrom<RenderSpec> for TileSpec {
             Rect::new(input.width, input.height),
             &alg,
             input.maxiter,
+            &col,
         ))
     }
 }

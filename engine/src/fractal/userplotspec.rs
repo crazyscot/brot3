@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use super::{Point, Scalar};
-use crate::{fractal, util::Rect};
+use crate::{colouring, fractal, util::Rect};
 
 /// The user is allowed to specify the plot location in multiple ways.
 #[derive(Debug, Clone, Copy)]
@@ -38,6 +38,8 @@ pub struct PlotSpec {
     pub algorithm: fractal::Instance,
     /// The iteration limit
     pub max_iter: u32,
+    /// The selected colourer
+    pub colourer: colouring::Instance,
 }
 
 impl PlotSpec {

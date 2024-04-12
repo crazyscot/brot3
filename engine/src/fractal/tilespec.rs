@@ -5,7 +5,7 @@ use anyhow::ensure;
 
 use super::userplotspec::{Location, Size};
 use super::{PlotSpec, Point, Scalar};
-use crate::{fractal, util::Rect};
+use crate::{colouring, fractal, util::Rect};
 
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
@@ -26,6 +26,8 @@ pub struct TileSpec {
     algorithm: Arc<fractal::Instance>,
     /// Iteration limit
     max_iter: u32,
+    // The selected colourer
+    colourer: Arc<colouring::Instance>,
 }
 
 /// Method of splitting a tile
@@ -47,6 +49,7 @@ impl TileSpec {
         size_in_pixels: Rect<u32>,
         algorithm: &Arc<fractal::Instance>,
         max_iter: u32,
+        colourer: &Arc<colouring::Instance>,
     ) -> TileSpec {
         TileSpec {
             origin,
@@ -55,6 +58,7 @@ impl TileSpec {
             offset_within_plot: None,
             algorithm: Arc::clone(algorithm),
             max_iter,
+            colourer: Arc::clone(colourer),
         }
     }
     /// Alternate constructor taking an offset
@@ -67,6 +71,7 @@ impl TileSpec {
         offset_within_plot: Option<Rect<u32>>,
         algorithm: &Arc<fractal::Instance>,
         max_iter: u32,
+        colourer: &Arc<colouring::Instance>,
     ) -> TileSpec {
         TileSpec {
             origin,
@@ -75,6 +80,7 @@ impl TileSpec {
             offset_within_plot,
             algorithm: Arc::clone(algorithm),
             max_iter,
+            colourer: Arc::clone(colourer),
         }
     }
 
@@ -117,6 +123,7 @@ impl TileSpec {
                         Some(offset),
                         &self.algorithm,
                         self.max_iter,
+                        &self.colourer,
                     ));
                     if debug > 0 {
                         println!("tile {i} origin {working_origin} offset {offset}");
@@ -139,6 +146,7 @@ impl TileSpec {
                         Some(offset),
                         &self.algorithm,
                         self.max_iter,
+                        &self.colourer,
                     ));
                 }
                 // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
@@ -277,6 +285,7 @@ impl From<&PlotSpec> for TileSpec {
             offset_within_plot: None,
             algorithm: Arc::new(upd.algorithm),
             max_iter: upd.max_iter,
+            colourer: Arc::new(upd.colourer),
         }
     }
 }
@@ -292,6 +301,7 @@ mod tests {
     use std::sync::Arc;
 
     use crate::{
+        colouring,
         fractal::{
             self,
             tilespec::SplitMethod,
@@ -310,6 +320,9 @@ mod tests {
     const MANDELBROT: fractal::Instance =
         fractal::Instance::Original(fractal::mandelbrot::Original {});
 
+    const BLACK_FADE: colouring::Instance =
+        colouring::Instance::BlackFade(colouring::direct_rgb::BlackFade {});
+
     const TD_ORIGIN_AXES: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
         axes: Size::AxesLength(ONE),
@@ -319,6 +332,7 @@ mod tests {
         },
         algorithm: MANDELBROT,
         max_iter: 256,
+        colourer: BLACK_FADE,
     };
     const TD_ORIGIN_PIXELS: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
@@ -330,6 +344,7 @@ mod tests {
         // this has the property that {width,height} * CENTI = { 1,1 }
         algorithm: MANDELBROT,
         max_iter: 256,
+        colourer: BLACK_FADE,
     };
     const TD_ORIGIN_ZOOM: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
@@ -343,6 +358,7 @@ mod tests {
         // 200x100 pixels => (0.004,0.002) axes.
         algorithm: MANDELBROT,
         max_iter: 256,
+        colourer: BLACK_FADE,
     };
     const TD_CENTRE: PlotSpec = PlotSpec {
         location: Location::Centre(ONETWO),
@@ -354,6 +370,7 @@ mod tests {
         },
         algorithm: MANDELBROT,
         max_iter: 256,
+        colourer: BLACK_FADE,
     };
 
     const TD_ORIGIN_ZOOM_AXES: Point = Point {
@@ -413,6 +430,7 @@ mod tests {
         },
         algorithm: MANDELBROT,
         max_iter: 256,
+        colourer: BLACK_FADE,
     };
 
     #[test]
@@ -524,6 +542,7 @@ mod tests {
             Rect::new(100, 100),
             &Arc::new(MANDELBROT),
             256,
+            &Arc::new(BLACK_FADE),
         );
         assert!(ts.auto_adjust_aspect_ratio().is_ok_and(|v| v.is_none()));
     }
@@ -536,6 +555,7 @@ mod tests {
             Rect::new(200, 100),
             &Arc::new(MANDELBROT),
             256,
+            &Arc::new(BLACK_FADE),
         );
         check_aspect(ts);
     }
@@ -547,6 +567,7 @@ mod tests {
             Rect::new(100, 200),
             &Arc::new(MANDELBROT),
             256,
+            &Arc::new(BLACK_FADE),
         );
         check_aspect(ts);
     }
@@ -573,6 +594,7 @@ mod tests {
                 fractal::framework::Selection::Original,
             )),
             256,
+            &Arc::new(BLACK_FADE),
         );
         let result = uut.to_string();
         assert_eq!(result, "original@0+0.5i,axes=1+2i");

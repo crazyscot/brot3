@@ -159,6 +159,7 @@ impl fmt::Display for Tile {
 #[cfg(test)]
 mod tests {
     use crate::{
+        colouring::{self, testing::White},
         fractal::{
             self, framework::Zero, tilespec::SplitMethod, Location, PlotSpec, Point, Size, TileSpec,
         },
@@ -170,6 +171,7 @@ mod tests {
     const ZERO_ALG: fractal::Instance = fractal::Instance::Zero(Zero {});
     const ZERO: Point = Point { re: 0.0, im: 0.0 };
     const ONE: Point = Point { re: 1.0, im: 1.0 };
+    const WHITE: colouring::Instance = colouring::Instance::White(White {});
 
     const TD_TILE: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
@@ -180,6 +182,7 @@ mod tests {
         },
         algorithm: ZERO_ALG,
         max_iter: 256,
+        colourer: WHITE,
     };
     #[test]
     fn rejoin() {
