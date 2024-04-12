@@ -79,7 +79,7 @@ async fn save_image_workflow_inner(
         .save_file(move |file_path| {
             // the file path is `None` if the user closed the dialog
             if let Some(mut path) = file_path {
-                do_save(&spec, &tile_spec, colourer, &path, app_handle.clone());
+                do_save(&tile_spec, colourer, &path, app_handle.clone());
                 path.pop();
                 let new_state = SaveStateInner {
                     dir: path.as_os_str().to_os_string(),
@@ -91,13 +91,12 @@ async fn save_image_workflow_inner(
 }
 
 fn do_save(
-    render: &RenderSpec,
     tile: &TileSpec,
     colourer: colouring::Instance,
     path: &Path,
     app_handle: tauri::AppHandle,
 ) {
-    let _ = do_save_inner(render, tile, colourer, path).map_err(|e| {
+    let _ = do_save_inner(tile, colourer, path).map_err(|e| {
         println!("Error saving: {e}");
         let _ = app_handle.emit_all(
             "genericError",
@@ -109,7 +108,6 @@ fn do_save(
 }
 
 fn do_save_inner(
-    render: &RenderSpec,
     tile: &TileSpec,
     colourer: colouring::Instance,
     path: &Path,
@@ -121,7 +119,7 @@ fn do_save_inner(
     let splits = tile.split(SplitMethod::RowsOfHeight(5), 0)?;
     let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, 0)).collect();
     let time1 = SystemTime::now();
-    tiles.par_iter_mut().for_each(|t| t.plot(render.maxiter));
+    tiles.par_iter_mut().for_each(|t| t.plot());
     // SOMEDAY: Consider progress reporting
     let time2 = SystemTime::now();
     let plot = Tile::join(tile, &tiles)?;

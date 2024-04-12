@@ -23,6 +23,8 @@ pub struct TileSpec {
 
     /// The selected algorithm
     algorithm: Instance,
+    /// Iteration limit
+    max_iter: u32,
 }
 
 /// Method of splitting a tile
@@ -43,6 +45,7 @@ impl TileSpec {
         axes: Point,
         size_in_pixels: Rect<u32>,
         algorithm: Instance,
+        max_iter: u32,
     ) -> TileSpec {
         TileSpec {
             origin,
@@ -50,6 +53,7 @@ impl TileSpec {
             size_in_pixels,
             offset_within_plot: None,
             algorithm,
+            max_iter,
         }
     }
     /// Alternate constructor taking an offset
@@ -61,6 +65,7 @@ impl TileSpec {
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
         offset_within_plot: Option<Rect<u32>>,
         algorithm: Instance,
+        max_iter: u32,
     ) -> TileSpec {
         TileSpec {
             origin,
@@ -68,6 +73,7 @@ impl TileSpec {
             size_in_pixels,
             offset_within_plot,
             algorithm,
+            max_iter,
         }
     }
 
@@ -109,6 +115,7 @@ impl TileSpec {
                         strip_pixel_size,
                         Some(offset),
                         self.algorithm,
+                        self.max_iter,
                     ));
                     if debug > 0 {
                         println!("tile {i} origin {working_origin} offset {offset}");
@@ -130,6 +137,7 @@ impl TileSpec {
                         Rect::new(self.width(), last_height),
                         Some(offset),
                         self.algorithm,
+                        self.max_iter,
                     ));
                 }
                 // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
@@ -234,6 +242,11 @@ impl TileSpec {
     pub fn offset_within_plot(&self) -> Option<Rect<u32>> {
         self.offset_within_plot
     }
+    /// Accessor
+    #[must_use]
+    pub fn max_iter_requested(&self) -> u32 {
+        self.max_iter
+    }
 }
 
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
@@ -262,6 +275,7 @@ impl From<&PlotSpec> for TileSpec {
             size_in_pixels: upd.size_in_pixels,
             offset_within_plot: None,
             algorithm: upd.algorithm,
+            max_iter: upd.max_iter,
         }
     }
 }
@@ -300,6 +314,7 @@ mod tests {
             height: 100,
         },
         algorithm: MANDELBROT,
+        max_iter: 256,
     };
     const TD_ORIGIN_PIXELS: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
@@ -310,6 +325,7 @@ mod tests {
         },
         // this has the property that {width,height} * CENTI = { 1,1 }
         algorithm: MANDELBROT,
+        max_iter: 256,
     };
     const TD_ORIGIN_ZOOM: PlotSpec = PlotSpec {
         location: Location::Origin(ZERO),
@@ -322,6 +338,7 @@ mod tests {
         // 4.0 default axis * zoom factor 1000 = 0.004 across
         // 200x100 pixels => (0.004,0.002) axes.
         algorithm: MANDELBROT,
+        max_iter: 256,
     };
     const TD_CENTRE: PlotSpec = PlotSpec {
         location: Location::Centre(ONETWO),
@@ -332,6 +349,7 @@ mod tests {
             height: 100,
         },
         algorithm: MANDELBROT,
+        max_iter: 256,
     };
 
     const TD_ORIGIN_ZOOM_AXES: Point = Point {
@@ -390,6 +408,7 @@ mod tests {
             height: 200,
         },
         algorithm: MANDELBROT,
+        max_iter: 256,
     };
 
     #[test]
@@ -500,6 +519,7 @@ mod tests {
             Point { re: 4.0, im: 4.0 },
             Rect::new(100, 100),
             MANDELBROT,
+            256,
         );
         assert!(ts.auto_adjust_aspect_ratio().is_ok_and(|v| v.is_none()));
     }
@@ -511,6 +531,7 @@ mod tests {
             Point { re: 4.0, im: 4.0 },
             Rect::new(200, 100),
             MANDELBROT,
+            256,
         );
         check_aspect(ts);
     }
@@ -521,6 +542,7 @@ mod tests {
             Point { re: 4.0, im: 4.0 },
             Rect::new(100, 200),
             MANDELBROT,
+            256,
         );
         check_aspect(ts);
     }
@@ -544,6 +566,7 @@ mod tests {
             Point::new(1.0, 2.0),
             Rect::new(200, 400),
             fractal::framework::factory(fractal::framework::Selection::Original),
+            256,
         );
         let result = uut.to_string();
         assert_eq!(result, "original@0+0.5i,axes=1+2i");

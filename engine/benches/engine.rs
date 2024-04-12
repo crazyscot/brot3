@@ -51,6 +51,7 @@ fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
         Point { re: 4.0, im: 4.0 },
         Rect::new(dimension, dimension),
         fractal::factory(alg),
+        512,
     )
 }
 
@@ -61,7 +62,7 @@ fn plot_tile(c: &mut Criterion) {
         let _ = group.bench_function(format!("plot_{alg:?}"), |b| {
             b.iter_batched_ref(
                 || Tile::new(&spec, 0),
-                |t| t.plot(black_box(512)),
+                |t| black_box(t).plot(),
                 BatchSize::SmallInput,
             );
         });
@@ -94,7 +95,7 @@ fn colour_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
     let spec = get_test_tile_spec(fractal::Selection::Original, 100);
     let mut tile = Tile::new(&spec, 0);
-    tile.plot(black_box(512));
+    tile.plot();
 
     let mut bench = |colourer: Instance| {
         let _ = group.bench_function(format!("colour_{colourer}"), |b| {
@@ -118,7 +119,7 @@ fn tile_join(c: &mut Criterion) {
     let single = get_test_tile_spec(fractal::Selection::Original, 1000);
     let specs = single.split(SplitMethod::RowsOfHeight(50), 0).unwrap();
     let mut tiles: Vec<_> = specs.iter().map(|ts| Tile::new(ts, 0)).collect();
-    tiles.par_iter_mut().for_each(|t| t.plot(512));
+    tiles.par_iter_mut().for_each(|t| black_box(t).plot());
 
     let _ = group.bench_function("join", |b| {
         b.iter(|| Tile::join(&single, black_box(&tiles)).unwrap());

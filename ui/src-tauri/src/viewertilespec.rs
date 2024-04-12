@@ -71,6 +71,7 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
             tile_axes,
             output_size,
             algorithm,
+            spec.max_iter,
         ))
     }
 }

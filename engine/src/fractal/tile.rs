@@ -107,7 +107,8 @@ impl Tile {
     }
 
     /// Runs the fractal iteration for all points in this tile
-    pub fn plot(&mut self, max_iter: u32) {
+    pub fn plot(&mut self) {
+        let max_iter = self.spec.max_iter_requested();
         for p in &mut self.point_data {
             if p.result.is_none() {
                 self.algorithm.pixel(p, max_iter);
@@ -179,6 +180,7 @@ mod tests {
             height: 101, // not dividable by 10
         },
         algorithm: ZERO_ALG,
+        max_iter: 256,
     };
     #[test]
     fn rejoin() {
@@ -186,7 +188,7 @@ mod tests {
         let split = spec.split(SplitMethod::RowsOfHeight(10), 0);
         let mut tiles: Vec<Tile> = split.unwrap().iter().map(|ts| Tile::new(ts, 0)).collect();
         for t in &mut tiles {
-            t.plot(1);
+            t.plot();
         }
         let result = Tile::join(&spec, &tiles).unwrap();
         let data = result.result();

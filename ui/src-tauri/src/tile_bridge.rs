@@ -59,7 +59,7 @@ fn draw_tile(spec: &ViewerTileSpec, app_handle: &tauri::AppHandle) -> anyhow::Re
     let colourer = colouring::decode(colourer_requested).map_err(|e| e.to_string())?;
     let engine_spec = TileSpec::try_from(spec).map_err(|e| e.to_string())?;
     let mut tile = Tile::new(&engine_spec, 0);
-    tile.plot(spec.max_iter);
+    tile.plot();
     app_handle
         .emit_all(
             "tile_complete",

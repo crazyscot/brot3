@@ -198,6 +198,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         axes: args_axes(args, algorithm)?,
         size_in_pixels: Rect::new(args.width, args.height),
         algorithm,
+        max_iter: args.max_iter,
     };
     if debug > 0 {
         println!("Entered plot data: {user_plot_data:#?}");
@@ -232,7 +233,9 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     };
     let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
     let time1 = SystemTime::now();
-    tiles.par_iter_mut().for_each(|t| t.plot(args.max_iter));
+    tiles
+        .par_iter_mut()
+        .for_each(brot3_engine::fractal::Tile::plot);
     let time2 = SystemTime::now();
     let tile: Tile = if args.no_split {
         tiles.remove(0)

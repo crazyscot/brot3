@@ -36,6 +36,8 @@ pub struct PlotSpec {
     pub size_in_pixels: Rect<u32>,
     /// The selected algorithm
     pub algorithm: Instance,
+    /// The iteration limit
+    pub max_iter: u32,
 }
 
 impl PlotSpec {

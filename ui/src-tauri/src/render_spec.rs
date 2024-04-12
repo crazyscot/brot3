@@ -43,6 +43,7 @@ impl TryFrom<RenderSpec> for TileSpec {
             input.axes.into(),
             Rect::new(input.width, input.height),
             alg,
+            input.maxiter,
         ))
     }
 }
