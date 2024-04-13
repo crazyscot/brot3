@@ -42,9 +42,11 @@ impl TryFrom<RenderSpec> for TileSpec {
             colouring::Selection::from_str(&input.colourer).context("colourer selection")?;
         let col = Arc::new(colouring::factory(col_selection));
 
-        Ok(TileSpec::new(
-            input.origin.into(),
-            input.axes.into(),
+        let origin = fractal::Location::Origin(input.origin.into());
+        let axes = fractal::Size::AxesLength(input.axes.into());
+        Ok(TileSpec::new2(
+            origin,
+            axes,
             Rect::new(input.width, input.height),
             &alg,
             input.maxiter,

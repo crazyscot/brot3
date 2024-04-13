@@ -69,9 +69,11 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
         };
 
         let output_size = Rect::new(spec.width, spec.height);
-        Ok(TileSpec::new(
-            tile_bottom_left,
-            tile_axes,
+        let origin = fractal::Location::Origin(tile_bottom_left);
+        let axes = fractal::Size::AxesLength(tile_axes);
+        Ok(TileSpec::new2(
+            origin,
+            axes,
             output_size,
             &algorithm,
             spec.max_iter,
