@@ -3,8 +3,7 @@
 
 use anyhow::ensure;
 
-use super::userplotspec::{Location, Size};
-use super::{Point, Scalar};
+use super::{Location, Point, Scalar, Size};
 use crate::{colouring, fractal, util::Rect};
 
 use std::fmt::{self, Display, Formatter};
@@ -314,12 +313,7 @@ mod tests {
 
     use crate::{
         colouring,
-        fractal::{
-            self,
-            tilespec::SplitMethod,
-            userplotspec::{Location, Size},
-            Point, Scalar, TileSpec,
-        },
+        fractal::{self, tilespec::SplitMethod, Location, Point, Scalar, Size, TileSpec},
         util::Rect,
     };
     use approx::assert_relative_eq;
