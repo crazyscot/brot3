@@ -19,7 +19,7 @@ pub use maths::{Point, Scalar};
 pub use pointdata::PointData;
 pub use tile::Tile;
 pub use tilespec::{SplitMethod, TileSpec};
-pub use userplotspec::{Location, PlotSpec, Size};
+pub use userplotspec::{Location, Size};
 
 /// The square of the standard escape-time threshold
 pub const ESCAPE_THRESHOLD_SQ: Scalar = 4.0;

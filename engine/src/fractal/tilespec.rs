@@ -40,8 +40,7 @@ pub enum SplitMethod {
     // TODO Square
 }
 
-/// Canonicalised data about a plot.
-/// For convenient construction, use ``From<&PlotSpec>``.
+/// Canonicalised specification of a plot
 impl TileSpec {
     /// Constructor
     #[must_use]
