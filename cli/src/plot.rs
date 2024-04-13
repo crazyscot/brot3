@@ -1,12 +1,11 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
+use std::sync::Arc;
 use std::time::SystemTime;
 
 use brot3_engine::colouring;
-use brot3_engine::fractal::{
-    self, Algorithm, PlotSpec, Point, Scalar, Size, SplitMethod, Tile, TileSpec,
-};
+use brot3_engine::fractal::{self, Algorithm, Point, Scalar, Size, SplitMethod, Tile, TileSpec};
 use brot3_engine::render::{self, autodetect_extension, Renderer};
 use brot3_engine::util::Rect;
 
@@ -194,26 +193,21 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let algorithm = fractal::factory(args.fractal);
     let colourer = colouring::factory(args.colourer);
 
-    let user_plot_data = PlotSpec {
-        location: args_location(args, algorithm),
-        axes: args_axes(args, algorithm)?,
-        size_in_pixels: Rect::new(args.width, args.height),
-        algorithm,
-        max_iter: args.max_iter,
-        colourer,
-    };
-    if debug > 0 {
-        println!("Entered plot data: {user_plot_data:#?}");
-    }
-
-    let mut spec = TileSpec::from(&user_plot_data);
+    let mut spec = TileSpec::new2(
+        args_location(args, algorithm),
+        args_axes(args, algorithm)?,
+        Rect::new(args.width, args.height),
+        &Arc::new(algorithm),
+        args.max_iter,
+        &Arc::new(colourer),
+    );
     if !args.no_auto_aspect {
         if let Ok(Some(new_axes)) = spec.auto_adjust_aspect_ratio() {
             println!("Auto adjusted aspect ratio. Axes are now {new_axes} (you can suppress this behaviour with `--no-auto-aspect')");
         }
     }
     if debug > 0 {
-        println!("Computed plot data: {spec:#?}");
+        println!("Computed plot spec: {spec:#?}");
     }
 
     // If they didn't specify an output file type, attempt to autodetect

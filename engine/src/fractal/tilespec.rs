@@ -61,6 +61,45 @@ impl TileSpec {
             colourer: Arc::clone(colourer),
         }
     }
+    /// Alternate constructor (takes Location and Size)
+    #[must_use]
+    pub fn new2(
+        location: Location,
+        size: Size,
+        size_in_pixels: Rect<u32>,
+        algorithm: &Arc<fractal::Instance>,
+        max_iter: u32,
+        colourer: &Arc<colouring::Instance>,
+    ) -> TileSpec {
+        // Must compute axes first as origin may depend on them
+        let axes: Point = match size {
+            Size::AxesLength(l) => l,
+            Size::PixelSize(p) => Point {
+                re: p.re * Scalar::from(size_in_pixels.width),
+                im: p.im * Scalar::from(size_in_pixels.height),
+            },
+            Size::ZoomFactor(zoom) => {
+                let aspect = f64::from(size_in_pixels.width) / f64::from(size_in_pixels.height);
+                Point {
+                    re: DEFAULT_AXIS_LENGTH / zoom,
+                    im: (DEFAULT_AXIS_LENGTH / zoom) / aspect,
+                }
+            }
+        };
+        let origin: Point = match location {
+            Location::Origin(o) => o,
+            Location::Centre(c) => c - 0.5 * axes,
+        };
+        TileSpec {
+            origin,
+            axes,
+            size_in_pixels,
+            offset_within_plot: None,
+            algorithm: Arc::clone(algorithm),
+            max_iter,
+            colourer: Arc::clone(colourer),
+        }
+    }
     /// Alternate constructor taking an offset
     #[must_use]
     pub fn new_with_offset(
