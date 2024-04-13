@@ -1,7 +1,6 @@
 // Plot subcommand
 // (c) 2024 Ross Younger
 
-use std::sync::Arc;
 use std::time::SystemTime;
 
 use brot3_engine::colouring;
@@ -197,9 +196,9 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         args_location(args, algorithm),
         args_axes(args, algorithm)?,
         Rect::new(args.width, args.height),
-        &Arc::new(algorithm),
+        algorithm,
         args.max_iter,
-        &Arc::new(colourer),
+        colourer,
     );
     if !args.no_auto_aspect {
         if let Ok(Some(new_axes)) = spec.auto_adjust_aspect_ratio() {
@@ -222,7 +221,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
 
     let time0 = SystemTime::now();
     let splits: Vec<TileSpec> = if args.no_split {
-        vec![spec.clone()]
+        vec![spec]
     } else {
         spec.split(SplitMethod::RowsOfHeight(50), debug)?
     };

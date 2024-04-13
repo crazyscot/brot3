@@ -6,7 +6,7 @@ use crate::util::Rect;
 use anyhow::{anyhow, ensure, Context};
 use ndarray::Array2;
 use num_complex::ComplexFloat;
-use std::{cmp::max, fmt, sync::Arc};
+use std::{cmp::max, fmt};
 
 /// A section of a fractal plot
 #[derive(Debug)]
@@ -21,7 +21,7 @@ pub struct Tile {
     /// Specification of this plot
     pub spec: TileSpec,
     /// The algorithm to use
-    algorithm: Arc<super::Instance>,
+    algorithm: super::Instance,
     /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, relative to the TOP LEFT of the plot.
     offset_within_plot: Option<Rect<u32>>,
 }
@@ -42,8 +42,8 @@ impl Tile {
             // Data for this tile.
             point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
             max_iter_plotted: 0,
-            spec: spec.clone(),
-            algorithm: Arc::clone(&spec.algorithm()),
+            spec: *spec,
+            algorithm: spec.algorithm(),
             offset_within_plot: spec.offset_within_plot(),
         }
     }
@@ -149,8 +149,6 @@ impl fmt::Display for Tile {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
     use crate::{
         colouring::{self, testing::White},
         fractal::{self, framework::Zero, tilespec::SplitMethod, Location, Point, Size, TileSpec},
@@ -173,9 +171,9 @@ mod tests {
                 width: 100,
                 height: 101, // not dividable by 10
             },
-            &Arc::new(ZERO_ALG),
+            ZERO_ALG,
             256,
-            &Arc::new(WHITE),
+            WHITE,
         );
         let split = spec.split(SplitMethod::RowsOfHeight(10), 0);
         let mut tiles: Vec<Tile> = split.unwrap().iter().map(|ts| Tile::new(ts, 0)).collect();

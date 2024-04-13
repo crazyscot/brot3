@@ -7,12 +7,11 @@ use super::{Location, Point, Scalar, Size};
 use crate::{colouring, fractal, util::Rect};
 
 use std::fmt::{self, Display, Formatter};
-use std::sync::Arc;
 
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
 /// Machine-facing specification of a tile to plot
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct TileSpec {
     /// Origin of this tile (bottom-left corner, smallest real/imaginary coefficients)
     origin: Point,
@@ -24,11 +23,11 @@ pub struct TileSpec {
     offset_within_plot: Option<Rect<u32>>,
 
     /// The selected algorithm
-    algorithm: Arc<fractal::Instance>,
+    algorithm: fractal::Instance,
     /// Iteration limit
     max_iter: u32,
     // The selected colourer
-    colourer: Arc<colouring::Instance>,
+    colourer: colouring::Instance,
 }
 
 /// Method of splitting a tile
@@ -47,9 +46,9 @@ impl TileSpec {
         location: Location,
         size: Size,
         size_in_pixels: Rect<u32>,
-        algorithm: &Arc<fractal::Instance>,
+        algorithm: fractal::Instance,
         max_iter: u32,
-        colourer: &Arc<colouring::Instance>,
+        colourer: colouring::Instance,
     ) -> TileSpec {
         // Must compute axes first as origin may depend on them
         let axes: Point = match size {
@@ -75,9 +74,9 @@ impl TileSpec {
             axes,
             size_in_pixels,
             offset_within_plot: None,
-            algorithm: Arc::clone(algorithm),
+            algorithm,
             max_iter,
-            colourer: Arc::clone(colourer),
+            colourer,
         }
     }
     /// Alternate constructor taking an offset
@@ -88,18 +87,18 @@ impl TileSpec {
         size_in_pixels: Rect<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
         offset_within_plot: Option<Rect<u32>>,
-        algorithm: &Arc<fractal::Instance>,
+        algorithm: fractal::Instance,
         max_iter: u32,
-        colourer: &Arc<colouring::Instance>,
+        colourer: colouring::Instance,
     ) -> TileSpec {
         TileSpec {
             origin,
             axes,
             size_in_pixels,
             offset_within_plot,
-            algorithm: Arc::clone(algorithm),
+            algorithm,
             max_iter,
-            colourer: Arc::clone(colourer),
+            colourer,
         }
     }
 
@@ -140,9 +139,9 @@ impl TileSpec {
                         axes,
                         strip_pixel_size,
                         Some(offset),
-                        &self.algorithm,
+                        self.algorithm,
                         self.max_iter,
-                        &self.colourer,
+                        self.colourer,
                     ));
                     if debug > 0 {
                         println!("tile {i} origin {working_origin} offset {offset}");
@@ -163,9 +162,9 @@ impl TileSpec {
                         last_axes,
                         Rect::new(self.width(), last_height),
                         Some(offset),
-                        &self.algorithm,
+                        self.algorithm,
                         self.max_iter,
-                        &self.colourer,
+                        self.colourer,
                     ));
                 }
                 // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
@@ -260,10 +259,10 @@ impl TileSpec {
     pub fn width(&self) -> u32 {
         self.size_in_pixels.width
     }
-    /// Accessor (clones reference)
+    /// Accessor
     #[must_use]
-    pub fn algorithm(&self) -> Arc<fractal::Instance> {
-        Arc::clone(&self.algorithm)
+    pub fn algorithm(&self) -> fractal::Instance {
+        self.algorithm
     }
     /// Accessor
     #[must_use]
@@ -289,8 +288,6 @@ impl Display for TileSpec {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
     use crate::{
         colouring,
         fractal::{self, tilespec::SplitMethod, Location, Point, Scalar, Size, TileSpec},
@@ -318,9 +315,9 @@ mod tests {
                 width: 100,
                 height: 100,
             },
-            &Arc::new(MANDELBROT),
+            MANDELBROT,
             256,
-            &Arc::new(BLACK_FADE),
+            BLACK_FADE,
         )
     }
     const TD_CENTRE_ORIGIN: Point = Point { re: 0.5, im: 1.5 };
@@ -333,9 +330,9 @@ mod tests {
                 width: 100,
                 height: 200,
             },
-            &Arc::new(MANDELBROT),
+            MANDELBROT,
             256,
-            &Arc::new(BLACK_FADE),
+            BLACK_FADE,
         )
     }
 
@@ -348,9 +345,9 @@ mod tests {
                 width: 100,
                 height: 100,
             },
-            &Arc::new(MANDELBROT),
+            MANDELBROT,
             256,
-            &Arc::new(BLACK_FADE),
+            BLACK_FADE,
         );
         assert_eq!(td.axes, ONE);
         assert_eq!(td.origin, ZERO);
@@ -366,9 +363,9 @@ mod tests {
                 height: 100,
             },
             // this has the property that {width,height} * CENTI = { 1,1 }
-            &Arc::new(MANDELBROT),
+            MANDELBROT,
             256,
-            &Arc::new(BLACK_FADE),
+            BLACK_FADE,
         );
         assert_eq!(td.axes, ONE);
     }
@@ -389,31 +386,28 @@ mod tests {
             // note funky aspect ratio.
             // 4.0 default axis * zoom factor 1000 = 0.004 across
             // 200x100 pixels => (0.004,0.002) axes.
-            &Arc::new(MANDELBROT),
+            MANDELBROT,
             256,
-            &Arc::new(BLACK_FADE),
+            BLACK_FADE,
         );
         assert_eq!(td.axes, EXPECTED);
     }
 
     #[test]
     fn centre_computed() {
-        let ts = td_centre();
-        assert_eq!(ts.origin, TD_CENTRE_ORIGIN);
+        assert_eq!(td_centre().origin, TD_CENTRE_ORIGIN);
     }
     #[test]
     fn top_left_computed() {
-        let ts = td_centre();
         // centre(1,2) & axes (1,1) => top-left (0.5,2.5)
         let expected = Point { re: 0.5, im: 2.5 };
-        assert_eq!(ts.top_left(), expected);
+        assert_eq!(td_centre().top_left(), expected);
     }
     #[test]
     fn bottom_right_computed() {
-        let ts = td_centre();
         // centre(1,2) & axes (1,1) => top-left (1.5,1.5)
         let expected = Point { re: 1.5, im: 1.5 };
-        assert_eq!(ts.bottom_right(), expected);
+        assert_eq!(td_centre().bottom_right(), expected);
     }
 
     #[test]
@@ -523,9 +517,9 @@ mod tests {
             Location::Origin(Point { re: -2.0, im: -2.0 }),
             Size::AxesLength(Point { re: 4.0, im: 4.0 }),
             Rect::new(100, 100),
-            &Arc::new(MANDELBROT),
+            MANDELBROT,
             256,
-            &Arc::new(BLACK_FADE),
+            BLACK_FADE,
         );
         assert!(ts.auto_adjust_aspect_ratio().is_ok_and(|v| v.is_none()));
     }
@@ -536,9 +530,9 @@ mod tests {
             Location::Origin(Point { re: -2.0, im: -2.0 }),
             Size::AxesLength(Point { re: 4.0, im: 4.0 }),
             Rect::new(200, 100),
-            &Arc::new(MANDELBROT),
+            MANDELBROT,
             256,
-            &Arc::new(BLACK_FADE),
+            BLACK_FADE,
         );
         check_aspect(ts);
     }
@@ -548,9 +542,9 @@ mod tests {
             Location::Origin(Point { re: -2.0, im: -2.0 }),
             Size::AxesLength(Point { re: 4.0, im: 4.0 }),
             Rect::new(100, 200),
-            &Arc::new(MANDELBROT),
+            MANDELBROT,
             256,
-            &Arc::new(BLACK_FADE),
+            BLACK_FADE,
         );
         check_aspect(ts);
     }
@@ -573,11 +567,9 @@ mod tests {
             Location::Origin(Point { re: 0.0, im: 0.5 }),
             Size::AxesLength(Point { re: 1.0, im: 2.0 }),
             Rect::new(200, 400),
-            &Arc::new(fractal::framework::factory(
-                fractal::framework::Selection::Original,
-            )),
+            fractal::framework::factory(fractal::framework::Selection::Original),
             256,
-            &Arc::new(BLACK_FADE),
+            BLACK_FADE,
         );
         let result = uut.to_string();
         assert_eq!(
