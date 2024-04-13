@@ -166,7 +166,7 @@ mod tests {
 
     #[test]
     fn rejoin() {
-        let spec = TileSpec::new2(
+        let spec = TileSpec::new(
             Location::Origin(ZERO),
             Size::AxesLength(ONE),
             Rect::<u32> {

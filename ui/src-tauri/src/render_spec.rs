@@ -44,7 +44,7 @@ impl TryFrom<RenderSpec> for TileSpec {
 
         let origin = fractal::Location::Origin(input.origin.into());
         let axes = fractal::Size::AxesLength(input.axes.into());
-        Ok(TileSpec::new2(
+        Ok(TileSpec::new(
             origin,
             axes,
             Rect::new(input.width, input.height),

@@ -49,7 +49,7 @@ fn iteration(c: &mut Criterion) {
 }
 
 fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
-    TileSpec::new2(
+    TileSpec::new(
         Location::Origin(Point { re: -1.0, im: 0.0 }),
         Size::AxesLength(Point { re: 4.0, im: 4.0 }),
         Rect::new(dimension, dimension),

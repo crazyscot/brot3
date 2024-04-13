@@ -43,7 +43,7 @@ pub enum SplitMethod {
 impl TileSpec {
     /// Constructor
     #[must_use]
-    pub fn new2(
+    pub fn new(
         location: Location,
         size: Size,
         size_in_pixels: Rect<u32>,
@@ -310,7 +310,7 @@ mod tests {
         colouring::Instance::BlackFade(colouring::direct_rgb::BlackFade {});
 
     fn td_centre() -> TileSpec {
-        TileSpec::new2(
+        TileSpec::new(
             Location::Centre(ONETWO),
             Size::AxesLength(ONE),
             // centre(1,2) => origin (0.5,1.5)
@@ -326,7 +326,7 @@ mod tests {
     const TD_CENTRE_ORIGIN: Point = Point { re: 0.5, im: 1.5 };
 
     fn td_200h() -> TileSpec {
-        TileSpec::new2(
+        TileSpec::new(
             Location::Centre(ZERO),
             Size::AxesLength(ONE),
             Rect::<u32> {
@@ -341,7 +341,7 @@ mod tests {
 
     #[test]
     fn origin_axes_pass_through() {
-        let td = TileSpec::new2(
+        let td = TileSpec::new(
             Location::Origin(ZERO),
             Size::AxesLength(ONE),
             Rect::<u32> {
@@ -358,7 +358,7 @@ mod tests {
 
     #[test]
     fn pixel_size_divides() {
-        let td = TileSpec::new2(
+        let td = TileSpec::new(
             Location::Origin(ZERO),
             Size::PixelSize(CENTI),
             Rect::<u32> {
@@ -379,7 +379,7 @@ mod tests {
             im: 0.002,
         };
 
-        let td = TileSpec::new2(
+        let td = TileSpec::new(
             Location::Origin(ZERO),
             Size::ZoomFactor(1000.0),
             Rect::<u32> {
@@ -519,7 +519,7 @@ mod tests {
 
     #[test]
     fn aspect_1() {
-        let mut ts = TileSpec::new2(
+        let mut ts = TileSpec::new(
             Location::Origin(Point { re: -2.0, im: -2.0 }),
             Size::AxesLength(Point { re: 4.0, im: 4.0 }),
             Rect::new(100, 100),
@@ -532,7 +532,7 @@ mod tests {
 
     #[test]
     fn aspect_gt_1() {
-        let ts = TileSpec::new2(
+        let ts = TileSpec::new(
             Location::Origin(Point { re: -2.0, im: -2.0 }),
             Size::AxesLength(Point { re: 4.0, im: 4.0 }),
             Rect::new(200, 100),
@@ -544,7 +544,7 @@ mod tests {
     }
     #[test]
     fn aspect_lt_1() {
-        let ts = TileSpec::new2(
+        let ts = TileSpec::new(
             Location::Origin(Point { re: -2.0, im: -2.0 }),
             Size::AxesLength(Point { re: 4.0, im: 4.0 }),
             Rect::new(100, 200),
@@ -569,7 +569,7 @@ mod tests {
 
     #[test]
     fn stringify() {
-        let uut = TileSpec::new2(
+        let uut = TileSpec::new(
             Location::Origin(Point { re: 0.0, im: 0.5 }),
             Size::AxesLength(Point { re: 1.0, im: 2.0 }),
             Rect::new(200, 400),

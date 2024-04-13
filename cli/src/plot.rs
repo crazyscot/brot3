@@ -193,7 +193,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let algorithm = fractal::factory(args.fractal);
     let colourer = colouring::factory(args.colourer);
 
-    let mut spec = TileSpec::new2(
+    let mut spec = TileSpec::new(
         args_location(args, algorithm),
         args_axes(args, algorithm)?,
         Rect::new(args.width, args.height),
