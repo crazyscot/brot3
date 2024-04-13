@@ -43,26 +43,6 @@ pub enum SplitMethod {
 impl TileSpec {
     /// Constructor
     #[must_use]
-    pub fn new(
-        origin: Point,
-        axes: Point,
-        size_in_pixels: Rect<u32>,
-        algorithm: &Arc<fractal::Instance>,
-        max_iter: u32,
-        colourer: &Arc<colouring::Instance>,
-    ) -> TileSpec {
-        TileSpec {
-            origin,
-            axes,
-            size_in_pixels,
-            offset_within_plot: None,
-            algorithm: Arc::clone(algorithm),
-            max_iter,
-            colourer: Arc::clone(colourer),
-        }
-    }
-    /// Alternate constructor (takes Location and Size)
-    #[must_use]
     pub fn new2(
         location: Location,
         size: Size,
@@ -539,9 +519,9 @@ mod tests {
 
     #[test]
     fn aspect_1() {
-        let mut ts = TileSpec::new(
-            Point { re: -2.0, im: -2.0 },
-            Point { re: 4.0, im: 4.0 },
+        let mut ts = TileSpec::new2(
+            Location::Origin(Point { re: -2.0, im: -2.0 }),
+            Size::AxesLength(Point { re: 4.0, im: 4.0 }),
             Rect::new(100, 100),
             &Arc::new(MANDELBROT),
             256,
@@ -552,9 +532,9 @@ mod tests {
 
     #[test]
     fn aspect_gt_1() {
-        let ts = TileSpec::new(
-            Point { re: -2.0, im: -2.0 },
-            Point { re: 4.0, im: 4.0 },
+        let ts = TileSpec::new2(
+            Location::Origin(Point { re: -2.0, im: -2.0 }),
+            Size::AxesLength(Point { re: 4.0, im: 4.0 }),
             Rect::new(200, 100),
             &Arc::new(MANDELBROT),
             256,
@@ -564,9 +544,9 @@ mod tests {
     }
     #[test]
     fn aspect_lt_1() {
-        let ts = TileSpec::new(
-            Point { re: -2.0, im: -2.0 },
-            Point { re: 4.0, im: 4.0 },
+        let ts = TileSpec::new2(
+            Location::Origin(Point { re: -2.0, im: -2.0 }),
+            Size::AxesLength(Point { re: 4.0, im: 4.0 }),
             Rect::new(100, 200),
             &Arc::new(MANDELBROT),
             256,
@@ -589,9 +569,9 @@ mod tests {
 
     #[test]
     fn stringify() {
-        let uut = TileSpec::new(
-            Point::new(0.0, 0.5),
-            Point::new(1.0, 2.0),
+        let uut = TileSpec::new2(
+            Location::Origin(Point { re: 0.0, im: 0.5 }),
+            Size::AxesLength(Point { re: 1.0, im: 2.0 }),
             Rect::new(200, 400),
             &Arc::new(fractal::framework::factory(
                 fractal::framework::Selection::Original,
