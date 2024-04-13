@@ -4,11 +4,13 @@
 use anyhow::ensure;
 
 use super::userplotspec::{Location, Size};
-use super::{PlotSpec, Point, Scalar};
+use super::{Point, Scalar};
 use crate::{colouring, fractal, util::Rect};
 
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
+
+const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
 /// Machine-facing specification of a tile to plot
 #[derive(Debug, Clone)]
@@ -297,7 +299,6 @@ impl TileSpec {
     }
 }
 
-const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
 impl From<&PlotSpec> for TileSpec {
     fn from(upd: &PlotSpec) -> Self {
@@ -349,7 +350,7 @@ mod tests {
             self,
             tilespec::SplitMethod,
             userplotspec::{Location, Size},
-            PlotSpec, Point, Scalar, TileSpec,
+            Point, Scalar, TileSpec,
         },
         util::Rect,
     };
@@ -366,120 +367,117 @@ mod tests {
     const BLACK_FADE: colouring::Instance =
         colouring::Instance::BlackFade(colouring::direct_rgb::BlackFade {});
 
-    const TD_ORIGIN_AXES: PlotSpec = PlotSpec {
-        location: Location::Origin(ZERO),
-        axes: Size::AxesLength(ONE),
-        size_in_pixels: Rect::<u32> {
-            width: 100,
-            height: 100,
-        },
-        algorithm: MANDELBROT,
-        max_iter: 256,
-        colourer: BLACK_FADE,
-    };
-    const TD_ORIGIN_PIXELS: PlotSpec = PlotSpec {
-        location: Location::Origin(ZERO),
-        axes: Size::PixelSize(CENTI),
-        size_in_pixels: Rect::<u32> {
-            width: 100,
-            height: 100,
-        },
-        // this has the property that {width,height} * CENTI = { 1,1 }
-        algorithm: MANDELBROT,
-        max_iter: 256,
-        colourer: BLACK_FADE,
-    };
-    const TD_ORIGIN_ZOOM: PlotSpec = PlotSpec {
-        location: Location::Origin(ZERO),
-        axes: Size::ZoomFactor(1000.0),
-        size_in_pixels: Rect::<u32> {
-            width: 200,
-            height: 100,
-        },
-        // note funky aspect ratio.
-        // 4.0 default axis * zoom factor 1000 = 0.004 across
-        // 200x100 pixels => (0.004,0.002) axes.
-        algorithm: MANDELBROT,
-        max_iter: 256,
-        colourer: BLACK_FADE,
-    };
-    const TD_CENTRE: PlotSpec = PlotSpec {
-        location: Location::Centre(ONETWO),
-        axes: Size::AxesLength(ONE),
-        // centre(1,2) => origin (0.5,1.5)
-        size_in_pixels: Rect::<u32> {
-            width: 100,
-            height: 100,
-        },
-        algorithm: MANDELBROT,
-        max_iter: 256,
-        colourer: BLACK_FADE,
-    };
-
-    const TD_ORIGIN_ZOOM_AXES: Point = Point {
-        re: 0.004,
-        im: 0.002,
-    };
+    fn td_centre() -> TileSpec {
+        TileSpec::new2(
+            Location::Centre(ONETWO),
+            Size::AxesLength(ONE),
+            // centre(1,2) => origin (0.5,1.5)
+            Rect::<u32> {
+                width: 100,
+                height: 100,
+            },
+            &Arc::new(MANDELBROT),
+            256,
+            &Arc::new(BLACK_FADE),
+        )
+    }
     const TD_CENTRE_ORIGIN: Point = Point { re: 0.5, im: 1.5 };
 
-    #[test]
-    fn axes_pass_through() {
-        let result = TileSpec::from(&TD_ORIGIN_AXES);
-        assert_eq!(result.axes, ONE);
+    fn td_200h() -> TileSpec {
+        TileSpec::new2(
+            Location::Centre(ZERO),
+            Size::AxesLength(ONE),
+            Rect::<u32> {
+                width: 100,
+                height: 200,
+            },
+            &Arc::new(MANDELBROT),
+            256,
+            &Arc::new(BLACK_FADE),
+        )
     }
+
+    #[test]
+    fn origin_axes_pass_through() {
+        let td = TileSpec::new2(
+            Location::Origin(ZERO),
+            Size::AxesLength(ONE),
+            Rect::<u32> {
+                width: 100,
+                height: 100,
+            },
+            &Arc::new(MANDELBROT),
+            256,
+            &Arc::new(BLACK_FADE),
+        );
+        assert_eq!(td.axes, ONE);
+        assert_eq!(td.origin, ZERO);
+    }
+
     #[test]
     fn pixel_size_divides() {
-        let result = TileSpec::from(&TD_ORIGIN_PIXELS);
-        assert_eq!(result.axes, ONE);
+        let td = TileSpec::new2(
+            Location::Origin(ZERO),
+            Size::PixelSize(CENTI),
+            Rect::<u32> {
+                width: 100,
+                height: 100,
+            },
+            // this has the property that {width,height} * CENTI = { 1,1 }
+            &Arc::new(MANDELBROT),
+            256,
+            &Arc::new(BLACK_FADE),
+        );
+        assert_eq!(td.axes, ONE);
     }
     #[test]
     fn aspect_axes() {
-        assert_relative_eq!(TD_ORIGIN_ZOOM.aspect_ratio(), 2.0);
-        let result = TileSpec::from(&TD_ORIGIN_ZOOM);
-        assert_eq!(result.axes, TD_ORIGIN_ZOOM_AXES);
+        const EXPECTED: Point = Point {
+            re: 0.004,
+            im: 0.002,
+        };
+
+        let td = TileSpec::new2(
+            Location::Origin(ZERO),
+            Size::ZoomFactor(1000.0),
+            Rect::<u32> {
+                width: 200,
+                height: 100,
+            },
+            // note funky aspect ratio.
+            // 4.0 default axis * zoom factor 1000 = 0.004 across
+            // 200x100 pixels => (0.004,0.002) axes.
+            &Arc::new(MANDELBROT),
+            256,
+            &Arc::new(BLACK_FADE),
+        );
+        assert_eq!(td.axes, EXPECTED);
     }
 
     #[test]
-    fn origin_pass_through() {
-        let result = TileSpec::from(&TD_ORIGIN_AXES);
-        assert_eq!(result.origin, ZERO);
-    }
-    #[test]
     fn centre_computed() {
-        let result = TileSpec::from(&TD_CENTRE);
-        assert_eq!(result.origin, TD_CENTRE_ORIGIN);
+        let ts = td_centre();
+        assert_eq!(ts.origin, TD_CENTRE_ORIGIN);
     }
     #[test]
     fn top_left_computed() {
-        let ts = TileSpec::from(&TD_CENTRE);
+        let ts = td_centre();
         // centre(1,2) & axes (1,1) => top-left (0.5,2.5)
         let expected = Point { re: 0.5, im: 2.5 };
         assert_eq!(ts.top_left(), expected);
     }
     #[test]
     fn bottom_right_computed() {
-        let ts = TileSpec::from(&TD_CENTRE);
+        let ts = td_centre();
         // centre(1,2) & axes (1,1) => top-left (1.5,1.5)
         let expected = Point { re: 1.5, im: 1.5 };
         assert_eq!(ts.bottom_right(), expected);
     }
 
-    const TD_200H: PlotSpec = PlotSpec {
-        location: Location::Centre(ZERO),
-        axes: Size::AxesLength(ONE),
-        size_in_pixels: Rect::<u32> {
-            width: 100,
-            height: 200,
-        },
-        algorithm: MANDELBROT,
-        max_iter: 256,
-        colourer: BLACK_FADE,
-    };
-
     #[test]
     fn split_strips_no_remainder() {
         const TEST_HEIGHT: u32 = 10;
-        let spec = TileSpec::from(&TD_200H);
+        let spec = td_200h();
         assert_eq!(
             spec.height() % TEST_HEIGHT,
             0,
@@ -499,7 +497,7 @@ mod tests {
     #[test]
     fn split_strips_with_remainder() {
         const TEST_HEIGHT: u32 = 11;
-        let spec = TileSpec::from(&TD_200H);
+        let spec = td_200h();
         let remainder = spec.height() % TEST_HEIGHT;
         assert_ne!(
             remainder, 0,

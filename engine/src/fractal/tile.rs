@@ -149,11 +149,11 @@ impl fmt::Display for Tile {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use crate::{
         colouring::{self, testing::White},
-        fractal::{
-            self, framework::Zero, tilespec::SplitMethod, Location, PlotSpec, Point, Size, TileSpec,
-        },
+        fractal::{self, framework::Zero, tilespec::SplitMethod, Location, Point, Size, TileSpec},
         util::Rect,
     };
 
@@ -164,20 +164,19 @@ mod tests {
     const ONE: Point = Point { re: 1.0, im: 1.0 };
     const WHITE: colouring::Instance = colouring::Instance::White(White {});
 
-    const TD_TILE: PlotSpec = PlotSpec {
-        location: Location::Origin(ZERO),
-        axes: Size::AxesLength(ONE),
-        size_in_pixels: Rect::<u32> {
-            width: 100,
-            height: 101, // not dividable by 10
-        },
-        algorithm: ZERO_ALG,
-        max_iter: 256,
-        colourer: WHITE,
-    };
     #[test]
     fn rejoin() {
-        let spec = TileSpec::from(&TD_TILE);
+        let spec = TileSpec::new2(
+            Location::Origin(ZERO),
+            Size::AxesLength(ONE),
+            Rect::<u32> {
+                width: 100,
+                height: 101, // not dividable by 10
+            },
+            &Arc::new(ZERO_ALG),
+            256,
+            &Arc::new(WHITE),
+        );
         let split = spec.split(SplitMethod::RowsOfHeight(10), 0);
         let mut tiles: Vec<Tile> = split.unwrap().iter().map(|ts| Tile::new(ts, 0)).collect();
         for t in &mut tiles {
