@@ -299,37 +299,6 @@ impl TileSpec {
     }
 }
 
-
-impl From<&PlotSpec> for TileSpec {
-    fn from(upd: &PlotSpec) -> Self {
-        // Must compute axes first as origin may depend on them
-        let axes: Point = match upd.axes {
-            Size::AxesLength(l) => l,
-            Size::PixelSize(p) => Point {
-                re: p.re * Scalar::from(upd.width()),
-                im: p.im * Scalar::from(upd.height()),
-            },
-            Size::ZoomFactor(zoom) => Point {
-                re: DEFAULT_AXIS_LENGTH / zoom,
-                im: (DEFAULT_AXIS_LENGTH / zoom) / upd.aspect_ratio(),
-            },
-        };
-        let origin: Point = match upd.location {
-            Location::Origin(o) => o,
-            Location::Centre(c) => c - 0.5 * axes,
-        };
-        TileSpec {
-            origin,
-            axes,
-            size_in_pixels: upd.size_in_pixels,
-            offset_within_plot: None,
-            algorithm: Arc::new(upd.algorithm),
-            max_iter: upd.max_iter,
-            colourer: Arc::new(upd.colourer),
-        }
-    }
-}
-
 impl Display for TileSpec {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         write!(
