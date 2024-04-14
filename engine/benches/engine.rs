@@ -3,12 +3,10 @@
 
 #![allow(missing_docs)]
 
-use std::sync::Arc;
-
 #[allow(clippy::enum_glob_use)]
 use brot3_engine::{
     colouring::{self, Instance, OutputsRgb8, Selection::*},
-    fractal::{self, Algorithm, Point, PointData, SplitMethod, Tile, TileSpec},
+    fractal::{self, Algorithm, Location, Point, PointData, Size, SplitMethod, Tile, TileSpec},
     render::Png,
     util::Rect,
 };
@@ -50,12 +48,12 @@ fn iteration(c: &mut Criterion) {
 
 fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
     TileSpec::new(
-        Point { re: -1.0, im: 0.0 },
-        Point { re: 4.0, im: 4.0 },
+        Location::Origin(Point { re: -1.0, im: 0.0 }),
+        Size::AxesLength(Point { re: 4.0, im: 4.0 }),
         Rect::new(dimension, dimension),
-        &Arc::new(fractal::factory(alg)),
+        fractal::factory(alg),
         512,
-        &Arc::new(colouring::factory(TEST_COLOURER)),
+        colouring::factory(TEST_COLOURER),
     )
 }
 

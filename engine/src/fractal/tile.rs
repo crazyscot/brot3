@@ -6,7 +6,7 @@ use crate::util::Rect;
 use anyhow::{anyhow, ensure, Context};
 use ndarray::Array2;
 use num_complex::ComplexFloat;
-use std::{cmp::max, fmt, sync::Arc};
+use std::{cmp::max, fmt};
 
 /// A section of a fractal plot
 #[derive(Debug)]
@@ -21,7 +21,7 @@ pub struct Tile {
     /// Specification of this plot
     pub spec: TileSpec,
     /// The algorithm to use
-    algorithm: Arc<super::Instance>,
+    algorithm: super::Instance,
     /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, relative to the TOP LEFT of the plot.
     offset_within_plot: Option<Rect<u32>>,
 }
@@ -42,8 +42,8 @@ impl Tile {
             // Data for this tile.
             point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
             max_iter_plotted: 0,
-            spec: spec.clone(),
-            algorithm: Arc::clone(&spec.algorithm()),
+            spec: *spec,
+            algorithm: spec.algorithm(),
             offset_within_plot: spec.offset_within_plot(),
         }
     }
@@ -151,9 +151,7 @@ impl fmt::Display for Tile {
 mod tests {
     use crate::{
         colouring::{self, testing::White},
-        fractal::{
-            self, framework::Zero, tilespec::SplitMethod, Location, PlotSpec, Point, Size, TileSpec,
-        },
+        fractal::{self, framework::Zero, tilespec::SplitMethod, Location, Point, Size, TileSpec},
         util::Rect,
     };
 
@@ -164,20 +162,19 @@ mod tests {
     const ONE: Point = Point { re: 1.0, im: 1.0 };
     const WHITE: colouring::Instance = colouring::Instance::White(White {});
 
-    const TD_TILE: PlotSpec = PlotSpec {
-        location: Location::Origin(ZERO),
-        axes: Size::AxesLength(ONE),
-        size_in_pixels: Rect::<u32> {
-            width: 100,
-            height: 101, // not dividable by 10
-        },
-        algorithm: ZERO_ALG,
-        max_iter: 256,
-        colourer: WHITE,
-    };
     #[test]
     fn rejoin() {
-        let spec = TileSpec::from(&TD_TILE);
+        let spec = TileSpec::new(
+            Location::Origin(ZERO),
+            Size::AxesLength(ONE),
+            Rect::<u32> {
+                width: 100,
+                height: 101, // not dividable by 10
+            },
+            ZERO_ALG,
+            256,
+            WHITE,
+        );
         let split = spec.split(SplitMethod::RowsOfHeight(10), 0);
         let mut tiles: Vec<Tile> = split.unwrap().iter().map(|ts| Tile::new(ts, 0)).collect();
         for t in &mut tiles {

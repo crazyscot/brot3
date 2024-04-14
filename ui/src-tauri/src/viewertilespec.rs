@@ -1,7 +1,7 @@
 // Tile spec from the OpenSeadragon viewer's point of view
 // (c) 2024 Ross Younger
 
-use std::{fmt, sync::Arc};
+use std::fmt;
 
 use brot3_engine::{
     colouring,
@@ -40,9 +40,9 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
 
     fn try_from(spec: &ViewerTileSpec) -> anyhow::Result<Self> {
         let alg_requested = "Original"; // TODO this will come from spec
-        let algorithm = Arc::new(fractal::decode(alg_requested)?);
+        let algorithm = fractal::decode(alg_requested)?;
         let col_requested = "LogRainbow"; // TODO this will come from spec
-        let colourer = Arc::new(colouring::decode(col_requested)?);
+        let colourer = colouring::decode(col_requested)?;
         anyhow::ensure!(spec.level < 64, "zoom too deep");
         anyhow::ensure!(spec.width == spec.height, "only square tiles supported");
         // Map the total number of pixels across the zoom level into the algorithm's full axes
@@ -69,13 +69,15 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
         };
 
         let output_size = Rect::new(spec.width, spec.height);
+        let origin = fractal::Location::Origin(tile_bottom_left);
+        let axes = fractal::Size::AxesLength(tile_axes);
         Ok(TileSpec::new(
-            tile_bottom_left,
-            tile_axes,
+            origin,
+            axes,
             output_size,
-            &algorithm,
+            algorithm,
             spec.max_iter,
-            &colourer,
+            colourer,
         ))
     }
 }
