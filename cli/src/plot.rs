@@ -221,7 +221,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
 
     let time0 = SystemTime::now();
     let splits: Vec<TileSpec> = if args.no_split {
-        vec![spec]
+        vec![spec.clone()]
     } else {
         spec.split(50, debug)?
     };

@@ -42,8 +42,8 @@ impl Tile {
             // Data for this tile.
             point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
             max_iter_plotted: 0,
-            spec: *spec,
-            algorithm: spec.algorithm(),
+            spec: spec.clone(),
+            algorithm: *spec.algorithm(),
             offset_within_plot: spec.offset_within_plot(),
         }
     }

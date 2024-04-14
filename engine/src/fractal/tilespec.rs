@@ -6,12 +6,51 @@ use anyhow::ensure;
 use super::{Location, Point, Scalar, Size};
 use crate::{colouring, fractal, util::Rect};
 
-use std::fmt::{self, Display, Formatter};
+use std::{
+    fmt::{self, Display, Formatter},
+    sync::Arc,
+};
 
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
-/// Machine-facing specification of a tile to plot
+/// Specification of the algorithmic part of a tile to plot
 #[derive(Debug, Clone, Copy)]
+pub struct AlgorithmSpec {
+    /// The selected algorithm
+    algorithm: fractal::Instance,
+    /// Iteration limit
+    max_iter: u32,
+    // The selected colourer
+    colourer: colouring::Instance,
+}
+
+impl AlgorithmSpec {
+    /// Standard constructor
+    #[must_use]
+    pub fn new(
+        algorithm: fractal::Instance,
+        max_iter: u32,
+        colourer: colouring::Instance,
+    ) -> AlgorithmSpec {
+        AlgorithmSpec {
+            algorithm,
+            max_iter,
+            colourer,
+        }
+    }
+    /// Syntactic sugar constructor (wraps new struct in an Arc)
+    #[must_use]
+    pub fn new_arc(
+        algorithm: fractal::Instance,
+        max_iter: u32,
+        colourer: colouring::Instance,
+    ) -> Arc<AlgorithmSpec> {
+        Arc::new(Self::new(algorithm, max_iter, colourer))
+    }
+}
+
+/// Machine-facing specification of a tile to plot
+#[derive(Debug, Clone)]
 pub struct TileSpec {
     /// Origin of this tile (bottom-left corner, smallest real/imaginary coefficients)
     origin: Point,
@@ -19,15 +58,10 @@ pub struct TileSpec {
     axes: Point,
     /// Size in pixels of this tile
     size_in_pixels: Rect<u32>,
+    /// The selected algorithm, colourer and parameters
+    alg_spec: Arc<AlgorithmSpec>,
     /// If present, this tile is part of a larger plot; this is its Pixel offset within
     offset_within_plot: Option<Rect<u32>>,
-
-    /// The selected algorithm
-    algorithm: fractal::Instance,
-    /// Iteration limit
-    max_iter: u32,
-    // The selected colourer
-    colourer: colouring::Instance,
 }
 
 /// Canonicalised specification of a plot
@@ -61,14 +95,13 @@ impl TileSpec {
             Location::Origin(o) => o,
             Location::Centre(c) => c - 0.5 * axes,
         };
+        let alg_spec = AlgorithmSpec::new_arc(algorithm, max_iter, colourer);
         TileSpec {
             origin,
             axes,
             size_in_pixels,
             offset_within_plot: None,
-            algorithm,
-            max_iter,
-            colourer,
+            alg_spec,
         }
     }
     /// Alternate constructor taking an offset
@@ -79,18 +112,14 @@ impl TileSpec {
         size_in_pixels: Rect<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
         offset_within_plot: Option<Rect<u32>>,
-        algorithm: fractal::Instance,
-        max_iter: u32,
-        colourer: colouring::Instance,
+        alg_spec: &Arc<AlgorithmSpec>,
     ) -> TileSpec {
         TileSpec {
             origin,
             axes,
             size_in_pixels,
             offset_within_plot,
-            algorithm,
-            max_iter,
-            colourer,
+            alg_spec: Arc::clone(alg_spec),
         }
     }
 
@@ -129,9 +158,7 @@ impl TileSpec {
                 axes,
                 strip_pixel_size,
                 Some(offset),
-                self.algorithm,
-                self.max_iter,
-                self.colourer,
+                &self.alg_spec,
             ));
             if debug > 0 {
                 println!("tile {i} origin {working_origin} offset {offset}");
@@ -156,9 +183,7 @@ impl TileSpec {
                 last_axes,
                 Rect::new(self.width(), last_height),
                 Some(offset),
-                self.algorithm,
-                self.max_iter,
-                self.colourer,
+                &self.alg_spec,
             ));
         }
         // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
@@ -253,8 +278,8 @@ impl TileSpec {
     }
     /// Accessor
     #[must_use]
-    pub fn algorithm(&self) -> fractal::Instance {
-        self.algorithm
+    pub fn algorithm(&self) -> &fractal::Instance {
+        &self.alg_spec.algorithm
     }
     /// Accessor
     #[must_use]
@@ -264,7 +289,7 @@ impl TileSpec {
     /// Accessor
     #[must_use]
     pub fn max_iter_requested(&self) -> u32 {
-        self.max_iter
+        self.alg_spec.max_iter
     }
 }
 
@@ -273,7 +298,11 @@ impl Display for TileSpec {
         write!(
             f,
             "{},origin={},axes={},max={},col={}",
-            self.algorithm, self.origin, self.axes, self.max_iter, self.colourer
+            self.alg_spec.algorithm,
+            self.origin,
+            self.axes,
+            self.alg_spec.max_iter,
+            self.alg_spec.colourer
         )
     }
 }
