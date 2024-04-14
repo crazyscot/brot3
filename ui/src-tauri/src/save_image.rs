@@ -4,7 +4,7 @@
 use anyhow::Context;
 use brot3_engine::{
     colouring,
-    fractal::{SplitMethod, Tile, TileSpec},
+    fractal::{Tile, TileSpec},
     render::{self, autodetect_extension, Renderer},
 };
 use rayon::prelude::*; // par_iter_mut
@@ -116,7 +116,7 @@ fn do_save_inner(
     let render_selection: render::Selection =
         *autodetect_extension(filename_osstr).context("Unknown file extension")?;
     let renderer = render::factory(render_selection);
-    let splits = tile.split(SplitMethod::RowsOfHeight(5), 0)?;
+    let splits = tile.split(5, 0)?;
     let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, 0)).collect();
     let time1 = SystemTime::now();
     tiles.par_iter_mut().for_each(|t| t.plot());

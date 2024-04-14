@@ -4,7 +4,7 @@
 use std::time::SystemTime;
 
 use brot3_engine::colouring;
-use brot3_engine::fractal::{self, Algorithm, Point, Scalar, Size, SplitMethod, Tile, TileSpec};
+use brot3_engine::fractal::{self, Algorithm, Point, Scalar, Size, Tile, TileSpec};
 use brot3_engine::render::{self, autodetect_extension, Renderer};
 use brot3_engine::util::Rect;
 
@@ -223,7 +223,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let splits: Vec<TileSpec> = if args.no_split {
         vec![spec]
     } else {
-        spec.split(SplitMethod::RowsOfHeight(50), debug)?
+        spec.split(50, debug)?
     };
     let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
     let time1 = SystemTime::now();

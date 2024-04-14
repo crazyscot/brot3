@@ -30,14 +30,6 @@ pub struct TileSpec {
     colourer: colouring::Instance,
 }
 
-/// Method of splitting a tile
-#[derive(Debug, Clone, Copy)]
-pub enum SplitMethod {
-    /// Full-width strips.
-    RowsOfHeight(u32),
-    // TODO Square
-}
-
 /// Canonicalised specification of a plot
 impl TileSpec {
     /// Constructor
@@ -102,76 +94,76 @@ impl TileSpec {
         }
     }
 
-    /// Splits this tile up into a number of smaller tiles, for parallelisation
-    pub fn split(&self, how: SplitMethod, debug: u8) -> anyhow::Result<Vec<TileSpec>> {
-        match how {
-            SplitMethod::RowsOfHeight(row_height) => {
-                let n_whole = self.height() / row_height;
-                let maybe_last_height: Option<u32> = match self.height() % row_height {
-                    0 => None,
-                    other => Some(other),
-                };
+    /// Splits this tile up into a number of strips, for parallelisation
+    pub fn split(&self, row_height: u32, debug: u8) -> anyhow::Result<Vec<TileSpec>> {
+        let n_whole = self.height() / row_height;
+        let maybe_last_height: Option<u32> = match self.height() % row_height {
+            0 => None,
+            other => Some(other),
+        };
 
-                // What is fixed about the subtiles?
-                let strip_pixel_size = Rect::new(self.width(), row_height);
-                let axes = Point {
-                    re: self.axes.re,
-                    im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
-                };
-                // What varies as we go round the loop?
-                let mut working_origin = self.origin;
-                let origin_step = Point {
-                    re: 0.0,
-                    im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
-                };
-                // Curveball: Pixel offsets are computed relative to top left, so we must invert the height dimension.
-                // The first strip ends at the top, so starts one strip's height down from there.
-                // We will start the height register at the top left point, which is where the first strip ENDS.
-                let mut offset = Rect::<u32>::new(0, self.height());
+        // What is fixed about the subtiles?
+        let strip_pixel_size = Rect::new(self.width(), row_height);
+        let axes = Point {
+            re: self.axes.re,
+            im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
+        };
+        // What varies as we go round the loop?
+        let mut working_origin = self.origin;
+        let origin_step = Point {
+            re: 0.0,
+            im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
+        };
+        // Curveball: Pixel offsets are computed relative to top left, so we must invert the height dimension.
+        // The first strip ends at the top, so starts one strip's height down from there.
+        // We will start the height register at the top left point, which is where the first strip ENDS.
+        let mut offset = Rect::<u32>::new(0, self.height());
 
-                let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize + 1);
-                for i in 0..n_whole {
-                    // Note we subtract the offset height before using it.
-                    // This has the property that after the last whole strip, height is either 0, or is the height of the remainder strip.
-                    offset.height -= row_height;
-                    output.push(TileSpec::new_with_offset(
-                        working_origin,
-                        axes,
-                        strip_pixel_size,
-                        Some(offset),
-                        self.algorithm,
-                        self.max_iter,
-                        self.colourer,
-                    ));
-                    if debug > 0 {
-                        println!("tile {i} origin {working_origin} offset {offset}");
-                    }
-                    working_origin += origin_step;
-                }
-                if let Some(last_height) = maybe_last_height {
-                    // There may be a slight imprecision when repeatedly adding small amounts.
-                    // Therefore we recompute the last strip to take what's left of the overall axes.
-                    let last_axes = Point {
-                        re: self.axes.re,
-                        im: self.axes.im + self.origin.im - working_origin.im,
-                    };
-                    ensure!(offset.height == last_height, "Unexpected remainder strip height ({}, expected {last_height}) - logic error?", offset.height);
-                    offset.height = 0;
-                    output.push(TileSpec::new_with_offset(
-                        working_origin,
-                        last_axes,
-                        Rect::new(self.width(), last_height),
-                        Some(offset),
-                        self.algorithm,
-                        self.max_iter,
-                        self.colourer,
-                    ));
-                }
-                // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
-                output.reverse();
-                Ok(output)
+        let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize + 1);
+        for i in 0..n_whole {
+            // Note we subtract the offset height before using it.
+            // This has the property that after the last whole strip, height is either 0, or is the height of the remainder strip.
+            offset.height -= row_height;
+            output.push(TileSpec::new_with_offset(
+                working_origin,
+                axes,
+                strip_pixel_size,
+                Some(offset),
+                self.algorithm,
+                self.max_iter,
+                self.colourer,
+            ));
+            if debug > 0 {
+                println!("tile {i} origin {working_origin} offset {offset}");
             }
+            working_origin += origin_step;
         }
+        if let Some(last_height) = maybe_last_height {
+            // There may be a slight imprecision when repeatedly adding small amounts.
+            // Therefore we recompute the last strip to take what's left of the overall axes.
+            let last_axes = Point {
+                re: self.axes.re,
+                im: self.axes.im + self.origin.im - working_origin.im,
+            };
+            ensure!(
+                offset.height == last_height,
+                "Unexpected remainder strip height ({}, expected {last_height}) - logic error?",
+                offset.height
+            );
+            offset.height = 0;
+            output.push(TileSpec::new_with_offset(
+                working_origin,
+                last_axes,
+                Rect::new(self.width(), last_height),
+                Some(offset),
+                self.algorithm,
+                self.max_iter,
+                self.colourer,
+            ));
+        }
+        // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
+        output.reverse();
+        Ok(output)
     }
 
     /// Automatically adjusts this spec to make the pixels square.
@@ -290,7 +282,7 @@ impl Display for TileSpec {
 mod tests {
     use crate::{
         colouring,
-        fractal::{self, tilespec::SplitMethod, Location, Point, Scalar, Size, TileSpec},
+        fractal::{self, Location, Point, Scalar, Size, TileSpec},
         util::Rect,
     };
     use approx::assert_relative_eq;
@@ -419,9 +411,7 @@ mod tests {
             0,
             "This test requires a test spec that is a multiple of {TEST_HEIGHT} pixels high"
         );
-        let result = spec
-            .split(SplitMethod::RowsOfHeight(TEST_HEIGHT), 0)
-            .unwrap();
+        let result = spec.split(TEST_HEIGHT, 0).unwrap();
         assert_eq!(
             result.len(),
             (spec.height() / TEST_HEIGHT) as usize,
@@ -439,9 +429,7 @@ mod tests {
             remainder, 0,
             "This test requires a test spec that is not a multiple of {TEST_HEIGHT} pixels high"
         );
-        let result = spec
-            .split(SplitMethod::RowsOfHeight(TEST_HEIGHT), 0)
-            .unwrap();
+        let result = spec.split(TEST_HEIGHT, 0).unwrap();
         assert_eq!(
             result.len(),
             1 + (spec.height() / TEST_HEIGHT) as usize,

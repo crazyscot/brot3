@@ -6,7 +6,7 @@
 #[allow(clippy::enum_glob_use)]
 use brot3_engine::{
     colouring::{self, Instance, OutputsRgb8, Selection::*},
-    fractal::{self, Algorithm, Location, Point, PointData, Size, SplitMethod, Tile, TileSpec},
+    fractal::{self, Algorithm, Location, Point, PointData, Size, Tile, TileSpec},
     render::Png,
     util::Rect,
 };
@@ -119,7 +119,7 @@ fn tile_join(c: &mut Criterion) {
     // prepare and iterate on a bunch of tiles; we only care about the joining
     let mut group = c.benchmark_group("tiles");
     let single = get_test_tile_spec(fractal::Selection::Original, 1000);
-    let specs = single.split(SplitMethod::RowsOfHeight(50), 0).unwrap();
+    let specs = single.split(10, 0).unwrap();
     let mut tiles: Vec<_> = specs.iter().map(|ts| Tile::new(ts, 0)).collect();
     tiles.par_iter_mut().for_each(|t| black_box(t).plot());
 

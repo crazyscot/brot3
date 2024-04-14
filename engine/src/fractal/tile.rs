@@ -151,7 +151,7 @@ impl fmt::Display for Tile {
 mod tests {
     use crate::{
         colouring::{self, testing::White},
-        fractal::{self, framework::Zero, tilespec::SplitMethod, Location, Point, Size, TileSpec},
+        fractal::{self, framework::Zero, Location, Point, Size, TileSpec},
         util::Rect,
     };
 
@@ -175,7 +175,7 @@ mod tests {
             256,
             WHITE,
         );
-        let split = spec.split(SplitMethod::RowsOfHeight(10), 0);
+        let split = spec.split(10, 0);
         let mut tiles: Vec<Tile> = split.unwrap().iter().map(|ts| Tile::new(ts, 0)).collect();
         for t in &mut tiles {
             t.plot();
