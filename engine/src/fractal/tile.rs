@@ -35,13 +35,14 @@ impl Tile {
 
     /// Internal constructor used by `new()` and `join()`
     fn new_internal(spec: &TileSpec, debug: u8) -> Self {
+        let offset = spec.y_offset().map(|y| Rect::<u32>::new(0, y));
         Self {
             debug,
             // Data for this tile.
             point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
             max_iter_plotted: 0,
             spec: spec.clone(),
-            offset_within_plot: spec.offset_within_plot(),
+            offset_within_plot: offset,
         }
     }
 

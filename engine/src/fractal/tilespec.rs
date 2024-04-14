@@ -60,8 +60,8 @@ pub struct TileSpec {
     size_in_pixels: Rect<u32>,
     /// The selected algorithm, colourer and parameters
     alg_spec: Arc<AlgorithmSpec>,
-    /// If present, this tile is part of a larger plot; this is its Pixel offset within
-    offset_within_plot: Option<Rect<u32>>,
+    /// If present, this tile is a strip of a larger plot; this is its y offset within
+    y_offset: Option<u32>,
 }
 
 /// Canonicalised specification of a plot
@@ -100,25 +100,25 @@ impl TileSpec {
             origin,
             axes,
             size_in_pixels,
-            offset_within_plot: None,
+            y_offset: None,
             alg_spec,
         }
     }
     /// Alternate constructor taking an offset
     #[must_use]
-    pub fn new_with_offset(
+    pub fn new_subtile(
         origin: Point,
         axes: Point,
         size_in_pixels: Rect<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
-        offset_within_plot: Option<Rect<u32>>,
+        y_offset: u32,
         alg_spec: &Arc<AlgorithmSpec>,
     ) -> TileSpec {
         TileSpec {
             origin,
             axes,
             size_in_pixels,
-            offset_within_plot,
+            y_offset: Some(y_offset),
             alg_spec: Arc::clone(alg_spec),
         }
     }
@@ -146,22 +146,22 @@ impl TileSpec {
         // Curveball: Pixel offsets are computed relative to top left, so we must invert the height dimension.
         // The first strip ends at the top, so starts one strip's height down from there.
         // We will start the height register at the top left point, which is where the first strip ENDS.
-        let mut offset = Rect::<u32>::new(0, self.height());
+        let mut y_offset = self.height();
 
         let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize + 1);
         for i in 0..n_whole {
             // Note we subtract the offset height before using it.
             // This has the property that after the last whole strip, height is either 0, or is the height of the remainder strip.
-            offset.height -= row_height;
-            output.push(TileSpec::new_with_offset(
+            y_offset -= row_height;
+            output.push(TileSpec::new_subtile(
                 working_origin,
                 axes,
                 strip_pixel_size,
-                Some(offset),
+                y_offset,
                 &self.alg_spec,
             ));
             if debug > 0 {
-                println!("tile {i} origin {working_origin} offset {offset}");
+                println!("tile {i} origin {working_origin} offset {y_offset}");
             }
             working_origin += origin_step;
         }
@@ -173,16 +173,16 @@ impl TileSpec {
                 im: self.axes.im + self.origin.im - working_origin.im,
             };
             ensure!(
-                offset.height == last_height,
+                y_offset == last_height,
                 "Unexpected remainder strip height ({}, expected {last_height}) - logic error?",
-                offset.height
+                y_offset
             );
-            offset.height = 0;
-            output.push(TileSpec::new_with_offset(
+            y_offset = 0;
+            output.push(TileSpec::new_subtile(
                 working_origin,
                 last_axes,
                 Rect::new(self.width(), last_height),
-                Some(offset),
+                y_offset,
                 &self.alg_spec,
             ));
         }
@@ -283,8 +283,8 @@ impl TileSpec {
     }
     /// Accessor
     #[must_use]
-    pub fn offset_within_plot(&self) -> Option<Rect<u32>> {
-        self.offset_within_plot
+    pub fn y_offset(&self) -> Option<u32> {
+        self.y_offset
     }
     /// Accessor
     #[must_use]
@@ -497,9 +497,8 @@ mod tests {
             assert_relative_eq!(ts.axes().im, expected_axes_length.im); // slippery in the remainder case!
 
             // pixel offset
-            let offset = ts.offset_within_plot().unwrap();
-            assert_eq!(offset.width, 0);
-            assert!(offset.height <= spec.height());
+            let offset = ts.y_offset().unwrap();
+            assert!(offset <= spec.height());
             // pixel dimensions
             assert_eq!(ts.width(), spec.width());
             let expected_height = remainder_height.unwrap_or(test_height);
