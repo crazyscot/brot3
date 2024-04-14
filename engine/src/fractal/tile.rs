@@ -1,7 +1,6 @@
 // (c) 2024 Ross Younger
 
 use super::{Algorithm, Point, PointData, Scalar, TileSpec};
-use crate::util::Rect;
 
 use anyhow::{anyhow, ensure, Context};
 use ndarray::Array2;
@@ -20,8 +19,8 @@ pub struct Tile {
     pub max_iter_plotted: u32,
     /// Specification of this plot
     pub spec: TileSpec,
-    /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, relative to the TOP LEFT of the plot.
-    offset_within_plot: Option<Rect<u32>>,
+    /// If present, this tile is a strip of a larger plot; this is its Y offset in pixels, relative to the TOP LEFT of the plot.
+    y_offset: Option<u32>,
 }
 
 impl Tile {
@@ -35,14 +34,13 @@ impl Tile {
 
     /// Internal constructor used by `new()` and `join()`
     fn new_internal(spec: &TileSpec, debug: u8) -> Self {
-        let offset = spec.y_offset().map(|y| Rect::<u32>::new(0, y));
         Self {
             debug,
             // Data for this tile.
             point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
             max_iter_plotted: 0,
             spec: spec.clone(),
-            offset_within_plot: offset,
+            y_offset: spec.y_offset(),
         }
     }
 
@@ -56,13 +54,13 @@ impl Tile {
 
         for t in tiles {
             let offset = t
-                .offset_within_plot
+                .y_offset
                 .ok_or_else(|| anyhow!("joining subtile did not contain offset"))
                 .with_context(|| format!("{t:?}"))?;
 
             let mut dest = result.point_data.slice_mut(ndarray::s![
-                offset.height as usize..(offset.height + t.spec.height()) as usize,
-                offset.width as usize..(offset.width + t.spec.width()) as usize
+                offset as usize..(offset + t.spec.height()) as usize,
+                ..
             ]);
             dest.assign(&t.point_data);
         }
@@ -121,12 +119,6 @@ impl Tile {
     #[must_use]
     pub fn result(&self) -> &Array2<PointData> {
         &self.point_data
-    }
-
-    /// Accessor
-    #[must_use]
-    pub fn offset_within_plot(&self) -> Option<Rect<u32>> {
-        self.offset_within_plot
     }
 }
 
