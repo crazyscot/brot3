@@ -20,8 +20,6 @@ pub struct Tile {
     pub max_iter_plotted: u32,
     /// Specification of this plot
     pub spec: TileSpec,
-    /// The algorithm to use
-    algorithm: super::Instance,
     /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, relative to the TOP LEFT of the plot.
     offset_within_plot: Option<Rect<u32>>,
 }
@@ -43,7 +41,6 @@ impl Tile {
             point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
             max_iter_plotted: 0,
             spec: spec.clone(),
-            algorithm: *spec.algorithm(),
             offset_within_plot: spec.offset_within_plot(),
         }
     }
@@ -101,7 +98,7 @@ impl Tile {
             if debug > 1 {
                 println!("point {x},{y} => {}", point.origin);
             }
-            self.algorithm.prepare(point);
+            self.spec.algorithm().prepare(point);
         }
         // TODO: live_pixel count
     }
@@ -111,7 +108,7 @@ impl Tile {
         let max_iter = self.spec.max_iter_requested();
         for p in &mut self.point_data {
             if p.result.is_none() {
-                self.algorithm.pixel(p, max_iter);
+                self.spec.algorithm().pixel(p, max_iter);
             }
         }
         self.max_iter_plotted = max_iter;
