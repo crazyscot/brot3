@@ -43,7 +43,13 @@ impl Renderer for AsciiArt {
         #[allow(clippy::cast_precision_loss)] // this is a quick & dirty output module
         let step = range / (n_levels - 1) as f32;
 
-        for row in data.outer_iter() {
+        for y in 0..tile.spec.height() as usize {
+            let start = y * tile.spec.width() as usize;
+            let end = (y + 1) * tile.spec.width() as usize;
+            let row = data
+                .get(start..end)
+                .expect("failed to slice row");
+            //assert_eq!(row.len(), tile.spec.width() as usize);
             let mut rowstr = row
                 .iter()
                 .map(PointData::iterations)

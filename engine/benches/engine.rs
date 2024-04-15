@@ -124,7 +124,7 @@ fn tile_join(c: &mut Criterion) {
     tiles.par_iter_mut().for_each(|t| black_box(t).plot());
 
     let _ = group.bench_function("join", |b| {
-        b.iter(|| Tile::join(&single, black_box(&tiles)).unwrap());
+        b.iter(|| Tile::join(&single, black_box(&mut tiles)).unwrap());
     });
 }
 

@@ -234,7 +234,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let tile: Tile = if args.no_split {
         tiles.remove(0)
     } else {
-        Tile::join(&spec, &tiles)?
+        Tile::join(&spec, &mut tiles)?
     };
     let time3 = SystemTime::now();
 
