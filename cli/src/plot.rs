@@ -231,16 +231,10 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         .par_iter_mut()
         .for_each(brot3_engine::fractal::Tile::plot);
     let time2 = SystemTime::now();
-    let tile: Tile = if args.no_split {
-        tiles.remove(0)
-    } else {
-        Tile::join(&spec, &mut tiles)?
-    };
     let time3 = SystemTime::now();
 
-    println!("{}", tile.spec);
-    let temp = vec![tile];
-    let result = renderer.render_file(&args.output_filename, &spec, &temp, colourer);
+    println!("{spec}");
+    let result = renderer.render_file(&args.output_filename, &spec, &tiles, colourer);
     let time4 = SystemTime::now();
     if args.show_timing {
         println!(

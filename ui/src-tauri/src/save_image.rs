@@ -122,9 +122,7 @@ fn do_save_inner(
     tiles.par_iter_mut().for_each(|t| t.plot());
     // SOMEDAY: Consider progress reporting
     let time2 = SystemTime::now();
-    let plot = Tile::join(spec, &mut tiles)?;
-    let temp = vec![plot];
-    let result = renderer.render_file(filename_osstr, spec, &temp, colourer);
+    let result = renderer.render_file(filename_osstr, spec, &tiles, colourer);
     let time3 = SystemTime::now();
     if false {
         println!(
