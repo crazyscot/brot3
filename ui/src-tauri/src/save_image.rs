@@ -91,12 +91,12 @@ async fn save_image_workflow_inner(
 }
 
 fn do_save(
-    tile: &TileSpec,
+    spec: &TileSpec,
     colourer: colouring::Instance,
     path: &Path,
     app_handle: tauri::AppHandle,
 ) {
-    let _ = do_save_inner(tile, colourer, path).map_err(|e| {
+    let _ = do_save_inner(spec, colourer, path).map_err(|e| {
         println!("Error saving: {e}");
         let _ = app_handle.emit_all(
             "genericError",
@@ -108,7 +108,7 @@ fn do_save(
 }
 
 fn do_save_inner(
-    tile: &TileSpec,
+    spec: &TileSpec,
     colourer: colouring::Instance,
     path: &Path,
 ) -> anyhow::Result<()> {
@@ -116,14 +116,15 @@ fn do_save_inner(
     let render_selection: render::Selection =
         *autodetect_extension(filename_osstr).context("Unknown file extension")?;
     let renderer = render::factory(render_selection);
-    let splits = tile.split(5, 0)?;
+    let splits = spec.split(5, 0)?;
     let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, 0)).collect();
     let time1 = SystemTime::now();
     tiles.par_iter_mut().for_each(|t| t.plot());
     // SOMEDAY: Consider progress reporting
     let time2 = SystemTime::now();
-    let plot = Tile::join(tile, &mut tiles)?;
-    let result = renderer.render_file(filename_osstr, &plot, colourer);
+    let plot = Tile::join(spec, &mut tiles)?;
+    let temp = vec![plot];
+    let result = renderer.render_file(filename_osstr, spec, &temp, colourer);
     let time3 = SystemTime::now();
     if false {
         println!(
