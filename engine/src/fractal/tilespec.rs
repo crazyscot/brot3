@@ -123,7 +123,8 @@ impl TileSpec {
         }
     }
 
-    /// Splits this tile up into a number of strips, for parallelisation
+    /// Splits this tile up into a number of strips, for parallel processing.
+    /// The output vector is guaranteed to be output in Y offset order, starting from 0.
     pub fn split(&self, row_height: u32, debug: u8) -> anyhow::Result<Vec<TileSpec>> {
         let n_whole = self.height() / row_height;
         let maybe_last_height: Option<u32> = match self.height() % row_height {
@@ -186,7 +187,7 @@ impl TileSpec {
                 &self.alg_spec,
             ));
         }
-        // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
+        // Finally: We have worked from the bottom to the top. Reverse the order per our contract.
         output.reverse();
         Ok(output)
     }
@@ -446,6 +447,7 @@ mod tests {
             (spec.height() / TEST_HEIGHT) as usize,
             "Wrong number of output strips"
         );
+        assert!(strips_in_order(&result));
         sanity_check_strips(&spec, &result, TEST_HEIGHT, None);
     }
 
@@ -464,7 +466,12 @@ mod tests {
             1 + (spec.height() / TEST_HEIGHT) as usize,
             "Wrong number of output strips"
         );
+        assert!(strips_in_order(&result));
         sanity_check_strips(&spec, &result, TEST_HEIGHT, Some(remainder));
+    }
+
+    fn strips_in_order(strips: &[TileSpec]) -> bool {
+        strips.windows(2).all(|w| w[0].y_offset < w[1].y_offset)
     }
 
     fn sanity_check_strips(
