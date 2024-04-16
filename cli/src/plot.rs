@@ -4,7 +4,7 @@
 use std::time::SystemTime;
 
 use brot3_engine::colouring;
-use brot3_engine::fractal::{self, Algorithm, Point, Scalar, Size, SplitMethod, Tile, TileSpec};
+use brot3_engine::fractal::{self, Algorithm, Point, Scalar, Size, Tile, TileSpec};
 use brot3_engine::render::{self, autodetect_extension, Renderer};
 use brot3_engine::util::Rect;
 
@@ -169,6 +169,16 @@ pub(crate) struct Args {
     /// Measures and outputs the time to complete various parts of the process.
     #[arg(long, display_order(900), help_heading("Developer options"))]
     pub(crate) show_timing: bool,
+
+    /// The number of rows per render strip
+    #[arg(
+        long,
+        display_order(900),
+        help_heading("Developer options"),
+        default_value = "10",
+        value_name = "PIXELS"
+    )]
+    pub(crate) strip_size: u32,
 }
 
 fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
@@ -221,35 +231,31 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
 
     let time0 = SystemTime::now();
     let splits: Vec<TileSpec> = if args.no_split {
-        vec![spec]
+        vec![spec.clone()]
     } else {
-        spec.split(SplitMethod::RowsOfHeight(50), debug)?
+        spec.split(args.strip_size, debug)?
     };
-    let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
+    let mut tiles: Vec<Tile> = Vec::new();
+    splits
+        .par_iter()
+        .map(|ts| Tile::new(ts, debug))
+        .collect_into_vec(&mut tiles);
     let time1 = SystemTime::now();
     tiles
         .par_iter_mut()
         .for_each(brot3_engine::fractal::Tile::plot);
     let time2 = SystemTime::now();
-    let tile: Tile = if args.no_split {
-        tiles.remove(0)
-    } else {
-        Tile::join(&spec, &tiles)?
-    };
-    let time3 = SystemTime::now();
 
-    let result = renderer.render_file(&args.output_filename, &tile, colourer);
-    let time4 = SystemTime::now();
+    let result = renderer.render_file(&args.output_filename, &spec, &tiles, colourer);
+    let time3 = SystemTime::now();
     if args.show_timing {
         println!(
-            "times: prepare {:?}, plot {:?}, join {:?}, render {:?}",
+            "times: prepare {:?}, plot {:?} render {:?}",
             time1.duration_since(time0).unwrap_or_default(),
             time2.duration_since(time1).unwrap_or_default(),
             time3.duration_since(time2).unwrap_or_default(),
-            time4.duration_since(time3).unwrap_or_default(),
         );
     }
-    println!("{}", tile.spec);
     result
 }
 

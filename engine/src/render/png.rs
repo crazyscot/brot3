@@ -3,11 +3,12 @@
 
 use super::Renderer;
 use crate::colouring::{Instance, OutputsRgb8};
-use crate::fractal::Tile;
+use crate::fractal::{Tile, TileSpec};
 use crate::util::filename::Filename;
 
 use anyhow::{Context, Result};
 use palette::Srgb;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::io::BufWriter;
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -44,13 +45,18 @@ impl Png {
         image_data
     }
 
-    fn render_png(tile: &Tile, colourer: Instance, writer: Box<dyn std::io::Write>) -> Result<()> {
-        let mut encoder = png::Encoder::new(writer, tile.spec.width(), tile.spec.height());
+    fn render_png(
+        spec: &TileSpec,
+        tiles: &[Tile],
+        colourer: Instance,
+        writer: Box<dyn std::io::Write>,
+    ) -> Result<()> {
+        let mut encoder = png::Encoder::new(writer, spec.width(), spec.height());
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
 
         encoder.add_text_chunk("software".to_string(), "brot3".to_string())?;
-        let info = tile.spec.to_string();
+        let info = spec.to_string();
         encoder.add_text_chunk("comment".to_string(), info)?;
 
         // MAYBE: allow user to specify gamma of their monitor?
@@ -58,17 +64,27 @@ impl Png {
         // MAYBE: set source chromaticities?
 
         let mut png_writer = encoder.write_header()?;
-        let image_data = Self::render_rgba(tile, colourer);
+        let image_data = tiles
+            .par_iter()
+            .flat_map(|t| Self::render_rgba(t, colourer))
+            .collect::<Vec<u8>>();
         png_writer.write_image_data(&image_data)?;
         Ok(())
     }
 }
 
 impl Renderer for Png {
-    fn render_file(&self, filename: &str, tile: &Tile, colourer: Instance) -> anyhow::Result<()> {
+    fn render_file(
+        &self,
+        filename: &str,
+        spec: &TileSpec,
+        tiles: &[Tile],
+        colourer: Instance,
+    ) -> anyhow::Result<()> {
+        anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
         let handle = Filename::open_for_writing(filename)?;
         let bw = Box::new(BufWriter::new(handle));
-        Png::render_png(tile, colourer, bw).with_context(|| "Failed to render PNG")?;
+        Png::render_png(spec, tiles, colourer, bw).with_context(|| "Failed to render PNG")?;
         // You can test this error pathway by trying to write to /dev/full
         Ok(())
     }

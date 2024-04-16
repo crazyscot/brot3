@@ -1,12 +1,9 @@
 // (c) 2024 Ross Younger
 
-use super::{Algorithm, Point, PointData, Scalar, TileSpec};
-use crate::util::Rect;
+use super::{Algorithm, Point, PointData, TileSpec};
 
-use anyhow::{anyhow, ensure, Context};
-use ndarray::Array2;
 use num_complex::ComplexFloat;
-use std::{cmp::max, fmt};
+use std::fmt;
 
 /// A section of a fractal plot
 #[derive(Debug)]
@@ -15,15 +12,13 @@ pub struct Tile {
     debug: u8,
     /// Working data. Address as [(row,column)] aka (y,x).
     /// <div class="warning">CAUTION: This array is TOP LEFT oriented. The first row is the top row, not the Origin row.</div>
-    point_data: ndarray::Array2<PointData>,
+    point_data: Vec<PointData>,
     /// Max iterations we plotted to
     pub max_iter_plotted: u32,
     /// Specification of this plot
     pub spec: TileSpec,
-    /// The algorithm to use
-    algorithm: super::Instance,
-    /// If present, this tile is part of a larger plot; this is its location offset (X,Y) in pixels, relative to the TOP LEFT of the plot.
-    offset_within_plot: Option<Rect<u32>>,
+    /// If present, this tile is a strip of a larger plot; this is its Y offset in pixels, relative to the TOP LEFT of the plot.
+    pub y_offset: Option<u32>,
 }
 
 impl Tile {
@@ -35,40 +30,16 @@ impl Tile {
         new1
     }
 
-    /// Internal constructor used by `new()` and `join()`
+    /// Internal constructor
     fn new_internal(spec: &TileSpec, debug: u8) -> Self {
         Self {
             debug,
             // Data for this tile.
-            point_data: Array2::default((spec.height() as usize, spec.width() as usize)),
+            point_data: Vec::with_capacity((spec.height() * spec.width()) as usize),
             max_iter_plotted: 0,
-            spec: *spec,
-            algorithm: spec.algorithm(),
-            offset_within_plot: spec.offset_within_plot(),
+            spec: spec.clone(),
+            y_offset: spec.y_offset(),
         }
-    }
-
-    /// Quasi-constructor: Reassembles the tiles of a split plot into a single plot
-    pub fn join(spec: &TileSpec, tiles: &Vec<Tile>) -> anyhow::Result<Tile> {
-        ensure!(!tiles.is_empty(), "No tiles given to join");
-        // TODO: Might be nice if we could ensure that all data points were covered i.e. no tiles are missing...
-
-        let mut result = Tile::new_internal(spec, 0);
-        result.max_iter_plotted = tiles.iter().fold(0, |b, t| max(b, t.max_iter_plotted));
-
-        for t in tiles {
-            let offset = t
-                .offset_within_plot
-                .ok_or_else(|| anyhow!("joining subtile did not contain offset"))
-                .with_context(|| format!("{t:?}"))?;
-
-            let mut dest = result.point_data.slice_mut(ndarray::s![
-                offset.height as usize..(offset.height + t.spec.height()) as usize,
-                offset.width as usize..(offset.width + t.spec.width()) as usize
-            ]);
-            dest.assign(&t.point_data);
-        }
-        Ok(result)
     }
 
     /// Initialises the data for this tile
@@ -92,18 +63,23 @@ impl Tile {
             );
         }
 
-        for ((y, x), point) in self.point_data.indexed_iter_mut() {
-            point.origin = origin_pixel
-                + Point {
-                    re: x as Scalar * step.re,
-                    im: y as Scalar * -step.im, // note '-' as we are stepping down the imaginary dimension
-                };
-            if debug > 1 {
-                println!("point {x},{y} => {}", point.origin);
-            }
-            self.algorithm.prepare(point);
+        for y in 0..self.spec.height() {
+            let im = f64::from(y) * -step.im; // note '-' as we are stepping down the imaginary dimension
+
+            // For each pixel in width...
+            let points = (0..self.spec.width())
+                // compute real coordinate
+                .map(|x| f64::from(x) * step.re)
+                // compute pixel
+                .map(|re| origin_pixel + Point { re, im })
+                // assemble and prepare point data
+                .map(|or| {
+                    let mut pd = PointData::new(or);
+                    self.spec.algorithm().prepare(&mut pd);
+                    pd
+                });
+            self.point_data.extend(points);
         }
-        // TODO: live_pixel count
     }
 
     /// Runs the fractal iteration for all points in this tile
@@ -111,7 +87,7 @@ impl Tile {
         let max_iter = self.spec.max_iter_requested();
         for p in &mut self.point_data {
             if p.result.is_none() {
-                self.algorithm.pixel(p, max_iter);
+                self.spec.algorithm().pixel(p, max_iter);
             }
         }
         self.max_iter_plotted = max_iter;
@@ -121,68 +97,24 @@ impl Tile {
     /// Result accessor
     /// <div class="warning">CAUTION: This array is TOP LEFT oriented. The first row is the top row, not the Origin (bottom) row!</div>
     #[must_use]
-    pub fn result(&self) -> &Array2<PointData> {
+    pub fn result(&self) -> &Vec<PointData> {
         &self.point_data
-    }
-
-    /// Accessor
-    #[must_use]
-    pub fn offset_within_plot(&self) -> Option<Rect<u32>> {
-        self.offset_within_plot
     }
 }
 
 /// CSV format output
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let width = self.spec.width() as usize;
         for y in 0..self.spec.height() as usize {
-            self.point_data[(y, 0)].fmt(f, self.debug)?;
-            for x in 1..self.spec.width() as usize {
+            // SOMEDAY: Rewrite this as a map operation. But it may not be worth it.
+            self.point_data[y * width].fmt(f, self.debug)?;
+            for x in 1..width {
                 write!(f, ",")?;
-                self.point_data[(y, x)].fmt(f, self.debug)?;
+                self.point_data[y * width + x].fmt(f, self.debug)?;
             }
             writeln!(f)?;
         }
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{
-        colouring::{self, testing::White},
-        fractal::{self, framework::Zero, tilespec::SplitMethod, Location, Point, Size, TileSpec},
-        util::Rect,
-    };
-
-    use super::Tile;
-
-    const ZERO_ALG: fractal::Instance = fractal::Instance::Zero(Zero {});
-    const ZERO: Point = Point { re: 0.0, im: 0.0 };
-    const ONE: Point = Point { re: 1.0, im: 1.0 };
-    const WHITE: colouring::Instance = colouring::Instance::White(White {});
-
-    #[test]
-    fn rejoin() {
-        let spec = TileSpec::new(
-            Location::Origin(ZERO),
-            Size::AxesLength(ONE),
-            Rect::<u32> {
-                width: 100,
-                height: 101, // not dividable by 10
-            },
-            ZERO_ALG,
-            256,
-            WHITE,
-        );
-        let split = spec.split(SplitMethod::RowsOfHeight(10), 0);
-        let mut tiles: Vec<Tile> = split.unwrap().iter().map(|ts| Tile::new(ts, 0)).collect();
-        for t in &mut tiles {
-            t.plot();
-        }
-        let result = Tile::join(&spec, &tiles).unwrap();
-        let data = result.result();
-        assert_eq!(data.nrows(), spec.height() as usize);
-        assert_eq!(data.ncols(), spec.width() as usize);
     }
 }

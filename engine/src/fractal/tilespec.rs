@@ -6,22 +6,16 @@ use anyhow::ensure;
 use super::{Location, Point, Scalar, Size};
 use crate::{colouring, fractal, util::Rect};
 
-use std::fmt::{self, Display, Formatter};
+use std::{
+    fmt::{self, Display, Formatter},
+    sync::Arc,
+};
 
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
-/// Machine-facing specification of a tile to plot
+/// Specification of the algorithmic part of a tile to plot
 #[derive(Debug, Clone, Copy)]
-pub struct TileSpec {
-    /// Origin of this tile (bottom-left corner, smallest real/imaginary coefficients)
-    origin: Point,
-    /// Axes length for this tile
-    axes: Point,
-    /// Size in pixels of this tile
-    size_in_pixels: Rect<u32>,
-    /// If present, this tile is part of a larger plot; this is its Pixel offset within
-    offset_within_plot: Option<Rect<u32>>,
-
+pub struct AlgorithmSpec {
     /// The selected algorithm
     algorithm: fractal::Instance,
     /// Iteration limit
@@ -30,12 +24,44 @@ pub struct TileSpec {
     colourer: colouring::Instance,
 }
 
-/// Method of splitting a tile
-#[derive(Debug, Clone, Copy)]
-pub enum SplitMethod {
-    /// Full-width strips.
-    RowsOfHeight(u32),
-    // TODO Square
+impl AlgorithmSpec {
+    /// Standard constructor
+    #[must_use]
+    pub fn new(
+        algorithm: fractal::Instance,
+        max_iter: u32,
+        colourer: colouring::Instance,
+    ) -> AlgorithmSpec {
+        AlgorithmSpec {
+            algorithm,
+            max_iter,
+            colourer,
+        }
+    }
+    /// Syntactic sugar constructor (wraps new struct in an Arc)
+    #[must_use]
+    pub fn new_arc(
+        algorithm: fractal::Instance,
+        max_iter: u32,
+        colourer: colouring::Instance,
+    ) -> Arc<AlgorithmSpec> {
+        Arc::new(Self::new(algorithm, max_iter, colourer))
+    }
+}
+
+/// Machine-facing specification of a tile to plot
+#[derive(Debug, Clone)]
+pub struct TileSpec {
+    /// Origin of this tile (bottom-left corner, smallest real/imaginary coefficients)
+    origin: Point,
+    /// Axes length for this tile
+    axes: Point,
+    /// Size in pixels of this tile
+    size_in_pixels: Rect<u32>,
+    /// The selected algorithm, colourer and parameters
+    alg_spec: Arc<AlgorithmSpec>,
+    /// If present, this tile is a strip of a larger plot; this is its y offset within
+    y_offset: Option<u32>,
 }
 
 /// Canonicalised specification of a plot
@@ -69,109 +95,101 @@ impl TileSpec {
             Location::Origin(o) => o,
             Location::Centre(c) => c - 0.5 * axes,
         };
+        let alg_spec = AlgorithmSpec::new_arc(algorithm, max_iter, colourer);
         TileSpec {
             origin,
             axes,
             size_in_pixels,
-            offset_within_plot: None,
-            algorithm,
-            max_iter,
-            colourer,
+            y_offset: None,
+            alg_spec,
         }
     }
     /// Alternate constructor taking an offset
     #[must_use]
-    pub fn new_with_offset(
+    pub fn new_subtile(
         origin: Point,
         axes: Point,
         size_in_pixels: Rect<u32>,
         // If present, this tile is part of a larger plot; this is its Pixel offset (width, height) within
-        offset_within_plot: Option<Rect<u32>>,
-        algorithm: fractal::Instance,
-        max_iter: u32,
-        colourer: colouring::Instance,
+        y_offset: u32,
+        alg_spec: &Arc<AlgorithmSpec>,
     ) -> TileSpec {
         TileSpec {
             origin,
             axes,
             size_in_pixels,
-            offset_within_plot,
-            algorithm,
-            max_iter,
-            colourer,
+            y_offset: Some(y_offset),
+            alg_spec: Arc::clone(alg_spec),
         }
     }
 
-    /// Splits this tile up into a number of smaller tiles, for parallelisation
-    pub fn split(&self, how: SplitMethod, debug: u8) -> anyhow::Result<Vec<TileSpec>> {
-        match how {
-            SplitMethod::RowsOfHeight(row_height) => {
-                let n_whole = self.height() / row_height;
-                let maybe_last_height: Option<u32> = match self.height() % row_height {
-                    0 => None,
-                    other => Some(other),
-                };
+    /// Splits this tile up into a number of strips, for parallel processing.
+    /// The output vector is guaranteed to be output in Y offset order, starting from 0.
+    pub fn split(&self, row_height: u32, debug: u8) -> anyhow::Result<Vec<TileSpec>> {
+        let n_whole = self.height() / row_height;
+        let maybe_last_height: Option<u32> = match self.height() % row_height {
+            0 => None,
+            other => Some(other),
+        };
 
-                // What is fixed about the subtiles?
-                let strip_pixel_size = Rect::new(self.width(), row_height);
-                let axes = Point {
-                    re: self.axes.re,
-                    im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
-                };
-                // What varies as we go round the loop?
-                let mut working_origin = self.origin;
-                let origin_step = Point {
-                    re: 0.0,
-                    im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
-                };
-                // Curveball: Pixel offsets are computed relative to top left, so we must invert the height dimension.
-                // The first strip ends at the top, so starts one strip's height down from there.
-                // We will start the height register at the top left point, which is where the first strip ENDS.
-                let mut offset = Rect::<u32>::new(0, self.height());
+        // What is fixed about the subtiles?
+        let strip_pixel_size = Rect::new(self.width(), row_height);
+        let axes = Point {
+            re: self.axes.re,
+            im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
+        };
+        // What varies as we go round the loop?
+        let mut working_origin = self.origin;
+        let origin_step = Point {
+            re: 0.0,
+            im: self.axes.im * Scalar::from(row_height) / Scalar::from(self.height()),
+        };
+        // Curveball: Pixel offsets are computed relative to top left, so we must invert the height dimension.
+        // The first strip ends at the top, so starts one strip's height down from there.
+        // We will start the height register at the top left point, which is where the first strip ENDS.
+        let mut y_offset = self.height();
 
-                let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize + 1);
-                for i in 0..n_whole {
-                    // Note we subtract the offset height before using it.
-                    // This has the property that after the last whole strip, height is either 0, or is the height of the remainder strip.
-                    offset.height -= row_height;
-                    output.push(TileSpec::new_with_offset(
-                        working_origin,
-                        axes,
-                        strip_pixel_size,
-                        Some(offset),
-                        self.algorithm,
-                        self.max_iter,
-                        self.colourer,
-                    ));
-                    if debug > 0 {
-                        println!("tile {i} origin {working_origin} offset {offset}");
-                    }
-                    working_origin += origin_step;
-                }
-                if let Some(last_height) = maybe_last_height {
-                    // There may be a slight imprecision when repeatedly adding small amounts.
-                    // Therefore we recompute the last strip to take what's left of the overall axes.
-                    let last_axes = Point {
-                        re: self.axes.re,
-                        im: self.axes.im + self.origin.im - working_origin.im,
-                    };
-                    ensure!(offset.height == last_height, "Unexpected remainder strip height ({}, expected {last_height}) - logic error?", offset.height);
-                    offset.height = 0;
-                    output.push(TileSpec::new_with_offset(
-                        working_origin,
-                        last_axes,
-                        Rect::new(self.width(), last_height),
-                        Some(offset),
-                        self.algorithm,
-                        self.max_iter,
-                        self.colourer,
-                    ));
-                }
-                // Finally: We have worked from the bottom to the top. Reverse the order for better aesthetics.
-                output.reverse();
-                Ok(output)
+        let mut output = Vec::<TileSpec>::with_capacity(n_whole as usize + 1);
+        for i in 0..n_whole {
+            // Note we subtract the offset height before using it.
+            // This has the property that after the last whole strip, height is either 0, or is the height of the remainder strip.
+            y_offset -= row_height;
+            output.push(TileSpec::new_subtile(
+                working_origin,
+                axes,
+                strip_pixel_size,
+                y_offset,
+                &self.alg_spec,
+            ));
+            if debug > 0 {
+                println!("tile {i} origin {working_origin} offset {y_offset}");
             }
+            working_origin += origin_step;
         }
+        if let Some(last_height) = maybe_last_height {
+            // There may be a slight imprecision when repeatedly adding small amounts.
+            // Therefore we recompute the last strip to take what's left of the overall axes.
+            let last_axes = Point {
+                re: self.axes.re,
+                im: self.axes.im + self.origin.im - working_origin.im,
+            };
+            ensure!(
+                y_offset == last_height,
+                "Unexpected remainder strip height ({}, expected {last_height}) - logic error?",
+                y_offset
+            );
+            y_offset = 0;
+            output.push(TileSpec::new_subtile(
+                working_origin,
+                last_axes,
+                Rect::new(self.width(), last_height),
+                y_offset,
+                &self.alg_spec,
+            ));
+        }
+        // Finally: We have worked from the bottom to the top. Reverse the order per our contract.
+        output.reverse();
+        Ok(output)
     }
 
     /// Automatically adjusts this spec to make the pixels square.
@@ -261,18 +279,18 @@ impl TileSpec {
     }
     /// Accessor
     #[must_use]
-    pub fn algorithm(&self) -> fractal::Instance {
-        self.algorithm
+    pub fn algorithm(&self) -> &fractal::Instance {
+        &self.alg_spec.algorithm
     }
     /// Accessor
     #[must_use]
-    pub fn offset_within_plot(&self) -> Option<Rect<u32>> {
-        self.offset_within_plot
+    pub fn y_offset(&self) -> Option<u32> {
+        self.y_offset
     }
     /// Accessor
     #[must_use]
     pub fn max_iter_requested(&self) -> u32 {
-        self.max_iter
+        self.alg_spec.max_iter
     }
 }
 
@@ -281,7 +299,11 @@ impl Display for TileSpec {
         write!(
             f,
             "{},origin={},axes={},max={},col={}",
-            self.algorithm, self.origin, self.axes, self.max_iter, self.colourer
+            self.alg_spec.algorithm,
+            self.origin,
+            self.axes,
+            self.alg_spec.max_iter,
+            self.alg_spec.colourer
         )
     }
 }
@@ -290,7 +312,7 @@ impl Display for TileSpec {
 mod tests {
     use crate::{
         colouring,
-        fractal::{self, tilespec::SplitMethod, Location, Point, Scalar, Size, TileSpec},
+        fractal::{self, Location, Point, Scalar, Size, TileSpec},
         util::Rect,
     };
     use approx::assert_relative_eq;
@@ -419,14 +441,13 @@ mod tests {
             0,
             "This test requires a test spec that is a multiple of {TEST_HEIGHT} pixels high"
         );
-        let result = spec
-            .split(SplitMethod::RowsOfHeight(TEST_HEIGHT), 0)
-            .unwrap();
+        let result = spec.split(TEST_HEIGHT, 0).unwrap();
         assert_eq!(
             result.len(),
             (spec.height() / TEST_HEIGHT) as usize,
             "Wrong number of output strips"
         );
+        assert!(strips_in_order(&result));
         sanity_check_strips(&spec, &result, TEST_HEIGHT, None);
     }
 
@@ -439,15 +460,18 @@ mod tests {
             remainder, 0,
             "This test requires a test spec that is not a multiple of {TEST_HEIGHT} pixels high"
         );
-        let result = spec
-            .split(SplitMethod::RowsOfHeight(TEST_HEIGHT), 0)
-            .unwrap();
+        let result = spec.split(TEST_HEIGHT, 0).unwrap();
         assert_eq!(
             result.len(),
             1 + (spec.height() / TEST_HEIGHT) as usize,
             "Wrong number of output strips"
         );
+        assert!(strips_in_order(&result));
         sanity_check_strips(&spec, &result, TEST_HEIGHT, Some(remainder));
+    }
+
+    fn strips_in_order(strips: &[TileSpec]) -> bool {
+        strips.windows(2).all(|w| w[0].y_offset < w[1].y_offset)
     }
 
     fn sanity_check_strips(
@@ -480,9 +504,8 @@ mod tests {
             assert_relative_eq!(ts.axes().im, expected_axes_length.im); // slippery in the remainder case!
 
             // pixel offset
-            let offset = ts.offset_within_plot().unwrap();
-            assert_eq!(offset.width, 0);
-            assert!(offset.height <= spec.height());
+            let offset = ts.y_offset().unwrap();
+            assert!(offset <= spec.height());
             // pixel dimensions
             assert_eq!(ts.width(), spec.width());
             let expected_height = remainder_height.unwrap_or(test_height);

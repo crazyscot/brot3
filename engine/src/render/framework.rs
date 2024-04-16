@@ -4,7 +4,7 @@
 use std::ffi::OsStr;
 
 use crate::colouring::Instance;
-use crate::fractal::Tile;
+use crate::fractal::{Tile, TileSpec};
 
 use anyhow;
 use strum_macros::{Display, EnumDiscriminants, EnumMessage, FromRepr, IntoStaticStr};
@@ -49,8 +49,22 @@ impl crate::util::listable::Listable for Selection {}
 /// The trait knows nothing about output or buffering; the implementation is responsible for setting that up.
 #[enum_delegate::register]
 pub trait Renderer {
-    /// Renders fractal data and sends it to its output
-    fn render_file(&self, filename: &str, data: &Tile, colourer: Instance) -> anyhow::Result<()>;
+    /// Renders fractal data and sends it to its output.
+    /// Data tiles must be in correct order for output (they are generated in order, so this should be no imposition)
+    fn render_file(
+        &self,
+        filename: &str,
+        spec: &TileSpec,
+        data: &[Tile],
+        colourer: Instance,
+    ) -> anyhow::Result<()>;
+
+    /// A sanity check that the input tiles are in the correct order
+    fn check_ordering(&self, tiles: &[Tile]) -> bool {
+        tiles
+            .windows(2)
+            .all(|w| w[0].y_offset.unwrap_or(0) < w[1].y_offset.unwrap_or(0))
+    }
 }
 
 /// Factory method for renderers
