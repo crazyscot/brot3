@@ -116,17 +116,25 @@ fn do_save_inner(
     let render_selection: render::Selection =
         *autodetect_extension(filename_osstr).context("Unknown file extension")?;
     let renderer = render::factory(render_selection);
+    let time0 = SystemTime::now();
     let splits = spec.split(5, 0)?;
-    let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, 0)).collect();
+    let mut tiles: Vec<Tile> = Vec::new();
+    splits
+        .par_iter()
+        .map(|ts| Tile::new(ts, 0))
+        .collect_into_vec(&mut tiles);
     let time1 = SystemTime::now();
-    tiles.par_iter_mut().for_each(|t| t.plot());
+    tiles
+        .par_iter_mut()
+        .for_each(brot3_engine::fractal::Tile::plot);
     // SOMEDAY: Consider progress reporting
     let time2 = SystemTime::now();
     let result = renderer.render_file(filename_osstr, spec, &tiles, colourer);
     let time3 = SystemTime::now();
     if false {
         println!(
-            "plotted in {:?}, rendered in {:?}",
+            "prepared in {:?}, plotted in {:?}, rendered in {:?}",
+            time1.duration_since(time0).unwrap_or_default(),
             time2.duration_since(time1).unwrap_or_default(),
             time3.duration_since(time2).unwrap_or_default(),
         )

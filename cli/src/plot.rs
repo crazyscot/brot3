@@ -235,7 +235,11 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     } else {
         spec.split(args.strip_size, debug)?
     };
-    let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
+    let mut tiles: Vec<Tile> = Vec::new();
+    splits
+        .par_iter()
+        .map(|ts| Tile::new(ts, debug))
+        .collect_into_vec(&mut tiles);
     let time1 = SystemTime::now();
     tiles
         .par_iter_mut()
