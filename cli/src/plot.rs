@@ -169,6 +169,16 @@ pub(crate) struct Args {
     /// Measures and outputs the time to complete various parts of the process.
     #[arg(long, display_order(900), help_heading("Developer options"))]
     pub(crate) show_timing: bool,
+
+    /// The number of rows per render strip
+    #[arg(
+        long,
+        display_order(900),
+        help_heading("Developer options"),
+        default_value = "10",
+        value_name = "PIXELS"
+    )]
+    pub(crate) strip_size: u32,
 }
 
 fn check_fix_axes(input: Point) -> anyhow::Result<Point> {
@@ -223,7 +233,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let splits: Vec<TileSpec> = if args.no_split {
         vec![spec.clone()]
     } else {
-        spec.split(50, debug)?
+        spec.split(args.strip_size, debug)?
     };
     let mut tiles: Vec<Tile> = splits.iter().map(|ts| Tile::new(ts, debug)).collect();
     let time1 = SystemTime::now();
