@@ -17,6 +17,7 @@ impl Renderer for Csv {
         tiles: &[Tile],
         _: Instance,
     ) -> anyhow::Result<()> {
+        anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
         let mut output = Filename::open_for_writing(filename)?;
         for t in tiles {
             output.write_all(t.to_string().as_bytes())?;
@@ -40,6 +41,7 @@ impl Renderer for AsciiArt {
         tiles: &[Tile],
         _: Instance,
     ) -> anyhow::Result<()> {
+        anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
         let mut output = Filename::open_for_writing(filename)?;
         // Preprocess: Find the range of output levels, discounting INF.
         let iter = tiles

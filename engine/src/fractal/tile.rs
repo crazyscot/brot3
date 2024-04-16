@@ -18,7 +18,7 @@ pub struct Tile {
     /// Specification of this plot
     pub spec: TileSpec,
     /// If present, this tile is a strip of a larger plot; this is its Y offset in pixels, relative to the TOP LEFT of the plot.
-    y_offset: Option<u32>,
+    pub y_offset: Option<u32>,
 }
 
 impl Tile {

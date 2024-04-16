@@ -58,6 +58,13 @@ pub trait Renderer {
         data: &[Tile],
         colourer: Instance,
     ) -> anyhow::Result<()>;
+
+    /// A sanity check that the input tiles are in the correct order
+    fn check_ordering(&self, tiles: &[Tile]) -> bool {
+        tiles
+            .windows(2)
+            .all(|w| w[0].y_offset.unwrap_or(0) < w[1].y_offset.unwrap_or(0))
+    }
 }
 
 /// Factory method for renderers

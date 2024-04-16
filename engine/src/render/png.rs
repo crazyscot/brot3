@@ -80,6 +80,7 @@ impl Renderer for Png {
         tiles: &[Tile],
         colourer: Instance,
     ) -> anyhow::Result<()> {
+        anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
         let handle = Filename::open_for_writing(filename)?;
         let bw = Box::new(BufWriter::new(handle));
         Png::render_png(spec, tiles, colourer, bw).with_context(|| "Failed to render PNG")?;
