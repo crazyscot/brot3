@@ -19,6 +19,7 @@ heck = "0.5.0"
 num-complex = "0.4.5"
 palette = "0.7.5"
 png = { workspace = true }
+rayon = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 

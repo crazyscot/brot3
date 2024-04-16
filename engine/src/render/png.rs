@@ -8,6 +8,7 @@ use crate::util::filename::Filename;
 
 use anyhow::{Context, Result};
 use palette::Srgb;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::io::BufWriter;
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -64,7 +65,7 @@ impl Png {
 
         let mut png_writer = encoder.write_header()?;
         let image_data = tiles
-            .iter()
+            .par_iter()
             .flat_map(|t| Self::render_rgba(t, colourer))
             .collect::<Vec<u8>>();
         png_writer.write_image_data(&image_data)?;
