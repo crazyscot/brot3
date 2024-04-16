@@ -231,18 +231,15 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         .par_iter_mut()
         .for_each(brot3_engine::fractal::Tile::plot);
     let time2 = SystemTime::now();
-    let time3 = SystemTime::now();
 
-    println!("{spec}");
     let result = renderer.render_file(&args.output_filename, &spec, &tiles, colourer);
-    let time4 = SystemTime::now();
+    let time3 = SystemTime::now();
     if args.show_timing {
         println!(
-            "times: prepare {:?}, plot {:?}, join {:?}, render {:?}",
+            "times: prepare {:?}, plot {:?} render {:?}",
             time1.duration_since(time0).unwrap_or_default(),
             time2.duration_since(time1).unwrap_or_default(),
             time3.duration_since(time2).unwrap_or_default(),
-            time4.duration_since(time3).unwrap_or_default(),
         );
     }
     result

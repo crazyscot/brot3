@@ -2,9 +2,8 @@
 
 use super::{Algorithm, Point, PointData, TileSpec};
 
-use anyhow::ensure;
 use num_complex::ComplexFloat;
-use std::{cmp::max, fmt};
+use std::fmt;
 
 /// A section of a fractal plot
 #[derive(Debug)]
@@ -31,7 +30,7 @@ impl Tile {
         new1
     }
 
-    /// Internal constructor used by `new()` and `join()`
+    /// Internal constructor
     fn new_internal(spec: &TileSpec, debug: u8) -> Self {
         Self {
             debug,
@@ -41,23 +40,6 @@ impl Tile {
             spec: spec.clone(),
             y_offset: spec.y_offset(),
         }
-    }
-
-    /// Quasi-constructor: Reassembles the tiles of a split plot into a single plot
-    /// N.B. Data is stolen from the passed-in tiles!
-    pub fn join(spec: &TileSpec, tiles: &mut Vec<Tile>) -> anyhow::Result<Tile> {
-        ensure!(!tiles.is_empty(), "No tiles given to join");
-        // TODO: Might be nice if we could ensure that all data points were covered i.e. no tiles are missing...
-
-        let mut result = Tile::new_internal(spec, 0);
-        result.max_iter_plotted = tiles.iter().fold(0, |b, t| max(b, t.max_iter_plotted));
-
-        // Tiles need to be sorted by offset
-        tiles.sort_by(|a, b| a.y_offset.unwrap_or(0).cmp(&b.y_offset.unwrap_or(0)));
-        for t in tiles {
-            result.point_data.append(&mut t.point_data);
-        }
-        Ok(result)
     }
 
     /// Initialises the data for this tile
@@ -134,44 +116,5 @@ impl fmt::Display for Tile {
             writeln!(f)?;
         }
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{
-        colouring::{self, testing::White},
-        fractal::{self, framework::Zero, Location, Point, Size, TileSpec},
-        util::Rect,
-    };
-
-    use super::Tile;
-
-    const ZERO_ALG: fractal::Instance = fractal::Instance::Zero(Zero {});
-    const ZERO: Point = Point { re: 0.0, im: 0.0 };
-    const ONE: Point = Point { re: 1.0, im: 1.0 };
-    const WHITE: colouring::Instance = colouring::Instance::White(White {});
-
-    #[test]
-    fn rejoin() {
-        let spec = TileSpec::new(
-            Location::Origin(ZERO),
-            Size::AxesLength(ONE),
-            Rect::<u32> {
-                width: 100,
-                height: 101, // not dividable by 10
-            },
-            ZERO_ALG,
-            256,
-            WHITE,
-        );
-        let split = spec.split(10, 0);
-        let mut tiles: Vec<Tile> = split.unwrap().iter().map(|ts| Tile::new(ts, 0)).collect();
-        for t in &mut tiles {
-            t.plot();
-        }
-        let result = Tile::join(&spec, &mut tiles).unwrap();
-        let data = result.result();
-        assert_eq!(data.len(), (spec.height() * spec.width()) as usize);
     }
 }
