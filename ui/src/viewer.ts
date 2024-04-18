@@ -132,7 +132,7 @@ export class Viewer {
       let vp = viewer.viewport;
       var zoom: number = vp.getZoom(true);
       let position = self.get_position();
-      self.hud.update(zoom, position.origin, position.centre(), position.axes_length);
+      self.hud.update(zoom, position.origin, position.centre(), position.axes_length, self.width, self.height);
       /*
       let checkZoom = self.current_metadata.axes_length.re / axesComplex.re;
       console.log(`real: meta ${self.current_metadata.axes_length.re}, axis ${axesComplex.re}, zoom ${zoom}, computed zoom = ${checkZoom}`);
@@ -337,7 +337,7 @@ export class Viewer {
   // Copy the current position into the Go To Position form
   copy_current_position() {
     let pos = this.get_position();
-    this.hud.set_go_to_position(pos);
+    this.hud.set_go_to_position(pos, this.width, this.height);
   }
 
   get_max_iter() {

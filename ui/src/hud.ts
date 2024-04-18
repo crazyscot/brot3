@@ -4,10 +4,46 @@
 import { ClickEventListener, element_is_displayed, toggle_tr_visibility } from './dom_util'
 import { EnginePoint, FractalView } from './engine_types'
 
-function maybe_leading(symbol: string, n: number): string {
+// Formatting helpers
+
+/// Formats a float with a given number of significant figures (decimal precision).
+/// @positive@ is prepended to numbers >= 0.0.
+/// @precision@ is the required number of significant figures.
+function format_float_with_precision(positive: string, n: number, precision: number): string {
+    let strnum;
+    if (precision === undefined) {
+        strnum = `${n}`;
+    } else {
+        if (n < 1e-3) {
+            strnum = `${n.toExponential(precision)}`;
+        } else {
+            strnum = `${n.toPrecision(precision)}`;
+        }
+    }
     if (n >= 0.0)
-        return `${symbol}${n}`;
-    return `${n}`;
+        return `${positive}${strnum}`;
+    return `${strnum}`;
+}
+
+/// Formats a float with a given (fixed) number of decimal places.
+/// @positive@ is prepended to numbers >= 0.0.
+function format_float_fixed(positive: string, n: number, decimal_places: number): string {
+    let strnum = `${n.toFixed(decimal_places)}`;
+    if (n >= 0.0)
+        return `${positive}${strnum}`;
+    return `${strnum}`;
+}
+
+/// Computes the decimal precision (number of significant figures) required for a given canvas size.
+function axes_precision_for_canvas(canvas_height: number, canvas_width: number): number {
+    // Rationale: If a change in axes would move us <1 pixel it has no visible effect.
+    return Math.ceil(Math.log10(Math.max(canvas_height, canvas_width)));
+}
+/// Computes the number of decimal places required for a given canvas and axes size.
+function decimal_places_for_axes(canvas_height: number, canvas_width: number, axes_length: EnginePoint): number {
+    // Rationale: If a change in position would move us <1 pixel it has no visible effect.
+    let pixel_size = new EnginePoint(axes_length.re / canvas_width, axes_length.im / canvas_height);
+    return Math.ceil(-Math.log10(Math.max(pixel_size.re, pixel_size.im)));
 }
 
 export class HeadsUpDisplay {
@@ -111,14 +147,16 @@ export class HeadsUpDisplay {
         );
     }
 
-    update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint) {
-        this.zoom!.innerHTML = `${zoom.toPrecision(4)} &times;`;
-        this.axesReal!.innerHTML = maybe_leading("&nbsp;", axes.re);
-        this.axesImag!.innerHTML = maybe_leading("&nbsp;", axes.im);
-        this.centreReal!.innerHTML = maybe_leading("&nbsp;", centre.re);
-        this.centreImag!.innerHTML = maybe_leading("+", centre.im);
-        this.originReal!.innerHTML = maybe_leading("&nbsp;", origin.re);
-        this.originImag!.innerHTML = maybe_leading("+", origin.im);
+    update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint, canvas_width: number, canvas_height: number) {
+        let axes_precision = axes_precision_for_canvas(canvas_height, canvas_width);
+        let position_dp = decimal_places_for_axes(canvas_height, canvas_width, axes);
+        this.zoom!.innerHTML = `${zoom.toPrecision(axes_precision)} &times;`;
+        this.axesReal!.innerHTML = format_float_with_precision("&nbsp;", axes.re, axes_precision);
+        this.axesImag!.innerHTML = format_float_with_precision("&nbsp;", axes.im, axes_precision);
+        this.centreReal!.innerHTML = format_float_fixed("&nbsp;", centre.re, position_dp);
+        this.centreImag!.innerHTML = format_float_fixed("+", centre.im, position_dp);
+        this.originReal!.innerHTML = format_float_fixed("&nbsp;", origin.re, position_dp);
+        this.originImag!.innerHTML = format_float_fixed("+", origin.im, position_dp);
     }
 
     toggle_visibility() {
@@ -127,20 +165,22 @@ export class HeadsUpDisplay {
     }
 
     // Copy the current position into the Go To Position form
-    set_go_to_position(pos: FractalView) {
+    set_go_to_position(pos: FractalView, canvas_width: number, canvas_height: number) {
+        let axes_precision = axes_precision_for_canvas(canvas_width, canvas_height);
         let f = document.getElementById("enter_axesReal")! as HTMLInputElement;
-        f.value = pos.axes_length.re.toString();
+        f.value = format_float_with_precision("", pos.axes_length.re, axes_precision);
+        let position_dp = decimal_places_for_axes(canvas_height, canvas_width, pos.axes_length);
 
         if (this.origin_is_currently_visible()) {
             f = document.getElementById("enter_originReal")! as HTMLInputElement;
-            f.value = pos.origin.re.toString();
+            f.value = format_float_fixed("", pos.origin.re, position_dp);
             f = document.getElementById("enter_originImag")! as HTMLInputElement;
-            f.value = pos.origin.im.toString();
+            f.value = format_float_fixed("", pos.origin.im, position_dp);
         } else {
             f = document.getElementById("enter_centreReal")! as HTMLInputElement;
-            f.value = pos.centre().re.toString();
+            f.value = format_float_fixed("", pos.centre().re, position_dp);
             f = document.getElementById("enter_centreImag")! as HTMLInputElement;
-            f.value = pos.centre().im.toString();
+            f.value = format_float_fixed("", pos.centre().im, position_dp);
         }
 
         // clear out: Axes Im, Zoom
