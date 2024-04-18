@@ -96,6 +96,9 @@ export class FractalView {
             this.axes_length = axes;
         }
     }
+    toString(): string {
+        return `FV[or=${this.origin},ax=${this.axes_length}]`;
+    }
 }
 
 /// A complete spec for a fractal plot the user wants drawn.
