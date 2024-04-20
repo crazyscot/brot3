@@ -161,6 +161,10 @@ pub(crate) struct Args {
     )]
     pub(crate) output_type: Option<render::Selection>,
 
+    /// Prints the plot info string to stdout
+    #[arg(long, display_order(130), help_heading("Output"))]
+    pub(crate) info: bool,
+
     /// Prevents the internal processing of the plot as a series of strips.
     /// This disables parallelisation and may lead to slightly different numerical output as the plot co-ordinates shift subtly.
     #[arg(long, display_order(900), help_heading("Developer options"))]
@@ -228,6 +232,10 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         Ok(*v)
     }?;
     let renderer = render::factory(render_selection);
+
+    if args.info {
+        println!("{spec}");
+    }
 
     let time0 = SystemTime::now();
     let splits: Vec<TileSpec> = if args.no_split {
