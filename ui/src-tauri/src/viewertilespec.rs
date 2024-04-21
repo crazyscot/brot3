@@ -27,6 +27,8 @@ pub struct ViewerTileSpec {
     pub height: u32,
     /// Iteration limit
     pub max_iter: u32,
+    /// Selected fractal
+    pub fractal: String,
 }
 
 impl fmt::Display for ViewerTileSpec {
@@ -39,8 +41,7 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
     type Error = anyhow::Error;
 
     fn try_from(spec: &ViewerTileSpec) -> anyhow::Result<Self> {
-        let alg_requested = "Original"; // TODO this will come from spec
-        let algorithm = fractal::decode(alg_requested)?;
+        let algorithm = fractal::decode(&spec.fractal)?;
         let col_requested = "LogRainbow"; // TODO this will come from spec
         let colourer = colouring::decode(col_requested)?;
         anyhow::ensure!(spec.level < 64, "zoom too deep");
