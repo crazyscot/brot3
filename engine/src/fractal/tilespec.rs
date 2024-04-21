@@ -292,6 +292,62 @@ impl TileSpec {
     pub fn max_iter_requested(&self) -> u32 {
         self.alg_spec.max_iter
     }
+
+    /// Computes the number of decimal significant figures needed to represent the axes for a given canvas size
+    #[must_use]
+    fn axes_precision_for_plot(canvas: Rect<u32>) -> usize {
+        // Rationale: If a change in axes would move us <1 pixel it has no visible effect.
+        #![allow(clippy::cast_lossless)] // cast to Scalar; we assume that pixel size will be precisely representable
+        #![allow(clippy::cast_possible_truncation)] // cast to usize; we know that log(f64) fits into a u32
+        #![allow(clippy::cast_sign_loss)] // cast to usize; we know that log(positive f64) is itself positive
+        let max_dim = std::cmp::max(canvas.height, canvas.width) as Scalar;
+        max_dim.log10().ceil() as usize
+    }
+
+    /// Computes the number of decimal significant figures needed to represent the axes of this tile
+    #[must_use]
+    pub fn axes_precision(&self) -> usize {
+        TileSpec::axes_precision_for_plot(self.size_in_pixels)
+    }
+
+    fn format_origin(&self) -> String {
+        use crate::util::float_format::DisplayDecimalPlacesTrimmed;
+        let mut buf = String::new();
+        let dp = self.position_decimal_places();
+        self.origin.fmt_with_dp(&mut buf, dp).unwrap_or_default();
+        buf
+    }
+
+    /// Computes the number of decimal places required for a given canvas and axes size
+    #[must_use]
+    fn position_decimal_places_for_plot(canvas: Rect<u32>, axes: Point) -> usize {
+        #![allow(clippy::cast_lossless)] // casts to Scalar; we assume that pixel size will be precisely representable
+        #![allow(clippy::cast_possible_truncation)] // cast to usize; we know that log(f64) fits into a u32
+        #![allow(clippy::cast_sign_loss)] // cast to usize; we know that log(positive f64) is itself positive
+
+        // Rationale: If a change in position would move us <1 pixel it has no visible effect.
+        let pixel_size = Point::new(
+            axes.re / canvas.width as Scalar,
+            axes.im / canvas.height as Scalar,
+        );
+        let log_pixel = -f64::max(pixel_size.re, pixel_size.im).log10();
+        log_pixel.ceil() as usize
+    }
+
+    /// Computes the number of decimal places needed to represent the position of this tile
+    #[must_use]
+    fn position_decimal_places(&self) -> usize {
+        TileSpec::position_decimal_places_for_plot(self.size_in_pixels, self.axes)
+    }
+
+    fn format_axes(&self) -> String {
+        use crate::util::float_format::DisplaySignificantFigures;
+        let mut buf = String::new();
+        self.axes
+            .fmt_with_sf(&mut buf, self.axes_precision())
+            .unwrap_or_default();
+        buf
+    }
 }
 
 impl Display for TileSpec {
@@ -300,8 +356,8 @@ impl Display for TileSpec {
             f,
             "{},origin={},axes={},max={},col={}",
             self.alg_spec.algorithm,
-            self.origin,
-            self.axes,
+            self.format_origin(),
+            self.format_axes(),
             self.alg_spec.max_iter,
             self.alg_spec.colourer
         )
@@ -587,8 +643,8 @@ mod tests {
     #[test]
     fn stringify() {
         let uut = TileSpec::new(
-            Location::Origin(Point { re: 0.0, im: 0.5 }),
-            Size::AxesLength(Point { re: 1.0, im: 2.0 }),
+            Location::Origin(Point { re: 0.0, im: -0.5 }),
+            Size::AxesLength(Point { re: -1.0, im: 2.0 }),
             Rect::new(200, 400),
             fractal::framework::factory(fractal::framework::Selection::Original),
             256,
@@ -597,7 +653,7 @@ mod tests {
         let result = uut.to_string();
         assert_eq!(
             result,
-            "original,origin=0+0.5i,axes=1+2i,max=256,col=black-fade"
+            "original,origin=0-0.5i,axes=-1+2i,max=256,col=black-fade"
         );
     }
 }
