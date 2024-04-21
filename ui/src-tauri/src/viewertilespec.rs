@@ -28,7 +28,7 @@ pub struct ViewerTileSpec {
     /// Iteration limit
     pub max_iter: u32,
     /// Selected fractal
-    pub fractal: String,
+    pub algorithm: String,
 }
 
 impl fmt::Display for ViewerTileSpec {
@@ -41,7 +41,7 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
     type Error = anyhow::Error;
 
     fn try_from(spec: &ViewerTileSpec) -> anyhow::Result<Self> {
-        let algorithm = fractal::decode(&spec.fractal)?;
+        let algorithm = fractal::decode(&spec.algorithm)?;
         let col_requested = "LogRainbow"; // TODO this will come from spec
         let colourer = colouring::decode(col_requested)?;
         anyhow::ensure!(spec.level < 64, "zoom too deep");
@@ -85,20 +85,28 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::OnceLock;
+
     use super::ViewerTileSpec;
     use approx::assert_relative_eq;
     use brot3_engine::fractal::{self, Algorithm, Point, TileSpec};
 
-    const DEFAULT_SPEC: ViewerTileSpec = ViewerTileSpec {
-        serial: 42,
-        level: 9,
-        dx: 0,
-        dy: 0,
-        width: 256,
-        height: 256,
-        max_iter: 1024,
-        // TODO this will be Original fractal
-    };
+    static DEFAULT_SPEC_STORAGE: OnceLock<ViewerTileSpec> = OnceLock::new();
+
+    fn default_spec() -> ViewerTileSpec {
+        DEFAULT_SPEC_STORAGE
+            .get_or_init(|| ViewerTileSpec {
+                serial: 42,
+                level: 9,
+                dx: 0,
+                dy: 0,
+                width: 256,
+                height: 256,
+                max_iter: 1024,
+                algorithm: "Original".to_string(),
+            })
+            .clone()
+    }
 
     #[test]
     fn convert_level_9() {
@@ -114,7 +122,7 @@ mod tests {
                 im: alg.default_axes().im,
             };
         let alg_end = alg_origin + alg.default_axes();
-        let mut td = DEFAULT_SPEC;
+        let mut td = default_spec();
         {
             // tile(0,0) top-left (NOT ORIGIN) should match the overall top-left; its bottom-right should be the centre
             let ts = TileSpec::try_from(&td).unwrap();
@@ -146,7 +154,7 @@ mod tests {
         let alg_origin = alg_centre - 0.5 * alg.default_axes();
         let alg_end = alg_origin + alg.default_axes();
 
-        let mut td = DEFAULT_SPEC;
+        let mut td = default_spec();
         td.level = 13;
         // 1. check tile (0,0) has the same top left as overall
         {
@@ -196,6 +204,7 @@ mod tests {
             width: 256,
             height: 256,
             max_iter: 1024,
+            algorithm: "Original".into(),
         };
         TileSpec::try_from(&td).expect_err("should have failed");
         td.level = 10;
