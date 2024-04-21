@@ -112,7 +112,7 @@ pub fn decode(request: &str) -> anyhow::Result<Instance> {
 #[cfg(test)]
 mod tests {
     use super::Selection;
-    use crate::util::listable::{self, list};
+    use crate::util::listable::{self, list_kebab_case};
 
     #[test]
     fn iter_works() {
@@ -127,7 +127,7 @@ mod tests {
     #[test]
     fn discriminant_naming() {
         // We use kebab case in the CLI, so ensure that the helper output is in kebab case.
-        let colourers: Vec<_> = list::<super::Selection>().collect();
+        let colourers: Vec<_> = list_kebab_case::<super::Selection>().collect();
         assert!(colourers.iter().any(|it| it.name == "linear-rainbow"));
         assert!(!colourers.iter().any(|it| it.name == "LinearRainbow"));
     }

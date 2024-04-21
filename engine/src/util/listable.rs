@@ -27,17 +27,28 @@ pub struct ListItem {
 }
 
 /// Returns an iterator of available items for a given type and their descriptions.
+/// Item names are returned in kebab case.
 /// This call respects the ``hide_from_list`` flag.
-pub fn list<T: Listable>() -> impl Iterator<Item = ListItem> {
+pub fn list_kebab_case<T: Listable>() -> impl Iterator<Item = ListItem> {
     elements::<T>(false).map(|item| ListItem {
         name: item.to_string().to_kebab_case(),
         description: item.get_documentation().unwrap_or_default().to_string(),
     })
 }
 
+/// Returns an iterator of available items for a given type and their descriptions.
+/// Item names are returned in original case.
+/// This call respects the ``hide_from_list`` flag.
+pub fn list_original_case<T: Listable>() -> impl Iterator<Item = ListItem> {
+    elements::<T>(false).map(|item| ListItem {
+        name: item.to_string(),
+        description: item.get_documentation().unwrap_or_default().to_string(),
+    })
+}
+
 /// Prints a list of available items for a given type, respecting the ``hide_from_list`` flag
 pub fn print_list<T: Listable>() {
-    let v: Vec<ListItem> = list::<T>().collect();
+    let v: Vec<ListItem> = list_kebab_case::<T>().collect();
 
     let longest = v.iter().map(|item| item.name.len()).max().unwrap_or(1);
 
