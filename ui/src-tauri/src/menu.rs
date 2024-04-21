@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use serde::Serialize;
-use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Submenu, WindowMenuEvent};
+use tauri::{CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, WindowMenuEvent};
 
 #[cfg(target_os = "macos")]
 use tauri::AboutMetadata;
@@ -13,11 +13,19 @@ use crate::util::GenericError;
 /// Twin of JS menu.DisplayMessageDetail
 pub struct DisplayMessageDetail {
     what: String,
+    detail: String,
 }
 impl DisplayMessageDetail {
     pub fn new(what: &str) -> DisplayMessageDetail {
         DisplayMessageDetail {
-            what: what.to_string(),
+            what: what.into(),
+            detail: "".into(),
+        }
+    }
+    pub fn new_with_detail(what: &str, detail: &str) -> DisplayMessageDetail {
+        DisplayMessageDetail {
+            what: what.into(),
+            detail: detail.into(),
         }
     }
 }
@@ -128,6 +136,8 @@ impl ApplicationMenu {
         window_menu = window_menu.add_native_item(MenuItem::CloseWindow);
         menu = menu.add_submenu(Submenu::new("Window", window_menu));
 
+        let fractals = self.build_fractal_menu();
+
         // brot3 custom menus:
         menu.add_submenu(Submenu::new(
             "Display",
@@ -137,11 +147,23 @@ impl ApplicationMenu {
                 .add_native_item(MenuItem::Separator)
                 .add_item(toggle_origin_centre),
         ))
-        .add_submenu(Submenu::new("Fractal", Menu::new().add_item(show_max_iter)))
+        .add_submenu(fractals)
+        .add_submenu(Submenu::new("Render", Menu::new().add_item(show_max_iter)))
         .add_submenu(Submenu::new(
             "Help",
             Menu::new().add_item(CustomMenuItem::new("show_about".to_string(), "About")),
         ))
+    }
+
+    fn build_fractal_menu(&self) -> Submenu {
+        use brot3_engine::{fractal, util::listable};
+        let fractals = listable::list_original_case::<fractal::Selection>().map(|it| {
+            let id = format!("fractal/{}", it.name);
+            // One day we might add tooltips using it.description, but not currently supported by Tauri
+            MenuEntry::CustomItem(CustomMenuItem::new(id, it.name))
+        });
+        let menu = Menu::with_items(fractals);
+        Submenu::new("Fractal", menu)
     }
 
     pub(crate) fn on_menu(&self, event: WindowMenuEvent) {
@@ -158,13 +180,23 @@ impl ApplicationMenu {
 
     fn on_menu_guts(&self, event: &WindowMenuEvent) -> anyhow::Result<()> {
         let id = event.menu_item_id();
-        self.display_message(event, id)
+        if id.starts_with("fractal/") {
+            let selection = id.split_at("fractal/".len()).1;
+            self.send_display_message(
+                event,
+                &DisplayMessageDetail::new_with_detail("fractal", selection),
+            )
+        } else {
+            self.send_display_message(event, &DisplayMessageDetail::new(id))
+        }
     }
 
-    fn display_message(&self, event: &WindowMenuEvent, what: &str) -> anyhow::Result<()> {
-        event
-            .window()
-            .emit("display_message", DisplayMessageDetail::new(what))?;
+    fn send_display_message(
+        &self,
+        event: &WindowMenuEvent,
+        msg: &DisplayMessageDetail,
+    ) -> anyhow::Result<()> {
+        event.window().emit("display_message", msg)?;
         Ok(())
     }
 }

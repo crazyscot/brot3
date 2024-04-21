@@ -13,8 +13,10 @@ import { IterationLimitBox } from './max_iter.ts'
 // Twin of rust menu::DisplayMessageDetail
 class DisplayMessageDetail {
     what: string;
-    constructor(what: string) {
+    detail: string;
+    constructor(what: string, detail: string | undefined) {
         this.what = what;
+        this.detail = detail || "";
     }
 }
 
@@ -49,7 +51,8 @@ export class Menu {
     async bind_events() {
         let self = this;
         await listen<DisplayMessageDetail>('display_message', (event) => {
-            switch (event.payload.what) {
+            let id = event.payload.what;
+            switch (id) {
                 case "show_about":
                     self.about!.show();
                     break;
@@ -70,6 +73,9 @@ export class Menu {
                     break;
                 case "show_max_iter":
                     this.max_iter.show();
+                    break;
+                case "fractal":
+                    this.viewer.set_algorithm(event.payload.detail);
                     break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);

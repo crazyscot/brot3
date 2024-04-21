@@ -16,7 +16,8 @@ export class TileSpec {
     width: number;
     height: number;
     max_iter: number;
-    constructor(serial: number, data: TilePostData, width: number, height: number, max_iter: number) {
+    algorithm: string;
+    constructor(serial: number, data: TilePostData, width: number, height: number, algorithm: string, max_iter: number) {
         this.serial = serial; // Always obtain from gSerial.next() !
         this.level = data?.level || 0;
         this.dx = data?.dx || 0;
@@ -24,6 +25,7 @@ export class TileSpec {
         this.width = width;
         this.height = height;
         this.max_iter = max_iter;
+        this.algorithm = algorithm;
     }
 }
 
@@ -117,5 +119,9 @@ export class RenderSpec {
         this.width = width;
         this.height = height;
         this.maxiter = max_iter;
+    }
+    set_algorithm(algorithm: string): RenderSpec {
+        this.algorithm = algorithm;
+        return this;
     }
 }
