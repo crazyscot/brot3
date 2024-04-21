@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use serde::Serialize;
-use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Submenu, WindowMenuEvent};
+use tauri::{CustomMenuItem, Manager, Menu, MenuEntry, MenuItem, Submenu, WindowMenuEvent};
 
 #[cfg(target_os = "macos")]
 use tauri::AboutMetadata;
@@ -13,11 +13,19 @@ use crate::util::GenericError;
 /// Twin of JS menu.DisplayMessageDetail
 pub struct DisplayMessageDetail {
     what: String,
+    detail: String,
 }
 impl DisplayMessageDetail {
     pub fn new(what: &str) -> DisplayMessageDetail {
         DisplayMessageDetail {
-            what: what.to_string(),
+            what: what.into(),
+            detail: "".into(),
+        }
+    }
+    pub fn new_with_detail(what: &str, detail: &str) -> DisplayMessageDetail {
+        DisplayMessageDetail {
+            what: what.into(),
+            detail: detail.into(),
         }
     }
 }

@@ -13,8 +13,10 @@ import { IterationLimitBox } from './max_iter.ts'
 // Twin of rust menu::DisplayMessageDetail
 class DisplayMessageDetail {
     what: string;
-    constructor(what: string) {
+    detail: string;
+    constructor(what: string, detail: string | undefined) {
         this.what = what;
+        this.detail = detail || "";
     }
 }
 
