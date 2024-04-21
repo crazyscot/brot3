@@ -98,6 +98,7 @@ export class SaveSizeBox {
         let max_iter = this.viewer.get_max_iter();
         invoke('save_image_workflow', {
             spec: new RenderSpec(fixed.origin, fixed.axes_length, width, height, max_iter)
+                .set_algorithm(this.viewer.get_algorithm())
         });
     }
 

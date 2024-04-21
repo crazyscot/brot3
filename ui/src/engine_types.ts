@@ -120,4 +120,8 @@ export class RenderSpec {
         this.height = height;
         this.maxiter = max_iter;
     }
+    set_algorithm(algorithm: string): RenderSpec {
+        this.algorithm = algorithm;
+        return this;
+    }
 }

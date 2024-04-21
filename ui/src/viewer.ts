@@ -356,6 +356,9 @@ export class Viewer {
     this.redraw();
     this.osd.viewport.goHome();
   }
+  get_algorithm(): string {
+    return this.algorithm;
+  }
 
   // Force a redraw of all tiles because something important changed (colourer, max_iter, etc)
   private redraw() {
