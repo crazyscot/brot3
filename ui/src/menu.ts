@@ -37,7 +37,7 @@ export class Menu {
         // Bind form actions
         doc.getElementById("form_go_to_position")!.onsubmit = function (e) {
             e.preventDefault();
-            let destination = self.viewer.hud.parse_entered_position();
+            let destination = self.viewer.hud().parse_entered_position();
             self.viewer.go_to_position(destination);
         }
         doc.getElementById("action_copy_current_position")!.onclick = function (_e) {
@@ -57,16 +57,16 @@ export class Menu {
                     self.about!.show();
                     break;
                 case "toggle_position":
-                    this.viewer.hud.toggle_visibility();
+                    this.viewer.hud().toggle_visibility();
                     break;
                 case "go_to_position":
-                    this.viewer.hud.toggle_position_entry_panel()
+                    this.viewer.hud().toggle_position_entry_panel()
                     break;
                 case "toggle_origin_centre":
-                    this.viewer.hud.toggle_origin_centre();
+                    this.viewer.hud().toggle_origin_centre();
                     break;
                 case "save_image":
-                    this.save_size.save_at_one_size_or_other(this.viewer.width, this.viewer.height);
+                    this.save_size.save_at_one_size_or_other(this.viewer.width(), this.viewer.height());
                     break;
                 case "save_size":
                     this.save_size.show();

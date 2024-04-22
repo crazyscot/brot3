@@ -15,19 +15,22 @@ const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
 
 export class Viewer {
-  osd: any | null;  // OpenSeadragon.Viewer
-  redraw_event: number | undefined; // setTimeout / clearTimeout
-  unlisten_tile_complete: UnlistenFn | null = null;
-  unlisten_tile_error: UnlistenFn | null = null;
-  outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
-  hud: HeadsUpDisplay;
-  current_metadata: FractalView = new FractalView();
+  private osd: any | null;  // OpenSeadragon.Viewer
+  private redraw_event: number | undefined; // setTimeout / clearTimeout
+  private unlisten_tile_complete: UnlistenFn | null = null;
+  private unlisten_tile_error: UnlistenFn | null = null;
+  private outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
+  private hud_: HeadsUpDisplay;
+  private current_metadata: FractalView = new FractalView();
   private algorithm: string = "Original";
   private max_iter: number = 2048; // TODO: this will move into the tile source
 
   // width, height used by coordinate display
-  width: number = NaN;
-  height: number = NaN;
+  private width_: number = NaN;
+  private height_: number = NaN;
+  width(): number { return this.width_; }
+  height(): number { return this.height_; }
+  hud(): HeadsUpDisplay { return this.hud_; }
 
   constructor() {
     let self = this; // Closure helper
@@ -126,13 +129,13 @@ export class Viewer {
     }, true);
 
     // Zoom/Position indicator
-    this.hud = new HeadsUpDisplay(document);
+    this.hud_ = new HeadsUpDisplay(document);
     let viewer = this.osd;
     var updateIndicator = function () {
       let vp = viewer.viewport;
       var zoom: number = vp.getZoom(true);
       let position = self.get_position();
-      self.hud.update(zoom, position.origin, position.centre(), position.axes_length, self.width, self.height);
+      self.hud_.update(zoom, position.origin, position.centre(), position.axes_length, self.width_, self.height_);
       /*
       let checkZoom = self.current_metadata.axes_length.re / axesComplex.re;
       console.log(`real: meta ${self.current_metadata.axes_length.re}, axis ${axesComplex.re}, zoom ${zoom}, computed zoom = ${checkZoom}`);
@@ -166,7 +169,7 @@ export class Viewer {
     // We know that top left is webPoint 0,0; bottom right is W-1,H-1.
     // These are the web (pixel) coordinates.
     var topLeft = new OpenSeadragon.Point(0, 0);
-    var bottomRight = new OpenSeadragon.Point(this.width - 1, this.height - 1);
+    var bottomRight = new OpenSeadragon.Point(this.width_ - 1, this.height_ - 1);
     // Convert to viewport coordinates:
     var topLeftView = vp.pointFromPixelNoRotate(topLeft);
     var bottomRightView = vp.pointFromPixelNoRotate(bottomRight);
@@ -231,8 +234,8 @@ export class Viewer {
     let viewerElement = jQuery('#openseadragon');
     viewerElement.height(window.innerHeight);
     viewerElement.width(window.innerWidth);
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
+    this.width_ = window.innerWidth;
+    this.height_ = window.innerHeight;
     this.osd.viewport.resize({ x: window.innerWidth, y: window.innerHeight });
     this.osd.viewport.applyConstraints();
     console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
@@ -258,7 +261,7 @@ export class Viewer {
 
     let originComplex = undefined;
     let centreComplex = undefined;
-    if (this.hud.origin_is_currently_visible()) {
+    if (this.hud_.origin_is_currently_visible()) {
       originComplex = new EnginePoint(destination.originReal, destination.originImag);
       if (!Number.isFinite(originComplex.re) || !Number.isFinite(originComplex.im)) {
         throw new Error("Origin is required");
@@ -279,7 +282,7 @@ export class Viewer {
     let axesImag = destination.axesImag;
     let zoom = destination.zoom;
     // Assume square pixels.
-    let aspectRatio = this.width / this.height;
+    let aspectRatio = this.width_ / this.height_;
     if (Number.isFinite(axesReal)) {
       axesImag = axesReal / aspectRatio;
       zoom = this.current_metadata.axes_length.re / axesReal;
@@ -337,7 +340,7 @@ export class Viewer {
   // Copy the current position into the Go To Position form
   copy_current_position() {
     let pos = this.get_position();
-    this.hud.set_go_to_position(pos, this.width, this.height);
+    this.hud_.set_go_to_position(pos, this.width_, this.height_);
   }
 
   get_max_iter() {
