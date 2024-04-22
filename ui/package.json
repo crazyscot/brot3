@@ -12,11 +12,11 @@
     "@types/jquery": "^3.5.29",
     "@types/openseadragon": "^3.0.10",
     "typescript": "^5.4.5",
-    "vite": "^5.2.8",
-    "vite-plugin-static-copy": "^1.0.2"
+    "vite": "^5.2.10",
+    "vite-plugin-static-copy": "^1.0.3"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.5.3",
+    "@tauri-apps/api": "^1.5.4",
     "async-mutex": "^0.5.0",
     "jquery": "^3.7.1",
     "material-icons": "^1.13.12",
