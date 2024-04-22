@@ -14,6 +14,77 @@ var gSerial = new SerialAllocator();
 const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
 
+class EngineTileSource extends OpenSeadragon.TileSource {
+  private parent: Viewer;
+
+  constructor(parent: Viewer) {
+    super({
+      height: IMAGE_DIMENSION,
+      width: IMAGE_DIMENSION,
+      tileSize: TILE_SIZE,
+      minLevel: 8,
+      tileOverlap: 0,
+    });
+    this.parent = parent;
+  }
+
+  getTileUrl(level: number, x: number, y: number): string {
+    // TODO add colour (or we'll break cacheing!)
+    // TODO move alg, max_iter out of viewer into enginetilesource
+    return `${this.parent.get_algorithm()}/${level}/${x}-${y}/${this.parent.get_max_iter()}`;
+  }
+
+  // caution: @types/openseadragon 3.0.10 doesn't know about these functions
+  getTilePostData(level: number, x: number, y: number) {
+    return new TilePostData(level, x, y);
+  }
+
+  async downloadTileStart(context: any /* OpenSeadragon.ImageJob */) {
+    // tile dx and dy are the column and row numbers FOR THE ZOOM LEVEL.
+    // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
+    // => At zoom level X, the image is 2^X pixels across.
+
+    let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, this.parent.get_algorithm(), this.parent.get_max_iter());
+    context.userData = spec;
+    this.parent.add_outstanding_request(spec.serial, context);
+    invoke('start_tile', {
+      spec: spec
+    })
+      .catch((e) => {
+        context?.finish?.(null, null, e.toString());
+      });
+  }
+
+  downloadTileAbort(context: any /*OpenSeadragon.ImageJob*/) {
+    console.log(`OSD requested tile abort: tile #${context.userData.serial}`);
+    invoke('abort_tile', { serial: context.userData.serial })
+      .catch((e) => {
+        context.finish?.(null, null, e.toString());
+      });
+  }
+  createTileCache(cache: any/*CacheObject*/, data: any) {
+    cache._data = data;
+  }
+  destroyTileCache(cache: any/*CacheObject*/) {
+    cache._data = null;
+  }
+  getTileCacheData(cache: any/*CacheObject*/) {
+    return cache._data;
+  }
+  getTileCacheDataAsImage() {
+    // not implementing all the features brings limitations to the
+    // system, namely tile.getImage() will not work and also
+    // html-based drawing approach will not work
+    throw "getTileCacheDataAsImage not implemented";
+  }
+
+  getTileCacheDataAsContext2D(cache: any/*CacheObject*/) {
+    // our data is already context2D - what a luck!
+    return cache._data;
+  }
+
+}
+
 export class Viewer {
   private osd: any | null;  // OpenSeadragon.Viewer
   private redraw_event: number | undefined; // setTimeout / clearTimeout
@@ -22,7 +93,7 @@ export class Viewer {
   private outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   private hud_: HeadsUpDisplay;
   private current_metadata: FractalView = new FractalView();
-  private algorithm: string = "Original";
+  private algorithm: string = "Original"; // TODO: moves into tile source
   private max_iter: number = 2048; // TODO: this will move into the tile source
 
   // width, height used by coordinate display
@@ -34,6 +105,8 @@ export class Viewer {
 
   constructor() {
     let self = this; // Closure helper
+
+    let initialSource = new EngineTileSource(this);
 
     this.osd = OpenSeadragon({
       id: "openseadragon",
@@ -50,64 +123,7 @@ export class Viewer {
       zoomPerSecond: 2.0,
       toolbar: "topbar",
 
-      tileSources: {
-        height: IMAGE_DIMENSION,
-        width: IMAGE_DIMENSION,
-        tileSize: TILE_SIZE,
-        minLevel: 8,
-        tileOverlap: 0,
-
-        getTileUrl: function (level: number, x: number, y: number) {
-          // TODO add colour (or we'll break cacheing!)
-          return `${self.algorithm}/${level}/${x}-${y}/${self.max_iter}`;
-        },
-        // caution: @types/openseadragon 3.0.10 doesn't know about these functions
-        getTilePostData: function (level: number, x: number, y: number) {
-          return new TilePostData(level, x, y);
-        },
-        downloadTileStart: async function (context: any /* OpenSeadragon.ImageJob */) {
-          // tile dx and dy are the column and row numbers FOR THE ZOOM LEVEL.
-          // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
-          // => At zoom level X, the image is 2^X pixels across.
-
-          let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, self.algorithm, self.max_iter);
-          context.userData = spec;
-          self.outstanding_requests.set(spec.serial, context);
-          invoke('start_tile', {
-            spec: spec
-          })
-            .catch((e) => {
-              context?.finish?.(null, null, e.toString());
-            });
-        },
-        downloadTileAbort: function (context: any /*OpenSeadragon.ImageJob*/) {
-          console.log(`OSD requested tile abort: tile #${context.userData.serial}`);
-          invoke('abort_tile', { serial: context.userData.serial })
-            .catch((e) => {
-              context.finish?.(null, null, e.toString());
-            });
-        },
-        createTileCache: function (cache: any/*CacheObject*/, data: any) {
-          cache._data = data;
-        },
-        destroyTileCache: function (cache: any/*CacheObject*/) {
-          cache._data = null;
-        },
-        getTileCacheData: function (cache: any/*CacheObject*/) {
-          return cache._data;
-        },
-        getTileCacheDataAsImage: function () {
-          // not implementing all the features brings limitations to the
-          // system, namely tile.getImage() will not work and also
-          // html-based drawing approach will not work
-          throw "getTileCacheDataAsImage not implemented";
-        },
-
-        getTileCacheDataAsContext2D: function (cache: any/*CacheObject*/) {
-          // our data is already context2D - what a luck!
-          return cache._data;
-        },
-      },
+      tileSources: [initialSource],
     }); // ---------------- end this.osd initialiser ---------------------------
 
     this.bind_events().then(() => {
@@ -207,6 +223,11 @@ export class Viewer {
     });
     // Note the before-destroy handler we set up elsewhere.
   }
+
+  add_outstanding_request(key: number, value: any) {
+    this.outstanding_requests.set(key, value);
+  }
+
 
   on_tile_complete(response: TileResponse) {
     let context = this.outstanding_requests.get(response.serial);
