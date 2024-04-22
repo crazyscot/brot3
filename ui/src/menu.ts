@@ -77,6 +77,9 @@ export class Menu {
                 case "fractal":
                     this.viewer.set_algorithm(event.payload.detail);
                     break;
+                case "toggle_navigator":
+                    this.viewer.toggle_navigator();
+                    break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);
             }
