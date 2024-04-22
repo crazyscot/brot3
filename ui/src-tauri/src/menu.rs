@@ -52,6 +52,8 @@ impl ApplicationMenu {
             .accelerator(format!("{cmd_or_ctrl}+G"));
         let toggle_origin_centre =
             CustomMenuItem::new("toggle_origin_centre".to_string(), "Toggle Origin/Centre");
+        let toggle_navigator =
+            CustomMenuItem::new("toggle_navigator".to_string(), "Show/Hide Navigator");
         let save_image = CustomMenuItem::new("save_image".to_string(), "Save image...")
             .accelerator(format!("{cmd_or_ctrl}+S"));
         let save_size = CustomMenuItem::new("save_size".to_string(), "Save at size...");
@@ -142,9 +144,10 @@ impl ApplicationMenu {
         menu.add_submenu(Submenu::new(
             "Display",
             Menu::new()
+                .add_item(toggle_navigator)
+                .add_native_item(MenuItem::Separator)
                 .add_item(toggle_position)
                 .add_item(go_to_position)
-                .add_native_item(MenuItem::Separator)
                 .add_item(toggle_origin_centre),
         ))
         .add_submenu(fractals)

@@ -41,7 +41,8 @@ export class Viewer {
       visibilityRatio: 1.0,
       debugMode: false,
       showRotationControl: false,
-      showNavigator: false,
+      showNavigator: true,
+      navigatorAutoFade: true,
       showFullPageControl: false,
       zoomPerSecond: 2.0,
       toolbar: "topbar",
@@ -388,6 +389,16 @@ export class Viewer {
         });
       }
     });
+  }
+
+  private nav_visible: boolean = true;;
+  toggle_navigator() {
+    let element = this.osd.navigator.element;
+    if (this.nav_visible)
+      element.style.display = "none";
+    else
+      element.style.display = "inline-block";
+    this.nav_visible = !this.nav_visible;
   }
 
   // dummy function to shut up a linter warning in main.ts
