@@ -20,7 +20,10 @@ class EngineTileSource extends OpenSeadragon.TileSource {
   private parent: Viewer;
   private algorithm: string;
   private max_iter: number;
+  private metadata: FractalView = new FractalView();
 
+  // CAUTION: Immediately after construction, metadata is not valid until after it has round-tripped to the engine to get the metadata.
+  // (Could add a validity flag or something eventish if needed.)
   constructor(parent: Viewer, algorithm: string, max_iter: number) {
     super({
       height: IMAGE_DIMENSION,
@@ -32,10 +35,20 @@ class EngineTileSource extends OpenSeadragon.TileSource {
     this.parent = parent;
     this.algorithm = algorithm;
     this.max_iter = max_iter;
+    invoke('get_metadata', { algorithm: algorithm })
+      .then((reply) => {
+        let meta = reply as FractalView;
+        this.metadata.axes_length = meta.axes_length;
+        this.metadata.origin = meta.origin;
+      })
+      .catch((e) => {
+        console.log(`Error retrieving metadata for ${algorithm}: ${e}`);
+      });
   }
 
   get_algorithm(): string { return this.algorithm; }
   get_max_iter(): number { return this.max_iter; }
+  get_metadata(): FractalView { return this.metadata; }
 
   getTileUrl(level: number, x: number, y: number): string {
     // TODO add colour (or we'll break cacheing!)
@@ -100,9 +113,6 @@ export class Viewer {
   private unlisten_tile_error: UnlistenFn | null = null;
   private outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   private hud_: HeadsUpDisplay;
-  private current_metadata: FractalView = new FractalView(); // TODO review this - more care?
-  private algorithm: string = "Original"; // TODO: moves into tile source
-  private max_iter: number = 2048; // TODO: this will move into the tile source
 
   // width, height used by coordinate display
   private width_: number = NaN;
@@ -170,24 +180,15 @@ export class Viewer {
       viewer.addHandler('animation', updateIndicator);
     });
 
-    // Retrieve initial metadata.
-    invoke('get_metadata')
-    invoke('get_metadata', { algorithm: 'Original' })
-      .then((reply) => {
-        // TODO when we have selectable fractals, this will need to be updated.
-        // Careful, current_metadata is captured by a closure.
-        let meta = reply as FractalView;
-        this.current_metadata.axes_length = meta.axes_length;
-        this.current_metadata.origin = meta.origin;
-        // Initial position at constructor time is not correct, so defer it; only a tiny deferral seems needed
-        // TODO figure out why this is and make it suitably event-based; could be waiting on OSD ?
-        window.setTimeout(function () { updateIndicator(); }, 10);
-      })
-      .catch((e) => {
-        console.log(`Error retrieving metadata: ${e}`);
-      }
-      );
+    // Initial position at constructor time is not correct, so defer it; only a tiny deferral seems needed
+    // TODO figure out why this is and make it suitably event-based; could be waiting on OSD ?
+    window.setTimeout(function () { updateIndicator(); }, 10);
+
   } // ---------------- end constructor --------------------
+
+  private metadata(): FractalView {
+    return this.get_active_source().get_metadata();
+  }
 
   get_position(): FractalView {
     let viewer = this.osd;
@@ -207,7 +208,7 @@ export class Viewer {
     var axesLengthView = bottomRightView.minus(topLeftView);
 
     // Convert to complex
-    let meta = this.current_metadata; // Caution, closure capture!
+    let meta = this.metadata();
     let meta_axes = meta.axes_length;
 
     var originComplex = new EnginePoint(
@@ -287,7 +288,7 @@ export class Viewer {
     let viewport = this.osd.viewport;
     // this is essentially the inverse of updateIndicator()
 
-    let meta = this.current_metadata;
+    let meta = this.metadata();
     let meta_axes = meta.axes_length;
 
     let originComplex = undefined;
