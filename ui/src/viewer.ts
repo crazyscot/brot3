@@ -13,11 +13,15 @@ import { SerialAllocator } from './serial_allocator'
 var gSerial = new SerialAllocator();
 const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
+const DEFAULT_ALGORITHM = "Original";
+const DEFAULT_MAX_ITER = 256;
 
 class EngineTileSource extends OpenSeadragon.TileSource {
   private parent: Viewer;
+  private algorithm: string;
+  private max_iter: number;
 
-  constructor(parent: Viewer) {
+  constructor(parent: Viewer, algorithm: string, max_iter: number) {
     super({
       height: IMAGE_DIMENSION,
       width: IMAGE_DIMENSION,
@@ -26,12 +30,16 @@ class EngineTileSource extends OpenSeadragon.TileSource {
       tileOverlap: 0,
     });
     this.parent = parent;
+    this.algorithm = algorithm;
+    this.max_iter = max_iter;
   }
+
+  get_algorithm(): string { return this.algorithm; }
+  get_max_iter(): number { return this.max_iter; }
 
   getTileUrl(level: number, x: number, y: number): string {
     // TODO add colour (or we'll break cacheing!)
-    // TODO move alg, max_iter out of viewer into enginetilesource
-    return `${this.parent.get_algorithm()}/${level}/${x}-${y}/${this.parent.get_max_iter()}`;
+    return `${this.algorithm}:${this.max_iter}/${level}/${x}-${y}}`;
   }
 
   // caution: @types/openseadragon 3.0.10 doesn't know about these functions
@@ -44,7 +52,7 @@ class EngineTileSource extends OpenSeadragon.TileSource {
     // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
     // => At zoom level X, the image is 2^X pixels across.
 
-    let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, this.parent.get_algorithm(), this.parent.get_max_iter());
+    let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, this.algorithm, this.max_iter);
     context.userData = spec;
     this.parent.add_outstanding_request(spec.serial, context);
     invoke('start_tile', {
@@ -92,7 +100,7 @@ export class Viewer {
   private unlisten_tile_error: UnlistenFn | null = null;
   private outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   private hud_: HeadsUpDisplay;
-  private current_metadata: FractalView = new FractalView();
+  private current_metadata: FractalView = new FractalView(); // TODO review this - more care?
   private algorithm: string = "Original"; // TODO: moves into tile source
   private max_iter: number = 2048; // TODO: this will move into the tile source
 
@@ -106,7 +114,7 @@ export class Viewer {
   constructor() {
     let self = this; // Closure helper
 
-    let initialSource = new EngineTileSource(this);
+    let initialSource = new EngineTileSource(this, DEFAULT_ALGORITHM, DEFAULT_MAX_ITER);
 
     this.osd = OpenSeadragon({
       id: "openseadragon",
@@ -308,12 +316,12 @@ export class Viewer {
     let aspectRatio = this.width_ / this.height_;
     if (Number.isFinite(axesReal)) {
       axesImag = axesReal / aspectRatio;
-      zoom = this.current_metadata.axes_length.re / axesReal;
+      zoom = meta.axes_length.re / axesReal;
     } else if (Number.isFinite(axesImag)) {
       axesReal = axesImag * aspectRatio;
-      zoom = this.current_metadata.axes_length.re / axesReal;
+      zoom = meta.axes_length.re / axesReal;
     } else if (Number.isFinite(zoom)) {
-      axesReal = this.current_metadata.axes_length.re / zoom;
+      axesReal = meta.axes_length.re / zoom;
       axesImag = axesReal / aspectRatio;
     } else {
       throw new Error("Axis length must be specified");
@@ -366,54 +374,39 @@ export class Viewer {
     this.hud_.set_go_to_position(pos, this.width_, this.height_);
   }
 
+  get_active_source(): EngineTileSource {
+    let index = this.osd.currentPage();
+    return this.osd.world.getItemAt(index).source as EngineTileSource;
+  }
+
   get_max_iter() {
-    return this.max_iter;
+    return this.get_active_source().get_max_iter();
   }
   set_max_iter(new_max: number) {
     if (Number.isFinite(new_max)) {
-      this.max_iter = new_max;
-      this.redraw();
+      let oldSource = this.get_active_source();
+      let newSource = new EngineTileSource(this, oldSource.get_algorithm(), new_max);
+      this.replace_active_source(newSource);
     } else {
       console.warn(`failed to parse max_iter ${new_max}`);
     }
   }
+  get_algorithm(): string {
+    return this.get_active_source().get_algorithm();
+  }
   set_algorithm(new_fractal: string) {
-    this.algorithm = new_fractal;
-    this.redraw();
+    let oldSource = this.get_active_source();
+    let newSource = new EngineTileSource(this, new_fractal, oldSource.get_max_iter());
+    this.replace_active_source(newSource);
     this.osd.viewport.goHome();
   }
-  get_algorithm(): string {
-    return this.algorithm;
-  }
 
-  // Force a redraw of all tiles because something important changed (colourer, max_iter, etc)
-  private redraw() {
-    // First attempt was this.osd.world.resetItems() but that caused a nasty canvas flash.
-    // This technique is based on the workaround described in https://github.com/openseadragon/openseadragon/issues/1991
+  // Something important changed (algorithm, max_iter, etc). Replace the active source.
+  private replace_active_source(source: EngineTileSource) {
+    // This causes a canvas flash.
+    // There is a workaround described in https://github.com/openseadragon/openseadragon/issues/1991 which we used to have (as redraw()) but that interferes with multi-image mode, so leave off for now.
     this.osd._cancelPendingImages();
-
-    // ASSUMPTION: the current image is always the latest-added
-    let previousCount = this.osd.world.getItemCount();
-    let oldImage = this.osd.world.getItemAt(previousCount - 1);
-    console.log(`item count was ${previousCount}`);
-    let oldBounds = oldImage.getBounds();
-    let oldSource = oldImage.source;
-    let self = this;
-    this.osd.addTiledImage({
-      tileSource: oldSource,
-      x: oldBounds.x,
-      y: oldBounds.y,
-      width: oldBounds.width, // height is automatic
-      opacity: 0.01,
-      success: function () {
-        // ASSUMPTION: fully-loaded-change doesn't trigger before this success function is called.
-        let newItem = self.osd.world.getItemAt(previousCount);
-        newItem.setOpacity(1.0);
-        newItem.addOnceHandler('fully-loaded-change', function (_event: any) {
-          self.osd.world.removeItem(oldImage);
-        });
-      }
-    });
+    this.osd.open(source);
   }
 
   private nav_visible: boolean = true;;
