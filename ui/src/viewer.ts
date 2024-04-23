@@ -164,6 +164,7 @@ export class Viewer {
 
     // Retrieve initial metadata.
     invoke('get_metadata')
+    invoke('get_metadata', { algorithm: 'Original' })
       .then((reply) => {
         // TODO when we have selectable fractals, this will need to be updated.
         // Careful, current_metadata is captured by a closure.
