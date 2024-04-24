@@ -7,6 +7,7 @@ use brot3_engine::{
     colouring,
     fractal::{self, Algorithm, Point, Scalar, Tile, TileSpec},
     render,
+    util::listable::ListItem,
 };
 
 use serde::{Deserialize, Serialize};
@@ -113,4 +114,11 @@ pub fn get_metadata(algorithm: String) -> anyhow::Result<FractalView, String> {
         origin: origin.into(),
         axes_length: algorithm_instance.default_axes().into(),
     })
+}
+
+#[tauri::command]
+/// List available fractal algorithms
+pub fn list_fractals() -> Vec<ListItem> {
+    use brot3_engine::{fractal, util::listable};
+    listable::list_original_case::<fractal::Selection>().collect()
 }

@@ -4,6 +4,7 @@
 use std::fmt::Display;
 
 use heck::ToKebabCase;
+use serde::Serialize;
 use strum::{EnumMessage, EnumProperty, VariantArray};
 
 /// A compound trait for Listable operations
@@ -17,7 +18,7 @@ pub fn elements<T: Listable>(include_hidden: bool) -> impl Iterator<Item = &'sta
         .filter(move |x| include_hidden || x.get_str("hide_from_list").is_none())
 }
 
-#[derive(Clone, Debug)]
+#[derive(Serialize, Clone, Debug)]
 /// A representation of a listable item
 pub struct ListItem {
     /// Item name (in kebab case)

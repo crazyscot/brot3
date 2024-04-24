@@ -125,3 +125,16 @@ export class RenderSpec {
         return this;
     }
 }
+
+/// A representation of a listable item.
+/// Twin of rust ListItem struct.
+export class ListItem {
+    /// Item name
+    name: string;
+    /// Item description
+    description: string;
+    constructor(name: string, description: string) {
+        this.name = name;
+        this.description = description;
+    }
+}
