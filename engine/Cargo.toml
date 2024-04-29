@@ -17,7 +17,7 @@ clap = { workspace = true, features = ["wrap_help", "derive"] }
 enum_delegate = "0.2.0"
 heck = "0.5.0"
 num-complex = "0.4.5"
-palette = "0.7.5"
+palette = "0.7.6"
 png = { workspace = true }
 rayon = { workspace = true }
 strum = { workspace = true }
