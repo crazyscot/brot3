@@ -30,18 +30,29 @@ ${HeadsUpDisplay.html}
 </div>
 `;
 
-let gErrorHandler = new ErrorHandler();
-gErrorHandler.bind_events();
 
-let gViewer = new Viewer();
+class Brot3UI {
+  private errorHandler: ErrorHandler = new ErrorHandler();
+  private viewer: Viewer = new Viewer();
+  private saveSizeBox: SaveSizeBox;
+  private maxIterBox: IterationLimitBox;
+  private menu: Menu;
+  constructor(doc: Document) {
+    this.errorHandler.bind_events();
+    this.saveSizeBox = new SaveSizeBox(doc, this.viewer);
+    this.maxIterBox = new IterationLimitBox(doc, this.viewer);
+    this.menu = new Menu(doc, this.viewer, this.saveSizeBox, this.maxIterBox);
+    this.menu.noop();
 
-async function setupWindow() {
-  gViewer.resize();
-  getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
+    this.setupWindow();
+  }
+
+  async setupWindow() {
+    this.viewer.resize();
+    getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
+  }
+
+  noop() { }
 }
-setupWindow();
-
-let gSaveSizeBox = new SaveSizeBox(document, gViewer);
-let gMaxIter = new IterationLimitBox(document, gViewer);
-let gMenu = new Menu(document, gViewer, gSaveSizeBox, gMaxIter);
-gMenu.noop();
+let _gUI = new Brot3UI(document);
+_gUI.noop(); // shush, linter
