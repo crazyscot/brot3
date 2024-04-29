@@ -160,12 +160,16 @@ impl ApplicationMenu {
 
     fn build_fractal_menu(&self) -> Submenu {
         use brot3_engine::{fractal, util::listable};
+        let standard: Vec<MenuEntry> = vec![
+            MenuEntry::CustomItem(CustomMenuItem::new("select/fractal", "Select fractal...")),
+            MenuEntry::NativeItem(MenuItem::Separator),
+        ];
         let fractals = listable::list_original_case::<fractal::Selection>().map(|it| {
             let id = format!("fractal/{}", it.name);
             // One day we might add tooltips using it.description, but not currently supported by Tauri
             MenuEntry::CustomItem(CustomMenuItem::new(id, it.name))
         });
-        let menu = Menu::with_items(fractals);
+        let menu = Menu::with_items(standard.into_iter().chain(fractals));
         Submenu::new("Fractal", menu)
     }
 
