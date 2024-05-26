@@ -1,9 +1,7 @@
 // Colour space testing
 // (c) 2024 Ross Younger
 
-use palette::Hsv;
-
-use super::framework::{OutputsHsvf, OutputsRgb8, Rgb8};
+use super::framework::{OutputsRgb8, Rgb8};
 
 /// Test algorithm, doesn't do anything useful
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -14,19 +12,10 @@ impl OutputsRgb8 for White {
     }
 }
 
-// Test algorithm
-struct WhiteHSV {}
-impl OutputsHsvf for WhiteHSV {
-    fn colour_hsvf(&self, _: f32, _: u32) -> Hsv<palette::encoding::Srgb, f32> {
-        Hsv::new(0.0, 0.0, 1.0)
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::colouring::{framework::Rgb8, OutputsHsvf};
+    use crate::colouring::framework::Rgb8;
 
-    use super::{OutputsRgb8, WhiteHSV};
     use palette::{convert::FromColorUnclamped, rgb, Hsv, IntoColor, RgbHue, Srgb};
 
     #[test]
@@ -53,17 +42,6 @@ mod tests {
             let zzz: Srgb<u8> = yyy.into_format();
             println!("B {hsv2:?} -> {yyy:?} -> {zzz:?}");
             assert_eq!(rgb2, zzz);
-        }
-        {
-            let alg = WhiteHSV {};
-            let raw = alg.colour_hsvf(42.0, 256);
-            let result = alg.colour_rgb8(42.0, 256);
-            println!("C {raw:?} -> {result:?}");
-
-            let res2 = Srgb::<f32>::from_color_unclamped(raw);
-            println!("D {raw:?} -> {res2:?}");
-            assert_eq!(result, Srgb::new(255, 255, 255));
-            assert_eq!(res2.into_format::<u8>(), Srgb::new(255, 255, 255));
         }
     }
 }
