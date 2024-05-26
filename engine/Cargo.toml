@@ -38,4 +38,4 @@ name = "iai"
 harness = false
 
 [build-dependencies]
-built = { version = "0.7.2", features = ["git2"] }
+built = { version = "0.7.3", features = ["git2"] }
