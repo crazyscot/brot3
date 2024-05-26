@@ -9,6 +9,9 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "monthly"
+    commit-message:
+      prefix: "cargo"
+      include: "scope"
     groups:
       cargo:
         patterns:
@@ -19,11 +22,17 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    commit-message:
+      prefix: "gh"
+      include: "scope"
 
   - package-ecosystem: "npm"
     directory: "ui"
     schedule:
       interval: "monthly"
+    commit-message:
+      prefix: "npm"
+      include: "scope"
     groups:
       npm:
         patterns:
