@@ -55,6 +55,7 @@ pub enum Instance {
     MonochromeInverted(MonochromeInverted),
 
     /// OneLoneCoder's algorithm
+    #[allow(clippy::doc_markdown)] // false positive
     #[strum_discriminants(value(alias = "onelonecoder", alias = "olc"))]
     OneLoneCoder(OneLoneCoder),
 

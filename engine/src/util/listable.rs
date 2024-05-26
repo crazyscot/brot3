@@ -20,7 +20,7 @@ pub fn elements<T: Listable>(include_hidden: bool) -> impl Iterator<Item = &'sta
 #[derive(Clone, Debug)]
 /// A representation of a listable item
 pub struct ListItem {
-    /// Item name (in kebab_case)
+    /// Item name (in kebab case)
     pub name: String,
     /// Item description
     pub description: String,

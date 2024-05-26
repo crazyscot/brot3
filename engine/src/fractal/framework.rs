@@ -47,7 +47,7 @@ pub enum Instance {
     Mandeldrop3(Mandeldrop3),
 
     #[strum_discriminants(value(alias = "bar"))]
-    /// Mandelbar (Tricorn) `z:=(z*)^2+c (alias: bar)``
+    /// Mandelbar (Tricorn) `z:=(z*)^2+c` (alias: bar)
     Mandelbar(Mandelbar),
 
     #[strum_discriminants(value(alias = "ship"))]
