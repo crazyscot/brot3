@@ -9,7 +9,7 @@ import { About } from './about.ts'
 import { SaveSizeBox } from './save_size.ts'
 import { Viewer } from './viewer.ts'
 import { IterationLimitBox } from './max_iter.ts'
-import { SelectionOverlay } from './selection_overlay.ts'
+import { SelectionOverlay } from './selection_overlay.tsx'
 
 // Twin of rust menu::DisplayMessageDetail
 class DisplayMessageDetail {
@@ -84,7 +84,7 @@ export class Menu {
                     this.viewer.toggle_navigator();
                     break;
                 case "select/fractal":
-                    this.selector.select_fractal();
+                    this.selector.do_select_fractal();
                     break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);

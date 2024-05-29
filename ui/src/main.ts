@@ -11,7 +11,7 @@ import { HeadsUpDisplay } from './hud.ts'
 import { IterationLimitBox } from './max_iter.ts'
 import { Menu } from './menu.ts'
 import { SaveSizeBox } from './save_size.ts'
-import { SelectionOverlay } from './selection_overlay.ts'
+import { SelectionOverlay } from './selection_overlay.tsx'
 import { Viewer } from './viewer.ts'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
