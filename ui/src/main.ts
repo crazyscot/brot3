@@ -44,7 +44,7 @@ class Brot3UI {
     this.errorHandler.bind_events();
     this.saveSizeBox = new SaveSizeBox(doc, this.viewer);
     this.maxIterBox = new IterationLimitBox(doc, this.viewer);
-    this.selector = new SelectionOverlay(doc);
+    this.selector = new SelectionOverlay(doc, this.viewer);
     this.menu = new Menu(doc, this.viewer, this.saveSizeBox, this.maxIterBox, this.selector);
     this.menu.noop();
 

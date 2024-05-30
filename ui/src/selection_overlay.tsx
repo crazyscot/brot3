@@ -3,7 +3,6 @@
 
 import { createRoot, Root } from 'react-dom/client';
 import React, { useState, useEffect } from 'react';
-import { effectModalClickOrEscape } from './modal-react';
 import { invoke } from '@tauri-apps/api';
 import { listen } from '@tauri-apps/api/event';
 import { Tooltip } from 'react-tooltip';
@@ -11,6 +10,8 @@ import { Button } from '@mui/material';
 
 import { ListItem, ListItemWithKey, add_keys_to_list } from './engine_types';
 import { DisplayMessageDetail } from './menu';
+import { effectModalClickOrEscape } from './modal-react';
+import { Viewer } from './viewer'
 import './selection_overlay.css'
 
 const DisplayItem = ({ name = "", description = "", key = 0 }, hideModal = () => { }) => {
@@ -77,10 +78,12 @@ export class SelectionOverlay {
 
     panel: HTMLElement | null;
     readonly root: Root;
+    readonly viewer: Viewer;
 
-    constructor(doc: Document) {
+    constructor(doc: Document, viewer: Viewer) {
         //let self = this; // For closures
         this.panel = doc.querySelectorAll('#selector-panel')[0] as HTMLElement;
+        this.viewer = viewer;
 
         this.root = createRoot(this.panel);
         this.root.render(<SelectionModal />);
