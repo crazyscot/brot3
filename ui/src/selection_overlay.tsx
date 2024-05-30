@@ -7,6 +7,7 @@ import { effectModalClickOrEscape } from './modal-react';
 import { invoke } from '@tauri-apps/api';
 import { listen } from '@tauri-apps/api/event';
 import { Tooltip } from 'react-tooltip';
+import { Button } from '@mui/material';
 
 import { ListItem, ListItemWithKey, add_keys_to_list } from './engine_types';
 import { DisplayMessageDetail } from './menu';
@@ -14,16 +15,16 @@ import './selection_overlay.css'
 
 const DisplayItem = ({ name = "", description = "", key = 0 }) => {
     return (
-        <li
-            className="listItem"
-            role="button"
-            key={key}
-            data-tooltip-id="list-tooltip"
-            data-tooltip-content={description}
-        >
-            <b className="listItemName">{name}</b>
+        <span key={key}>
+            <Button
+                variant="outlined"
+                data-tooltip-id="list-tooltip"
+                data-tooltip-content={description}
+            >
+                {name}
+            </Button>
             <Tooltip id="list-tooltip" className="list-tooltip" />
-        </li>
+        </span>
     );
 };
 
@@ -55,11 +56,11 @@ const SelectionModal = () => {
         });
     }, []);
 
-    return <>{show && <div className="reactmodal">
+    return <>{show && <div className="react-modal">
         <div className="modal-content" ref={ref}>
             <span className="close" id="close-selector" onClick={hide}>&times;</span>
-            <h3>Select Fractal</h3>
-            <ul id="selection-list">{listData.map(it => DisplayItem(it))}</ul>
+            <h3>Available Fractals</h3>
+            <div id="selection-list">{listData.map(it => DisplayItem(it))}</div>
         </div>
     </div>}</>
 };

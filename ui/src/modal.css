@@ -1,6 +1,6 @@
 /* The Modal (background) */
 .modal,
-.reactmodal {
+.react-modal {
   position: fixed;
   z-index: 1;
   padding-top: 100px;
