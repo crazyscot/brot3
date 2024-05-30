@@ -16,7 +16,6 @@ import './selection_overlay.css'
 
 function description_filter(desc: string): string {
     // Some descriptions contain CLI aliases, which we don't care about here.
-    // This is really easy to write as a regexp.. (alias.*)
     const re = /\(alias.*\)/;
     return desc.replace(re, '');
 }

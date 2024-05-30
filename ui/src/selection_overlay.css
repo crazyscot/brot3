@@ -1,4 +1,4 @@
-/* */
+/* CSS definitions for SelectionOverlay */
 
 div#selection-list {
     .list-tooltip {
@@ -10,4 +10,9 @@ div#selection-list {
         margin: 1ex 1em;
         text-transform: none;
     }
+}
+
+
+#selector-panel {
+    padding-top: 5%;
 }
