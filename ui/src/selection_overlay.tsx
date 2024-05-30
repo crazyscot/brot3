@@ -8,6 +8,7 @@ import { invoke } from '@tauri-apps/api';
 import { listen } from '@tauri-apps/api/event';
 import { ListItem, ListItemWithKey, add_keys_to_list } from './engine_types';
 import { DisplayMessageDetail } from './menu';
+import './selection_overlay.css'
 
 const DisplayItem = ({ name = "", description = "", key = 0 }) => {
     return (
@@ -53,7 +54,7 @@ const SelectionModal = () => {
         <div className="modal-content" ref={ref}>
             <span className="close" id="close-selector" onClick={hide}>&times;</span>
             <h3>Select Fractal</h3>
-            <ul>{listData.map(it => DisplayItem(it))}</ul>
+            <ul id="selection-list">{listData.map(it => DisplayItem(it))}</ul>
         </div>
     </div>}</>
 };

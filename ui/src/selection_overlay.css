@@ -1,0 +1,15 @@
+/* */
+
+ul#selection-list {
+    list-style-type: none;
+    border: 1px solid black;
+
+    li {
+        border: 1px solid blue;
+        height: 100px;
+        width: 100px;
+        display: inline-block;
+        margin: 1ex 1em;
+        padding: 0;
+    }
+}
