@@ -193,6 +193,13 @@ impl ApplicationMenu {
                 event,
                 &DisplayMessageDetail::new_with_detail("fractal", selection),
             )
+        } else if id.starts_with("select/") {
+            let what = id.split_at("select/".len()).1;
+            self.send_message(
+                event,
+                "select",
+                &DisplayMessageDetail::new_with_detail(what, ""),
+            )
         } else {
             self.send_display_message(event, &DisplayMessageDetail::new(id))
         }
@@ -203,7 +210,15 @@ impl ApplicationMenu {
         event: &WindowMenuEvent,
         msg: &DisplayMessageDetail,
     ) -> anyhow::Result<()> {
-        event.window().emit("display_message", msg)?;
+        self.send_message(event, "display_message", msg)
+    }
+    fn send_message(
+        &self,
+        event: &WindowMenuEvent,
+        category: &str,
+        msg: &DisplayMessageDetail,
+    ) -> anyhow::Result<()> {
+        event.window().emit(category, msg)?;
         Ok(())
     }
 }

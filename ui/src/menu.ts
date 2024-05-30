@@ -12,7 +12,7 @@ import { IterationLimitBox } from './max_iter.ts'
 import { SelectionOverlay } from './selection_overlay.tsx'
 
 // Twin of rust menu::DisplayMessageDetail
-class DisplayMessageDetail {
+export class DisplayMessageDetail {
     what: string;
     detail: string;
     constructor(what: string, detail: string | undefined) {
@@ -82,9 +82,6 @@ export class Menu {
                     break;
                 case "toggle_navigator":
                     this.viewer.toggle_navigator();
-                    break;
-                case "select/fractal":
-                    this.selector.do_select_fractal();
                     break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);
