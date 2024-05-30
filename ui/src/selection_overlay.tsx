@@ -13,13 +13,19 @@ import { ListItem, ListItemWithKey, add_keys_to_list } from './engine_types';
 import { DisplayMessageDetail } from './menu';
 import './selection_overlay.css'
 
-const DisplayItem = ({ name = "", description = "", key = 0 }) => {
+const DisplayItem = ({ name = "", description = "", key = 0 }, hideModal = () => { }) => {
+    const doClick = () => {
+        console.log(`select ${name}`);
+        hideModal();
+        // change fractal - do we need a Context for this?
+    };
     return (
         <span key={key}>
             <Button
                 variant="outlined"
                 data-tooltip-id="list-tooltip"
                 data-tooltip-content={description}
+                onClick={doClick}
             >
                 {name}
             </Button>
@@ -60,7 +66,7 @@ const SelectionModal = () => {
         <div className="modal-content" ref={ref}>
             <span className="close" id="close-selector" onClick={hide}>&times;</span>
             <h3>Available Fractals</h3>
-            <div id="selection-list">{listData.map(it => DisplayItem(it))}</div>
+            <div id="selection-list">{listData.map(it => DisplayItem(it, hide))}</div>
         </div>
     </div>}</>
 };
