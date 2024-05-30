@@ -96,7 +96,3 @@ export class SelectionOverlay {
 
     noop() { }
 }
-
-// TODO make it scrollable when the window is small
-// TODO previews
-// TODO what about the CLI aliases?

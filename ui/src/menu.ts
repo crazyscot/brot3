@@ -77,9 +77,6 @@ export class Menu {
                 case "show_max_iter":
                     this.max_iter.show();
                     break;
-                case "fractal":
-                    this.viewer.set_algorithm(event.payload.detail);
-                    break;
                 case "toggle_navigator":
                     this.viewer.toggle_navigator();
                     break;
