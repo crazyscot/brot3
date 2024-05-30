@@ -6,6 +6,8 @@ import React, { useState, useEffect } from 'react';
 import { effectModalClickOrEscape } from './modal-react';
 import { invoke } from '@tauri-apps/api';
 import { listen } from '@tauri-apps/api/event';
+import { Tooltip } from 'react-tooltip';
+
 import { ListItem, ListItemWithKey, add_keys_to_list } from './engine_types';
 import { DisplayMessageDetail } from './menu';
 import './selection_overlay.css'
@@ -16,8 +18,11 @@ const DisplayItem = ({ name = "", description = "", key = 0 }) => {
             className="listItem"
             role="button"
             key={key}
+            data-tooltip-id="list-tooltip"
+            data-tooltip-content={description}
         >
             <b className="listItemName">{name}</b>
+            <Tooltip id="list-tooltip" className="list-tooltip" />
         </li>
     );
 };
@@ -77,8 +82,6 @@ export class SelectionOverlay {
     noop() { }
 }
 
-// TODO draw as boxes.. title, mouseOver text is description.
-// TODO word wrap the boxes
 // TODO make it scrollable when the window is small
 // TODO previews
 // TODO actions

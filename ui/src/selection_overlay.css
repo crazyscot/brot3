@@ -11,5 +11,11 @@ ul#selection-list {
         display: inline-block;
         margin: 1ex 1em;
         padding: 0;
+        word-wrap: break-word;
+    }
+
+    .list-tooltip {
+        border-radius: 10px;
+        opacity: 0.7;
     }
 }
