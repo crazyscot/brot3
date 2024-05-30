@@ -14,6 +14,13 @@ import { effectModalClickOrEscape } from './modal-react';
 import { Viewer } from './viewer'
 import './selection_overlay.css'
 
+function description_filter(desc: string): string {
+    // Some descriptions contain CLI aliases, which we don't care about here.
+    // This is really easy to write as a regexp.. (alias.*)
+    const re = /\(alias.*\)/;
+    return desc.replace(re, '');
+}
+
 const DisplayItem = ({ name = "", description = "", key = 0 }, hideModal = () => { }, viewer: Viewer | null) => {
     const doClick = () => {
         hideModal();
@@ -24,7 +31,7 @@ const DisplayItem = ({ name = "", description = "", key = 0 }, hideModal = () =>
             <Button
                 variant="outlined"
                 data-tooltip-id="list-tooltip"
-                data-tooltip-content={description}
+                data-tooltip-content={description_filter(description)}
                 onClick={doClick}
             >
                 {name}
