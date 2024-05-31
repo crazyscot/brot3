@@ -9,7 +9,6 @@ import { About } from './about.ts'
 import { SaveSizeBox } from './save_size.ts'
 import { Viewer } from './viewer.ts'
 import { IterationLimitBox } from './max_iter.ts'
-import { SelectionOverlay } from './selection_overlay.tsx'
 
 // Twin of rust menu::DisplayMessageDetail
 export class DisplayMessageDetail {
@@ -27,15 +26,13 @@ export class Menu {
     about: About;
     save_size: SaveSizeBox;
     max_iter: IterationLimitBox;
-    selector: SelectionOverlay;
 
-    constructor(doc: Document, viewer: Viewer, save_size: SaveSizeBox, max_iter: IterationLimitBox, selector: SelectionOverlay) {
+    constructor(doc: Document, viewer: Viewer, save_size: SaveSizeBox, max_iter: IterationLimitBox) {
         let self = this; // for closures
         this.doc = doc;
         this.viewer = viewer;
         this.save_size = save_size;
         this.max_iter = max_iter;
-        this.selector = selector;
 
         // Bind form actions
         doc.getElementById("form_go_to_position")!.onsubmit = function (e) {

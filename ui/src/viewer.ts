@@ -166,7 +166,6 @@ export class Viewer {
     // Zoom/Position indicator
     this.hud_ = new HeadsUpDisplay(document);
     let viewer = this.osd;
-    console.log(viewer);
     viewer.addHandler('open', function () {
       viewer.addHandler('animation', () => { self.updateIndicator() });
     });
@@ -412,7 +411,7 @@ export class Viewer {
     this.osd.open(source);
   }
 
-  private nav_visible: boolean = true;;
+  private nav_visible: boolean = true;
   toggle_navigator() {
     let element = this.osd.navigator.element;
     if (this.nav_visible)
