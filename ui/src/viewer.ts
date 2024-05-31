@@ -244,8 +244,10 @@ export class Viewer {
 
   on_tile_complete(response: TileResponse) {
     let context = this.outstanding_requests.get(response.serial);
+    if (context === undefined) return; // It's not for us
     //let spec:TileSpec = context.userData;
     //console.log(`got tile #${response.serial} = ${spec.level}/${spec.dx}-${spec.dy}`);
+    this.outstanding_requests.delete(response.serial);
 
     // "convert the data to a canvas and return its 2D context"
     let response2 = new TileResponseHelper(response);
