@@ -83,12 +83,20 @@ type DisplayItemProps = {
 }
 
 const DisplayItem = (props: DisplayItemProps) => {
+    const [imageUrl, setImageUrl] = useState("/openseadragon/images/home_rest.png");
+
     const BUTTON_WIDTH = 150;
     const doClick = () => {
         props.hideModal();
         props.viewer?.set_algorithm(props.name);
     };
 
+    useEffect(() => {
+        const id = setTimeout(() => {
+            setImageUrl("/openseadragon/images/zoomout_pressed.png");
+        }, 2000);
+        return () => clearTimeout(id);
+    });
     // TODO: Temporary image URL for now.
     return (
         <ImageButton
@@ -100,7 +108,7 @@ const DisplayItem = (props: DisplayItemProps) => {
             data-tooltip-content={description_filter(props.description)}
             onClick={doClick}
         >
-            <ImageSrc style={{ backgroundImage: `url(/openseadragon/images/home_rest.png)` }} />
+            <ImageSrc style={{ backgroundImage: `url(${imageUrl})` }} />
             <ImageBackdrop className="MuiImageBackdrop-root" />
             <Image>
                 {props.name}
