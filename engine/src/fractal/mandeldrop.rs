@@ -40,7 +40,7 @@ impl Algorithm for Mandeldrop {
     }
 
     fn default_axes(&self) -> Point {
-        Point { re: 8.0, im: 4.0 }
+        Point { re: 8.0, im: 8.0 }
     }
 }
 
