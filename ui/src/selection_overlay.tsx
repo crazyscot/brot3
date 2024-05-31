@@ -110,6 +110,8 @@ interface SelectionModalProps {
 
 const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
     const [show, setShow] = useState(false);
+    const [listData, setListData] = useState<ListItemWithKey[]>([]);
+
     const hide = () => {
         setShow(false);
     };
@@ -117,10 +119,9 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         hide();
     });
 
-    const [listData, setListData] = useState<ListItemWithKey[]>([]);
 
     useEffect(() => {
-        listen<DisplayMessageDetail>('select', (event) => {
+        const unlisten = listen<DisplayMessageDetail>('select', (event) => {
             let id = event.payload.what;
             switch (id) {
                 case "fractal":
@@ -134,7 +135,10 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
                     console.error(`unknown select message detail ${id}`);
             }
         });
-    }, []);
+        return () => {
+            unlisten.then(f => f());
+        }
+    }, [setShow, setListData]);
 
     return <>{show && <div className="react-modal">
         <div className="modal-content" ref={ref}>
