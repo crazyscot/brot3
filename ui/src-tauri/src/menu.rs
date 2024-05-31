@@ -159,13 +159,11 @@ impl ApplicationMenu {
     }
 
     fn build_fractal_menu(&self) -> Submenu {
-        use brot3_engine::{fractal, util::listable};
-        let fractals = listable::list_original_case::<fractal::Selection>().map(|it| {
-            let id = format!("fractal/{}", it.name);
-            // One day we might add tooltips using it.description, but not currently supported by Tauri
-            MenuEntry::CustomItem(CustomMenuItem::new(id, it.name))
-        });
-        let menu = Menu::with_items(fractals);
+        let standard: Vec<MenuEntry> = vec![
+            MenuEntry::CustomItem(CustomMenuItem::new("select/fractal", "Select fractal...")),
+            MenuEntry::NativeItem(MenuItem::Separator),
+        ];
+        let menu = Menu::with_items(standard);
         Submenu::new("Fractal", menu)
     }
 
@@ -183,11 +181,12 @@ impl ApplicationMenu {
 
     fn on_menu_guts(&self, event: &WindowMenuEvent) -> anyhow::Result<()> {
         let id = event.menu_item_id();
-        if id.starts_with("fractal/") {
-            let selection = id.split_at("fractal/".len()).1;
-            self.send_display_message(
+        if id.starts_with("select/") {
+            let what = id.split_at("select/".len()).1;
+            self.send_message(
                 event,
-                &DisplayMessageDetail::new_with_detail("fractal", selection),
+                "select",
+                &DisplayMessageDetail::new_with_detail(what, ""),
             )
         } else {
             self.send_display_message(event, &DisplayMessageDetail::new(id))
@@ -199,7 +198,15 @@ impl ApplicationMenu {
         event: &WindowMenuEvent,
         msg: &DisplayMessageDetail,
     ) -> anyhow::Result<()> {
-        event.window().emit("display_message", msg)?;
+        self.send_message(event, "display_message", msg)
+    }
+    fn send_message(
+        &self,
+        event: &WindowMenuEvent,
+        category: &str,
+        msg: &DisplayMessageDetail,
+    ) -> anyhow::Result<()> {
+        event.window().emit(category, msg)?;
         Ok(())
     }
 }

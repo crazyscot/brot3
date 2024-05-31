@@ -1,6 +1,6 @@
 /* The Modal (background) */
-.modal {
-  display: none;
+.modal,
+.react-modal {
   position: fixed;
   z-index: 1;
   padding-top: 100px;
@@ -13,7 +13,11 @@
   /* Fallback color */
   background-color: rgb(0, 0, 0);
   /* Black w/ opacity */
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal {
+  display: none;
 }
 
 /* Modal Content */

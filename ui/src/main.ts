@@ -11,6 +11,7 @@ import { HeadsUpDisplay } from './hud.ts'
 import { IterationLimitBox } from './max_iter.ts'
 import { Menu } from './menu.ts'
 import { SaveSizeBox } from './save_size.ts'
+import { SelectionOverlay } from './selection_overlay.tsx'
 import { Viewer } from './viewer.ts'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
@@ -27,21 +28,37 @@ ${About.html}
 ${IterationLimitBox.html}
 ${SaveSizeBox.html}
 ${HeadsUpDisplay.html}
+${SelectionOverlay.html}
 </div>
 `;
 
-let gErrorHandler = new ErrorHandler();
-gErrorHandler.bind_events();
 
-let gViewer = new Viewer();
+class Brot3UI {
+  private errorHandler: ErrorHandler = new ErrorHandler();
+  private viewer: Viewer = new Viewer();
+  private saveSizeBox: SaveSizeBox;
+  private maxIterBox: IterationLimitBox;
+  private menu: Menu;
+  private selector: SelectionOverlay;
+  constructor(doc: Document) {
+    this.errorHandler.bind_events();
+    this.saveSizeBox = new SaveSizeBox(doc, this.viewer);
+    this.maxIterBox = new IterationLimitBox(doc, this.viewer);
+    this.selector = new SelectionOverlay(doc, this.viewer);
+    this.menu = new Menu(doc, this.viewer, this.saveSizeBox, this.maxIterBox);
+    this.menu.noop();
 
-async function setupWindow() {
-  gViewer.resize();
-  getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
+    this.setupWindow();
+    this.selector.noop();
+  }
+
+  async setupWindow() {
+    this.viewer.resize();
+    getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
+  }
+
+  noop() { }
 }
-setupWindow();
 
-let gSaveSizeBox = new SaveSizeBox(document, gViewer);
-let gMaxIter = new IterationLimitBox(document, gViewer);
-let gMenu = new Menu(document, gViewer, gSaveSizeBox, gMaxIter);
-gMenu.noop();
+let _gUI = new Brot3UI(document);
+_gUI.noop(); // shush, linter

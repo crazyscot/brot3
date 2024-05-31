@@ -11,7 +11,7 @@ import { Viewer } from './viewer.ts'
 import { IterationLimitBox } from './max_iter.ts'
 
 // Twin of rust menu::DisplayMessageDetail
-class DisplayMessageDetail {
+export class DisplayMessageDetail {
     what: string;
     detail: string;
     constructor(what: string, detail: string | undefined) {
@@ -73,9 +73,6 @@ export class Menu {
                     break;
                 case "show_max_iter":
                     this.max_iter.show();
-                    break;
-                case "fractal":
-                    this.viewer.set_algorithm(event.payload.detail);
                     break;
                 case "toggle_navigator":
                     this.viewer.toggle_navigator();

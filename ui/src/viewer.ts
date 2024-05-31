@@ -13,6 +13,98 @@ import { SerialAllocator } from './serial_allocator'
 var gSerial = new SerialAllocator();
 const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
+const DEFAULT_ALGORITHM = "Original";
+const DEFAULT_MAX_ITER = 256;
+
+class EngineTileSource extends OpenSeadragon.TileSource {
+  private parent: Viewer;
+  private algorithm: string;
+  private max_iter: number;
+  private metadata: FractalView = new FractalView();
+
+  // CAUTION: Immediately after construction, metadata is not valid until after it has round-tripped to the engine to get the metadata.
+  // (Could add a validity flag or something eventish if needed.)
+  constructor(parent: Viewer, algorithm: string, max_iter: number) {
+    super({
+      height: IMAGE_DIMENSION,
+      width: IMAGE_DIMENSION,
+      tileSize: TILE_SIZE,
+      minLevel: 8,
+      tileOverlap: 0,
+    });
+    this.parent = parent;
+    this.algorithm = algorithm;
+    this.max_iter = max_iter;
+    invoke('get_metadata', { algorithm: algorithm })
+      .then((reply) => {
+        let meta = reply as FractalView;
+        this.metadata.axes_length = meta.axes_length;
+        this.metadata.origin = meta.origin;
+      })
+      .catch((e) => {
+        console.log(`Error retrieving metadata for ${algorithm}: ${e}`);
+      });
+  }
+
+  get_algorithm(): string { return this.algorithm; }
+  get_max_iter(): number { return this.max_iter; }
+  get_metadata(): FractalView { return this.metadata; }
+
+  getTileUrl(level: number, x: number, y: number): string {
+    // TODO add colour (or we'll break cacheing!)
+    return `${this.algorithm}:${this.max_iter}/${level}/${x}-${y}}`;
+  }
+
+  // caution: @types/openseadragon 3.0.10 doesn't know about these functions
+  getTilePostData(level: number, x: number, y: number) {
+    return new TilePostData(level, x, y);
+  }
+
+  async downloadTileStart(context: any /* OpenSeadragon.ImageJob */) {
+    // tile dx and dy are the column and row numbers FOR THE ZOOM LEVEL.
+    // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
+    // => At zoom level X, the image is 2^X pixels across.
+
+    let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, this.algorithm, this.max_iter);
+    context.userData = spec;
+    this.parent.add_outstanding_request(spec.serial, context);
+    invoke('start_tile', {
+      spec: spec
+    })
+      .catch((e) => {
+        context?.finish?.(null, null, e.toString());
+      });
+  }
+
+  downloadTileAbort(context: any /*OpenSeadragon.ImageJob*/) {
+    console.log(`OSD requested tile abort: tile #${context.userData.serial}`);
+    invoke('abort_tile', { serial: context.userData.serial })
+      .catch((e) => {
+        context.finish?.(null, null, e.toString());
+      });
+  }
+  createTileCache(cache: any/*CacheObject*/, data: any) {
+    cache._data = data;
+  }
+  destroyTileCache(cache: any/*CacheObject*/) {
+    cache._data = null;
+  }
+  getTileCacheData(cache: any/*CacheObject*/) {
+    return cache._data;
+  }
+  getTileCacheDataAsImage() {
+    // not implementing all the features brings limitations to the
+    // system, namely tile.getImage() will not work and also
+    // html-based drawing approach will not work
+    throw "getTileCacheDataAsImage not implemented";
+  }
+
+  getTileCacheDataAsContext2D(cache: any/*CacheObject*/) {
+    // our data is already context2D - what a luck!
+    return cache._data;
+  }
+
+}
 
 export class Viewer {
   private osd: any | null;  // OpenSeadragon.Viewer
@@ -21,9 +113,6 @@ export class Viewer {
   private unlisten_tile_error: UnlistenFn | null = null;
   private outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   private hud_: HeadsUpDisplay;
-  private current_metadata: FractalView = new FractalView();
-  private algorithm: string = "Original";
-  private max_iter: number = 2048; // TODO: this will move into the tile source
 
   // width, height used by coordinate display
   private width_: number = NaN;
@@ -34,6 +123,8 @@ export class Viewer {
 
   constructor() {
     let self = this; // Closure helper
+
+    let initialSource = new EngineTileSource(this, DEFAULT_ALGORITHM, DEFAULT_MAX_ITER);
 
     this.osd = OpenSeadragon({
       id: "openseadragon",
@@ -50,64 +141,7 @@ export class Viewer {
       zoomPerSecond: 2.0,
       toolbar: "topbar",
 
-      tileSources: {
-        height: IMAGE_DIMENSION,
-        width: IMAGE_DIMENSION,
-        tileSize: TILE_SIZE,
-        minLevel: 8,
-        tileOverlap: 0,
-
-        getTileUrl: function (level: number, x: number, y: number) {
-          // TODO add colour (or we'll break cacheing!)
-          return `${self.algorithm}/${level}/${x}-${y}/${self.max_iter}`;
-        },
-        // caution: @types/openseadragon 3.0.10 doesn't know about these functions
-        getTilePostData: function (level: number, x: number, y: number) {
-          return new TilePostData(level, x, y);
-        },
-        downloadTileStart: async function (context: any /* OpenSeadragon.ImageJob */) {
-          // tile dx and dy are the column and row numbers FOR THE ZOOM LEVEL.
-          // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
-          // => At zoom level X, the image is 2^X pixels across.
-
-          let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, self.algorithm, self.max_iter);
-          context.userData = spec;
-          self.outstanding_requests.set(spec.serial, context);
-          invoke('start_tile', {
-            spec: spec
-          })
-            .catch((e) => {
-              context?.finish?.(null, null, e.toString());
-            });
-        },
-        downloadTileAbort: function (context: any /*OpenSeadragon.ImageJob*/) {
-          console.log(`OSD requested tile abort: tile #${context.userData.serial}`);
-          invoke('abort_tile', { serial: context.userData.serial })
-            .catch((e) => {
-              context.finish?.(null, null, e.toString());
-            });
-        },
-        createTileCache: function (cache: any/*CacheObject*/, data: any) {
-          cache._data = data;
-        },
-        destroyTileCache: function (cache: any/*CacheObject*/) {
-          cache._data = null;
-        },
-        getTileCacheData: function (cache: any/*CacheObject*/) {
-          return cache._data;
-        },
-        getTileCacheDataAsImage: function () {
-          // not implementing all the features brings limitations to the
-          // system, namely tile.getImage() will not work and also
-          // html-based drawing approach will not work
-          throw "getTileCacheDataAsImage not implemented";
-        },
-
-        getTileCacheDataAsContext2D: function (cache: any/*CacheObject*/) {
-          // our data is already context2D - what a luck!
-          return cache._data;
-        },
-      },
+      tileSources: [initialSource],
     }); // ---------------- end this.osd initialiser ---------------------------
 
     this.bind_events().then(() => {
@@ -132,37 +166,29 @@ export class Viewer {
     // Zoom/Position indicator
     this.hud_ = new HeadsUpDisplay(document);
     let viewer = this.osd;
-    var updateIndicator = function () {
-      let vp = viewer.viewport;
-      var zoom: number = vp.getZoom(true);
-      let position = self.get_position();
-      self.hud_.update(zoom, position.origin, position.centre(), position.axes_length, self.width_, self.height_);
-      /*
-      let checkZoom = self.current_metadata.axes_length.re / axesComplex.re;
-      console.log(`real: meta ${self.current_metadata.axes_length.re}, axis ${axesComplex.re}, zoom ${zoom}, computed zoom = ${checkZoom}`);
-      */
-    }
     viewer.addHandler('open', function () {
-      viewer.addHandler('animation', updateIndicator);
+      viewer.addHandler('animation', () => { self.updateIndicator() });
     });
 
-    // Retrieve initial metadata.
-    invoke('get_metadata')
-      .then((reply) => {
-        // TODO when we have selectable fractals, this will need to be updated.
-        // Careful, current_metadata is captured by a closure.
-        let meta = reply as FractalView;
-        this.current_metadata.axes_length = meta.axes_length;
-        this.current_metadata.origin = meta.origin;
-        // Initial position at constructor time is not correct, so defer it; only a tiny deferral seems needed
-        // TODO figure out why this is and make it suitably event-based; could be waiting on OSD ?
-        window.setTimeout(function () { updateIndicator(); }, 10);
-      })
-      .catch((e) => {
-        console.log(`Error retrieving metadata: ${e}`);
-      }
-      );
+    // Initial position at constructor time is not correct, so defer it; only a tiny deferral seems needed
+    // TODO figure out why this is and make it suitably event-based; could be waiting on OSD ?
+    window.setTimeout(function () { self.updateIndicator(); }, 10);
+
   } // ---------------- end constructor --------------------
+
+  private metadata(): FractalView {
+    return this.get_active_source().get_metadata();
+  }
+
+  updateIndicator() {
+    if (this.osd === undefined || this.hud_ === undefined) {
+      return;
+    }
+    let vp = this.osd!.viewport;
+    var zoom: number = vp!.getZoom(true);
+    let position = this.get_position();
+    this.hud_!.update(zoom, position!.origin, position!.centre(), position!.axes_length, this.width_, this.height_);
+  }
 
   get_position(): FractalView {
     let viewer = this.osd;
@@ -182,7 +208,7 @@ export class Viewer {
     var axesLengthView = bottomRightView.minus(topLeftView);
 
     // Convert to complex
-    let meta = this.current_metadata; // Caution, closure capture!
+    let meta = this.metadata();
     let meta_axes = meta.axes_length;
 
     var originComplex = new EnginePoint(
@@ -207,6 +233,11 @@ export class Viewer {
     });
     // Note the before-destroy handler we set up elsewhere.
   }
+
+  add_outstanding_request(key: number, value: any) {
+    this.outstanding_requests.set(key, value);
+  }
+
 
   on_tile_complete(response: TileResponse) {
     let context = this.outstanding_requests.get(response.serial);
@@ -257,7 +288,7 @@ export class Viewer {
     let viewport = this.osd.viewport;
     // this is essentially the inverse of updateIndicator()
 
-    let meta = this.current_metadata;
+    let meta = this.metadata();
     let meta_axes = meta.axes_length;
 
     let originComplex = undefined;
@@ -286,12 +317,12 @@ export class Viewer {
     let aspectRatio = this.width_ / this.height_;
     if (Number.isFinite(axesReal)) {
       axesImag = axesReal / aspectRatio;
-      zoom = this.current_metadata.axes_length.re / axesReal;
+      zoom = meta.axes_length.re / axesReal;
     } else if (Number.isFinite(axesImag)) {
       axesReal = axesImag * aspectRatio;
-      zoom = this.current_metadata.axes_length.re / axesReal;
+      zoom = meta.axes_length.re / axesReal;
     } else if (Number.isFinite(zoom)) {
-      axesReal = this.current_metadata.axes_length.re / zoom;
+      axesReal = meta.axes_length.re / zoom;
       axesImag = axesReal / aspectRatio;
     } else {
       throw new Error("Axis length must be specified");
@@ -344,57 +375,43 @@ export class Viewer {
     this.hud_.set_go_to_position(pos, this.width_, this.height_);
   }
 
+  get_active_source(): EngineTileSource {
+    let index = this.osd.currentPage();
+    return this.osd.world.getItemAt(index).source as EngineTileSource;
+  }
+
   get_max_iter() {
-    return this.max_iter;
+    return this.get_active_source().get_max_iter();
   }
   set_max_iter(new_max: number) {
     if (Number.isFinite(new_max)) {
-      this.max_iter = new_max;
-      this.redraw();
+      let oldSource = this.get_active_source();
+      let newSource = new EngineTileSource(this, oldSource.get_algorithm(), new_max);
+      this.replace_active_source(newSource);
     } else {
       console.warn(`failed to parse max_iter ${new_max}`);
     }
   }
-  set_algorithm(new_fractal: string) {
-    this.algorithm = new_fractal;
-    this.redraw();
-    this.osd.viewport.goHome();
-  }
   get_algorithm(): string {
-    return this.algorithm;
+    return this.get_active_source().get_algorithm();
+  }
+  set_algorithm(new_fractal: string) {
+    let oldSource = this.get_active_source();
+    let newSource = new EngineTileSource(this, new_fractal, oldSource.get_max_iter());
+    this.replace_active_source(newSource);
+    this.osd.viewport.goHome();
+    window.setTimeout(() => { this.updateIndicator(); }, 10);
   }
 
-  // Force a redraw of all tiles because something important changed (colourer, max_iter, etc)
-  private redraw() {
-    // First attempt was this.osd.world.resetItems() but that caused a nasty canvas flash.
-    // This technique is based on the workaround described in https://github.com/openseadragon/openseadragon/issues/1991
+  // Something important changed (algorithm, max_iter, etc). Replace the active source.
+  private replace_active_source(source: EngineTileSource) {
+    // This causes a canvas flash.
+    // There is a workaround described in https://github.com/openseadragon/openseadragon/issues/1991 which we used to have (as redraw()) but that interferes with multi-image mode, so leave off for now.
     this.osd._cancelPendingImages();
-
-    // ASSUMPTION: the current image is always the latest-added
-    let previousCount = this.osd.world.getItemCount();
-    let oldImage = this.osd.world.getItemAt(previousCount - 1);
-    console.log(`item count was ${previousCount}`);
-    let oldBounds = oldImage.getBounds();
-    let oldSource = oldImage.source;
-    let self = this;
-    this.osd.addTiledImage({
-      tileSource: oldSource,
-      x: oldBounds.x,
-      y: oldBounds.y,
-      width: oldBounds.width, // height is automatic
-      opacity: 0.01,
-      success: function () {
-        // ASSUMPTION: fully-loaded-change doesn't trigger before this success function is called.
-        let newItem = self.osd.world.getItemAt(previousCount);
-        newItem.setOpacity(1.0);
-        newItem.addOnceHandler('fully-loaded-change', function (_event: any) {
-          self.osd.world.removeItem(oldImage);
-        });
-      }
-    });
+    this.osd.open(source);
   }
 
-  private nav_visible: boolean = true;;
+  private nav_visible: boolean = true;
   toggle_navigator() {
     let element = this.osd.navigator.element;
     if (this.nav_visible)

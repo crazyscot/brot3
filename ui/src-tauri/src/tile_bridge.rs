@@ -7,6 +7,7 @@ use brot3_engine::{
     colouring,
     fractal::{self, Algorithm, Point, Scalar, Tile, TileSpec},
     render,
+    util::listable::ListItem,
 };
 
 use serde::{Deserialize, Serialize};
@@ -105,13 +106,19 @@ pub async fn abort_tile(
 }
 
 #[tauri::command]
-/// Retrieve metadata for the [implicitly selected] fractal
-pub fn get_metadata() -> anyhow::Result<FractalView, String> {
-    let alg_requested = "Original"; // TODO this will be passed in when we have fractal selection going
-    let algorithm = fractal::decode(alg_requested).map_err(|e| e.to_string())?;
-    let origin = algorithm.default_centre() - 0.5 * algorithm.default_axes();
+/// Retrieve metadata for the given fractal
+pub fn get_metadata(algorithm: String) -> anyhow::Result<FractalView, String> {
+    let algorithm_instance = fractal::decode(&algorithm).map_err(|e| e.to_string())?;
+    let origin = algorithm_instance.default_centre() - 0.5 * algorithm_instance.default_axes();
     Ok(FractalView {
         origin: origin.into(),
-        axes_length: algorithm.default_axes().into(),
+        axes_length: algorithm_instance.default_axes().into(),
     })
+}
+
+#[tauri::command]
+/// List available fractal algorithms
+pub fn list_fractals() -> Vec<ListItem> {
+    use brot3_engine::{fractal, util::listable};
+    listable::list_original_case::<fractal::Selection>().collect()
 }

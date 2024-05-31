@@ -125,3 +125,40 @@ export class RenderSpec {
         return this;
     }
 }
+
+/// A representation of a listable item.
+/// Twin of rust ListItem struct.
+export class ListItem {
+    /// Item name
+    name: string;
+    /// Item description
+    description: string;
+    constructor(name: string, description: string) {
+        this.name = name;
+        this.description = description;
+    }
+}
+
+/// Wrapper for a ListItem, with a key (to keep React happy)
+export class ListItemWithKey {
+    /// Item ID
+    key: number;
+    /// Item name
+    name: string;
+    /// Item description
+    description: string;
+    constructor(item: ListItem, id = 0) {
+        this.key = id;
+        this.name = item.name;
+        this.description = item.description;
+    }
+}
+
+export function add_keys_to_list(items: ListItem[]): ListItemWithKey[] {
+    let counter = 0;
+    return items.map((it: ListItem) => {
+        let new1 = new ListItemWithKey(it, counter);
+        counter = counter + 1;
+        return new1;
+    });
+}

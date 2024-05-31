@@ -6,6 +6,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "jsx": "react",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
