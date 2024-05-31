@@ -75,29 +75,35 @@ const ImageBackdrop = styled('span')(({ theme }) => ({
     transition: theme.transitions.create('opacity'),
 }));
 
-const DisplayItem = ({ name = "", description = "", key = "" }, hideModal = () => { }, viewer: Viewer | null) => {
+type DisplayItemProps = {
+    name: string,
+    description: string,
+    hideModal: () => void,
+    viewer: Viewer | null,
+}
+
+const DisplayItem = (props: DisplayItemProps) => {
     const BUTTON_WIDTH = 150;
     const doClick = () => {
-        hideModal();
-        viewer?.set_algorithm(name);
+        props.hideModal();
+        props.viewer?.set_algorithm(props.name);
     };
 
     // TODO: Temporary image URL for now.
     return (
         <ImageButton
             focusRipple
-            key={key}
             style={{
                 width: BUTTON_WIDTH,
             }}
             data-tooltip-id="list-tooltip"
-            data-tooltip-content={description_filter(description)}
+            data-tooltip-content={description_filter(props.description)}
             onClick={doClick}
         >
             <ImageSrc style={{ backgroundImage: `url(/openseadragon/images/home_rest.png)` }} />
             <ImageBackdrop className="MuiImageBackdrop-root" />
             <Image>
-                {name}
+                {props.name}
             </Image>
             <Tooltip id="list-tooltip" className="list-tooltip" />
         </ImageButton>
@@ -110,7 +116,7 @@ interface SelectionModalProps {
 
 const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
     const [show, setShow] = useState(false);
-    const [listData, setListData] = useState<ListItemWithKey[]>([]);
+    const [listItems, setListItems] = useState<ListItemWithKey[]>([]);
 
     const hide = () => {
         setShow(false);
@@ -127,7 +133,7 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
                 case "fractal":
                     invoke('list_fractals', {}).then((reply) => {
                         let fractals = add_keys_to_list((reply as ListItem[])!);
-                        setListData(fractals);
+                        setListItems(fractals);
                     });
                     setShow(true);
                     break;
@@ -138,13 +144,13 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         return () => {
             unlisten.then(f => f());
         }
-    }, [setShow, setListData]);
+    }, [setListItems, setShow]);
 
     return <>{show && <div className="react-modal">
         <div className="modal-content" ref={ref}>
             <span className="close" id="close-selector" onClick={hide}>&times;</span>
             <h3>Available Fractals</h3>
-            <div id="selection-list">{listData.map(it => DisplayItem(it, hide, viewer))}</div>
+            <div id="selection-list">{listItems.map((it) => <DisplayItem {...it} hideModal={hide} viewer={viewer} />)}</div>
         </div>
     </div>}</>
 };
