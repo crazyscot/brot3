@@ -75,7 +75,7 @@ const ImageBackdrop = styled('span')(({ theme }) => ({
     transition: theme.transitions.create('opacity'),
 }));
 
-const DisplayItem = ({ name = "", description = "", key = 0 }, hideModal = () => { }, viewer: Viewer | null) => {
+const DisplayItem = ({ name = "", description = "", key = "" }, hideModal = () => { }, viewer: Viewer | null) => {
     const BUTTON_WIDTH = 150;
     const doClick = () => {
         hideModal();
