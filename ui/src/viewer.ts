@@ -8,9 +8,8 @@ import OpenSeadragon from 'openseadragon'
 
 import { EnginePoint, FractalView, TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
 import { HeadsUpDisplay, UserDestination } from './hud'
-import { SerialAllocator } from './serial_allocator'
+import { nextSerial } from './serial_allocator'
 
-var gSerial = new SerialAllocator();
 const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
 const DEFAULT_ALGORITHM = "Original";
@@ -69,7 +68,7 @@ class EngineTileSource extends OpenSeadragon.TileSource {
     // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
     // => At zoom level X, the image is 2^X pixels across.
 
-    let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, this.algorithm, this.max_iter, this.colourer);
+    let spec = new TileSpec(await nextSerial(), context?.postData, TILE_SIZE, TILE_SIZE, this.algorithm, this.max_iter, this.colourer);
     context.userData = spec;
     this.parent.add_outstanding_request(spec.serial, context);
     invoke('start_tile', {
