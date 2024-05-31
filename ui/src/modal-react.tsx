@@ -19,7 +19,7 @@ export const effectModalClickOrEscape = (callback: () => void) => {
             document.removeEventListener('mouseup', handleClickOutside);
             document.removeEventListener('touchend', handleClickOutside);
         };
-    }, [callback]);
+    }, [callback, ref]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -31,6 +31,6 @@ export const effectModalClickOrEscape = (callback: () => void) => {
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [callback]);
+    }, [callback, ref]);
     return ref;
 };
