@@ -40,6 +40,29 @@ export class TileResponse {
     }
 }
 
+// Helper class for TileResponse.
+// NB that when instantiated by tauri, TileResponse is plain old data without functions. Hence this wrapper.
+export class TileResponseHelper {
+    tr: TileResponse;
+    constructor(tr: TileResponse) {
+        this.tr = tr;
+    }
+    blob(): Uint8ClampedArray {
+        return new Uint8ClampedArray(this.tr.rgba_blob);
+    }
+    image(expected_size: number): ImageData {
+        return new ImageData(this.blob(), expected_size, expected_size, { "colorSpace": "srgb" });
+    }
+    canvas(expected_size: number): HTMLCanvasElement {
+        let c = document.createElement("canvas");
+        c.width = expected_size;
+        c.height = expected_size;
+        let ctx = c.getContext("2d");
+        ctx?.putImageData(this.image(expected_size), 0, 0);
+        return c;
+    }
+}
+
 /// Twin of Rust TileError struct.
 export class TileError {
     serial: number;

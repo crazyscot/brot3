@@ -6,11 +6,11 @@ import { UnlistenFn, listen } from '@tauri-apps/api/event'
 import jQuery from 'jquery'
 import OpenSeadragon from 'openseadragon'
 
-import { EnginePoint, FractalView, TileSpec, TileResponse, TileError, TilePostData } from './engine_types'
+import { EnginePoint, FractalView, TileSpec, TileResponse, TileError, TilePostData, TileResponseHelper } from './engine_types'
 import { HeadsUpDisplay, UserDestination } from './hud'
 import { nextSerial } from './serial_allocator'
 
-const TILE_SIZE = 128;
+export const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
 const DEFAULT_ALGORITHM = "Original";
 const DEFAULT_MAX_ITER = 256;
@@ -248,9 +248,8 @@ export class Viewer {
     //console.log(`got tile #${response.serial} = ${spec.level}/${spec.dx}-${spec.dy}`);
 
     // "convert the data to a canvas and return its 2D context"
-    // response.rgba_blob is a byte array
-    let blob = new Uint8ClampedArray(response.rgba_blob);
-    let image = new ImageData(blob, TILE_SIZE, TILE_SIZE, { "colorSpace": "srgb" });
+    let response2 = new TileResponseHelper(response);
+    let image = response2.image(TILE_SIZE);
     let canvas = document.createElement("canvas");
     canvas.width = TILE_SIZE;
     canvas.height = TILE_SIZE;
