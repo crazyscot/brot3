@@ -56,7 +56,7 @@ pub struct FractalView {
 }
 
 fn draw_tile(spec: &ViewerTileSpec, app_handle: &tauri::AppHandle) -> anyhow::Result<(), String> {
-    let colourer_requested = "LogRainbow"; // TODO this will come from spec
+    let colourer_requested = &spec.colourer;
     let colourer = colouring::decode(colourer_requested).map_err(|e| e.to_string())?;
     let engine_spec = TileSpec::try_from(spec).map_err(|e| e.to_string())?;
     let mut tile = Tile::new(&engine_spec, 0);

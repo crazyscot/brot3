@@ -8,7 +8,6 @@ export class GenericError {
 
 /// Twin of Rust ViewerTileSpec struct. This class is also the userData element of ImageJob.userData.
 export class TileSpec {
-    // TODO: fractal, colourer
     serial: number;
     level: number;
     dx: number;
@@ -17,7 +16,8 @@ export class TileSpec {
     height: number;
     max_iter: number;
     algorithm: string;
-    constructor(serial: number, data: TilePostData, width: number, height: number, algorithm: string, max_iter: number) {
+    colourer: string;
+    constructor(serial: number, data: TilePostData, width: number, height: number, algorithm: string, max_iter: number, colourer: string) {
         this.serial = serial; // Always obtain from gSerial.next() !
         this.level = data?.level || 0;
         this.dx = data?.dx || 0;
@@ -26,6 +26,7 @@ export class TileSpec {
         this.height = height;
         this.max_iter = max_iter;
         this.algorithm = algorithm;
+        this.colourer = colourer;
     }
 }
 
@@ -122,6 +123,10 @@ export class RenderSpec {
     }
     set_algorithm(algorithm: string): RenderSpec {
         this.algorithm = algorithm;
+        return this;
+    }
+    set_colourer(colourer: string): RenderSpec {
+        this.colourer = colourer;
         return this;
     }
 }

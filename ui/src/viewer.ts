@@ -15,16 +15,18 @@ const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
 const DEFAULT_ALGORITHM = "Original";
 const DEFAULT_MAX_ITER = 256;
+const DEFAULT_COLOURER = "LinearRainbow";
 
 class EngineTileSource extends OpenSeadragon.TileSource {
   private parent: Viewer;
   private algorithm: string;
   private max_iter: number;
   private metadata: FractalView = new FractalView();
+  private colourer: string;
 
   // CAUTION: Immediately after construction, metadata is not valid until after it has round-tripped to the engine to get the metadata.
   // (Could add a validity flag or something eventish if needed.)
-  constructor(parent: Viewer, algorithm: string, max_iter: number) {
+  constructor(parent: Viewer, algorithm: string, max_iter: number, colourer: string) {
     super({
       height: IMAGE_DIMENSION,
       width: IMAGE_DIMENSION,
@@ -35,6 +37,7 @@ class EngineTileSource extends OpenSeadragon.TileSource {
     this.parent = parent;
     this.algorithm = algorithm;
     this.max_iter = max_iter;
+    this.colourer = colourer;
     invoke('get_metadata', { algorithm: algorithm })
       .then((reply) => {
         let meta = reply as FractalView;
@@ -49,6 +52,7 @@ class EngineTileSource extends OpenSeadragon.TileSource {
   get_algorithm(): string { return this.algorithm; }
   get_max_iter(): number { return this.max_iter; }
   get_metadata(): FractalView { return this.metadata; }
+  get_colourer(): string { return this.colourer; }
 
   getTileUrl(level: number, x: number, y: number): string {
     // TODO add colour (or we'll break cacheing!)
@@ -65,7 +69,7 @@ class EngineTileSource extends OpenSeadragon.TileSource {
     // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
     // => At zoom level X, the image is 2^X pixels across.
 
-    let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, this.algorithm, this.max_iter);
+    let spec = new TileSpec(await gSerial.next(), context?.postData, TILE_SIZE, TILE_SIZE, this.algorithm, this.max_iter, this.colourer);
     context.userData = spec;
     this.parent.add_outstanding_request(spec.serial, context);
     invoke('start_tile', {
@@ -124,7 +128,7 @@ export class Viewer {
   constructor() {
     let self = this; // Closure helper
 
-    let initialSource = new EngineTileSource(this, DEFAULT_ALGORITHM, DEFAULT_MAX_ITER);
+    let initialSource = new EngineTileSource(this, DEFAULT_ALGORITHM, DEFAULT_MAX_ITER, DEFAULT_COLOURER);
 
     this.osd = OpenSeadragon({
       id: "openseadragon",
@@ -386,7 +390,7 @@ export class Viewer {
   set_max_iter(new_max: number) {
     if (Number.isFinite(new_max)) {
       let oldSource = this.get_active_source();
-      let newSource = new EngineTileSource(this, oldSource.get_algorithm(), new_max);
+      let newSource = new EngineTileSource(this, oldSource.get_algorithm(), new_max, oldSource.get_colourer());
       this.replace_active_source(newSource);
     } else {
       console.warn(`failed to parse max_iter ${new_max}`);
@@ -397,7 +401,7 @@ export class Viewer {
   }
   set_algorithm(new_fractal: string) {
     let oldSource = this.get_active_source();
-    let newSource = new EngineTileSource(this, new_fractal, oldSource.get_max_iter());
+    let newSource = new EngineTileSource(this, new_fractal, oldSource.get_max_iter(), oldSource.get_colourer());
     this.replace_active_source(newSource);
     this.osd.viewport.goHome();
     window.setTimeout(() => { this.updateIndicator(); }, 10);
