@@ -6,7 +6,8 @@ import React, { FC, useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
 import { listen } from '@tauri-apps/api/event';
 import { Tooltip } from 'react-tooltip';
-import { Button } from '@mui/material';
+import { ButtonBase } from '@mui/material';
+import { styled } from '@mui/material/styles';
 
 import { ListItem, ListItemWithKey, add_keys_to_list } from './engine_types';
 import { DisplayMessageDetail } from './menu';
@@ -20,23 +21,86 @@ function description_filter(desc: string): string {
     return desc.replace(re, '');
 }
 
+const ImageButton = styled(ButtonBase)(({ theme }) => ({
+    position: 'relative',
+    height: 150,
+    [theme.breakpoints.down('sm')]: {
+        width: '100% !important', // Overrides inline-style
+        height: 100,
+    },
+    '&:hover, &.Mui-focusVisible': {
+        zIndex: 1,
+        '& .MuiImageBackdrop-root': {
+            opacity: 0.15,
+        },
+        '& .MuiImageMarked-root': {
+            opacity: 0,
+        },
+        '& .MuiTypography-root': {
+            border: '4px solid currentColor',
+        },
+    },
+}));
+
+const ImageSrc = styled('span')({
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center 40%',
+});
+
+const Image = styled('span')(({ theme }) => ({
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: theme.palette.common.white,
+}));
+
+const ImageBackdrop = styled('span')(({ theme }) => ({
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: theme.palette.common.black,
+    opacity: 0.4,
+    transition: theme.transitions.create('opacity'),
+}));
+
 const DisplayItem = ({ name = "", description = "", key = 0 }, hideModal = () => { }, viewer: Viewer | null) => {
+    const BUTTON_WIDTH = 150;
     const doClick = () => {
         hideModal();
         viewer?.set_algorithm(name);
     };
+
+    // TODO: Temporary image URL for now.
     return (
-        <span key={key}>
-            <Button
-                variant="outlined"
-                data-tooltip-id="list-tooltip"
-                data-tooltip-content={description_filter(description)}
-                onClick={doClick}
-            >
+        <ImageButton
+            focusRipple
+            key={key}
+            style={{
+                width: BUTTON_WIDTH,
+            }}
+            data-tooltip-id="list-tooltip"
+            data-tooltip-content={description_filter(description)}
+            onClick={doClick}
+        >
+            <ImageSrc style={{ backgroundImage: `url(/openseadragon/images/home_rest.png)` }} />
+            <ImageBackdrop className="MuiImageBackdrop-root" />
+            <Image>
                 {name}
-            </Button>
+            </Image>
             <Tooltip id="list-tooltip" className="list-tooltip" />
-        </span>
+        </ImageButton>
     );
 };
 
