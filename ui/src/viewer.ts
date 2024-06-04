@@ -54,8 +54,7 @@ class EngineTileSource extends OpenSeadragon.TileSource {
   get_colourer(): string { return this.colourer; }
 
   getTileUrl(level: number, x: number, y: number): string {
-    // TODO add colour (or we'll break cacheing!)
-    return `${this.algorithm}:${this.max_iter}/${level}/${x}-${y}}`;
+    return `${this.algorithm}:${this.max_iter}/${this.colourer}/${level}/${x}-${y}}`;
   }
 
   // caution: @types/openseadragon 3.0.10 doesn't know about these functions
@@ -405,6 +404,13 @@ export class Viewer {
   set_algorithm(new_fractal: string) {
     let oldSource = this.get_active_source();
     let newSource = new EngineTileSource(this, new_fractal, oldSource.get_max_iter(), oldSource.get_colourer());
+    this.replace_active_source(newSource);
+    this.osd.viewport.goHome();
+    window.setTimeout(() => { this.updateIndicator(); }, 10);
+  }
+  set_colourer(new_colourer: string) {
+    let oldSource = this.get_active_source();
+    let newSource = new EngineTileSource(this, oldSource.get_algorithm(), oldSource.get_max_iter(), new_colourer);
     this.replace_active_source(newSource);
     this.osd.viewport.goHome();
     window.setTimeout(() => { this.updateIndicator(); }, 10);

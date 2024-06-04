@@ -117,8 +117,14 @@ pub fn get_metadata(algorithm: String) -> anyhow::Result<FractalView, String> {
 }
 
 #[tauri::command]
-/// List available fractal algorithms
-pub fn list_fractals() -> Vec<ListItem> {
+/// List available fractal algorithms or colourers
+pub fn list_items(what: String) -> anyhow::Result<Vec<ListItem>, String> {
     use brot3_engine::{fractal, util::listable};
-    listable::list_original_case::<fractal::Selection>().collect()
+    if what == "fractals" {
+        Ok(listable::list_original_case::<fractal::Selection>().collect())
+    } else if what == "colourers" {
+        Ok(listable::list_original_case::<colouring::Selection>().collect())
+    } else {
+        Err(format!("Unhandled selection request {}", what))
+    }
 }

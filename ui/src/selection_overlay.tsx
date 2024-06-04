@@ -35,13 +35,20 @@ type DisplayItemProps = {
     description: string,
     hideModal: () => void,
     viewer: Viewer | null,
+    itemType: string,
 }
 const DisplayItem = (props: DisplayItemProps) => {
     const urlMap = useContext(ButtonURLContext);
 
     const doClick = () => {
         props.hideModal();
-        props.viewer?.set_algorithm(props.name);
+        if (props.itemType === "fractals") {
+            props.viewer?.set_algorithm(props.name);
+        } else if (props.itemType === "colourers") {
+            props.viewer?.set_colourer(props.name);
+        } else {
+            console.error(`Unknown item type ${props.itemType}`)
+        }
     };
 
     return (
@@ -70,8 +77,9 @@ interface SelectionModalProps {
 
 const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
     const [show, setShow] = useState(false); // visibility of this panel
+    const [listType, setListType] = useState(""); // fractals, colourers
     const [listItems, setListItems] = useState<ListItemWithKey[]>([]); // simple list of items we care about
-    const [ButtonUrls, setButtonUrls] = useState<ButtonURLContextType>(new Map()); // context state, maps items by name to their URLs
+    const [ButtonImageUrls, setButtonImageUrls] = useState<ButtonURLContextType>(new Map()); // context state, maps items by name to their URLs
     const outstanding = useRef<Map<number, string>>(new Map()); // Open requests to engine. Maps serial numbers to item names.
     const [rendering, setRendering] = useState(false); // prevents infinite loop re-entrancy
 
@@ -82,11 +90,29 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         hide();
     });
     const listFractals = () => {
+        setShow(false);
         outstanding.current.clear();
-        invoke('list_fractals', {})
+        let map = new Map<string, string>();
+        setButtonImageUrls((_) => map);
+        invoke('list_items', { what: 'fractals' })
             .then((reply) => {
                 let fractals = add_keys_to_list((reply as ListItem[])!);
+                setListType("fractals");
                 setListItems(fractals);
+            });
+        setShow(true);
+    };
+    const listColourers = () => {
+        setShow(false);
+        outstanding.current.clear();
+        let map = new Map<string, string>();
+        setButtonImageUrls((_) => map);
+        invoke('list_items', { what: 'colourers' })
+            .then((reply) => {
+                let colourers = add_keys_to_list((reply as ListItem[])!);
+                // TODO Should we add itemType to ListItem (& rust) ? May obviate ListType here & be tidier (keep the typing info as attached metadata)
+                setListType("colourers");
+                setListItems(colourers);
             });
         setShow(true);
     };
@@ -96,27 +122,48 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         listItems.forEach((f) => {
             map.set(f.name, "");
         });
+        setButtonImageUrls((_) => map);
         setRendering(false);
-        setButtonUrls(map);
     }, [listItems]);
     useEffect(() => {
         if (rendering) return;
+
+        let specs: Promise<TileSpec>[] = [];
         // When ButtonURLs is changed and we're not already rendering: kick off a render loop.
-        let specs = listItems.map(async (alg) => {
-            let postdata = new TilePostData(PREVIEW_LEVEL, 0, 0);
+        if (listType === "") {
+            return; // Quiescent
+        }
+        if (listType === "fractals") {
             let colourer = viewer.get_colourer();
-            return new TileSpec(await nextSerial(), postdata, TILE_SIZE, TILE_SIZE, alg.name, 32, colourer);
-        });
+            specs = listItems.map(async (alg) => {
+                let postdata = new TilePostData(PREVIEW_LEVEL, 0, 0);
+                return new TileSpec(await nextSerial(), postdata, TILE_SIZE, TILE_SIZE, alg.name, 32, colourer);
+            });
+        }
+        else if (listType === "colourers") {
+            let algorithm = viewer.get_algorithm();
+            specs = listItems.map(async (col) => {
+                let postdata = new TilePostData(PREVIEW_LEVEL, 0, 0);
+                return new TileSpec(await nextSerial(), postdata, TILE_SIZE, TILE_SIZE, algorithm, 32, col.name);
+            });
+        } else {
+            console.error(`Unhandled list type ${listType}`);
+        }
+
         setRendering(true); // prevents infinite loop re-entrancy
         specs.forEach(async (s) => {
             let s2 = await s;
-            outstanding.current.set(s2.serial, s2.algorithm);
+            if (listType === "fractals") {
+                outstanding.current.set(s2.serial, s2.algorithm);
+            } else if (listType === "colourers") {
+                outstanding.current.set(s2.serial, s2.colourer);
+            }
             invoke('start_tile', { spec: s2 })
                 .catch((e) => {
                     console.error(e);
                 });
         });
-    }, [ButtonUrls, rendering]);
+    }, [ButtonImageUrls, listType, rendering]);
     useEffect(() => {
         const unlisten1 = listen<TileResponse>('tile_complete', (event) => {
             let tile = event.payload;
@@ -126,7 +173,7 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
             let helper = new TileResponseHelper(tile);
             let canvas = helper.canvas(TILE_SIZE);
             let dataUrl = canvas.toDataURL();
-            setButtonUrls((prev) => {
+            setButtonImageUrls((prev) => {
                 // GOTCHA: Using an updater function here means we can batch multiple updates.
                 // Naively cloning without a closure and calling setButtonUrls(new1) causes the updates to trample each other.
                 const new1 = new Map(prev);
@@ -152,6 +199,9 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
                 case "fractal":
                     listFractals();
                     break;
+                case "colourer":
+                    listColourers();
+                    break;
                 default:
                     console.error(`unknown select message detail ${id}`);
             }
@@ -161,12 +211,12 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         }
     }, []);
 
-    return <ButtonURLContext.Provider value={ButtonUrls}>
+    return <ButtonURLContext.Provider value={ButtonImageUrls}>
         {show && <div className="react-modal">
             <div className="modal-content" ref={ref}>
                 <span className="close" id="close-selector" onClick={hide}>&times;</span>
-                <h3>Available Fractals</h3>
-                <div id="selection-list">{listItems.map((it) => <DisplayItem {...it} hideModal={hide} viewer={viewer} />)}</div>
+                <h3>Available {listType}</h3>
+                <div id="selection-list">{listItems.map((it) => <DisplayItem {...it} hideModal={hide} viewer={viewer} itemType={listType} />)}</div>
             </div>
         </div>}
     </ButtonURLContext.Provider>

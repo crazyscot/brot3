@@ -162,6 +162,7 @@ impl ApplicationMenu {
         let standard: Vec<MenuEntry> = vec![
             MenuEntry::CustomItem(CustomMenuItem::new("select/fractal", "Select fractal...")),
             MenuEntry::NativeItem(MenuItem::Separator),
+            MenuEntry::CustomItem(CustomMenuItem::new("select/colourer", "Select colourer...")),
         ];
         let menu = Menu::with_items(standard);
         Submenu::new("Fractal", menu)
