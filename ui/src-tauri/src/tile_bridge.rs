@@ -5,13 +5,18 @@ use super::ViewerTileSpec;
 use crate::OutstandingJobs;
 use brot3_engine::{
     colouring,
-    fractal::{self, Algorithm, Point, Scalar, Tile, TileSpec},
+    fractal::{self, Algorithm, Point, Scalar, Tile, TileCache, TileSpec},
     render,
     util::listable::ListItem,
 };
 
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
+
+// TileCache has interior mutability and only requires an immutable reference.
+// TODO: Tune cache carefully! 244 seems sufficient to fill my 2k screen; 840ish for my 4k.
+static TILE_CACHE: Lazy<TileCache> = Lazy::new(|| TileCache::new(1000));
 
 #[derive(Serialize, Clone)]
 pub struct TileResponse {
@@ -55,18 +60,32 @@ pub struct FractalView {
     pub axes_length: SerializablePoint,
 }
 
-fn draw_tile(spec: &ViewerTileSpec, app_handle: &tauri::AppHandle) -> anyhow::Result<(), String> {
+fn draw_tile(
+    spec: &ViewerTileSpec,
+    app_handle: &tauri::AppHandle,
+    cache: &TileCache,
+) -> anyhow::Result<(), String> {
     let colourer_requested = &spec.colourer;
     let colourer = colouring::decode(colourer_requested).map_err(|e| e.to_string())?;
     let engine_spec = TileSpec::try_from(spec).map_err(|e| e.to_string())?;
-    let mut tile = Tile::new(&engine_spec, 0);
-    tile.plot();
+    // Is it in cache?
+    let mut tile = cache.get(&engine_spec);
+    if tile.is_none() {
+        let mut new_tile = Tile::new(&engine_spec, 0);
+        new_tile.plot();
+        cache.insert(new_tile); // Consumes new_tile
+        tile = cache.get(&engine_spec); // ... and then retrieves a reference to what was new_tile
+                                        // println!("miss {:?} len={}", engine_spec, cache.len());
+    } else {
+        // println!("hit {:?}", engine_spec);
+    }
+    let response = render::as_rgba_from_cache(tile, colourer)?;
     app_handle
         .emit_all(
             "tile_complete",
             TileResponse {
                 serial: spec.serial,
-                rgba_blob: render::as_rgba(&tile, colourer).into(),
+                rgba_blob: response.into(),
             },
         )
         .map_err(|e| e.to_string())?;
@@ -74,13 +93,13 @@ fn draw_tile(spec: &ViewerTileSpec, app_handle: &tauri::AppHandle) -> anyhow::Re
 }
 
 #[tauri::command]
-pub async fn start_tile(spec: ViewerTileSpec, app_handle: tauri::AppHandle) {
+pub async fn start_tile(spec: ViewerTileSpec, app_handle: tauri::AppHandle) -> Result<(), String> {
     let app_handle_copy = app_handle.clone();
     let serial = spec.serial;
 
     let job = tauri::async_runtime::spawn(async move {
         let serial = spec.serial;
-        if let Err(error) = draw_tile(&spec, &app_handle) {
+        if let Err(error) = draw_tile(&spec, &app_handle, &TILE_CACHE) {
             let _ = app_handle.emit_all("tile_error", TileError { serial, error });
         }
         app_handle
@@ -92,6 +111,7 @@ pub async fn start_tile(spec: ViewerTileSpec, app_handle: tauri::AppHandle) {
         .state::<OutstandingJobs>()
         .add(serial, job)
         .await;
+    Ok(())
 }
 
 #[tauri::command]

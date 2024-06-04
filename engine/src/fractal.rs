@@ -10,6 +10,7 @@ mod mandeldrop;
 mod misc_fractals;
 mod pointdata;
 mod tile;
+mod tile_cache;
 mod tilespec;
 
 #[allow(clippy::module_name_repetitions)]
@@ -17,6 +18,7 @@ pub use framework::{decode, factory, Algorithm, Instance, Selection};
 pub use maths::{Point, Scalar};
 pub use pointdata::PointData;
 pub use tile::Tile;
+pub use tile_cache::TileCache;
 pub use tilespec::TileSpec;
 
 /// The user is allowed to specify the plot location in multiple ways.
