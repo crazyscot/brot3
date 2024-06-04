@@ -16,7 +16,7 @@ import { TILE_SIZE, Viewer } from './viewer'
 
 import './selection_overlay.css'
 
-export const PREVIEW_SIZE = 150;
+export const PREVIEW_SIZE = 192;
 const PREVIEW_LEVEL = Math.floor(Math.log2(PREVIEW_SIZE));
 
 function description_filter(desc: string): string {
