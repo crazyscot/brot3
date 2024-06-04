@@ -16,7 +16,7 @@ use strum_macros::{
 
 /// Selector for available Algorithms
 #[enum_delegate::implement(Algorithm)]
-#[derive(Clone, Copy, Debug, Display, FromRepr, PartialEq)]
+#[derive(Clone, Copy, Debug, Display, FromRepr, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
@@ -130,7 +130,7 @@ pub trait Algorithm {
 }
 
 /// Test algorithm, doesn't do anything useful
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Zero {}
 impl Algorithm for Zero {
     fn iterate(&self, point: &mut PointData) {

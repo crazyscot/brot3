@@ -20,7 +20,7 @@ pub type Rgb8 = palette::Srgb<u8>;
 
 /// Selector for available Palettes
 #[enum_delegate::implement(OutputsRgb8)]
-#[derive(Clone, Copy, Debug, Display, FromRepr, PartialEq)]
+#[derive(Clone, Copy, Debug, Display, FromRepr, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(

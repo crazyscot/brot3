@@ -5,7 +5,7 @@ use std::ops::Add;
 use std::str::FromStr;
 
 /// A rectangle of some sort
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct Rect<T> {
     /// Width of the thing
     pub width: T,

@@ -5,7 +5,7 @@ use super::mandelbrot::{Mandel3, Original};
 use super::maths::Point;
 use super::{Algorithm, PointData};
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Mandeldrop {
     delegate: Original,
 }
@@ -45,7 +45,7 @@ impl Algorithm for Mandeldrop {
 }
 
 #[allow(clippy::module_name_repetitions)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Mandeldrop3 {
     delegate: Mandel3,
 }
