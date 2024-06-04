@@ -7,7 +7,7 @@ import { invoke } from '@tauri-apps/api';
 import { listen } from '@tauri-apps/api/event';
 import { Tooltip } from 'react-tooltip';
 
-import { ListItem, ListItemWithKey, TilePostData, TileResponse, TileResponseHelper, TileSpec, add_keys_to_list } from './engine_types';
+import { ListItem, ListItemWithKey, TileError, TilePostData, TileResponse, TileResponseHelper, TileSpec, add_keys_to_list } from './engine_types';
 import { Image, ImageBackdrop, ImageButton, ImageSrc } from './image_button';
 import { DisplayMessageDetail } from './menu';
 import { effectModalClickOrEscape } from './modal-react';
@@ -118,7 +118,7 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         });
     }, [ButtonUrls, rendering]);
     useEffect(() => {
-        const unlisten = listen<TileResponse>('tile_complete', (event) => {
+        const unlisten1 = listen<TileResponse>('tile_complete', (event) => {
             let tile = event.payload;
             let requestor = outstanding.current.get(tile.serial);
             if (requestor === undefined) return; // Not for us
@@ -133,11 +133,17 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
                 return new1.set(requestor, dataUrl);
             });
         });
+        const unlisten2 = listen<TileError>('tile_error', (event) => {
+            let err = event.payload;
+            outstanding.current.delete(err.serial);
+            console.log(`Error in selection render job ${err.serial}: ${err.error}`);
+        });
         return () => {
-            unlisten.then(f => f());
+            unlisten1
+                .then(_ => unlisten2)
+                .then(f => f());
         }
     }, []);
-    // TODO Do we need to Listen for tile_error?
 
     useEffect(() => {
         const unlisten = listen<DisplayMessageDetail>('select', (event) => {
