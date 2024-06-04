@@ -104,7 +104,7 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         // When ButtonURLs is changed and we're not already rendering: kick off a render loop.
         let specs = listItems.map(async (alg) => {
             let postdata = new TilePostData(PREVIEW_LEVEL, 0, 0);
-            let colourer = 'LinearRainbow'; // TODO use current colourer
+            let colourer = viewer.get_colourer();
             return new TileSpec(await nextSerial(), postdata, TILE_SIZE, TILE_SIZE, alg.name, 32, colourer);
         });
         setRendering(true); // prevents infinite loop re-entrancy

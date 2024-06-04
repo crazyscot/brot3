@@ -399,6 +399,9 @@ export class Viewer {
   get_algorithm(): string {
     return this.get_active_source().get_algorithm();
   }
+  get_colourer(): string {
+    return this.get_active_source().get_colourer();
+  }
   set_algorithm(new_fractal: string) {
     let oldSource = this.get_active_source();
     let newSource = new EngineTileSource(this, new_fractal, oldSource.get_max_iter(), oldSource.get_colourer());
