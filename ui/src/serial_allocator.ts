@@ -18,3 +18,8 @@ export class SerialAllocator {
         });
     }
 }
+
+let _gSerial = new SerialAllocator();
+export async function nextSerial(): Promise<number> {
+    return _gSerial.next();
+}

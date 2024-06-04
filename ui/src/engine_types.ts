@@ -8,7 +8,6 @@ export class GenericError {
 
 /// Twin of Rust ViewerTileSpec struct. This class is also the userData element of ImageJob.userData.
 export class TileSpec {
-    // TODO: fractal, colourer
     serial: number;
     level: number;
     dx: number;
@@ -17,7 +16,8 @@ export class TileSpec {
     height: number;
     max_iter: number;
     algorithm: string;
-    constructor(serial: number, data: TilePostData, width: number, height: number, algorithm: string, max_iter: number) {
+    colourer: string;
+    constructor(serial: number, data: TilePostData, width: number, height: number, algorithm: string, max_iter: number, colourer: string) {
         this.serial = serial; // Always obtain from gSerial.next() !
         this.level = data?.level || 0;
         this.dx = data?.dx || 0;
@@ -26,6 +26,7 @@ export class TileSpec {
         this.height = height;
         this.max_iter = max_iter;
         this.algorithm = algorithm;
+        this.colourer = colourer;
     }
 }
 
@@ -36,6 +37,29 @@ export class TileResponse {
     constructor() {
         this.serial = 0;
         this.rgba_blob = new Uint8Array();
+    }
+}
+
+// Helper class for TileResponse.
+// NB that when instantiated by tauri, TileResponse is plain old data without functions. Hence this wrapper.
+export class TileResponseHelper {
+    tr: TileResponse;
+    constructor(tr: TileResponse) {
+        this.tr = tr;
+    }
+    blob(): Uint8ClampedArray {
+        return new Uint8ClampedArray(this.tr.rgba_blob);
+    }
+    image(expected_size: number): ImageData {
+        return new ImageData(this.blob(), expected_size, expected_size, { "colorSpace": "srgb" });
+    }
+    canvas(expected_size: number): HTMLCanvasElement {
+        let c = document.createElement("canvas");
+        c.width = expected_size;
+        c.height = expected_size;
+        let ctx = c.getContext("2d");
+        ctx?.putImageData(this.image(expected_size), 0, 0);
+        return c;
     }
 }
 
@@ -124,6 +148,10 @@ export class RenderSpec {
         this.algorithm = algorithm;
         return this;
     }
+    set_colourer(colourer: string): RenderSpec {
+        this.colourer = colourer;
+        return this;
+    }
 }
 
 /// A representation of a listable item.
@@ -142,23 +170,20 @@ export class ListItem {
 /// Wrapper for a ListItem, with a key (to keep React happy)
 export class ListItemWithKey {
     /// Item ID
-    key: number;
+    key: string;
     /// Item name
     name: string;
     /// Item description
     description: string;
-    constructor(item: ListItem, id = 0) {
-        this.key = id;
+    constructor(item: ListItem) {
+        this.key = item.name;
         this.name = item.name;
         this.description = item.description;
     }
 }
 
 export function add_keys_to_list(items: ListItem[]): ListItemWithKey[] {
-    let counter = 0;
     return items.map((it: ListItem) => {
-        let new1 = new ListItemWithKey(it, counter);
-        counter = counter + 1;
-        return new1;
+        return new ListItemWithKey(it);
     });
 }

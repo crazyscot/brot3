@@ -29,6 +29,8 @@ pub struct ViewerTileSpec {
     pub max_iter: u32,
     /// Selected fractal
     pub algorithm: String,
+    /// Selecter colourer
+    pub colourer: String,
 }
 
 impl fmt::Display for ViewerTileSpec {
@@ -42,8 +44,7 @@ impl TryFrom<&ViewerTileSpec> for TileSpec {
 
     fn try_from(spec: &ViewerTileSpec) -> anyhow::Result<Self> {
         let algorithm = fractal::decode(&spec.algorithm)?;
-        let col_requested = "LogRainbow"; // TODO this will come from spec
-        let colourer = colouring::decode(col_requested)?;
+        let colourer = colouring::decode(&spec.colourer)?;
         anyhow::ensure!(spec.level < 64, "zoom too deep");
         anyhow::ensure!(spec.width == spec.height, "only square tiles supported");
         // Map the total number of pixels across the zoom level into the algorithm's full axes
@@ -104,6 +105,7 @@ mod tests {
                 height: 256,
                 max_iter: 1024,
                 algorithm: "Original".to_string(),
+                colourer: "LogRainbow".to_string(),
             })
             .clone()
     }
@@ -205,6 +207,7 @@ mod tests {
             height: 256,
             max_iter: 1024,
             algorithm: "Original".into(),
+            colourer: "LogRainbow".into(),
         };
         TileSpec::try_from(&td).expect_err("should have failed");
         td.level = 10;
