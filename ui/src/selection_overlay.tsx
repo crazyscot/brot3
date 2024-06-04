@@ -6,17 +6,17 @@ import React, { FC, useContext, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
 import { listen } from '@tauri-apps/api/event';
 import { Tooltip } from 'react-tooltip';
-import { ButtonBase } from '@mui/material';
-import { styled } from '@mui/material/styles';
 
 import { ListItem, ListItemWithKey, TilePostData, TileResponse, TileResponseHelper, TileSpec, add_keys_to_list } from './engine_types';
+import { Image, ImageBackdrop, ImageButton, ImageSrc } from './image_button';
 import { DisplayMessageDetail } from './menu';
 import { effectModalClickOrEscape } from './modal-react';
-import { TILE_SIZE, Viewer } from './viewer'
-import './selection_overlay.css'
 import { nextSerial } from './serial_allocator';
+import { TILE_SIZE, Viewer } from './viewer'
 
-const PREVIEW_SIZE = 150;
+import './selection_overlay.css'
+
+export const PREVIEW_SIZE = 150;
 const PREVIEW_LEVEL = Math.floor(Math.log2(PREVIEW_SIZE));
 
 function description_filter(desc: string): string {
@@ -24,62 +24,6 @@ function description_filter(desc: string): string {
     const re = /\(alias.*\)/;
     return desc.replace(re, '');
 }
-
-// TODO tidy up these components into a separate source
-
-const ImageButton = styled(ButtonBase)(({ theme }) => ({
-    position: 'relative',
-    height: PREVIEW_SIZE,
-    [theme.breakpoints.down('sm')]: {
-        width: '100% !important', // Overrides inline-style
-        height: 100,
-    },
-    '&:hover, &.Mui-focusVisible': {
-        zIndex: 1,
-        '& .MuiImageBackdrop-root': {
-            opacity: 0.15,
-        },
-        '& .MuiImageMarked-root': {
-            opacity: 0,
-        },
-        '& .MuiTypography-root': {
-            border: '4px solid currentColor',
-        },
-    },
-}));
-
-const ImageSrc = styled('span')({
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center 40%',
-});
-
-const Image = styled('span')(({ theme }) => ({
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: theme.palette.common.white,
-}));
-
-const ImageBackdrop = styled('span')(({ theme }) => ({
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: theme.palette.common.black,
-    opacity: 0.4,
-    transition: theme.transitions.create('opacity'),
-}));
 
 // Database of button images (intended to be data URLs).
 // Keys are item names; values are URLs.
