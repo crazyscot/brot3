@@ -28,7 +28,7 @@ fn main() {
             tile_bridge::start_tile,
             tile_bridge::abort_tile,
             tile_bridge::get_metadata,
-            tile_bridge::list_fractals,
+            tile_bridge::list_items,
         ])
         .menu(my_menu.build())
         .on_menu_event(move |event| my_menu.on_menu(event))
