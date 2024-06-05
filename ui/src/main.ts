@@ -53,7 +53,6 @@ class Brot3UI {
   }
 
   async setupWindow() {
-    this.viewer.resize();
     getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
   }
 
