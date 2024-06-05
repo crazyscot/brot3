@@ -37,12 +37,20 @@ impl ApplicationMenu {
         ApplicationMenu {}
     }
 
+    fn cmd_or_ctrl() -> String {
+        if cfg!(target_os = "macos") {
+            "Cmd".to_string()
+        } else {
+            "Ctrl".to_string()
+        }
+    }
+
     pub(crate) fn build(&self) -> Menu {
         // work around tauri/tao accelerator misbehaviour
         #[cfg(target_os = "macos")]
         let cmd_or_ctrl = "Cmd";
         #[cfg(not(target_os = "macos"))]
-        let cmd_or_ctrl = "Ctrl";
+        let cmd_or_ctrl = ApplicationMenu::cmd_or_ctrl();
 
         // Here are our custom menu items:
         let toggle_position =
@@ -159,10 +167,19 @@ impl ApplicationMenu {
     }
 
     fn build_fractal_menu(&self) -> Submenu {
+        let cmd_or_ctrl = ApplicationMenu::cmd_or_ctrl();
         let standard: Vec<MenuEntry> = vec![
             MenuEntry::CustomItem(CustomMenuItem::new("select/fractal", "Select fractal...")),
             MenuEntry::NativeItem(MenuItem::Separator),
             MenuEntry::CustomItem(CustomMenuItem::new("select/colourer", "Select colourer...")),
+            MenuEntry::CustomItem(
+                CustomMenuItem::new("colourer/prev", "Previous colourer")
+                    .accelerator(format!("{cmd_or_ctrl}+1")),
+            ),
+            MenuEntry::CustomItem(
+                CustomMenuItem::new("colourer/next", "Next colourer")
+                    .accelerator(format!("{cmd_or_ctrl}+2")),
+            ),
         ];
         let menu = Menu::with_items(standard);
         Submenu::new("Fractal", menu)

@@ -421,7 +421,6 @@ export class Viewer {
     this.osd.addOnceHandler('open', function () {
       self.updateIndicator();
     });
-
   }
   set_colourer(new_colourer: string) {
     let oldSource = this.get_active_source();
@@ -439,7 +438,21 @@ export class Viewer {
       let viewport = self.osd!.viewport; // because you get a new viewport on the new source
       viewport.zoomTo(zoom, null, true).panTo(centre, true);
     });
-
+  }
+  cycle_colourer(delta: number) {
+    let needle = this.get_colourer();
+    let index = this.all_colourers.findIndex((value: ListItem): boolean => { return value.name == needle });
+    if (index == -1) {
+      console.warn(`Couldn't determine index of current colourer ${needle}`);
+      console.log(this.all_colourers);
+      index = 0;
+    } else {
+      // Add delta, mod size of list
+      index = index + delta;
+      if (index < 0) index = this.all_colourers.length - 1;
+      else if (index >= this.all_colourers.length) index = 0;
+    }
+    this.set_colourer(this.all_colourers[index].name);
   }
 
   // Something important changed (algorithm, max_iter, etc). Replace the active source.

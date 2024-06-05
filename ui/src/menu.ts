@@ -77,6 +77,12 @@ export class Menu {
                 case "toggle_navigator":
                     this.viewer.toggle_navigator();
                     break;
+                case "colourer/prev":
+                    this.viewer.cycle_colourer(-1);
+                    break;
+                case "colourer/next":
+                    this.viewer.cycle_colourer(1);
+                    break;
                 default:
                     console.error(`unknown display_message detail ${event.payload.what}`);
             }
