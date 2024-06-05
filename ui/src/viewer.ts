@@ -168,14 +168,10 @@ export class Viewer {
     // Zoom/Position indicator
     this.hud_ = new HeadsUpDisplay(document);
     let viewer = this.osd;
-    viewer.addHandler('open', function () {
+    viewer.addOnceHandler('open', function () {
       viewer.addHandler('animation', () => { self.updateIndicator() });
+      self.updateIndicator();
     });
-
-    // Initial position at constructor time is not correct, so defer it; only a tiny deferral seems needed
-    // TODO figure out why this is and make it suitably event-based; could be waiting on OSD ?
-    window.setTimeout(function () { self.updateIndicator(); }, 10);
-
   } // ---------------- end constructor --------------------
 
   private metadata(): FractalView {
@@ -406,7 +402,11 @@ export class Viewer {
     let newSource = new EngineTileSource(this, new_fractal, oldSource.get_max_iter(), oldSource.get_colourer());
     this.replace_active_source(newSource);
     this.osd.viewport.goHome();
-    window.setTimeout(() => { this.updateIndicator(); }, 10);
+    let self = this;
+    this.osd.addOnceHandler('open', function () {
+      self.updateIndicator();
+    });
+
   }
   set_colourer(new_colourer: string) {
     let oldSource = this.get_active_source();
