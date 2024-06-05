@@ -162,6 +162,7 @@ export class Viewer {
       }
       self.redraw_event = this.setTimeout(function () {
         self.resize();
+        self.redraw_event = undefined;
       }, 100);
     }, true);
 
