@@ -52,7 +52,7 @@ export class HeadsUpDisplay {
     <form id="form_go_to_position">
       <table>
         <tr class="position-display">
-          <td rowspan="4"><span class="close" id="close-hud">&times;</span></td>
+          <td rowspan="6"><span class="close" id="close-hud">&times;</span></td>
         </tr>
         <tr class="position-display hidden" id="show-origin">
           <th>Origin:</th>
@@ -72,6 +72,14 @@ export class HeadsUpDisplay {
         <tr class="position-display">
           <th>Zoom:</th>
           <td id="zoom"></td>
+        </tr>
+        <tr class="position-display">
+            <th>Algorithm:</th>
+            <td id="algorithm" colspan="2"></td>
+        </tr>
+        <tr class="position-display">
+            <th>Colour:</th>
+            <td id="colourer" colspan="2"></td>
         </tr>
         <!--------------------------------------------->
         <tr class="position-entry">
@@ -115,6 +123,8 @@ export class HeadsUpDisplay {
     centreImag: Element | null;
     axesReal: Element | null;
     axesImag: Element | null;
+    algorithm: Element | null;
+    colourer: Element | null;
 
     hud_closer: ClickEventListener;
     position_entry_closer: ClickEventListener;
@@ -130,6 +140,8 @@ export class HeadsUpDisplay {
         this.centreImag = panel.querySelectorAll('#centreImag')[0];
         this.axesReal = panel.querySelectorAll('#axesReal')[0];
         this.axesImag = panel.querySelectorAll('#axesImag')[0];
+        this.algorithm = panel.querySelectorAll('#algorithm')[0];
+        this.colourer = panel.querySelectorAll('#colourer')[0];
 
         // Hide the position entry rows by default
         this.position_entry_rows().forEach(e => { if (element_is_displayed(e)) toggle_tr_visibility(e); });
@@ -147,7 +159,7 @@ export class HeadsUpDisplay {
         );
     }
 
-    update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint, canvas_width: number, canvas_height: number) {
+    update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint, canvas_width: number, canvas_height: number, algorithm: string, colourer: string) {
         let axes_precision = axes_precision_for_canvas(canvas_height, canvas_width);
         let position_dp = decimal_places_for_axes(canvas_height, canvas_width, axes);
         this.zoom!.innerHTML = `${zoom.toPrecision(axes_precision)} &times;`;
@@ -157,6 +169,8 @@ export class HeadsUpDisplay {
         this.centreImag!.innerHTML = format_float_fixed("+", centre.im, position_dp);
         this.originReal!.innerHTML = format_float_fixed("&nbsp;", origin.re, position_dp);
         this.originImag!.innerHTML = format_float_fixed("+", origin.im, position_dp);
+        this.algorithm!.innerHTML = algorithm;
+        this.colourer!.innerHTML = colourer;
     }
 
     toggle_visibility() {

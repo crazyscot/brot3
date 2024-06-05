@@ -200,7 +200,7 @@ export class Viewer {
     let vp = this.osd!.viewport;
     var zoom: number = vp!.getZoom(true);
     let position = this.get_position();
-    this.hud_!.update(zoom, position!.origin, position!.centre(), position!.axes_length, this.width_, this.height_);
+    this.hud_!.update(zoom, position!.origin, position!.centre(), position!.axes_length, this.width_, this.height_, this.get_algorithm(), this.get_colourer());
   }
 
   get_position(): FractalView {
