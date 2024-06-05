@@ -6,15 +6,13 @@ import { UnlistenFn, listen } from '@tauri-apps/api/event'
 import jQuery from 'jquery'
 import OpenSeadragon from 'openseadragon'
 
-import { EnginePoint, FractalView, TileSpec, TileResponse, TileError, TilePostData, TileResponseHelper } from './engine_types'
+import { EnginePoint, FractalView, TileSpec, TileResponse, TileError, TilePostData, TileResponseHelper, ListItem } from './engine_types'
 import { HeadsUpDisplay, UserDestination } from './hud'
 import { nextSerial } from './serial_allocator'
 
 export const TILE_SIZE = 128;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
-const DEFAULT_ALGORITHM = "Original";
 const DEFAULT_MAX_ITER = 256;
-const DEFAULT_COLOURER = "LinearRainbow";
 
 class EngineTileSource extends OpenSeadragon.TileSource {
   private parent: Viewer;
@@ -109,12 +107,14 @@ class EngineTileSource extends OpenSeadragon.TileSource {
 }
 
 export class Viewer {
-  private osd: any | null;  // OpenSeadragon.Viewer
+  private osd: any | undefined;  // OpenSeadragon.Viewer
   private redraw_event: number | undefined; // setTimeout / clearTimeout
   private unlisten_tile_complete: UnlistenFn | null = null;
   private unlisten_tile_error: UnlistenFn | null = null;
   private outstanding_requests: Map<number, any/*OpenSeadragon.ImageJob*/> = new Map();
   private hud_: HeadsUpDisplay;
+  private all_fractals: ListItem[] = [];
+  private all_colourers: ListItem[] = [];
 
   // width, height used by coordinate display
   private width_: number = NaN;
@@ -126,53 +126,67 @@ export class Viewer {
   constructor() {
     let self = this; // Closure helper
 
-    let initialSource = new EngineTileSource(this, DEFAULT_ALGORITHM, DEFAULT_MAX_ITER, DEFAULT_COLOURER);
+    invoke('list_items', { what: 'fractals' })
+      .then((reply) => {
+        self.all_fractals = reply as ListItem[];
+        return invoke('list_items', { what: 'colourers' });
+      })
+      .then((reply) => {
+        self.all_colourers = reply as ListItem[];
 
-    this.osd = OpenSeadragon({
-      id: "openseadragon",
-      prefixUrl: "/openseadragon/images/",
-      homeFillsViewer: true,
-      autoResize: true,
-      preserveImageSizeOnResize: true,
-      visibilityRatio: 1.0,
-      debugMode: false,
-      showRotationControl: false,
-      showNavigator: true,
-      navigatorAutoFade: true,
-      showFullPageControl: false,
-      zoomPerSecond: 2.0,
-      toolbar: "topbar",
+        let initialSource = new EngineTileSource(this, self.all_fractals[0].name, DEFAULT_MAX_ITER, self.all_colourers[0].name);
+        this.osd = OpenSeadragon({
+          id: "openseadragon",
+          prefixUrl: "/openseadragon/images/",
+          homeFillsViewer: true,
+          autoResize: true,
+          preserveImageSizeOnResize: true,
+          visibilityRatio: 1.0,
+          debugMode: false,
+          showRotationControl: false,
+          showNavigator: true,
+          navigatorAutoFade: true,
+          showFullPageControl: false,
+          zoomPerSecond: 2.0,
+          toolbar: "topbar",
 
-      tileSources: [initialSource],
-    }); // ---------------- end this.osd initialiser ---------------------------
+          tileSources: [initialSource],
+        }); // ---------------- end this.osd initialiser ---------------------------
 
-    this.bind_events().then(() => {
-      this.osd.addHandler("before-destroy", function () {
-        self.unlisten_tile_complete?.();
-        self.unlisten_tile_error?.();
-      });
-    });
+        this.bind_events().then(() => {
+          this.osd.addHandler("before-destroy", function () {
+            self.unlisten_tile_complete?.();
+            self.unlisten_tile_error?.();
+          });
+        });
 
-    // Window resize
-    // Rather than caning the system as we get a resize event for every pixel, add a slight debounce.
-    // Note we call out to the Viewer class ('self') to resize.
-    window.addEventListener('resize', function (_event) {
-      if (self.redraw_event !== undefined) {
-        this.clearTimeout(self.redraw_event);
-      }
-      self.redraw_event = this.setTimeout(function () {
-        self.resize();
-        self.redraw_event = undefined;
-      }, 100);
-    }, true);
+        // Window resize
+        // Rather than caning the system as we get a resize event for every pixel, add a slight debounce.
+        // Note we call out to the Viewer class ('self') to resize.
+        window.addEventListener('resize', function (_event) {
+          if (self.redraw_event !== undefined) {
+            this.clearTimeout(self.redraw_event);
+          }
+          self.redraw_event = this.setTimeout(function () {
+            self.resize();
+            self.redraw_event = undefined;
+          }, 100);
+        }, true);
+
+        let viewer = this.osd;
+        viewer.addOnceHandler('open', function () {
+          viewer.addHandler('animation', () => { self.updateIndicator() });
+          window.setTimeout(() => {
+            // running this immediately on open is too early; axes_length is zero, which breaks the hud
+            self.updateIndicator();
+          }, 50);
+        });
+
+        this.resize();
+      }); // ---- end long 'then' block ----
 
     // Zoom/Position indicator
     this.hud_ = new HeadsUpDisplay(document);
-    let viewer = this.osd;
-    viewer.addOnceHandler('open', function () {
-      viewer.addHandler('animation', () => { self.updateIndicator() });
-      self.updateIndicator();
-    });
   } // ---------------- end constructor --------------------
 
   private metadata(): FractalView {
@@ -186,7 +200,7 @@ export class Viewer {
     let vp = this.osd!.viewport;
     var zoom: number = vp!.getZoom(true);
     let position = this.get_position();
-    this.hud_!.update(zoom, position!.origin, position!.centre(), position!.axes_length, this.width_, this.height_);
+    this.hud_!.update(zoom, position!.origin, position!.centre(), position!.axes_length, this.width_, this.height_, this.get_algorithm(), this.get_colourer());
   }
 
   get_position(): FractalView {
@@ -407,7 +421,6 @@ export class Viewer {
     this.osd.addOnceHandler('open', function () {
       self.updateIndicator();
     });
-
   }
   set_colourer(new_colourer: string) {
     let oldSource = this.get_active_source();
@@ -425,7 +438,21 @@ export class Viewer {
       let viewport = self.osd!.viewport; // because you get a new viewport on the new source
       viewport.zoomTo(zoom, null, true).panTo(centre, true);
     });
-
+  }
+  cycle_colourer(delta: number) {
+    let needle = this.get_colourer();
+    let index = this.all_colourers.findIndex((value: ListItem): boolean => { return value.name == needle });
+    if (index == -1) {
+      console.warn(`Couldn't determine index of current colourer ${needle}`);
+      console.log(this.all_colourers);
+      index = 0;
+    } else {
+      // Add delta, mod size of list
+      index = index + delta;
+      if (index < 0) index = this.all_colourers.length - 1;
+      else if (index >= this.all_colourers.length) index = 0;
+    }
+    this.set_colourer(this.all_colourers[index].name);
   }
 
   // Something important changed (algorithm, max_iter, etc). Replace the active source.
