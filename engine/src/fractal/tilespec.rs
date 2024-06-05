@@ -2,12 +2,14 @@
 // (c) 2024 Ross Younger
 
 use anyhow::ensure;
+use num_complex::Complex;
 
 use super::{Location, Point, Scalar, Size};
 use crate::{colouring, fractal, util::Rect};
 
 use std::{
     fmt::{self, Display, Formatter},
+    hash::Hash,
     sync::Arc,
 };
 
@@ -49,7 +51,18 @@ impl AlgorithmSpec {
     }
 }
 
-/// Machine-facing specification of a tile to plot
+// this is a special-case implementation of PartialEq for cacheing support
+fn alg_specs_are_equivalent(a1: &Arc<AlgorithmSpec>, a2: &Arc<AlgorithmSpec>) -> bool {
+    a1.algorithm == a2.algorithm && a1.max_iter == a2.max_iter
+}
+
+/// Machine-facing specification of a tile to plot.
+/// <br/><b>Note</b> Equality of this struct is not strictly well defined. Floating point types normally only implement ``PartialEq`` (since NaN != NaN),
+/// and even ignoring that the inaccuracies within floats can lead to unexpected results.
+/// However:
+/// 1. We don't make use of NaN so can neglect that case.
+/// 2. We are genuinely only comparing tilespecs for identicality, not recreating them which might lead to inaccuracies, so can neglect that case.
+/// Therefore it is safe to naively treat f64s as bags of bits in implementing Eq and Hash.
 #[derive(Debug, Clone)]
 pub struct TileSpec {
     /// Origin of this tile (bottom-left corner, smallest real/imaginary coefficients)
@@ -364,8 +377,62 @@ impl Display for TileSpec {
     }
 }
 
+impl std::cmp::PartialEq for TileSpec {
+    fn eq(&self, other: &Self) -> bool {
+        self.origin == other.origin     // False if both comparisands are NaN!
+            && self.axes == other.axes  // False if both comparisands are NaN!
+            && self.size_in_pixels == other.size_in_pixels
+            && alg_specs_are_equivalent(&self.alg_spec, &other.alg_spec)
+        // y_offset is irrelevant for equivalence
+    }
+}
+
+// this is safe in our use case, see comment for TileSpec
+impl std::cmp::Eq for TileSpec {}
+
+/// A special Hash-like trait that may violate the standard rules
+trait HairRaisingHash {
+    fn hair_raising_hash<H: std::hash::Hasher>(&self, state: &mut H);
+}
+
+impl HairRaisingHash for AlgorithmSpec {
+    fn hair_raising_hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.algorithm.hash(state);
+        self.max_iter.hash(state);
+        // but NOT colourer, as the coloured output is not stored in a Tile.
+    }
+}
+
+/// Hashing f64 is safe in our use case (see comments on ``TileSpec``).
+impl HairRaisingHash for f64 {
+    fn hair_raising_hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.to_bits().hash(state);
+    }
+}
+
+impl HairRaisingHash for Complex<f64> {
+    fn hair_raising_hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.re.hair_raising_hash(state);
+        self.im.hair_raising_hash(state);
+    }
+}
+
+// Specialist hash for caching
+// this is safe in our use case, see comment for TileSpec
+impl Hash for TileSpec {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.origin.hair_raising_hash(state);
+        self.axes.hair_raising_hash(state);
+        self.size_in_pixels.hash(state);
+        self.alg_spec.hair_raising_hash(state);
+        // y_offset is irrelevant for cacheing
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::hash::{DefaultHasher, Hasher};
+
     use crate::{
         colouring,
         fractal::{self, Location, Point, Scalar, Size, TileSpec},
@@ -655,5 +722,53 @@ mod tests {
             result,
             "original,origin=0-0.5i,axes=-1+2i,max=256,col=black-fade"
         );
+    }
+
+    fn hash<T: std::hash::Hash>(it: &T) -> u64 {
+        let mut h = DefaultHasher::new();
+        it.hash(&mut h);
+        h.finish()
+    }
+
+    #[test]
+    fn hashability() {
+        fn test_tilespec(f: fractal::framework::Selection) -> TileSpec {
+            TileSpec::new(
+                Location::Origin(Point { re: 0.0, im: -0.5 }),
+                Size::AxesLength(Point { re: -1.0, im: 2.0 }),
+                Rect::new(200, 400),
+                fractal::framework::factory(f),
+                256,
+                BLACK_FADE,
+            )
+        }
+
+        let uut = test_tilespec(fractal::framework::Selection::Original);
+        let h1 = hash(&uut);
+        let h2 = hash(&uut);
+        assert_eq!(h1, h2);
+
+        let uut2 = test_tilespec(fractal::framework::Selection::Mandel3);
+        let h3 = hash(&uut2);
+        assert_ne!(h1, h3);
+    }
+
+    #[test]
+    fn different_colourer_same_hash() {
+        fn test_tilespec(c: colouring::Selection) -> TileSpec {
+            TileSpec::new(
+                Location::Origin(Point { re: 0.0, im: -0.5 }),
+                Size::AxesLength(Point { re: -1.0, im: 2.0 }),
+                Rect::new(200, 400),
+                MANDELBROT,
+                256,
+                colouring::factory(c),
+            )
+        }
+        let data1 = test_tilespec(colouring::Selection::BlackFade);
+        let h1 = hash(&data1);
+        let data2 = test_tilespec(colouring::Selection::WhiteFade);
+        let h2 = hash(&data2);
+        assert_eq!(h1, h2);
     }
 }

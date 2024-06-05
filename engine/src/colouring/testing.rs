@@ -4,7 +4,7 @@
 use super::framework::{OutputsRgb8, Rgb8};
 
 /// Test algorithm, doesn't do anything useful
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct White {}
 impl OutputsRgb8 for White {
     fn colour_rgb8(&self, _: f32, _: u32) -> Rgb8 {

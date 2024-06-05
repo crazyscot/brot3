@@ -128,6 +128,7 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
     useEffect(() => {
         if (rendering) return;
 
+        let wholeFractal = new TilePostData(PREVIEW_LEVEL, 0, 0);
         let specs: Promise<TileSpec>[] = [];
         // When ButtonURLs is changed and we're not already rendering: kick off a render loop.
         if (listType === "") {
@@ -136,15 +137,13 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         if (listType === "fractals") {
             let colourer = viewer.get_colourer();
             specs = listItems.map(async (alg) => {
-                let postdata = new TilePostData(PREVIEW_LEVEL, 0, 0);
-                return new TileSpec(await nextSerial(), postdata, TILE_SIZE, TILE_SIZE, alg.name, 32, colourer);
+                return new TileSpec(await nextSerial(), wholeFractal, TILE_SIZE, TILE_SIZE, alg.name, 32, colourer);
             });
         }
         else if (listType === "colourers") {
             let algorithm = viewer.get_algorithm();
             specs = listItems.map(async (col) => {
-                let postdata = new TilePostData(PREVIEW_LEVEL, 0, 0);
-                return new TileSpec(await nextSerial(), postdata, TILE_SIZE, TILE_SIZE, algorithm, 32, col.name);
+                return new TileSpec(await nextSerial(), wholeFractal, TILE_SIZE, TILE_SIZE, algorithm, 32, col.name);
             });
         } else {
             console.error(`Unhandled list type ${listType}`);

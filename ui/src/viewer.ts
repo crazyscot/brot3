@@ -162,20 +162,17 @@ export class Viewer {
       }
       self.redraw_event = this.setTimeout(function () {
         self.resize();
+        self.redraw_event = undefined;
       }, 100);
     }, true);
 
     // Zoom/Position indicator
     this.hud_ = new HeadsUpDisplay(document);
     let viewer = this.osd;
-    viewer.addHandler('open', function () {
+    viewer.addOnceHandler('open', function () {
       viewer.addHandler('animation', () => { self.updateIndicator() });
+      self.updateIndicator();
     });
-
-    // Initial position at constructor time is not correct, so defer it; only a tiny deferral seems needed
-    // TODO figure out why this is and make it suitably event-based; could be waiting on OSD ?
-    window.setTimeout(function () { self.updateIndicator(); }, 10);
-
   } // ---------------- end constructor --------------------
 
   private metadata(): FractalView {
@@ -406,14 +403,29 @@ export class Viewer {
     let newSource = new EngineTileSource(this, new_fractal, oldSource.get_max_iter(), oldSource.get_colourer());
     this.replace_active_source(newSource);
     this.osd.viewport.goHome();
-    window.setTimeout(() => { this.updateIndicator(); }, 10);
+    let self = this;
+    this.osd.addOnceHandler('open', function () {
+      self.updateIndicator();
+    });
+
   }
   set_colourer(new_colourer: string) {
     let oldSource = this.get_active_source();
     let newSource = new EngineTileSource(this, oldSource.get_algorithm(), oldSource.get_max_iter(), new_colourer);
+    // This is a recolour event, so we do NOT want to go home (the default when changing source).
+    // Stash the position:
+    let viewport = this.osd!.viewport;
+    let centre = viewport.getCenter();
+    let zoom = viewport.getZoom();
+
     this.replace_active_source(newSource);
-    this.osd.viewport.goHome();
-    window.setTimeout(() => { this.updateIndicator(); }, 10);
+    // This causes a new viewport to be opened for the new source.
+    let self = this; // for closure
+    this.osd.addOnceHandler('open', function () {
+      let viewport = self.osd!.viewport; // because you get a new viewport on the new source
+      viewport.zoomTo(zoom, null, true).panTo(centre, true);
+    });
+
   }
 
   // Something important changed (algorithm, max_iter, etc). Replace the active source.

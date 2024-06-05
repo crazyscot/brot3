@@ -20,6 +20,7 @@ heck = "0.5.0"
 num-complex = "0.4.6"
 palette = "0.7.6"
 png = { workspace = true }
+quick_cache = "0.5.1"
 rayon = { workspace = true }
 serde = { workspace = true }
 strum = { workspace = true }
