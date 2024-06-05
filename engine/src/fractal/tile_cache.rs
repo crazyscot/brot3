@@ -85,25 +85,31 @@ mod tests {
 
     use super::TileCache;
 
-    fn test_tilespec(f: colouring::Selection) -> TileSpec {
+    fn test_tilespec(frac: fractal::Selection, col: colouring::Selection) -> TileSpec {
         TileSpec::new(
             Location::Origin(Point { re: 0.0, im: -0.5 }),
             Size::AxesLength(Point { re: -1.0, im: 2.0 }),
             Rect::new(200, 400),
-            fractal::factory(fractal::Selection::Original),
+            fractal::factory(frac),
             32,
-            colouring::factory(f),
+            colouring::factory(col),
         )
     }
 
     #[test]
     fn cache_works() {
         let uut = TileCache::new(10);
-        let spec1 = test_tilespec(colouring::Selection::LinearRainbow);
+        let spec1 = test_tilespec(
+            fractal::Selection::Mandel3,
+            colouring::Selection::LinearRainbow,
+        );
         let mut tile1 = Tile::new(&spec1, 0);
         tile1.plot();
 
-        let spec2 = test_tilespec(colouring::Selection::LogRainbow);
+        let spec2 = test_tilespec(
+            fractal::Selection::Original,
+            colouring::Selection::LinearRainbow,
+        );
         let mut tile2 = Tile::new(&spec2, 0);
         tile2.plot();
 
@@ -126,7 +132,10 @@ mod tests {
     #[test]
     fn no_cache_unplotted() {
         let uut = TileCache::new(10);
-        let spec1 = test_tilespec(colouring::Selection::LinearRainbow);
+        let spec1 = test_tilespec(
+            fractal::Selection::Original,
+            colouring::Selection::LinearRainbow,
+        );
         let tile1 = Tile::new(&spec1, 0);
         assert_eq!(uut.len(), 0);
         uut.insert(tile1);
