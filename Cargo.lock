@@ -256,7 +256,7 @@ dependencies = [
 
 [[package]]
 name = "brot3"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "anyhow",
  "approx",
@@ -275,7 +275,7 @@ dependencies = [
 
 [[package]]
 name = "brot3-cli"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "anstyle",
  "anyhow",
@@ -287,7 +287,7 @@ dependencies = [
 
 [[package]]
 name = "brot3-engine"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "anyhow",
  "approx",
