@@ -36,7 +36,7 @@ impl Algorithm for Mandelbar {
     // standard centre 0+0i
 
     fn default_axes(&self) -> Point {
-        Point { re: 6.0, im: 4.0 }
+        Point { re: 5.0, im: 5.0 }
     }
 }
 
@@ -69,10 +69,12 @@ impl Algorithm for BurningShip {
         self.delegate.finish(point);
     }
 
-    // standard centre 0+0i
+    fn default_centre(&self) -> super::Point {
+        Point { re: -0.5, im: 0.5 }
+    }
 
     fn default_axes(&self) -> Point {
-        Point { re: 6.0, im: 4.0 }
+        Point { re: 4.0, im: 4.0 }
     }
 }
 
@@ -102,10 +104,12 @@ impl Algorithm for Celtic {
         self.delegate.finish(point);
     }
 
-    // standard centre 0+0i
+    fn default_centre(&self) -> super::Point {
+        Point { re: -1.0, im: 0.0 }
+    }
 
     fn default_axes(&self) -> Point {
-        Point { re: 6.0, im: 4.0 }
+        Point { re: 4.0, im: 4.0 }
     }
 }
 
@@ -139,10 +143,12 @@ impl Algorithm for Variant {
         self.delegate.finish(point);
     }
 
-    // standard centre 0+0i
+    fn default_centre(&self) -> super::Point {
+        Point { re: -1.0, im: 0.0 }
+    }
 
     fn default_axes(&self) -> Point {
-        Point { re: 6.0, im: 4.0 }
+        Point { re: 4.0, im: 4.0 }
     }
 }
 
@@ -177,7 +183,7 @@ impl Algorithm for BirdOfPrey {
     // standard centre 0+0i
 
     fn default_axes(&self) -> Point {
-        Point { re: 6.0, im: 4.0 }
+        Point { re: 5.0, im: 5.0 }
     }
 }
 
@@ -211,7 +217,7 @@ impl Algorithm for Buffalo {
     // standard centre 0+0i
 
     fn default_axes(&self) -> Point {
-        Point { re: 6.0, im: 4.0 }
+        Point { re: 4.0, im: 4.0 }
     }
 }
 
