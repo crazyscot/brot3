@@ -197,10 +197,16 @@ export class Viewer {
     if (this.osd === undefined || this.hud_ === undefined) {
       return;
     }
-    let vp = this.osd!.viewport;
-    var zoom: number = vp!.getZoom(true);
-    let position = this.get_position();
-    this.hud_!.update(zoom, position!.origin, position!.centre(), position!.axes_length, this.width_, this.height_, this.get_algorithm(), this.get_colourer());
+    try {
+      let vp = this.osd!.viewport;
+      var zoom: number = vp!.getZoom(true);
+      let position = this.get_position();
+      this.hud_!.update(zoom, position!.origin, position!.centre(), position!.axes_length, this.width_, this.height_, this.get_algorithm(), this.get_colourer());
+    }
+    catch (e) {
+      //let err = e as Error;
+      console.error('exception in UpdateIndicator'); // this includes the stack trace
+    }
   }
 
   get_position(): FractalView {
