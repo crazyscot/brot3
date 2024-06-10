@@ -151,6 +151,7 @@ export class Viewer {
           toolbar: "topbar",
           constrainDuringPan: true,
           minZoomImageRatio: 0.25,
+          navigatorDisplayRegionColor: '#789',
 
           tileSources: [initialSource],
         }); // ---------------- end this.osd initialiser ---------------------------
