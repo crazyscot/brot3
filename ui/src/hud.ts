@@ -54,12 +54,12 @@ export class HeadsUpDisplay {
         <tr class="position-display">
           <td rowspan="6"><span class="close" id="close-hud">&times;</span></td>
         </tr>
-        <tr class="position-display hidden" id="show-origin">
+        <tr class="position-display" id="show-origin">
           <th>Origin:</th>
           <td><span id="originReal"></span></td>
           <td><span id="originImag"></span> i&nbsp;</td>
         </tr>
-        <tr class="position-display" id="show-centre">
+        <tr class="position-display hidden" id="show-centre">
           <th>Centre:</th>
           <td><span id="centreReal"></span></td>
           <td><span id="centreImag"></span> i&nbsp;</td>
@@ -85,13 +85,13 @@ export class HeadsUpDisplay {
         <tr class="position-entry">
           <td rowspan="5"><span class="close" id="close-entry">&times;</span></td>
         </tr>
-        <tr class="position-entry hidden" id="enter-origin">
+        <tr class="position-entry" id="enter-origin">
           <th>Origin:</th>
           <td><input type="text" id="enter_originReal" /></td>
           <td>+ <input type="text" id="enter_originImag" /> i</td>
           <td colspan="3"></td>
         </tr>
-        <tr class="position-entry" id="enter-centre">
+        <tr class="position-entry hidden" id="enter-centre">
           <th>Centre:</th>
           <td><input type="text" id="enter_centreReal" /></td>
           <td>+ <input type="text" id="enter_centreImag" /> i</td>
