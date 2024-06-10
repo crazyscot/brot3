@@ -146,6 +146,7 @@ export class Viewer {
           showRotationControl: false,
           showNavigator: true,
           navigatorAutoFade: true,
+          navigatorBackground: '#FFF',
           showFullPageControl: false,
           zoomPerSecond: 2.0,
           toolbar: "topbar",
