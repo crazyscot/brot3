@@ -407,10 +407,24 @@ export class Viewer {
     if (Number.isFinite(new_max)) {
       let oldSource = this.get_active_source();
       let newSource = new EngineTileSource(this, oldSource.get_algorithm(), new_max, oldSource.get_colourer());
-      this.replace_active_source(newSource);
+      this.change_source_keeping_position(newSource);
     } else {
       console.warn(`failed to parse max_iter ${new_max}`);
     }
+  }
+  change_source_keeping_position(newSource: EngineTileSource) {
+    // Stash the position:
+    let viewport = this.osd!.viewport;
+    let centre = viewport.getCenter();
+    let zoom = viewport.getZoom();
+
+    this.replace_active_source(newSource);
+    // This causes a new viewport to be opened for the new source.
+    let self = this; // for closure
+    this.osd.addOnceHandler('open', function () {
+      let viewport = self.osd!.viewport; // because you get a new viewport on the new source
+      viewport.zoomTo(zoom, null, true).panTo(centre, true);
+    });
   }
   get_algorithm(): string {
     return this.get_active_source().get_algorithm();
@@ -432,18 +446,7 @@ export class Viewer {
     let oldSource = this.get_active_source();
     let newSource = new EngineTileSource(this, oldSource.get_algorithm(), oldSource.get_max_iter(), new_colourer);
     // This is a recolour event, so we do NOT want to go home (the default when changing source).
-    // Stash the position:
-    let viewport = this.osd!.viewport;
-    let centre = viewport.getCenter();
-    let zoom = viewport.getZoom();
-
-    this.replace_active_source(newSource);
-    // This causes a new viewport to be opened for the new source.
-    let self = this; // for closure
-    this.osd.addOnceHandler('open', function () {
-      let viewport = self.osd!.viewport; // because you get a new viewport on the new source
-      viewport.zoomTo(zoom, null, true).panTo(centre, true);
-    });
+    this.change_source_keeping_position(newSource);
   }
   cycle_colourer(delta: number) {
     let needle = this.get_colourer();
