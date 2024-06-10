@@ -243,6 +243,4 @@ export class SelectionOverlay {
             <SelectionModal viewer={viewer} />
         );
     }
-
-    noop() { }
 }
