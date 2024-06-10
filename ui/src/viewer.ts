@@ -153,6 +153,7 @@ export class Viewer {
           constrainDuringPan: true,
           minZoomImageRatio: 0.25,
           navigatorDisplayRegionColor: '#789',
+          placeholderFillStyle: '#789',
 
           tileSources: [initialSource],
         }); // ---------------- end this.osd initialiser ---------------------------
