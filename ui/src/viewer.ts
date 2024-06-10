@@ -157,7 +157,6 @@ export class Viewer {
           zoomPerSecond: 2.0,
           toolbar: "topbar",
           constrainDuringPan: true,
-          minZoomImageRatio: 0.25,
           navigatorDisplayRegionColor: '#789',
           placeholderFillStyle: '#789',
 
@@ -193,7 +192,12 @@ export class Viewer {
           }, 50);
         });
 
-        this.resize();
+        this.resize(); // also computes home margin, but we don't reliably have the metadata in yet
+        initialSource.metadata_promise()
+          .then((_) => {
+            self.compute_home_margins(initialSource);
+            self.osd.viewport.goHome();
+          });
       }); // ---- end long 'then' block ----
 
     // Zoom/Position indicator
@@ -302,6 +306,8 @@ export class Viewer {
     this.osd.viewport.resize({ x: window.innerWidth, y: window.innerHeight });
     this.osd.viewport.applyConstraints();
     console.log(`Window resized to ${window.innerWidth} x ${window.innerHeight}`);
+    // We must update the margins (this may not succeed on startup, if the metadata isn't loaded yet)
+    this.compute_home_margins(this.osd.tileSources[this.osd.currentPage()]);
   }
 
   go_to_position(destination: UserDestination) {
@@ -481,6 +487,9 @@ export class Viewer {
     // There is a workaround described in https://github.com/openseadragon/openseadragon/issues/1991 which we used to have (as redraw()) but that interferes with multi-image mode, so leave off for now.
     this.osd._cancelPendingImages();
     this.osd.open(source);
+    // new source, might need different margins
+    this.compute_home_margins(source);
+    // but do NOT goHome here, that may not be desirable (e.g. changing colourer)
   }
 
   private nav_visible: boolean = true;
@@ -493,6 +502,40 @@ export class Viewer {
     this.nav_visible = !this.nav_visible;
   }
 
+  private compute_home_margins(src: EngineTileSource) {
+    // The source or window size has changed.
+    // What margins are needed to have the whole fractal on screen in the home position?
+    let meta = src.get_metadata();
+    let fractal_aspect = meta.axes_length.re / meta.axes_length.im;
+    let screen_aspect = this.width_ / this.height_;
+    let margins = { left: 0, top: 0, right: 0, bottom: 0 };
+    if (!isFinite(fractal_aspect) || !isFinite(screen_aspect)) {
+      // This happens before the fractal metadata have loaded. Ignore.
+      return;
+    }
+    let diff = screen_aspect - fractal_aspect;
+    if (diff > 0.0) {
+      // Screen is wider than fractal.
+      // The difference tells us how many multiples of the fractal width should form the margin.
+      let each_side = diff / 2.0;
+      // At the home position the fractal height fills the viewport vertically. Therefore:
+      let each_side_pixels = each_side * this.height_;
+      margins.left = each_side_pixels;
+      margins.right = each_side_pixels;
+    } else if (diff < 0.0) {
+      // Screen is narrower than fractal.
+      // Compute how many multiples of the fractal height should form the margin.
+      let vertical_margin = (1.0 / screen_aspect) - (1.0 / fractal_aspect);
+      let each_margin = vertical_margin / 2.0;
+      // At the home position the fractal width fills the viewport horizontally. Therefore:
+      let margin_pixels = each_margin * this.width_;
+      margins.top = margin_pixels;
+      margins.bottom = margin_pixels;
+    } else {
+      // no margins
+    }
+    this.osd.viewport.setMargins(margins);
+  }
   // dummy function to shut up a linter warning in main.ts
   noop() { }
 }
