@@ -134,16 +134,20 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         if (listType === "") {
             return; // Quiescent
         }
+
+        // Use the current max_iter when previewing, within reason (not too large or it'll take ages to render the menu)
+        let max_iter = Math.min(viewer.get_max_iter(), 1024);
+
         if (listType === "fractals") {
             let colourer = viewer.get_colourer();
             specs = listItems.map(async (alg) => {
-                return new TileSpec(await nextSerial(), wholeFractal, TILE_SIZE, TILE_SIZE, alg.name, 32, colourer);
+                return new TileSpec(await nextSerial(), wholeFractal, TILE_SIZE, TILE_SIZE, alg.name, max_iter, colourer);
             });
         }
         else if (listType === "colourers") {
             let algorithm = viewer.get_algorithm();
             specs = listItems.map(async (col) => {
-                return new TileSpec(await nextSerial(), wholeFractal, TILE_SIZE, TILE_SIZE, algorithm, 32, col.name);
+                return new TileSpec(await nextSerial(), wholeFractal, TILE_SIZE, TILE_SIZE, algorithm, max_iter, col.name);
             });
         } else {
             console.error(`Unhandled list type ${listType}`);
