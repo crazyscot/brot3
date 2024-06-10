@@ -99,6 +99,7 @@ export class SaveSizeBox {
         invoke('save_image_workflow', {
             spec: new RenderSpec(fixed.origin, fixed.axes_length, width, height, max_iter)
                 .set_algorithm(this.viewer.get_algorithm())
+                .set_colourer(this.viewer.get_colourer())
         });
     }
 
