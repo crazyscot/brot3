@@ -20,6 +20,8 @@ class EngineTileSource extends OpenSeadragon.TileSource {
   private max_iter: number;
   private metadata: FractalView = new FractalView();
   private colourer: string;
+  // We don't have the metadata at ctor time, so this lets us async on it:
+  private metadata_promise_: PromiseLike<FractalView>;
 
   // CAUTION: Immediately after construction, metadata is not valid until after it has round-tripped to the engine to get the metadata.
   // (Could add a validity flag or something eventish if needed.)
@@ -35,11 +37,14 @@ class EngineTileSource extends OpenSeadragon.TileSource {
     this.algorithm = algorithm;
     this.max_iter = max_iter;
     this.colourer = colourer;
+    let metadata_resolve: any = null;
+    this.metadata_promise_ = new Promise((resolve) => { metadata_resolve = resolve; });
     invoke('get_metadata', { algorithm: algorithm })
       .then((reply) => {
         let meta = reply as FractalView;
         this.metadata.axes_length = meta.axes_length;
         this.metadata.origin = meta.origin;
+        metadata_resolve(this.metadata);
       })
       .catch((e) => {
         console.log(`Error retrieving metadata for ${algorithm}: ${e}`);
@@ -50,6 +55,7 @@ class EngineTileSource extends OpenSeadragon.TileSource {
   get_max_iter(): number { return this.max_iter; }
   get_metadata(): FractalView { return this.metadata; }
   get_colourer(): string { return this.colourer; }
+  metadata_promise(): PromiseLike<FractalView> { return this.metadata_promise_; }
 
   getTileUrl(level: number, x: number, y: number): string {
     return `${this.algorithm}:${this.max_iter}/${this.colourer}/${level}/${x}-${y}}`;
