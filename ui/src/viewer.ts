@@ -536,6 +536,4 @@ export class Viewer {
     }
     this.osd.viewport.setMargins(margins);
   }
-  // dummy function to shut up a linter warning in main.ts
-  noop() { }
 }

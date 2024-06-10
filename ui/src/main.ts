@@ -38,26 +38,18 @@ class Brot3UI {
   private viewer: Viewer = new Viewer();
   private saveSizeBox: SaveSizeBox;
   private maxIterBox: IterationLimitBox;
-  private menu: Menu;
-  private selector: SelectionOverlay;
   constructor(doc: Document) {
     this.errorHandler.bind_events();
+    this.setupWindow();
     this.saveSizeBox = new SaveSizeBox(doc, this.viewer);
     this.maxIterBox = new IterationLimitBox(doc, this.viewer);
-    this.selector = new SelectionOverlay(doc, this.viewer);
-    this.menu = new Menu(doc, this.viewer, this.saveSizeBox, this.maxIterBox);
-    this.menu.noop();
-
-    this.setupWindow();
-    this.selector.noop();
+    new SelectionOverlay(doc, this.viewer);
+    new Menu(doc, this.viewer, this.saveSizeBox, this.maxIterBox);
   }
 
   async setupWindow() {
     getVersion().then(ver => appWindow.setTitle(`brot3 ${ver}`));
   }
-
-  noop() { }
 }
 
-let _gUI = new Brot3UI(document);
-_gUI.noop(); // shush, linter
+new Brot3UI(document);
