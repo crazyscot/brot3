@@ -160,6 +160,10 @@ export class HeadsUpDisplay {
     }
 
     update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint, canvas_width: number, canvas_height: number, algorithm: string, colourer: string) {
+        if (axes.re === 0.0 || axes.im === 0.0) {
+            // Sometimes on changing source we get a fleeting zero-axes indication; just ignore it
+            return;
+        }
         let axes_precision = axes_precision_for_canvas(canvas_height, canvas_width);
         let position_dp = decimal_places_for_axes(canvas_height, canvas_width, axes);
         this.zoom!.innerHTML = `${zoom.toPrecision(axes_precision)} &times;`;
