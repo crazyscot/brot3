@@ -149,6 +149,8 @@ export class Viewer {
           showFullPageControl: false,
           zoomPerSecond: 2.0,
           toolbar: "topbar",
+          constrainDuringPan: true,
+          minZoomImageRatio: 0.25,
 
           tileSources: [initialSource],
         }); // ---------------- end this.osd initialiser ---------------------------
