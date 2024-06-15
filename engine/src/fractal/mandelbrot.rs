@@ -1,7 +1,7 @@
 // Mandelbrot set implementation
 // (c) 2024 Ross Younger
 
-use super::maths::{ln_3_f32, Point};
+use super::maths::{ln_3_f64, Point};
 use super::{Algorithm, PointData};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -42,10 +42,11 @@ impl Algorithm for Original {
         self.iterate(point);
         // by the logarithm of a power law,
         // point.value.norm().ln().ln() === (point.value.norm_sqr().ln() * 0.5).ln())
-        point.result = Some(
-            (point.iter as f32)
-                - ((point.value.norm_sqr() as f32).ln() * 0.5).ln() / std::f32::consts::LN_2,
-        );
+
+        let result: f64 = f64::from(point.iter)
+            - (point.value.norm_sqr().ln() * 0.5).ln() / std::f64::consts::LN_2;
+
+        point.result = Some(result as f32);
     }
 
     fn default_centre(&self) -> super::Point {
@@ -84,8 +85,11 @@ impl Algorithm for Mandel3 {
         self.iterate(point);
         self.iterate(point);
         // logarithm of a power law applies here too
-        point.result = Some(
-            (point.iter as f32) - ((point.value.norm_sqr() as f32).ln() * 0.5).ln() / ln_3_f32(),
-        );
+
+        // Even though result is f32, work in f64 here to avoid a numeric precision issue.
+        // Otherwise, norm_sqr goes to inf much faster, which is unsightly with some colourers.
+        let result: f64 =
+            f64::from(point.iter) - (point.value.norm_sqr().ln() * 0.5).ln() / ln_3_f64();
+        point.result = Some(result as f32);
     }
 }

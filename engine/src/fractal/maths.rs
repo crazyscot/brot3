@@ -15,12 +15,19 @@ pub const E: f64 = std::f64::consts::E;
 // For NAN: use Scalar::NAN
 
 // /////////////////////////////////////////////////////////////////////
-// f32 helpers
+// Constant helpers
 
 /// Natural logarithm of 3
 #[inline]
 #[must_use]
 pub fn ln_3_f32() -> f32 {
     const THREE: f32 = 3.0;
+    THREE.ln()
+}
+/// Natural logarithm of 3
+#[inline]
+#[must_use]
+pub fn ln_3_f64() -> f64 {
+    const THREE: f64 = 3.0;
     THREE.ln()
 }
