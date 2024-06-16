@@ -116,18 +116,18 @@ export class HeadsUpDisplay {
   </div>
 `;
 
-    zoom: Element | null;
-    originReal: Element | null;
-    originImag: Element | null;
-    centreReal: Element | null;
-    centreImag: Element | null;
-    axesReal: Element | null;
-    axesImag: Element | null;
-    algorithm: Element | null;
-    colourer: Element | null;
+    zoom: Element;
+    originReal: Element;
+    originImag: Element;
+    centreReal: Element;
+    centreImag: Element;
+    axesReal: Element;
+    axesImag: Element;
+    algorithm: Element;
+    colourer: Element;
 
-    hud_closer: ClickEventListener;
-    position_entry_closer: ClickEventListener;
+    hud_closer: ClickEventListener | null;
+    position_entry_closer: ClickEventListener | null;
 
     constructor(doc: Document) {
         let self = this; // For closures
@@ -145,18 +145,28 @@ export class HeadsUpDisplay {
 
         // Hide the position entry rows by default
         this.position_entry_rows().forEach(e => { if (element_is_displayed(e)) toggle_tr_visibility(e); });
-        this.hud_closer = new ClickEventListener(
-            document.getElementById("close-hud")!,
-            function (_event: Event) {
-                self.toggle_visibility();
-            }
-        );
-        this.position_entry_closer = new ClickEventListener(
-            document.getElementById("close-entry")!,
-            function (_event: Event) {
-                self.toggle_position_entry_panel();
-            }
-        );
+        let close_hud = document.getElementById("close-hud");
+        if (close_hud !== null) {
+            this.hud_closer = new ClickEventListener(
+                close_hud,
+                function (_event: Event) {
+                    self.toggle_visibility();
+                }
+            );
+        } else {
+            this.hud_closer = null;
+        }
+        let close_entry = document.getElementById("close-entry");
+        if (close_entry !== null) {
+            this.position_entry_closer = new ClickEventListener(
+                close_entry,
+                function (_event: Event) {
+                    self.toggle_position_entry_panel();
+                }
+            );
+        } else {
+            this.position_entry_closer = null;
+        }
     }
 
     update(zoom: number, origin: EnginePoint, centre: EnginePoint, axes: EnginePoint, canvas_width: number, canvas_height: number, algorithm: string, colourer: string) {
@@ -166,15 +176,15 @@ export class HeadsUpDisplay {
         }
         let axes_precision = axes_precision_for_canvas(canvas_height, canvas_width);
         let position_dp = decimal_places_for_axes(canvas_height, canvas_width, axes);
-        this.zoom!.innerHTML = `${zoom.toPrecision(axes_precision)} &times;`;
-        this.axesReal!.innerHTML = format_float_with_precision("&nbsp;", axes.re, axes_precision);
-        this.axesImag!.innerHTML = format_float_with_precision("&nbsp;", axes.im, axes_precision);
-        this.centreReal!.innerHTML = format_float_fixed("&nbsp;", centre.re, position_dp);
-        this.centreImag!.innerHTML = format_float_fixed("+", centre.im, position_dp);
-        this.originReal!.innerHTML = format_float_fixed("&nbsp;", origin.re, position_dp);
-        this.originImag!.innerHTML = format_float_fixed("+", origin.im, position_dp);
-        this.algorithm!.innerHTML = algorithm;
-        this.colourer!.innerHTML = colourer;
+        this.zoom.innerHTML = `${zoom.toPrecision(axes_precision)} &times;`;
+        this.axesReal.innerHTML = format_float_with_precision("&nbsp;", axes.re, axes_precision);
+        this.axesImag.innerHTML = format_float_with_precision("&nbsp;", axes.im, axes_precision);
+        this.centreReal.innerHTML = format_float_fixed("&nbsp;", centre.re, position_dp);
+        this.centreImag.innerHTML = format_float_fixed("+", centre.im, position_dp);
+        this.originReal.innerHTML = format_float_fixed("&nbsp;", origin.re, position_dp);
+        this.originImag.innerHTML = format_float_fixed("+", origin.im, position_dp);
+        this.algorithm.innerHTML = algorithm;
+        this.colourer.innerHTML = colourer;
     }
 
     toggle_visibility() {
@@ -185,25 +195,35 @@ export class HeadsUpDisplay {
     // Copy the current position into the Go To Position form
     set_go_to_position(pos: FractalView, canvas_width: number, canvas_height: number) {
         let axes_precision = axes_precision_for_canvas(canvas_width, canvas_height);
-        let f = document.getElementById("enter_axesReal")! as HTMLInputElement;
-        f.value = format_float_with_precision("", pos.axes_length.re, axes_precision);
+        let f = document.getElementById("enter_axesReal") as HTMLInputElement;
+        if (f !== null) {
+            f.value = format_float_with_precision("", pos.axes_length.re, axes_precision);
+        }
         let position_dp = decimal_places_for_axes(canvas_height, canvas_width, pos.axes_length);
 
         if (this.origin_is_currently_visible()) {
-            f = document.getElementById("enter_originReal")! as HTMLInputElement;
-            f.value = format_float_fixed("", pos.origin.re, position_dp);
-            f = document.getElementById("enter_originImag")! as HTMLInputElement;
-            f.value = format_float_fixed("", pos.origin.im, position_dp);
+            f = document.getElementById("enter_originReal") as HTMLInputElement;
+            if (f !== null) {
+                f.value = format_float_fixed("", pos.origin.re, position_dp);
+            }
+            f = document.getElementById("enter_originImag") as HTMLInputElement;
+            if (f !== null) {
+                f.value = format_float_fixed("", pos.origin.im, position_dp);
+            }
         } else {
-            f = document.getElementById("enter_centreReal")! as HTMLInputElement;
-            f.value = format_float_fixed("", pos.centre().re, position_dp);
-            f = document.getElementById("enter_centreImag")! as HTMLInputElement;
-            f.value = format_float_fixed("", pos.centre().im, position_dp);
+            f = document.getElementById("enter_centreReal") as HTMLInputElement;
+            if (f !== null) {
+                f.value = format_float_fixed("", pos.centre().re, position_dp);
+            }
+            f = document.getElementById("enter_centreImag") as HTMLInputElement;
+            if (f !== null) {
+                f.value = format_float_fixed("", pos.centre().im, position_dp);
+            }
         }
 
         // clear out: Axes Im, Zoom
         ["axesImag", "zoom"].forEach(f => {
-            let field = document.getElementById("enter_" + f)! as HTMLInputElement;
+            let field = document.getElementById("enter_" + f) as HTMLInputElement;
             if (field !== null) {
                 field.value = "";
             }
@@ -248,8 +268,8 @@ export class HeadsUpDisplay {
             } else {
                 element = document.getElementById(`enter_centreReal`) as HTMLInputElement;
             }
-            element!.focus();
-            element!.select();
+            element.focus();
+            element.select();
         }
     }
 
