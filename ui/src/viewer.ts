@@ -66,12 +66,12 @@ class EngineTileSource extends OpenSeadragon.TileSource {
     return new TilePostData(level, x, y);
   }
 
-  async downloadTileStart(context: any /* OpenSeadragon.ImageJob */) {
+  downloadTileStart(context: any /* OpenSeadragon.ImageJob */) {
     // tile dx and dy are the column and row numbers FOR THE ZOOM LEVEL.
     // Given 1048576x1048576 pixels, we start at level 10 (4x4 tiles comprise the image) and end at level 20 (4096x4096)
     // => At zoom level X, the image is 2^X pixels across.
 
-    let spec = new TileSpec(await nextSerial(), context?.postData, TILE_SIZE, TILE_SIZE, this.algorithm, this.max_iter, this.colourer);
+    let spec = new TileSpec(nextSerial(), context?.postData, TILE_SIZE, TILE_SIZE, this.algorithm, this.max_iter, this.colourer);
     context.userData = spec;
     this.parent.add_outstanding_request(spec.serial, context);
     invoke('start_tile', {
