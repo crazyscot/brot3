@@ -441,6 +441,12 @@ export class Viewer {
     this.osd.addOnceHandler('open', function () {
       let viewport = self.osd!.viewport; // because you get a new viewport on the new source
       viewport.zoomTo(zoom, null, true).panTo(centre, true);
+      // Curveball: Sometimes (sadly quite often) the fractal metadata are not ready at this point,
+      // naively calling updateIndicator() here fails. We must async it:
+      self.get_active_source().metadata_promise()
+        .then(() => {
+          self.updateIndicator();
+        });
     });
   }
   get_algorithm(): string {
@@ -456,7 +462,10 @@ export class Viewer {
     this.osd.viewport.goHome();
     let self = this;
     this.osd.addOnceHandler('open', function () {
-      self.updateIndicator();
+      self.get_active_source().metadata_promise()
+        .then(() => {
+          self.updateIndicator();
+        });
     });
   }
   set_colourer(new_colourer: string) {
