@@ -175,7 +175,7 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
             outstanding.current.delete(tile.serial);
             let helper = new TileResponseHelper(tile);
             let canvas = helper.canvas(TILE_SIZE);
-            let dataUrl = canvas.toDataURL();
+            let dataUrl = canvas.toDataURL("image/png");
             setButtonImageUrls((prev) => {
                 // GOTCHA: Using an updater function here means we can batch multiple updates.
                 // Naively cloning without a closure and calling setButtonUrls(new1) causes the updates to trample each other.
