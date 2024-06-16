@@ -41,7 +41,7 @@ class EngineTileSource extends OpenSeadragon.TileSource {
     this.metadata_promise_ = new Promise((resolve) => { metadata_resolve = resolve; });
     invoke('get_metadata', { algorithm: algorithm })
       .then((reply) => {
-        let meta = reply as FractalView;
+        let meta = FractalView.fromDict(reply);
         this.metadata.axes_length = meta.axes_length;
         this.metadata.origin = meta.origin;
         metadata_resolve(this.metadata);
@@ -220,7 +220,7 @@ export class Viewer {
     }
     catch (e) {
       //let err = e as Error;
-      console.error('exception in UpdateIndicator'); // this includes the stack trace
+      console.error(`exception in UpdateIndicator: ${e}`); // this includes the stack trace
     }
   }
 

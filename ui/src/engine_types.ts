@@ -97,6 +97,9 @@ export class EnginePoint {
         this.re = re;
         this.im = im;
     }
+    static fromDict(dict: any) {
+        return new EnginePoint(dict.re as number, dict.im as number);
+    }
     toString(): string {
         return `{${this.re}, ${this.im}}`;
     }
@@ -114,13 +117,19 @@ export class FractalView {
     centre(): EnginePoint {
         return new EnginePoint(this.origin.re + 0.5 * this.axes_length.re, this.origin.im + 0.5 * this.axes_length.im);
     }
-    constructor(origin: EnginePoint | null = null, axes: EnginePoint | null = null) {
-        if (origin !== null) {
+    constructor(origin?: EnginePoint, axes?: EnginePoint) {
+        if (origin !== undefined) {
             this.origin = origin;
         }
-        if (axes !== null) {
+        if (axes !== undefined) {
             this.axes_length = axes;
         }
+    }
+    static fromDict(dict: any) {
+        return new FractalView(
+            EnginePoint.fromDict(dict.origin),
+            EnginePoint.fromDict(dict.axes_length),
+        );
     }
     toString(): string {
         return `FV[or=${this.origin},ax=${this.axes_length}]`;
