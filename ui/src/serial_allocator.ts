@@ -1,25 +1,23 @@
 // Serial number allocator
 // (c) 2024 Ross Younger
 
-import { Mutex } from 'async-mutex'
+// Note: This used to use async-mutex.
+// Observing that JS is single threaded without pre-emption, then provided nextSerial
+// is atomic and non-async then the overhead of a mutex isn't necessary.
 
-export class SerialAllocator {
+class SerialAllocator {
     private _next: number;
-    private _mutex: Mutex;
     constructor() {
-        this._mutex = new Mutex();
         this._next = 1;
     }
-    async next() {
-        return await this._mutex.runExclusive(() => {
-            var rv = this._next;
-            if (++this._next == Number.MAX_SAFE_INTEGER) { this._next = 0; }
-            return rv;
-        });
+    next(): number {
+        let rv = this._next;
+        if (++this._next == Number.MAX_SAFE_INTEGER) { this._next = 0; }
+        return rv;
     }
 }
 
 let _gSerial = new SerialAllocator();
-export async function nextSerial(): Promise<number> {
+export function nextSerial(): number {
     return _gSerial.next();
 }
