@@ -414,7 +414,7 @@ export class Viewer {
 
   get_active_source(): EngineTileSource {
     let index = this.osd.currentPage();
-    return this.osd.world.getItemAt(index).source as EngineTileSource;
+    return this.osd.world?.getItemAt(index)?.source as EngineTileSource;
   }
 
   get_max_iter() {
@@ -447,7 +447,7 @@ export class Viewer {
     return this.get_active_source().get_algorithm();
   }
   get_colourer(): string {
-    return this.get_active_source().get_colourer();
+    return this.get_active_source()?.get_colourer();
   }
   set_algorithm(new_fractal: string) {
     let oldSource = this.get_active_source();
@@ -461,12 +461,20 @@ export class Viewer {
   }
   set_colourer(new_colourer: string) {
     let oldSource = this.get_active_source();
+    if (oldSource === undefined) {
+      // If the user leans on one of the keyboard shortcuts to cycle colourer, sometimes OSD is mid-change when the next event comes through.
+      return;
+    }
     let newSource = new EngineTileSource(this, oldSource.get_algorithm(), oldSource.get_max_iter(), new_colourer);
     // This is a recolour event, so we do NOT want to go home (the default when changing source).
     this.change_source_keeping_position(newSource);
   }
   cycle_colourer(delta: number) {
     let needle = this.get_colourer();
+    if (needle === null || needle === undefined) {
+      // If the user leans on one of the keyboard shortcuts to cycle colourer, sometimes OSD is mid-change when the next event comes through.
+      return;
+    }
     let index = this.all_colourers.findIndex((value: ListItem): boolean => { return value.name == needle });
     if (index == -1) {
       console.warn(`Couldn't determine index of current colourer ${needle}`);
