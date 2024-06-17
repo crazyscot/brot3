@@ -18,6 +18,8 @@ export default defineConfig({
     minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
     // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_DEBUG,
+    // chunk sizes aren't terribly relevant as we're not loading JS over the network
+    chunkSizeWarningLimit: 10240,
   },
   plugins: [
     viteStaticCopy({
