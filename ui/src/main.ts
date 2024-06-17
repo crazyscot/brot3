@@ -16,8 +16,8 @@ import { Viewer } from './viewer.ts'
 
 document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
 <div id="topbar">
-  <span class="right-align">
-    <nav id="menu"></nav>
+  <span class="busy">
+    <em>busy</em>
   </span>
 </div>
 <div id="openseadragon">
