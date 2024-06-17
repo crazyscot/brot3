@@ -41,3 +41,18 @@ In release mode, Tauri builds the GUI application for the target, plus one or mo
 * Linux: .deb package and appImage (standalone)
 * OSX: .dmg file
 * Windows: .msi installer package
+
+## Releasing
+
+Prerequisites:
+* `cargo install git-cliff` and ensure that `~/.cargo/bin` is on your PATH.
+
+Steps:
+* Create release changeset
+  * Update project version in `cargo.toml`
+  * `git cliff --tag v<intended new tag> > CHANGELOG.md`
+  * commit with prefix `chore(release)`
+* Merge changeset to main as usual
+* Update `release` branch to the desired release point, push it to github.
+* ✨✨ automation happens ✨✨
+* Edit and publish the draft release in Github. You may find it useful to press the button to autogenerate the release notes; `git cliff` might also yield insights.
