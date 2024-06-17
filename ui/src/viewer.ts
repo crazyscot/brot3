@@ -121,6 +121,7 @@ export class Viewer {
   private hud_: HeadsUpDisplay;
   private all_fractals: ListItem[] = [];
   private all_colourers: ListItem[] = [];
+  private isFullyLoaded: boolean = false;
 
   // width, height used by coordinate display
   private width_: number = NaN;
@@ -128,6 +129,8 @@ export class Viewer {
   width(): number { return this.width_; }
   height(): number { return this.height_; }
   hud(): HeadsUpDisplay { return this.hud_; }
+
+  private busyIndicator: HTMLElement;
 
   constructor() {
     let self = this; // Closure helper
@@ -192,6 +195,17 @@ export class Viewer {
           }, 50);
         });
 
+        viewer.world.addHandler('add-item', function (event: any) {
+          var tiledImage = event.item;
+          tiledImage.addHandler('fully-loaded-change', function () {
+            var newFullyLoaded = self.areAllFullyLoaded();
+            if (newFullyLoaded !== self.isFullyLoaded) {
+              self.isFullyLoaded = newFullyLoaded;
+              self.updateBusyIndicator();
+            }
+          });
+        });
+
         this.resize(); // also computes home margin, but we don't reliably have the metadata in yet
         initialSource.metadata_promise()
           .then((_) => {
@@ -202,10 +216,37 @@ export class Viewer {
 
     // Zoom/Position indicator
     this.hud_ = new HeadsUpDisplay(document);
+    this.busyIndicator = (document.querySelector('.busy')) as HTMLElement;
   } // ---------------- end constructor --------------------
 
   private metadata(): FractalView {
     return this.get_active_source().get_metadata();
+  }
+
+  private updateBusyIndicator() {
+    if (this.busyIndicator === null) return;
+    if (this.isFullyLoaded) {
+      this.busyIndicator.style.display = 'none';
+    } else {
+      this.busyIndicator.style.display = 'block';
+    }
+  }
+
+  private forceBusyIndicator() {
+    this.isFullyLoaded = false;
+    this.updateBusyIndicator();
+  }
+
+  private areAllFullyLoaded() {
+    var tiledImage;
+    var count = this.osd.world.getItemCount();
+    for (var i = 0; i < count; i++) {
+      tiledImage = this.osd.world.getItemAt(i);
+      if (!tiledImage.getFullyLoaded()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   updateIndicator() {
@@ -446,6 +487,7 @@ export class Viewer {
       self.get_active_source().metadata_promise()
         .then(() => {
           self.updateIndicator();
+          self.forceBusyIndicator();
         });
     });
   }
@@ -465,6 +507,7 @@ export class Viewer {
       self.get_active_source().metadata_promise()
         .then(() => {
           self.updateIndicator();
+          self.forceBusyIndicator();
         });
     });
   }
