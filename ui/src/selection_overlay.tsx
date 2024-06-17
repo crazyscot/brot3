@@ -219,7 +219,7 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
             <div className="modal-content" ref={ref}>
                 <span className="close" id="close-selector" onClick={hide}>&times;</span>
                 <h3>Available {listType}</h3>
-                <div id="selection-list">{listItems.map((it) => <DisplayItem {...it} hideModal={hide} viewer={viewer} itemType={listType} />)}</div>
+                <div id="selection-list">{listItems.map((it) => <DisplayItem key={it.key} name={it.name} description={it.description} hideModal={hide} viewer={viewer} itemType={listType} />)}</div>
             </div>
         </div>}
     </ButtonURLContext.Provider>
