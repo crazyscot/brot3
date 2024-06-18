@@ -43,6 +43,20 @@ impl OutputsHsvf for LogRainbow {
     }
 }
 
+/// Cycling H; Fixed S=1.0, V=1.0
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct SqrtRainbow {}
+#[allow(clippy::cast_possible_truncation)]
+impl OutputsHsvf for SqrtRainbow {
+    fn colour_hsvf(&self, iters: f32, _: u32) -> Hsv<Srgb, f32> {
+        if iters.is_infinite() {
+            return BLACK_HSV;
+        }
+        let degrees = 20.0 * iters.sqrt();
+        Hsv::new(RgbHue::new(degrees), 1.0, 1.0)
+    }
+}
+
 /// HSV Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#HSV_coloring>
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct HsvGradient {}
