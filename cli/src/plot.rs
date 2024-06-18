@@ -16,7 +16,7 @@ use rayon::prelude::*;
 #[derive(Debug, clap::Args)]
 #[allow(clippy::struct_excessive_bools)]
 //#[command(flatten_help = true)] // doesn't do much for this subcommand
-pub(crate) struct Args {
+pub struct Args {
     #[arg(
         long, hide(true), action = ArgAction::Help, required(false)
     )]

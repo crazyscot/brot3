@@ -19,7 +19,7 @@ enum ShowableThings {
 /// Arguments to 'show'
 #[derive(Debug, clap::Args)]
 #[command(flatten_help = true)]
-pub(crate) struct Args {
+pub struct Args {
     #[arg(
         long, hide(true), action = clap::ArgAction::Help, required(false)
     )]
@@ -30,6 +30,7 @@ pub(crate) struct Args {
 }
 
 #[allow(clippy::unnecessary_wraps)]
+/// Implementation of 'show'
 pub(crate) fn show(args: &Args) -> anyhow::Result<()> {
     let dirty_flag: String = match build_info::GIT_DIRTY {
         Some(x) => x.to_string(),
