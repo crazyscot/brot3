@@ -260,8 +260,10 @@ version = "0.9.4"
 dependencies = [
  "anyhow",
  "approx",
+ "brot3-cli",
  "brot3-engine",
  "bytes",
+ "clap",
  "once_cell",
  "rayon",
  "rustc-hash",
