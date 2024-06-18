@@ -12,7 +12,7 @@ use strum_macros::{
 use super::direct_rgb::{
     BlackFade, Mandy, Monochrome, MonochromeInverted, OneLoneCoder, WhiteFade,
 };
-use super::huecycles::{HsvGradient, LchGradient, LinearRainbow, LogRainbow};
+use super::huecycles::{HsvGradient, LchGradient, LinearRainbow, LogRainbow, SqrtRainbow};
 use super::testing::White;
 
 /// Type sugar: Standard RGB, u8 storage
@@ -39,6 +39,8 @@ pub enum Instance {
     LinearRainbow(LinearRainbow),
     /// Cyclic rainbow (log-smoothed)
     LogRainbow(LogRainbow),
+    /// Cyclic rainbow (sqrt-smoothed)
+    SqrtRainbow(SqrtRainbow),
 
     /// The colouring algorithm from ``mandy`` by rjk
     Mandy(Mandy),
