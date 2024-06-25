@@ -5,6 +5,7 @@ use std::str::FromStr;
 
 use super::{Point, PointData, ESCAPE_THRESHOLD_SQ};
 
+use super::experimental::ComplexPowerExperiment;
 use super::mandelbrot::{Mandel3, Original};
 use super::mandeldrop::{Mandeldrop, Mandeldrop3};
 use super::misc_fractals::{BirdOfPrey, Buffalo, BurningShip, Celtic, Mandelbar, Variant};
@@ -70,6 +71,9 @@ pub enum Instance {
     /// Test algorithm that always outputs zero
     #[strum_discriminants(strum(props(hide_from_list = "1")))]
     Zero(Zero),
+
+    /// Experimental algorithm: `Z_n+1 := Z_n ^ Z_n + c`
+    ComplexPowerExperiment(ComplexPowerExperiment),
 }
 
 impl crate::util::listable::Listable for Selection {}

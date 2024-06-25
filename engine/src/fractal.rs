@@ -4,14 +4,18 @@
 /// Maths type selection and constants
 pub mod maths;
 
+// Engine framework
 mod framework;
-mod mandelbrot;
-mod mandeldrop;
-mod misc_fractals;
 mod pointdata;
 mod tile;
 mod tile_cache;
 mod tilespec;
+
+// Fractal algorithms
+mod experimental;
+mod mandelbrot;
+mod mandeldrop;
+mod misc_fractals;
 
 #[allow(clippy::module_name_repetitions)]
 pub use framework::{decode, factory, Algorithm, Instance, Selection};
