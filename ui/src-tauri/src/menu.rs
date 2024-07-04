@@ -53,20 +53,17 @@ impl ApplicationMenu {
         let cmd_or_ctrl = ApplicationMenu::cmd_or_ctrl();
 
         // Here are our custom menu items:
-        let toggle_position =
-            CustomMenuItem::new("toggle_position".to_string(), "Show/Hide Position")
-                .accelerator(format!("{cmd_or_ctrl}+P"));
-        let go_to_position = CustomMenuItem::new("go_to_position".to_string(), "Go To Position...")
-            .accelerator(format!("{cmd_or_ctrl}+G"));
+        let toggle_hud = CustomMenuItem::new("toggle_hud".to_string(), "HUD")
+            .accelerator(format!("{cmd_or_ctrl}+H"));
+        let toggle_zoom = CustomMenuItem::new("toggle_zoom".to_string(), "Zoom");
+        let toggle_axes = CustomMenuItem::new("toggle_axes".to_string(), "Axes");
+
         let toggle_origin_centre =
             CustomMenuItem::new("toggle_origin_centre".to_string(), "Toggle Origin/Centre");
-        let toggle_navigator =
-            CustomMenuItem::new("toggle_navigator".to_string(), "Show/Hide Navigator");
+        let toggle_navigator = CustomMenuItem::new("toggle_navigator".to_string(), "Navigator");
         let save_image = CustomMenuItem::new("save_image".to_string(), "Save image...")
             .accelerator(format!("{cmd_or_ctrl}+S"));
         let save_size = CustomMenuItem::new("save_size".to_string(), "Save at size...");
-        let show_max_iter = CustomMenuItem::new("show_max_iter".to_string(), "Max Iterations...")
-            .accelerator(format!("{cmd_or_ctrl}+M"));
 
         // menu::os_default is lame in tauri1, doesn't support modifying the default menus.
         // For now we will clone and hack. TODO(tauri2) - overhaul this.
@@ -154,12 +151,13 @@ impl ApplicationMenu {
             Menu::new()
                 .add_item(toggle_navigator)
                 .add_native_item(MenuItem::Separator)
-                .add_item(toggle_position)
-                .add_item(go_to_position)
+                .add_item(toggle_hud)
+                .add_item(toggle_zoom)
+                .add_item(toggle_axes)
+                .add_native_item(MenuItem::Separator)
                 .add_item(toggle_origin_centre),
         ))
         .add_submenu(fractals)
-        .add_submenu(Submenu::new("Render", Menu::new().add_item(show_max_iter)))
         .add_submenu(Submenu::new(
             "Help",
             Menu::new().add_item(CustomMenuItem::new("show_about".to_string(), "About")),
@@ -170,6 +168,14 @@ impl ApplicationMenu {
         let cmd_or_ctrl = ApplicationMenu::cmd_or_ctrl();
         let standard: Vec<MenuEntry> = vec![
             MenuEntry::CustomItem(CustomMenuItem::new("select/fractal", "Select fractal...")),
+            MenuEntry::CustomItem(
+                CustomMenuItem::new("go_to_position".to_string(), "Go To Position...")
+                    .accelerator(format!("{cmd_or_ctrl}+G")),
+            ),
+            MenuEntry::CustomItem(
+                CustomMenuItem::new("show_max_iter".to_string(), "Max Iterations...")
+                    .accelerator(format!("{cmd_or_ctrl}+M")),
+            ),
             MenuEntry::NativeItem(MenuItem::Separator),
             MenuEntry::CustomItem(CustomMenuItem::new("select/colourer", "Select colourer...")),
             MenuEntry::CustomItem(

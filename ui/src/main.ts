@@ -1,6 +1,12 @@
 // brot3 main UI
 // (c) 2024 Ross Younger
 
+import "@fontsource/inter/400.css"
+import "@fontsource/inter/700.css"
+import "@fontsource/inter/900.css"
+import "@fontsource/roboto/400.css"
+import "@fontsource/roboto/700.css"
+import "@fontsource/roboto/900-italic.css"
 import './style.css'
 import { getVersion } from '@tauri-apps/api/app'
 import { appWindow } from '@tauri-apps/api/window'
@@ -20,6 +26,7 @@ document.querySelector<HTMLDivElement>('#main')!.innerHTML = `
     <em>busy</em>
   </span>
 </div>
+${HeadsUpDisplay.top_html}
 <div id="openseadragon">
 ${About.html}
 <!-- Trap: Modals not within this div won't be cloned into fullscreen mode -->
@@ -27,7 +34,7 @@ ${About.html}
 <div id="bottombar">
 ${IterationLimitBox.html}
 ${SaveSizeBox.html}
-${HeadsUpDisplay.html}
+${HeadsUpDisplay.bottom_html}
 ${SelectionOverlay.html}
 </div>
 `;

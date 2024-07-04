@@ -56,8 +56,14 @@ export class Menu {
                 case "show_about":
                     self.about!.show();
                     break;
-                case "toggle_position":
+                case "toggle_hud":
                     this.viewer.hud().toggle_visibility();
+                    break;
+                case "toggle_zoom":
+                    this.viewer.hud().toggle_zoom();
+                    break;
+                case "toggle_axes":
+                    this.viewer.hud().toggle_axes();
                     break;
                 case "go_to_position":
                     this.viewer.hud().toggle_position_entry_panel()

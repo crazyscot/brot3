@@ -5,12 +5,14 @@ export function element_is_displayed(e: HTMLElement): boolean {
     return e.style.display !== "none";
 }
 
-// Toggles display style of an element between block and none
-export function toggle_element_visibility(e: HTMLElement) {
+// Toggles display style of an element between initial and none
+export function toggle_element_visibility(e: HTMLElement): boolean {
     if (e.style.display === "none") {
-        e.style.display = "block";
+        e.style.display = "initial";
+        return true;
     } else {
         e.style.display = "none";
+        return false;
     }
 }
 
