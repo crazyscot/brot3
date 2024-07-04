@@ -1,7 +1,7 @@
 // brot3 heads up display
 // (c) 2024 Ross Younger
 
-import { ClickEventListener, element_is_displayed, toggle_tr_visibility } from './dom_util'
+import { ClickEventListener, element_is_displayed, toggle_element_visibility } from './dom_util'
 import { EnginePoint, FractalView } from './engine_types'
 
 // Formatting helpers
@@ -47,58 +47,53 @@ function decimal_places_for_axes(canvas_height: number, canvas_width: number, ax
 }
 
 export class HeadsUpDisplay {
-    static readonly html: string = `
+    static readonly top_html: string = `
+    <div class="info centered" id="hud">
+      <div id="hud1">
+        <span class="hud-data" id="hud-algorithm">
+          <span id="algorithm"></span>
+          ::
+          <span id="colourer"></span>
+        </span>
+        <span class="hud-data" id="hud-position">
+          <span class="position-display" id="show-origin">
+              origin=<span id="originReal"></span> <span id="originImag"></span> i&nbsp;
+          </span>
+          <span class="position-display hidden" id="show-centre">
+              centre=<span id="centreReal"></span> <span id="centreImag"></span> i&nbsp;
+          </span>
+        </span>
+        <span class="hud-data" id="hud-zoom">
+          zoom=<span id="zoom"></span>
+        </span>
+        <span class="hud-data" id="hud-axes">
+          Axes: <span id="axesReal"></span> re, <span id="axesImag"></span> im
+        </span>
+      </div>
+    </div>
+    `;
+    static readonly bottom_html: string = `
     <div class="info" id="info-panel">
     <form id="form_go_to_position">
       <table>
-        <tr class="position-display">
-          <td rowspan="6"><span class="close" id="close-hud">&times;</span></td>
-        </tr>
-        <tr class="position-display" id="show-origin">
-          <th>Origin:</th>
-          <td><span id="originReal"></span></td>
-          <td><span id="originImag"></span> i&nbsp;</td>
-        </tr>
-        <tr class="position-display hidden" id="show-centre">
-          <th>Centre:</th>
-          <td><span id="centreReal"></span></td>
-          <td><span id="centreImag"></span> i&nbsp;</td>
-        </tr>
-        <tr class="position-display">
-          <th>Axes:</th>
-          <td><span id="axesReal"></span> re,</td>
-          <td><span id="axesImag"></span> im</td>
-        </tr>
-        <tr class="position-display">
-          <th>Zoom:</th>
-          <td id="zoom"></td>
-        </tr>
-        <tr class="position-display">
-            <th>Algorithm:</th>
-            <td id="algorithm" colspan="2"></td>
-        </tr>
-        <tr class="position-display">
-            <th>Colour:</th>
-            <td id="colourer" colspan="2"></td>
-        </tr>
         <!--------------------------------------------->
         <tr class="position-entry">
           <td rowspan="5"><span class="close" id="close-entry">&times;</span></td>
         </tr>
         <tr class="position-entry" id="enter-origin">
-          <th>Origin:</th>
+          <th>Origin</th>
           <td><input type="text" id="enter_originReal" /></td>
           <td>+ <input type="text" id="enter_originImag" /> i</td>
           <td colspan="3"></td>
         </tr>
         <tr class="position-entry hidden" id="enter-centre">
-          <th>Centre:</th>
+          <th>Centre</th>
           <td><input type="text" id="enter_centreReal" /></td>
           <td>+ <input type="text" id="enter_centreImag" /> i</td>
           <td colspan="3"></td>
         </tr>
         <tr class="position-entry">
-          <th>Axis:</th>
+          <th>Axis</th>
           <td colspan="2"><input type="text" id="enter_axesReal" /> real</td>
           <td colspan="2"></td>
         </tr>
@@ -126,13 +121,13 @@ export class HeadsUpDisplay {
     algorithm: Element;
     colourer: Element;
 
-    hud_closer: ClickEventListener | null;
+    position_entry_form: HTMLElement;
     position_entry_closer: ClickEventListener | null;
 
     constructor(doc: Document) {
         let self = this; // For closures
 
-        var panel = doc.querySelectorAll('#info-panel')[0];
+        var panel = doc.querySelectorAll('#hud')[0];
         this.zoom = panel.querySelectorAll('#zoom')[0];
         this.originReal = panel.querySelectorAll('#originReal')[0];
         this.originImag = panel.querySelectorAll('#originImag')[0];
@@ -143,19 +138,12 @@ export class HeadsUpDisplay {
         this.algorithm = panel.querySelectorAll('#algorithm')[0];
         this.colourer = panel.querySelectorAll('#colourer')[0];
 
-        // Hide the position entry rows by default
-        this.position_entry_rows().forEach(e => { if (element_is_displayed(e)) toggle_tr_visibility(e); });
-        let close_hud = document.getElementById("close-hud");
-        if (close_hud !== null) {
-            this.hud_closer = new ClickEventListener(
-                close_hud,
-                function (_event: Event) {
-                    self.toggle_visibility();
-                }
-            );
-        } else {
-            this.hud_closer = null;
+        // Hide the position entry form by default
+        this.position_entry_form = document.querySelectorAll('#form_go_to_position')[0] as HTMLElement;
+        if (element_is_displayed(this.position_entry_form)) {
+            toggle_element_visibility(this.position_entry_form);
         }
+
         let close_entry = document.getElementById("close-entry");
         if (close_entry !== null) {
             this.position_entry_closer = new ClickEventListener(
@@ -188,9 +176,19 @@ export class HeadsUpDisplay {
     }
 
     toggle_visibility() {
-        let elements = Array.from(document.querySelectorAll('tr.position-display'), e => e as HTMLElement);
-        elements.forEach(e => toggle_tr_visibility(e));
+        let elements = Array.from(document.querySelectorAll('div#hud1'), e => e as HTMLElement);
+        elements.forEach(e => toggle_element_visibility(e));
     }
+
+    toggle_zoom() {
+        let elements = Array.from(document.querySelectorAll('span#hud-zoom'), e => e as HTMLElement);
+        elements.forEach(e => toggle_element_visibility(e));
+    }
+    toggle_axes() {
+        let elements = Array.from(document.querySelectorAll('span#hud-axes'), e => e as HTMLElement);
+        elements.forEach(e => toggle_element_visibility(e));
+    }
+
 
     // Copy the current position into the Go To Position form
     set_go_to_position(pos: FractalView, canvas_width: number, canvas_height: number) {
@@ -254,13 +252,8 @@ export class HeadsUpDisplay {
         }
     }
 
-    private position_entry_rows(): HTMLElement[] {
-        return Array.from(document.querySelectorAll('tr.position-entry'), e => e as HTMLElement);
-    }
-
     toggle_position_entry_panel() {
-        let visible = false;
-        this.position_entry_rows().forEach(e => visible = toggle_tr_visibility(e));
+        let visible = toggle_element_visibility(this.position_entry_form);
         if (visible) {
             let element = undefined;
             if (this.origin_is_currently_visible()) {
