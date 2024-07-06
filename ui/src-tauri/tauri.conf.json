@@ -44,7 +44,7 @@
         "entitlements": null,
         "exceptionDomain": "",
         "frameworks": [],
-        "license": "../COPYING",
+        "license": "../../COPYING",
         "providerShortName": null,
         "signingIdentity": null
       },
