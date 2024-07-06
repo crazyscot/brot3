@@ -166,7 +166,8 @@ impl ApplicationMenu {
 
     fn build_fractal_menu(&self) -> Submenu {
         let cmd_or_ctrl = ApplicationMenu::cmd_or_ctrl();
-        let standard: Vec<MenuEntry> = vec![
+
+        let items: Vec<MenuEntry> = vec![
             MenuEntry::CustomItem(CustomMenuItem::new("select/fractal", "Select fractal...")),
             MenuEntry::CustomItem(
                 CustomMenuItem::new("go_to_position".to_string(), "Go To Position...")
@@ -174,7 +175,7 @@ impl ApplicationMenu {
             ),
             MenuEntry::CustomItem(
                 CustomMenuItem::new("show_max_iter".to_string(), "Max Iterations...")
-                    .accelerator(format!("{cmd_or_ctrl}+M")),
+                    .accelerator(format!("{cmd_or_ctrl}+I")),
             ),
             MenuEntry::NativeItem(MenuItem::Separator),
             MenuEntry::CustomItem(CustomMenuItem::new("select/colourer", "Select colourer...")),
@@ -187,8 +188,7 @@ impl ApplicationMenu {
                     .accelerator(format!("{cmd_or_ctrl}+2")),
             ),
         ];
-        let menu = Menu::with_items(standard);
-        Submenu::new("Fractal", menu)
+        Submenu::new("Fractal", Menu::with_items(items))
     }
 
     pub(crate) fn on_menu(&self, event: WindowMenuEvent) {
