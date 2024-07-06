@@ -385,23 +385,18 @@ export class Viewer {
       console.log("Go to centre:", centreComplex);
     }
 
-
     // Which axis-controlling coordinates are we using?
     // The first one (left to right) takes precedence.
     let axesReal = destination.axesReal;
-    let axesImag = destination.axesImag;
-    let zoom = destination.zoom;
     // Assume square pixels.
     let aspectRatio = this.width_ / this.height_;
     if (Number.isFinite(axesReal)) {
-      axesImag = axesReal / aspectRatio;
-      zoom = meta.axes_length.re / axesReal;
-    } else if (Number.isFinite(axesImag)) {
-      axesReal = axesImag * aspectRatio;
-      zoom = meta.axes_length.re / axesReal;
-    } else if (Number.isFinite(zoom)) {
-      axesReal = meta.axes_length.re / zoom;
-      axesImag = axesReal / aspectRatio;
+      var axesImag = axesReal / aspectRatio;
+      if (aspectRatio > 1.0) {
+        var zoom = meta.axes_length.im / axesImag; // Correct when aspect > 1.0
+      } else {
+        var zoom = meta.axes_length.re / axesReal; // Correct when aspect < 1.0
+      }
     } else {
       throw new Error("Axis length must be specified");
     }
