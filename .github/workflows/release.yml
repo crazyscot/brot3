@@ -69,7 +69,7 @@ jobs:
             Choose the appropriate version for your platform:
             - .AppImage: Linux (standalone; simply give it execute permission and run)
             - .deb: Debian/Ubuntu package (built on Ubuntu 22.04)
-            - .dmg: MacOS 10.13+
+            - .dmg: MacOS 10.13+  _N.B. This is a Universal build, but I don't currently have access to Apple silicon to test it on_
             - .msi: Windows 10+ Installer
           releaseDraft: true
           prerelease: false
