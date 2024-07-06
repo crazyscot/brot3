@@ -10,9 +10,9 @@ import { EnginePoint, FractalView, TileSpec, TileResponse, TileError, TilePostDa
 import { HeadsUpDisplay, UserDestination } from './hud'
 import { nextSerial } from './serial_allocator'
 
-export const TILE_SIZE = 128;
+export const TILE_SIZE = 256;
 const IMAGE_DIMENSION = 1024 * 1024 * 1024 * 1024;
-const DEFAULT_MAX_ITER = 256;
+const DEFAULT_MAX_ITER = 512;
 
 class EngineTileSource extends OpenSeadragon.TileSource {
   private parent: Viewer;

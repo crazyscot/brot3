@@ -12,11 +12,11 @@ import { Image, ImageBackdrop, ImageButton, ImageSrc } from './image_button';
 import { DisplayMessageDetail } from './menu';
 import { effectModalClickOrEscape } from './modal-react';
 import { nextSerial } from './serial_allocator';
-import { TILE_SIZE, Viewer } from './viewer'
+import { Viewer } from './viewer'
 
 import './selection_overlay.css'
 
-export const PREVIEW_SIZE = 192;
+export const PREVIEW_SIZE = 128;
 const PREVIEW_LEVEL = Math.floor(Math.log2(PREVIEW_SIZE));
 
 function description_filter(desc: string): string {
@@ -141,13 +141,13 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
         if (listType === "fractals") {
             let colourer = viewer.get_colourer();
             specs = listItems.map(async (alg) => {
-                return new TileSpec(await nextSerial(), wholeFractal, TILE_SIZE, TILE_SIZE, alg.name, max_iter, colourer);
+                return new TileSpec(await nextSerial(), wholeFractal, PREVIEW_SIZE, PREVIEW_SIZE, alg.name, max_iter, colourer);
             });
         }
         else if (listType === "colourers") {
             let algorithm = viewer.get_algorithm();
             specs = listItems.map(async (col) => {
-                return new TileSpec(await nextSerial(), wholeFractal, TILE_SIZE, TILE_SIZE, algorithm, max_iter, col.name);
+                return new TileSpec(await nextSerial(), wholeFractal, PREVIEW_SIZE, PREVIEW_SIZE, algorithm, max_iter, col.name);
             });
         } else {
             console.error(`Unhandled list type ${listType}`);
@@ -174,7 +174,7 @@ const SelectionModal: FC<SelectionModalProps> = ({ viewer }): JSX.Element => {
             if (requestor === undefined) return; // Not for us
             outstanding.current.delete(tile.serial);
             let helper = new TileResponseHelper(tile);
-            let canvas = helper.canvas(TILE_SIZE);
+            let canvas = helper.canvas(PREVIEW_SIZE);
             let dataUrl = canvas.toDataURL("image/png");
             setButtonImageUrls((prev) => {
                 // GOTCHA: Using an updater function here means we can batch multiple updates.
