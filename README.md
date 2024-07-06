@@ -3,7 +3,7 @@ An interactive fractal explorer.
 This is my third Mandelbrotter.
 [brot2](https://github.com/crazyscot/brot2) was the previous incarnation.
 
-![A close-up of the original Mandelbrot set. Origin=-1.259742+0.377104i, axes=0.01+0.01i](brot3.jpg)
+![A screenshot of the brot3 window showing a zoom into the Mandelbrot set.](brot3b.jpg)
 
 This time it's in Rust, building a graphical UI using Tauri and OpenSeadragon.
 
@@ -42,7 +42,7 @@ In release mode, Tauri builds the GUI application for the target, plus one or mo
 * OSX: .dmg file
 * Windows: .msi installer package
 
-## Releasing
+## Releasing (notes to myself)
 
 Prerequisites:
 * `cargo install git-cliff` and ensure that `~/.cargo/bin` is on your PATH.
