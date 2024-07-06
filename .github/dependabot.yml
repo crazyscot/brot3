@@ -10,8 +10,7 @@ updates:
     schedule:
       interval: "monthly"
     commit-message:
-      prefix: "cargo"
-      include: "scope"
+      prefix: "chore(deps)"
     groups:
       cargo:
         patterns:
@@ -31,8 +30,7 @@ updates:
     schedule:
       interval: "monthly"
     commit-message:
-      prefix: "npm"
-      include: "scope"
+      prefix: "chore(deps)"
     groups:
       npm:
         patterns:
