@@ -2,13 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [1.0.0] - 2024-07-06
 
 ### <!-- 0 -->🚀 Features
 
+- *(colouring)* Add SqrtRainbow colourer
 - *(ui)* Tweak navigator background to match main image background
 - *(ui)* Set placeholder fill style
 - *(ui)* Compute home position margins to make the fractal fully visible
+- *(ui)* Add busy indicator ([#121](https://github.com/crazyscot/brot3/issues/121))
+- Allow brot3 to be an all-in-one binary that also accepts CLI arguments
 
 
 ### <!-- 1 -->🐛 Bug Fixes
@@ -26,10 +29,12 @@ All notable changes to this project will be documented in this file.
 - *(ui)* Make colour cycling robust against user leaning on one of the shortcut combos.
 - *(ui)* When changing source, defer updating the HUD until after the metadata have loaded.
 - *(ui)* Explicitly request the desired image type on data URLs
+- Go To Position form now works correctly at all window aspect ratios
 
 
 ### <!-- 2 -->🚜 Refactor
 
+- *(cli)* Split up into a library and binary crate
 - *(ui)* Add promise for the metadata in EngineTileSource
 - *(ui)* Remove unnecessary noop functions
 - *(ui)* Cope with FractalView arriving as a plain dict (from tauri), not as a blessed object
@@ -38,16 +43,19 @@ All notable changes to this project will be documented in this file.
 ### <!-- 3 -->📚 Documentation
 
 - Add an exemplar render
+- Set up git-cliff, autogenerate changelog to date ([#120](https://github.com/crazyscot/brot3/issues/120))
 
 
 ### <!-- 4 -->⚡ Performance
 
 - *(ui)* Remove unnecessary async-mutex in the global serial allocator
+- Tweak tile sizes
 
 
 ### <!-- 5 -->🎨 Styling
 
 - Update icon
+- Better fonts; rework HUD; consolidate menus
 
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
@@ -58,6 +66,16 @@ All notable changes to this project will be documented in this file.
 - Silence chunk size warning
 - Yarn upgrade
 - Cargo update clap strum_macros tauri
+
+
+### Cargo
+
+- *(deps)* Bump the cargo group with 4 updates
+
+
+### Npm
+
+- *(deps)* Bump the npm group in /ui with 4 updates
 
 
 ## [0.9.4] - 2024-06-05
