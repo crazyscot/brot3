@@ -297,11 +297,11 @@ export class HeadsUpDisplay {
 // Where does the user want to go today?
 // Not all these fields will necessarily be visible at once.
 export class UserDestination {
-    zoom: number = NaN;
+    //zoom: number = NaN;
     centreReal: number = NaN;
     centreImag: number = NaN;
     originReal: number = NaN;
     originImag: number = NaN;
     axesReal: number = NaN;
-    axesImag: number = NaN;
+    //axesImag: number = NaN;
 }
