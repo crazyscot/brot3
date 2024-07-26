@@ -2,7 +2,6 @@
 members = [
     "cli",
     "engine",
-    "ui/src-tauri",
 ]
 resolver = "2"
 package.edition = "2021"
