@@ -37,5 +37,24 @@ jobs:
     - name: Test
       run: cargo test
     - name: Lint
-      # N.B. --all-features doesn't build; we're not using tauri custom-protocol
       run: cargo clippy --all-targets
+
+  iai-callgrind:
+    strategy:
+      matrix:
+        platform: [ubuntu-22.04]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        components: clippy, rustfmt
+        toolchain: ${{ env.RUST_TOOLCHAIN }}
+    - run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: "iai-cg"
+    - name: install iai runner
+      run: cargo install iai-callgrind-runner
+    - name: run iai benchmark
+      run: cargo bench -- iai
