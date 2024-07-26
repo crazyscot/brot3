@@ -20,7 +20,7 @@ heck = "0.5.0"
 num-complex = "0.4.6"
 palette = "0.7.6"
 png = { workspace = true }
-quick_cache = "0.5.1"
+quick_cache = "0.6.2"
 rayon = { workspace = true }
 serde = { workspace = true }
 strum = { workspace = true }
@@ -29,7 +29,7 @@ strum_macros = { workspace = true }
 [dev-dependencies]
 approx = "0.5.1"
 criterion = { version = "0.5", features = ["html_reports"] }
-iai-callgrind = "0.11.0"
+iai-callgrind = "0.12.0"
 rayon = { workspace = true }
 
 [[bench]]
@@ -41,4 +41,4 @@ name = "iai"
 harness = false
 
 [build-dependencies]
-built = { version = "0.7.3", features = ["git2"] }
+built = { version = "0.7.4", features = ["git2"] }
