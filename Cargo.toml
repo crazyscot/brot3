@@ -20,6 +20,7 @@ strip = "debuginfo"
 
 [profile.bench]
 strip = false
+debug = true
 
 [workspace.dependencies]
 anyhow = "1.0.86"
