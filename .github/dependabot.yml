@@ -5,6 +5,9 @@
 
 version: 2
 updates:
+
+  # DEV BRANCH
+
   - package-ecosystem: "cargo"
     directory: "/" # Location of package manifests
     schedule:
@@ -22,16 +25,5 @@ updates:
     schedule:
       interval: "monthly"
     commit-message:
-      prefix: "gh"
+      prefix: "chore(ci)"
       include: "scope"
-
-  - package-ecosystem: "npm"
-    directory: "ui"
-    schedule:
-      interval: "monthly"
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      npm:
-        patterns:
-          - "*"
