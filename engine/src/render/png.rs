@@ -20,10 +20,21 @@ impl Png {
     /// These are returned in the obvious left to right, top to bottom order.
     #[must_use]
     pub fn render_rgba(tile: &Tile, colourer: Instance) -> Vec<u8> {
-        let mut image_data =
-            Vec::<u8>::with_capacity(4 * tile.spec.width() as usize * tile.spec.height() as usize);
+        let mut image_data: Vec<u8> =
+            vec![0; 4 * tile.spec.width() as usize * tile.spec.height() as usize];
+        Png::render_rgba_into(tile, colourer, image_data.as_mut_slice());
+        image_data
+    }
+    /// Renders a tile as a low-level array of RGBA values, into a caller-provided buffer.
+    /// Pixels are rendered in the obvious left to right, top to bottom order.
+    /// # Panics
+    /// `image_data` must be precisely 4 x tile height x tile width.
+    pub fn render_rgba_into(tile: &Tile, colourer: Instance, image_data: &mut [u8]) {
         let tile_data = tile.result();
         let max_iter = tile.max_iter_plotted;
+        let expected_size = 4 * tile.spec.width() as usize * tile.spec.height() as usize;
+        assert_eq!(image_data.len(), expected_size);
+        let mut output_index = 0;
         tile_data
             .iter()
             .map(|pd| {
@@ -37,12 +48,12 @@ impl Png {
             .for_each(|iters| {
                 // Colour and output
                 let pixel = Srgb::<u8>::from(colourer.colour_rgb8(iters, max_iter));
-                image_data.push(pixel.red);
-                image_data.push(pixel.green);
-                image_data.push(pixel.blue);
-                image_data.push(255);
+                image_data[output_index] = pixel.red;
+                image_data[output_index + 1] = pixel.green;
+                image_data[output_index + 2] = pixel.blue;
+                image_data[output_index + 3] = 255;
+                output_index += 4;
             });
-        image_data
     }
 
     fn render_png(
