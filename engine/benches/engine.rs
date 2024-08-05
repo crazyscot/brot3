@@ -101,6 +101,7 @@ fn colour_tile(c: &mut Criterion) {
     let mut bench = |colourer: Instance| {
         let _ = group.bench_function(format!("colour_{colourer}"), |b| {
             b.iter(|| {
+                // TODO use render_rgba_into()
                 let _ = black_box(Png::render_rgba(black_box(&tile), colourer));
             });
         });

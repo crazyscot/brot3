@@ -305,6 +305,11 @@ impl TileSpec {
     pub fn max_iter_requested(&self) -> u32 {
         self.alg_spec.max_iter
     }
+    /// Accessor
+    #[must_use]
+    pub fn colourer(&self) -> &colouring::Instance {
+        &self.alg_spec.colourer
+    }
 
     /// Computes the number of decimal significant figures needed to represent the axes for a given canvas size
     #[must_use]
