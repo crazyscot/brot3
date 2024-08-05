@@ -1,7 +1,6 @@
 [workspace]
 members = [
-    "cli",
-    "engine",
+    "cli", "engine", "ui",
 ]
 resolver = "2"
 package.edition = "2021"

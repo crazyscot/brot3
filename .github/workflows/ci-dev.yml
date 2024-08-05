@@ -55,6 +55,6 @@ jobs:
       with:
         key: "iai-cg"
     - name: install iai runner
-      run: cargo install iai-callgrind-runner
+      run: cargo install iai-callgrind-runner@0.12.3
     - name: run iai benchmark
       run: cargo bench -- iai
