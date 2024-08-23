@@ -1,10 +1,14 @@
 //! User interface for brot3
 
 mod components;
+use brot3_engine::fractal::{Algorithm, Point, Scalar};
 use components::{MainUI, Tile};
 mod engine;
 mod types;
-use types::{PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE, UI_TILE_SIZE_LOG2};
+use types::{
+    PixelCoordinate, PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE,
+    UI_TILE_SIZE_LOG2,
+};
 
 use brot3_engine::util::build_info;
 
@@ -43,6 +47,9 @@ struct World {
     segment_origin_x: PixelIndex,
     /// The origin of the visible (draggable) segment relative to the world
     segment_origin_y: PixelIndex,
+
+    /// Co-ordinates of the bottom-left-most tile currently rendered (caution, may not be visible)
+    bottom_left_tile: TileCoordinate,
 }
 
 impl World {
@@ -59,6 +66,8 @@ impl World {
             // The segment is the region of the universe that the viewport can drag around.
             segment_origin_x: 0,
             segment_origin_y: 0,
+
+            bottom_left_tile: TileCoordinate { z: 0, x: 0, y: 0 },
         }
     }
 
@@ -195,6 +204,11 @@ impl World {
                 });
             }
         }
+        self.bottom_left_tile = TileCoordinate {
+            z: self.zoom_level,
+            x: min_x,
+            y: max_y,
+        }
     }
 
     /// Checks the `loading_tiles` set for tiles which have become ready.
@@ -215,13 +229,32 @@ impl World {
         });
     }
 
-    // Converts a pixel address within the draggable segment to a pixel address in the world
+    /// Converts a pixel address within the draggable segment to a pixel address in the world
     fn offset_to_world_x(&self) -> PixelIndex {
         self.segment_origin_x + self.segment_offset_x
     }
-    // Converts a pixel address within the draggable segment to a pixel address in the world
+    /// Converts a pixel address within the draggable segment to a pixel address in the world
     fn offset_to_world_y(&self) -> PixelIndex {
         self.segment_origin_y + self.segment_offset_y
+    }
+    /// Returns the address of the top-left-most currently visible pixel of the world
+    fn visible_origin(&self) -> PixelCoordinate {
+        PixelCoordinate {
+            x: self.offset_to_world_x(),
+            y: self.offset_to_world_y(),
+        }
+    }
+
+    /// Current visible size, in pixels
+    fn visible_dimensions(&self) -> PixelCoordinate {
+        PixelCoordinate {
+            x: self.visible_width,
+            y: self.visible_height,
+        }
+    }
+    /// Size of the whole world, in pixels (in either dimension; it's square)
+    fn world_size(&self) -> PixelIndex {
+        World::world_size_for(self.zoom_level)
     }
 }
 
@@ -281,6 +314,58 @@ impl State {
                 .collect::<Vec<Tile>>(),
         );
         self.main_ui.set_tiles(slint::ModelRc::new(vec));
+        self.update_info();
+    }
+
+    fn update_info(&self) {
+        self.main_ui.set_algorithm("Original".into()); // TODO this comes from alg spec
+        self.main_ui.set_colourer("LogRainbow".into()); // TODO from alg spec
+        self.main_ui.set_max_iter(types::UI_TEMP_MAXITER.into()); // TODO from alg spec
+
+        let world = self.world.borrow();
+        let window_dimensions = world.visible_dimensions();
+        let world_size_pixels = world.world_size();
+        let algorithm_instance =
+            brot3_engine::fractal::factory(brot3_engine::fractal::Selection::Original); // TODO use algorithm from spec
+        let fractal_size = algorithm_instance.default_axes();
+
+        #[allow(clippy::cast_precision_loss)]
+        // window_dimensions is small (screen resolution) so no precision loss.
+        // world_size_pixels is a power of 2 so no precision loss.
+        let visible_axes_length = brot3_engine::fractal::Point::new(
+            window_dimensions.x as Scalar * fractal_size.re / world_size_pixels as Scalar,
+            window_dimensions.y as Scalar * fractal_size.im / world_size_pixels as Scalar,
+        );
+
+        #[allow(clippy::cast_precision_loss)]
+        // world_size_pixels is a power of 2 so no precision loss.
+        let complex_pixel_size: Point = fractal_size.unscale(world_size_pixels as Scalar);
+
+        let top_left_pixel = world.visible_origin();
+        let bottom_left_pixel = PixelCoordinate {
+            x: top_left_pixel.x,
+            y: top_left_pixel.y + world.visible_height - 1,
+        };
+        // Location of the bottom left pixel, expressed as a vector relative to the bottom left of the world
+        let bottom_left_offset: PixelCoordinate = PixelCoordinate {
+            x: top_left_pixel.x,
+            y: world.world_size() - bottom_left_pixel.y - 1,
+        };
+        // Offset of the bottom left pixel, in complex units, from the fractal origin
+        #[allow(clippy::cast_precision_loss)]
+        // Maximum pixel size, and hence bottom_left_offset, are limited to fit within f64 mantissa (TECHDEBT)
+        let origin_offset = Point::new(
+            complex_pixel_size.re * bottom_left_offset.x as Scalar,
+            complex_pixel_size.im * bottom_left_offset.y as Scalar,
+        );
+        let origin_absolute = origin_offset - algorithm_instance.default_axes().unscale(2.)
+            + algorithm_instance.default_centre();
+
+        self.main_ui.set_origin(origin_absolute.to_string().into());
+        self.main_ui
+            .set_axes(visible_axes_length.to_string().into()); // TODO format - use helper (hud.rs)
+
+        // N.B. zoom is already wired up in slint to the zoom control, so we don't need to set it here
     }
 
     /// Updates the viewport after the zoom or segment origin changes.

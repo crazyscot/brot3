@@ -10,9 +10,18 @@ use brot3_engine::{
 pub(crate) const UI_TILE_SIZE_LOG2: isize = 8;
 pub(crate) const UI_TILE_SIZE: i32 = 1 << UI_TILE_SIZE_LOG2;
 
+pub(crate) const UI_TEMP_MAXITER: u16 = 256;
+
 pub(crate) type TileIndex = i64; // TECHDEBT Precision limit: This will be converted to engine::Scalar [f64 at present]
 pub(crate) type PixelIndex = i64;
 pub(crate) type ZoomLevel = i32;
+
+/// 2D coordinates of a pixel
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PixelCoordinate {
+    pub x: PixelIndex,
+    pub y: PixelIndex,
+}
 
 /// 3D coordinates ("address") of a tile within the universe
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
@@ -23,6 +32,16 @@ pub struct TileCoordinate {
     pub x: TileIndex,
     /// Index of this tile within the universe, Y dimension
     pub y: TileIndex,
+}
+
+impl TileCoordinate {
+    /// Computes the pixel index of the top left pixel of this tile
+    pub fn top_left_pixel_address(&self) -> PixelCoordinate {
+        PixelCoordinate {
+            x: self.x << UI_TILE_SIZE_LOG2,
+            y: self.y << UI_TILE_SIZE_LOG2,
+        }
+    }
 }
 
 impl TryFrom<&TileCoordinate> for TileSpec {
@@ -73,7 +92,7 @@ impl TryFrom<&TileCoordinate> for TileSpec {
             axes,
             output_size,
             algorithm,
-            256, /* TODO becomes spec.max_iter */
+            UI_TEMP_MAXITER.into(), /* TODO becomes spec.max_iter */
             colourer,
         ))
     }

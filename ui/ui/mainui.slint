@@ -77,4 +77,42 @@ export component MainUI inherits Window {
     }
     */
 
+    // HUD display data
+    in property <string> algorithm;
+    in property <string> colourer;
+    in property <int> max_iter;
+    in property <string> origin;
+    in property <string> axes;
+
+    Rectangle {
+        info := Text {
+
+            text: algorithm + " (max=" + max_iter + ") :: " + colourer
+                + "    origin=" + origin
+                + "    zoom=" + zoom
+                + "    axes: " + axes;
+
+            font-family: "Inter"; // TODO how to ensure font is present?
+            font-size: 18px;
+            font-weight: 900;
+            color: white;
+            opacity: 1.0;
+            z: 10.0;
+            horizontal-alignment: TextHorizontalAlignment.center;
+            wrap: TextWrap.word-wrap;
+            overflow: TextOverflow.elide;
+            width: 100%;
+            y: fli.y + (fli.height) - (self.height);
+            // this may at some point gain a TouchArea to allow editing
+        }
+        Rectangle {
+            width: 100%;
+            height <=> info.height;
+            x <=> info.x;
+            y <=> info.y;
+            z: 1.0;
+            background: #111;
+            opacity: 0.6;
+        }
+    }
 }

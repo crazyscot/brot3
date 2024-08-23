@@ -635,6 +635,7 @@ dependencies = [
  "anyhow",
  "brot3-engine",
  "image 0.25.2",
+ "num-complex",
  "rayon",
  "slint",
  "slint-build",
