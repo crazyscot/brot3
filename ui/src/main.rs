@@ -4,6 +4,7 @@ mod components;
 use brot3_engine::fractal::{Algorithm, Point, Scalar};
 use components::{MainUI, Tile};
 mod engine;
+mod info;
 mod types;
 use types::{
     PixelCoordinate, PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE,
@@ -361,9 +362,20 @@ impl State {
         let origin_absolute = origin_offset - algorithm_instance.default_axes().unscale(2.)
             + algorithm_instance.default_centre();
 
-        self.main_ui.set_origin(origin_absolute.to_string().into());
-        self.main_ui
-            .set_axes(visible_axes_length.to_string().into()); // TODO format - use helper (hud.rs)
+        let axes_precision = info::axes_precision_for_canvas(window_dimensions);
+        let real_axis =
+            info::format_float_with_precision("", visible_axes_length.re, axes_precision);
+        let imag_axis =
+            info::format_float_with_precision("+", visible_axes_length.im, axes_precision);
+        let axes = format!("{real_axis}{imag_axis}i");
+
+        let position_dp = info::decimal_places_for_axes(window_dimensions, visible_axes_length);
+        let origin_real = info::format_float_fixed("", origin_absolute.re, position_dp);
+        let origin_imag = info::format_float_fixed("+", origin_absolute.im, position_dp);
+        let origin = format!("{origin_real}{origin_imag}i");
+
+        self.main_ui.set_origin(origin.into());
+        self.main_ui.set_axes(axes.into());
 
         // N.B. zoom is already wired up in slint to the zoom control, so we don't need to set it here
     }
