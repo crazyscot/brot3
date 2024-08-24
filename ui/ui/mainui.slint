@@ -83,13 +83,14 @@ export component MainUI inherits Window {
     in property <int> max_iter;
     in property <string> origin;
     in property <string> axes;
+    in property <string> zoom_readout;
 
     Rectangle {
         info := Text {
 
             text: algorithm + " (max=" + max_iter + ") :: " + colourer
                 + "    origin=" + origin
-                + "    zoom=" + zoom
+                + "    zoom=" + zoom_readout
                 + "    axes: " + axes;
 
             font-family: "Inter"; // TODO how to ensure font is present?

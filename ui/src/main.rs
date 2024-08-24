@@ -374,10 +374,16 @@ impl State {
         let origin_imag = info::format_float_fixed("+", origin_absolute.im, position_dp);
         let origin = format!("{origin_real}{origin_imag}i");
 
+        let z: u64 = 1 << (world.zoom_level - 1);
+        let zoom_str = if z < 1000 {
+            format!("{z}×")
+        } else {
+            format!("{z:.3e}×")
+        };
+
         self.main_ui.set_origin(origin.into());
         self.main_ui.set_axes(axes.into());
-
-        // N.B. zoom is already wired up in slint to the zoom control, so we don't need to set it here
+        self.main_ui.set_zoom_readout(zoom_str.into());
     }
 
     /// Updates the viewport after the zoom or segment origin changes.
