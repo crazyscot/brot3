@@ -5,7 +5,11 @@ use std::{cell::RefCell, cmp};
 
 use brot3_engine::fractal::{Algorithm as _, Point, Scalar};
 
-use crate::{components::MainUI, types::PixelCoordinate, World};
+use crate::{
+    components::{InfoDisplayData, MainUI},
+    types::PixelCoordinate,
+    World,
+};
 
 // HELPER FUNCTIONS =================================================================
 
@@ -71,10 +75,6 @@ pub(crate) fn format_float_fixed(positive_prefix: &str, n: f64, decimal_places: 
 // SLINT INTERACTION ================================================================
 
 pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
-    ui.set_algorithm("Original".into()); // TODO this comes from alg spec
-    ui.set_colourer("LogRainbow".into()); // TODO from alg spec
-    ui.set_max_iter(crate::types::UI_TEMP_MAXITER.into()); // TODO from alg spec
-
     let world = world_.borrow();
     let window_dimensions = world.visible_dimensions();
     let world_size_pixels = world.world_size();
@@ -131,9 +131,15 @@ pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
         format!("{z:.3e}")
     };
 
-    ui.set_origin(origin.into());
-    ui.set_axes(axes.into());
-    ui.set_zoom_readout(zoom_str.into());
+    let info = InfoDisplayData {
+        algorithm: "Original".into(),  // TODO this comes from alg spec
+        colourer: "LogRainbow".into(), // TODO from alg spec
+        max_iter: crate::types::UI_TEMP_MAXITER.into(), // TODO from alg spec
+        origin: origin.into(),
+        axes: axes.into(),
+        zoom: zoom_str.into(),
+    };
+    ui.set_info_data(info);
 }
 
 // TEST =============================================================================

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 import { Slider, Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { InfoDisplayData } from "info.slint";
+
 export struct Tile { x: length, y: length, tile: image}
 
 export component MainUI inherits Window {
@@ -77,22 +79,15 @@ export component MainUI inherits Window {
     }
     */
 
-    // HUD display data
-    // XXX refactor - rename
-    in property <string> algorithm;
-    in property <string> colourer;
-    in property <int> max_iter;
-    in property <string> origin;
-    in property <string> axes;
-    in property <string> zoom_readout;
+    in property <InfoDisplayData> info_data;
 
     Rectangle {
-        property <string> text_font: "Inter";
-        property <length> main_size: 18px;
-        property <length> legend_size: main_size * 0.7;
-        property <int> text_weight: 700;
-        property <brush> data_colour: white;
-        property <brush> legend_colour: #aaa;
+        private property <string> text_font: "Inter";
+        private property <length> main_size: 18px;
+        private property <length> legend_size: main_size * 0.7;
+        private property <int> text_weight: 700;
+        private property <brush> data_colour: white;
+        private property <brush> legend_colour: #aaa;
 
         info := GridLayout {
             Row {
@@ -106,7 +101,7 @@ export component MainUI inherits Window {
                         vertical-alignment: TextVerticalAlignment.center;
                     }
                     Text {
-                        text: algorithm;
+                        text: info_data.algorithm;
                         font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour; 
                         vertical-alignment: TextVerticalAlignment.center;
                     }
@@ -120,7 +115,7 @@ export component MainUI inherits Window {
                         vertical-alignment: TextVerticalAlignment.center;
                     }
                     Text {
-                        text: max_iter;
+                        text: info_data.max_iter;
                         font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
                         vertical-alignment: TextVerticalAlignment.center;
                     }
@@ -136,7 +131,7 @@ export component MainUI inherits Window {
                         vertical-alignment: TextVerticalAlignment.center;
                     }
                     Text { 
-                        text: colourer; 
+                        text: info_data.colourer;
                         font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
                         vertical-alignment: TextVerticalAlignment.bottom;
                     }
@@ -153,7 +148,7 @@ export component MainUI inherits Window {
                         vertical-alignment: TextVerticalAlignment.center;
                     }
                     Text {
-                        text: origin;
+                        text: info_data.origin;
                         font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
                         vertical-alignment: TextVerticalAlignment.bottom;
                     }
@@ -170,7 +165,7 @@ export component MainUI inherits Window {
                         vertical-alignment: TextVerticalAlignment.center;
                     }
                     Text {
-                        text: axes;
+                        text: info_data.axes;
                         font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
                         vertical-alignment: TextVerticalAlignment.bottom;
                     }
@@ -184,7 +179,7 @@ export component MainUI inherits Window {
                         vertical-alignment: TextVerticalAlignment.center;
                     }
                     Text {
-                        text: zoom_readout + " ×";
+                        text: info_data.zoom + " ×";
                         font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
                         vertical-alignment: TextVerticalAlignment.bottom;
                     }
