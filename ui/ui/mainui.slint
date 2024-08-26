@@ -1,7 +1,9 @@
 // Copyright © SixtyFPS GmbH <info@slint.dev>
 // SPDX-License-Identifier: MIT
 
-import { Slider, Button } from "std-widgets.slint";
+import { Slider, Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { InfoDisplayData, InfoDisplay } from "info.slint";
+
 export struct Tile { x: length, y: length, tile: image}
 
 export component MainUI inherits Window {
@@ -77,4 +79,11 @@ export component MainUI inherits Window {
     }
     */
 
+    in property <InfoDisplayData> info_data;
+    hud := InfoDisplay {
+        data <=> info_data;
+        // Position over the bottom of the fractal viewport
+        x: 0;
+        y: fli.y + fli.height - self.height;
+    }
 }

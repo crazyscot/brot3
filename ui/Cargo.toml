@@ -10,6 +10,7 @@ build = "build.rs"
 [dependencies]
 brot3-engine = { path = "../engine" }
 anyhow = { workspace = true }
+num-complex = { workspace = true }
 rayon = { workspace = true }
 slint = "1.7.1"
 image = { version = "0.25", default-features = false, features = [ "png" ] }

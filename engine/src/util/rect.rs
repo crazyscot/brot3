@@ -21,7 +21,9 @@ where
     pub fn aspect_ratio(&self) -> f64 {
         f64::from(self.width) / f64::from(self.height)
     }
+}
 
+impl<T: Copy> Rect<T> {
     /// Constructor
     pub fn new(width: T, height: T) -> Rect<T> {
         Self { width, height }
