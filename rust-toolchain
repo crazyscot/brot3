@@ -1,0 +1,4 @@
+[toolchain]
+channel = "1.80"
+# N.B. we want to use minimal profile on windows; default on linux
+# (rustup set profile ...)

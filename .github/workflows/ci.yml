@@ -13,8 +13,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: 1.80.0
-  # remember to update RUST_TOOLCHAIN in other yml files too
 
 jobs:
   # Build the app on all supported platforms
@@ -25,9 +23,11 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@master
-      with:
-        toolchain: ${{ env.RUST_TOOLCHAIN }}
+    - name: Set minimal profile (Windows only)
+      if: matrix.platform == 'windows-latest'
+      run: rustup set profile minimal
+    - name: Select rust toolchain
+      run: rustup update
     - uses: Swatinem/rust-cache@v2
       with:
         key: "${{matrix.platform}}"
@@ -45,10 +45,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          components: clippy, rustfmt
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - name: Select rust toolchain
+        run: rustup update
       - uses: Swatinem/rust-cache@v2
         with:
           key: "${{matrix.platform}}"
@@ -67,10 +65,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          components: clippy, rustfmt
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - name: Select rust toolchain
+        run: rustup update
       - uses: Swatinem/rust-cache@v2
         with:
           key: "${{matrix.platform}}"
