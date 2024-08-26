@@ -30,7 +30,7 @@ jobs:
         toolchain: ${{ env.RUST_TOOLCHAIN }}
     - uses: Swatinem/rust-cache@v2
       with:
-        shared-key: "build-${{matrix.platform}}"
+        key: "${{matrix.platform}}"
     - name: install packages (ubuntu)
       if: matrix.platform == 'ubuntu-22.04'
       run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold
@@ -51,7 +51,7 @@ jobs:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
       - uses: Swatinem/rust-cache@v2
         with:
-          key: "checks"
+          key: "${{matrix.platform}}"
       - name: install packages
         run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
       - name: Code style check
