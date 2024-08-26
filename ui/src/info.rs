@@ -1,11 +1,13 @@
-// Info string ("heads up display") formatting
+// Info string ("heads up display") & formatting
 // (c) 2024 Ross Younger
 
-use std::cmp;
+use std::{cell::RefCell, cmp};
 
-use brot3_engine::fractal::{Point, Scalar};
+use brot3_engine::fractal::{Algorithm as _, Point, Scalar};
 
-use crate::types::PixelCoordinate;
+use crate::{components::MainUI, types::PixelCoordinate, World};
+
+// HELPER FUNCTIONS =================================================================
 
 /// Computes the decimal precision (number of significant figures) required for a given canvas size.
 /// Rationale: If a change in axes would move us <1 pixel it has no visible effect.
@@ -65,6 +67,76 @@ pub(crate) fn format_float_fixed(positive_prefix: &str, n: f64, decimal_places: 
         strnum
     }
 }
+
+// SLINT INTERACTION ================================================================
+
+pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
+    ui.set_algorithm("Original".into()); // TODO this comes from alg spec
+    ui.set_colourer("LogRainbow".into()); // TODO from alg spec
+    ui.set_max_iter(crate::types::UI_TEMP_MAXITER.into()); // TODO from alg spec
+
+    let world = world_.borrow();
+    let window_dimensions = world.visible_dimensions();
+    let world_size_pixels = world.world_size();
+    let algorithm_instance =
+        brot3_engine::fractal::factory(brot3_engine::fractal::Selection::Original); // TODO use algorithm from spec
+    let fractal_size = algorithm_instance.default_axes();
+
+    #[allow(clippy::cast_precision_loss)]
+    // window_dimensions is small (screen resolution) so no precision loss.
+    // world_size_pixels is a power of 2 so no precision loss.
+    let visible_axes_length = brot3_engine::fractal::Point::new(
+        window_dimensions.x as Scalar * fractal_size.re / world_size_pixels as Scalar,
+        window_dimensions.y as Scalar * fractal_size.im / world_size_pixels as Scalar,
+    );
+
+    #[allow(clippy::cast_precision_loss)]
+    // world_size_pixels is a power of 2 so no precision loss.
+    let complex_pixel_size: Point = fractal_size.unscale(world_size_pixels as Scalar);
+
+    let top_left_pixel = world.visible_origin();
+    let bottom_left_pixel = PixelCoordinate {
+        x: top_left_pixel.x,
+        y: top_left_pixel.y + world.visible_height - 1,
+    };
+    // Location of the bottom left pixel, expressed as a vector relative to the bottom left of the world
+    let bottom_left_offset: PixelCoordinate = PixelCoordinate {
+        x: top_left_pixel.x,
+        y: world.world_size() - bottom_left_pixel.y - 1,
+    };
+    // Offset of the bottom left pixel, in complex units, from the fractal origin
+    #[allow(clippy::cast_precision_loss)]
+    // Maximum pixel size, and hence bottom_left_offset, are limited to fit within f64 mantissa (TECHDEBT)
+    let origin_offset = Point::new(
+        complex_pixel_size.re * bottom_left_offset.x as Scalar,
+        complex_pixel_size.im * bottom_left_offset.y as Scalar,
+    );
+    let origin_absolute = origin_offset - algorithm_instance.default_axes().unscale(2.)
+        + algorithm_instance.default_centre();
+
+    let axes_precision = axes_precision_for_canvas(window_dimensions);
+    let real_axis = format_float_with_precision("", visible_axes_length.re, axes_precision);
+    let imag_axis = format_float_with_precision("+", visible_axes_length.im, axes_precision);
+    let axes = format!("{real_axis}{imag_axis}i");
+
+    let position_dp = decimal_places_for_axes(window_dimensions, visible_axes_length);
+    let origin_real = format_float_fixed("", origin_absolute.re, position_dp);
+    let origin_imag = format_float_fixed("+", origin_absolute.im, position_dp);
+    let origin = format!("{origin_real}{origin_imag}i");
+
+    let z: u64 = 1 << (world.zoom_level - 1);
+    let zoom_str = if z < 1000 {
+        format!("{z}")
+    } else {
+        format!("{z:.3e}")
+    };
+
+    ui.set_origin(origin.into());
+    ui.set_axes(axes.into());
+    ui.set_zoom_readout(zoom_str.into());
+}
+
+// TEST =============================================================================
 
 #[cfg(test)]
 mod tests {
