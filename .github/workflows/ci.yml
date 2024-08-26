@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches:
+      - dev
+      - main
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: 1.80.0
+  # remember to update RUST_TOOLCHAIN in other yml files too
+
+jobs:
+  # Build the app on all supported platforms
+  build:
+    strategy:
+      matrix:
+        platform: [ubuntu-22.04]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ env.RUST_TOOLCHAIN }}
+    - uses: Swatinem/rust-cache@v2
+      with:
+        shared-key: "build-${{matrix.platform}}"
+    - name: install packages (ubuntu)
+      if: matrix.platform == 'ubuntu-22.04'
+      run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold
+    - name: Build
+      run: cargo build --all-targets --locked
+
+  # Build checks; only need to run these once, some are Linux-specific
+  checks:
+    strategy:
+      matrix:
+        platform: [ubuntu-22.04]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          components: clippy, rustfmt
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: "checks"
+      - name: install packages
+        run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
+      - name: Code style check
+        run: cargo fmt --all -- --check
+      # we want to ensure the benches build... but we already do that in debug with --all-targets
+      - run: cargo test
+      - run: cargo clippy --all-targets
+      - run: cargo install iai-callgrind-runner@0.12.3
+      - run: cargo bench -- iai
