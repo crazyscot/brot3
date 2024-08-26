@@ -3,8 +3,12 @@
 mod components;
 use components::{MainUI, Tile};
 mod engine;
+mod info;
 mod types;
-use types::{PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE, UI_TILE_SIZE_LOG2};
+use types::{
+    PixelCoordinate, PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE,
+    UI_TILE_SIZE_LOG2,
+};
 
 use brot3_engine::util::build_info;
 
@@ -43,6 +47,9 @@ struct World {
     segment_origin_x: PixelIndex,
     /// The origin of the visible (draggable) segment relative to the world
     segment_origin_y: PixelIndex,
+
+    /// Co-ordinates of the bottom-left-most tile currently rendered (caution, may not be visible)
+    bottom_left_tile: TileCoordinate,
 }
 
 impl World {
@@ -59,6 +66,8 @@ impl World {
             // The segment is the region of the universe that the viewport can drag around.
             segment_origin_x: 0,
             segment_origin_y: 0,
+
+            bottom_left_tile: TileCoordinate { z: 0, x: 0, y: 0 },
         }
     }
 
@@ -195,6 +204,11 @@ impl World {
                 });
             }
         }
+        self.bottom_left_tile = TileCoordinate {
+            z: self.zoom_level,
+            x: min_x,
+            y: max_y,
+        }
     }
 
     /// Checks the `loading_tiles` set for tiles which have become ready.
@@ -215,13 +229,32 @@ impl World {
         });
     }
 
-    // Converts a pixel address within the draggable segment to a pixel address in the world
+    /// Converts a pixel address within the draggable segment to a pixel address in the world
     fn offset_to_world_x(&self) -> PixelIndex {
         self.segment_origin_x + self.segment_offset_x
     }
-    // Converts a pixel address within the draggable segment to a pixel address in the world
+    /// Converts a pixel address within the draggable segment to a pixel address in the world
     fn offset_to_world_y(&self) -> PixelIndex {
         self.segment_origin_y + self.segment_offset_y
+    }
+    /// Returns the address of the top-left-most currently visible pixel of the world
+    fn visible_origin(&self) -> PixelCoordinate {
+        PixelCoordinate {
+            x: self.offset_to_world_x(),
+            y: self.offset_to_world_y(),
+        }
+    }
+
+    /// Current visible size, in pixels
+    fn visible_dimensions(&self) -> PixelCoordinate {
+        PixelCoordinate {
+            x: self.visible_width,
+            y: self.visible_height,
+        }
+    }
+    /// Size of the whole world, in pixels (in either dimension; it's square)
+    fn world_size(&self) -> PixelIndex {
+        World::world_size_for(self.zoom_level)
     }
 }
 
@@ -281,6 +314,7 @@ impl State {
                 .collect::<Vec<Tile>>(),
         );
         self.main_ui.set_tiles(slint::ModelRc::new(vec));
+        crate::info::update_info_display(&self.world, &self.main_ui);
     }
 
     /// Updates the viewport after the zoom or segment origin changes.
