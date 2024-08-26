@@ -1,7 +1,7 @@
 // Copyright © SixtyFPS GmbH <info@slint.dev>
 // SPDX-License-Identifier: MIT
 
-import { Slider, Button } from "std-widgets.slint";
+import { Slider, Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
 export struct Tile { x: length, y: length, tile: image}
 
 export component MainUI inherits Window {
@@ -78,6 +78,7 @@ export component MainUI inherits Window {
     */
 
     // HUD display data
+    // XXX refactor - rename
     in property <string> algorithm;
     in property <string> colourer;
     in property <int> max_iter;
@@ -86,28 +87,121 @@ export component MainUI inherits Window {
     in property <string> zoom_readout;
 
     Rectangle {
-        info := Text {
+        property <string> text_font: "Inter";
+        property <length> main_size: 18px;
+        property <length> legend_size: main_size * 0.7;
+        property <int> text_weight: 700;
+        property <brush> data_colour: white;
+        property <brush> legend_colour: #aaa;
 
-            text: algorithm + " (max=" + max_iter + ") :: " + colourer
-                + "    origin=" + origin
-                + "    zoom=" + zoom_readout
-                + "    axes: " + axes;
+        info := GridLayout {
+            Row {
+                HorizontalLayout {
+                    alignment: LayoutAlignment.start;
+                    padding-left: main_size * 0.25;
+                    padding-top: main_size * 0.25;
+                    Text {
+                        text: "algorithm: ";
+                        font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                        vertical-alignment: TextVerticalAlignment.center;
+                    }
+                    Text {
+                        text: algorithm;
+                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour; 
+                        vertical-alignment: TextVerticalAlignment.center;
+                    }
+                }
+                HorizontalLayout { 
+                    alignment: LayoutAlignment.start;
+                    padding-top: main_size * 0.25;
+                    Text {
+                        text: "max_iter: ";
+                        font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                        vertical-alignment: TextVerticalAlignment.center;
+                    }
+                    Text {
+                        text: max_iter;
+                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                        vertical-alignment: TextVerticalAlignment.center;
+                    }
+                }
+            }
+            Row {
+                HorizontalLayout { 
+                    alignment: LayoutAlignment.start;
+                    padding-left: main_size * 0.25;
+                    Text {
+                        text: "colourer: ";
+                        font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                        vertical-alignment: TextVerticalAlignment.center;
+                    }
+                    Text { 
+                        text: colourer; 
+                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                        vertical-alignment: TextVerticalAlignment.bottom;
+                    }
+                }
+            }
+            Row {
+                HorizontalLayout { 
+                    colspan: 2;
+                    alignment: LayoutAlignment.start;
+                    padding-left: main_size * 0.25;
+                    Text {
+                        text: "origin: ";
+                        font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                        vertical-alignment: TextVerticalAlignment.center;
+                    }
+                    Text {
+                        text: origin;
+                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                        vertical-alignment: TextVerticalAlignment.bottom;
+                    }
+                }
+            }
+            Row {
+                HorizontalLayout {
+                    alignment: LayoutAlignment.start;
+                    padding-left: main_size * 0.25;
+                    padding-bottom: main_size * 0.25;
+                    Text {
+                        text: "axes: ";
+                        font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                        vertical-alignment: TextVerticalAlignment.center;
+                    }
+                    Text {
+                        text: axes;
+                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                        vertical-alignment: TextVerticalAlignment.bottom;
+                    }
+                }
+                HorizontalLayout { 
+                    alignment: LayoutAlignment.start;
+                    padding-bottom: main_size * 0.25;
+                    Text {
+                        text: "zoom: ";
+                        font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                        vertical-alignment: TextVerticalAlignment.center;
+                    }
+                    Text {
+                        text: zoom_readout + " ×";
+                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                        vertical-alignment: TextVerticalAlignment.bottom;
+                    }
+                }
+            }
+            // XXX refactor out to sidecar slint file
 
-            font-family: "Inter"; // TODO how to ensure font is present?
-            font-size: 18px;
-            font-weight: 900;
-            color: white;
-            opacity: 1.0;
-            z: 10.0;
-            horizontal-alignment: TextHorizontalAlignment.center;
-            wrap: TextWrap.word-wrap;
-            overflow: TextOverflow.elide;
-            width: 100%;
+            width: main_size * 30;
+            min-width: 500px;
+            height: main_size * 5.5;
+            x: 0;
             y: fli.y + (fli.height) - (self.height);
-            // this may at some point gain a TouchArea to allow editing
+            z: 10.0;
         }
+
         Rectangle {
-            width: 100%;
+            width <=> info.width;
             height <=> info.height;
             x <=> info.x;
             y <=> info.y;
@@ -117,3 +211,4 @@ export component MainUI inherits Window {
         }
     }
 }
+

@@ -376,9 +376,9 @@ impl State {
 
         let z: u64 = 1 << (world.zoom_level - 1);
         let zoom_str = if z < 1000 {
-            format!("{z}×")
+            format!("{z}")
         } else {
-            format!("{z:.3e}×")
+            format!("{z:.3e}")
         };
 
         self.main_ui.set_origin(origin.into());
