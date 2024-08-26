@@ -53,11 +53,31 @@ jobs:
         with:
           key: "${{matrix.platform}}"
       - name: install packages
-        run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
+        run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold
       - name: Code style check
         run: cargo fmt --all -- --check
       # we want to ensure the benches build... but we already do that in debug with --all-targets
       - run: cargo test
       - run: cargo clippy --all-targets
       - run: cargo install iai-callgrind-runner@0.12.3
+
+  # Run IAI callgrind benchmark (ensure the release profile is working)
+  profile:
+    strategy:
+      matrix:
+        platform: [ubuntu-22.04]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          components: clippy, rustfmt
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: "${{matrix.platform}}"
+      - name: install packages
+        run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
+      - name: install IAI runner
+        run: cargo install iai-callgrind-runner@0.12.3
       - run: cargo bench -- iai
