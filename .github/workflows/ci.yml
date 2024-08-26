@@ -35,9 +35,9 @@ jobs:
       if: matrix.platform == 'ubuntu-22.04'
       run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold
     - name: Build
-      run: cargo build --all-targets --locked
+      run: cargo build --locked
 
-  # Build checks; only need to run these once, some are Linux-specific
+  # We only need to run the tests once; some are Linux-specific
   checks:
     strategy:
       matrix:
@@ -56,13 +56,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold
       - name: Code style check
         run: cargo fmt --all -- --check
-      # we want to ensure the benches build... but we already do that in debug with --all-targets
       - run: cargo test
       - run: cargo clippy --all-targets
-      - run: cargo install iai-callgrind-runner@0.12.3
 
   # Run IAI callgrind benchmark (ensure the release profile is working)
-  profile:
+  benchmark:
     strategy:
       matrix:
         platform: [ubuntu-22.04]
@@ -80,4 +78,6 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
       - name: install IAI runner
         run: cargo install iai-callgrind-runner@0.12.3
+      # Ensure all the benches build
+      - run: cargo build --profile=bench --benches
       - run: cargo bench -- iai
