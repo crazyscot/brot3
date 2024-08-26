@@ -11,9 +11,9 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_TOOLCHAIN: 1.78.0
-  # remember to update RUST_TOOLCHAIN in ci.yml too
-  
+  RUST_TOOLCHAIN: 1.80.0
+  # remember to update RUST_TOOLCHAIN in other yml files too
+
 jobs:
   publish-tauri:
     permissions:
