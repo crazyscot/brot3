@@ -53,5 +53,5 @@ unused_results = "deny"
 variant_size_differences = "deny"
 
 [workspace.lints.clippy]
-pedantic = "deny"
+pedantic = { level = "deny", priority = -1 }
 missing_errors_doc = "allow"
