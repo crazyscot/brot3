@@ -62,6 +62,7 @@ fn alg_specs_are_equivalent(a1: &Arc<AlgorithmSpec>, a2: &Arc<AlgorithmSpec>) ->
 /// However:
 /// 1. We don't make use of NaN so can neglect that case.
 /// 2. We are genuinely only comparing tilespecs for identicality, not recreating them which might lead to inaccuracies, so can neglect that case.
+///
 /// Therefore it is safe to naively treat f64s as bags of bits in implementing Eq and Hash.
 #[derive(Debug, Clone)]
 pub struct TileSpec {
