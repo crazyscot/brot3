@@ -12,17 +12,24 @@ export component MainUI inherits Window {
     callback zoom-in(length, length);
     callback zoom-out(length, length);
     callback resegment-clicked();
+
+    // Window sizing callback. This returns a dummy invisible image but triggers the logic to reconsider the visible tiles.
+    pure callback resized(length, length) -> image;
     min-height: 500px;
     min-width: 500px;
 
-    out property <length> visible_width: fli.width;
-    out property <length> visible_height: fli.height;
+    out property <length> visible_width <=> fli.width;
+    out property <length> visible_height <=> fli.height;
 
     in-out property <float> zoom <=> sli.value;
+    in property <float> minimum-zoom <=> sli.minimum;
 
     in property <[Tile]> tiles;
 
     in property <string> window-title <=> self.title;
+
+    out property <length> viewport-x <=> fli.viewport-x;
+    out property <length> viewport-y <=> fli.viewport-y;
 
     // ox,oy: Viewport offsets within the visible segment (these are usually negative?)
     // width, height: viewport size
@@ -59,7 +66,7 @@ export component MainUI inherits Window {
 
         HorizontalLayout {
             sli := Slider {
-                minimum: 1;
+                minimum: 1; // initial value (UI_MIN_ZOOM_LEVEL); may be updated dynamically
                 maximum: 45; // !!! Must match UI_MAX_ZOOM_LEVEL
                 released => {
                     zoom-changed(self.value);
@@ -85,5 +92,9 @@ export component MainUI inherits Window {
         // Position over the bottom of the fractal viewport
         x: 0;
         y: fli.y + fli.height - self.height;
+    }
+
+    dummy_img := Image {
+        source: resized(root.width, root.height);
     }
 }
