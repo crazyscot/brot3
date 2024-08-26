@@ -22,6 +22,7 @@ use std::rc::Rc;
 
 const UI_MAX_SEGMENT_SIZE: PixelIndex = 1 << (f32::MANTISSA_DIGITS - 1);
 const UI_MAX_ZOOM_LEVEL: ZoomLevel = 45; // !!! Must match slider max in mainui.slint
+const UI_MIN_ZOOM_LEVEL: ZoomLevel = 1; // We may set a higher minimum dynamically
 
 /// Tile source, tiles, and active viewport parameters
 struct World {
@@ -33,6 +34,8 @@ struct World {
     visible_height: PixelIndex,
     /// Current size of the slint component, in pixels
     visible_width: PixelIndex,
+    /// Minimum zoom level (calculated dynamically given the window size)
+    minimum_zoom_level: ZoomLevel,
 
     // CAUTION: Slint's 'length' type is f32, which imposes a limit on the number of pixels it can reason about.
     // We work around this with a two-stage addressing scheme.
@@ -60,6 +63,7 @@ impl World {
             zoom_level: 1,
             visible_height: 0,
             visible_width: 0,
+            minimum_zoom_level: 1,
             // The offset is the current visible position in the viewport, relative to the segment origin.
             segment_offset_x: 0,
             segment_offset_y: 0,
@@ -96,6 +100,18 @@ impl World {
 
             world_offset_x -= ox;
             world_offset_y -= oy;
+
+            // Apply edge constraints:
+            // If the viewport extends outside of the visible world, shift to edge.
+            // If the world is smaller than the viewport, force it to a fixed position.
+            let dims: PixelCoordinate = self.visible_dimensions();
+            let world_size = World::world_size_for(zoom_level);
+            world_offset_x = std::cmp::min(world_offset_x, world_size - dims.x);
+            // ordering is important; apply minimum 0 now, also catches the case where world size < viewport size
+            world_offset_x = std::cmp::max(world_offset_x, 0);
+
+            world_offset_y = std::cmp::min(world_offset_y, world_size - dims.y);
+            world_offset_y = std::cmp::max(world_offset_y, 0);
 
             self.reset_segment(zoom_level, world_offset_x, world_offset_y);
             self.reset_view();
@@ -343,6 +359,43 @@ impl State {
         drop(world);
         self.set_viewport_size();
     }
+
+    fn size_changed(self: Rc<Self>) {
+        #![allow(clippy::cast_possible_truncation)]
+        let mut world = self.world.borrow_mut();
+        world.visible_width = self.main_ui.get_visible_width() as _;
+        world.visible_height = self.main_ui.get_visible_height() as _;
+        let new_dimensions = world.visible_dimensions();
+        let min_dimension = std::cmp::min(new_dimensions.x, new_dimensions.y);
+        // Integer divide with floor
+        let n_tiles = (min_dimension >> UI_TILE_SIZE_LOG2) as i32;
+        #[allow(clippy::cast_precision_loss)] // we know it's going to fit into the mantissa
+        let zoom = std::cmp::max(
+            (n_tiles as f32).log2().floor() as ZoomLevel,
+            UI_MIN_ZOOM_LEVEL,
+        );
+        #[allow(clippy::cast_precision_loss)] // we know it's going to fit into the mantissa
+        let zoom_f = zoom as f32;
+        world.minimum_zoom_level = zoom;
+        if false {
+            println!(
+            "Window size changed to {} x {}; new minimum {n_tiles} tiles displayed; zoom level is {zoom}",
+            world.visible_width, world.visible_height
+            );
+        }
+        self.main_ui.set_minimum_zoom(zoom_f);
+        if self.main_ui.get_zoom() < zoom_f {
+            if false {
+                println!("Rezooming to {zoom_f}");
+            }
+            self.main_ui.set_zoom(zoom_f);
+            world.set_zoom_level(zoom, 0, 0);
+        }
+        world.reset_view();
+        drop(world); // drops the reference, not the actual world
+        self.clone().set_viewport_size();
+        self.clone().do_poll();
+    }
 }
 
 fn main() {
@@ -417,7 +470,7 @@ fn main() {
     state.main_ui.on_zoom_out(move |ox, oy| {
         let state = state_weak.upgrade().unwrap();
         let mut world = state.world.borrow_mut();
-        let z = (world.zoom_level - 1).max(1);
+        let z = (world.zoom_level - 1).max(world.minimum_zoom_level);
         world.visible_width = state.main_ui.get_visible_width() as _;
         world.visible_height = state.main_ui.get_visible_height() as _;
         world.set_zoom_level(z as _, ox as PixelIndex, oy as PixelIndex);
@@ -438,17 +491,24 @@ fn main() {
         state.recentre_segment();
     });
 
+    let state_weak = Rc::downgrade(&state);
+    state.main_ui.on_resized(move |_ww, _hh| {
+        let state2 = state_weak.clone();
+        let _a = slint::spawn_local(async move {
+            let state = state2.upgrade().unwrap();
+            state.size_changed();
+        })
+        .unwrap();
+        let buffer = SharedPixelBuffer::<Rgba8Pixel>::new(1, 1);
+        slint::Image::from_rgba8(buffer)
+    });
+
+    // Initial population of tiles also looks like a resize event
     {
         let state = state.clone();
         #[allow(clippy::cast_possible_truncation)]
         let _a = slint::spawn_local(async move {
-            let mut world = state.world.borrow_mut();
-            world.visible_width = state.main_ui.get_visible_width() as _;
-            world.visible_height = state.main_ui.get_visible_height() as _;
-            world.reset_view();
-            drop(world); // drops the reference, not the actual world
-            state.set_viewport_size();
-            state.clone().do_poll();
+            state.size_changed();
         })
         .unwrap();
     }
