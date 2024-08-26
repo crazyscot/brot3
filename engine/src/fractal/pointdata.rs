@@ -31,7 +31,7 @@ impl PointData {
 
     /// Set this point as infinite
     pub fn mark_infinite(&mut self) {
-        self.result = Some(std::f32::INFINITY);
+        self.result = Some(f32::INFINITY);
     }
     /// The result, if we have it, or the _working result_ (current iteration count) if not.
     #[must_use]

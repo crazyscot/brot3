@@ -40,7 +40,7 @@ impl Png {
             .map(|pd| {
                 // if it's still alive, assume infinity
                 if pd.iter == max_iter {
-                    std::f32::INFINITY
+                    f32::INFINITY
                 } else {
                     pd.iterations()
                 }
