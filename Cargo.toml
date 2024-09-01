@@ -23,7 +23,7 @@ debug = true
 
 [workspace.dependencies]
 anyhow = "1.0.86"
-clap = "4.5.13"
+clap = "4.5.16"
 num-complex = "0.4.6"
 png = "0.17.13"
 rayon = "1.10.0"
