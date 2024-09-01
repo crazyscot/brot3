@@ -83,7 +83,6 @@ impl World {
         if self.zoom_level != zoom_level {
             self.loaded_tiles.clear();
             self.loading_tiles.clear();
-            // TODO: Can we abort loading tiles we no longer care about? Perhaps some sort of handle (or just a flag?) goes into the BTreeMap value.
 
             // Apply the zoom to compute our new offset x and y
             #[allow(clippy::cast_possible_wrap)]
