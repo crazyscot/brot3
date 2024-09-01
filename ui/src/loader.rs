@@ -19,7 +19,10 @@ impl LoadingTile {
             image: Box::pin(async move {
                 let (image_send, image_recv) = tokio::sync::oneshot::channel();
                 rayon::spawn(move || {
-                    let _ = image_send.send(engine::draw_tile(&coord));
+                    // If the LoadingTile is dropped, the channel becomes closed.
+                    if !image_send.is_closed() {
+                        let _a = image_send.send(engine::draw_tile(&coord));
+                    }
                 });
                 let buffer = image_recv.await.unwrap().unwrap_or_else(|e| {
                     eprintln!("error drawing tile: {e}");
