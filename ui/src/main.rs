@@ -4,6 +4,8 @@ mod components;
 use components::{MainUI, Tile};
 mod engine;
 mod info;
+mod loader;
+use loader::LoadingTile;
 mod types;
 use types::{
     PixelCoordinate, PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE,
@@ -13,8 +15,6 @@ use types::{
 use brot3_engine::util::build_info;
 
 use core::cell::RefCell;
-use core::future::Future;
-use core::pin::Pin;
 use core::task::{Context, Poll};
 use slint::{ComponentHandle, Rgba8Pixel, SharedPixelBuffer, VecModel};
 use std::collections::BTreeMap;
@@ -27,7 +27,7 @@ const UI_MIN_ZOOM_LEVEL: ZoomLevel = 1; // We may set a higher minimum dynamical
 /// Tile source, tiles, and active viewport parameters
 struct World {
     loaded_tiles: BTreeMap<TileCoordinate, slint::Image>,
-    loading_tiles: BTreeMap<TileCoordinate, Pin<Box<dyn Future<Output = slint::Image>>>>,
+    loading_tiles: BTreeMap<TileCoordinate, LoadingTile>,
     /// Currently displayed zoom level
     zoom_level: ZoomLevel,
     /// Current size of the slint component, in pixels
@@ -205,19 +205,10 @@ impl World {
                 }
 
                 // forcibly bind the future to a variable, we care that it happens
-                let _a = self.loading_tiles.entry(coord).or_insert_with(|| {
-                    Box::pin(async move {
-                        let (send, recv) = tokio::sync::oneshot::channel();
-                        rayon::spawn(move || {
-                            let _ = send.send(engine::draw_tile(&coord));
-                        });
-                        let buffer = recv.await.unwrap().unwrap_or_else(|e| {
-                            eprintln!("error drawing tile: {e}");
-                            SharedPixelBuffer::<Rgba8Pixel>::new(1, 1)
-                        });
-                        slint::Image::from_rgba8(buffer)
-                    })
-                });
+                let _a = self
+                    .loading_tiles
+                    .entry(coord)
+                    .or_insert_with(|| LoadingTile::new(coord));
             }
         }
         self.bottom_left_tile = TileCoordinate {
@@ -232,8 +223,8 @@ impl World {
     /// * `context`: polling context
     /// * `changed`: (out) Will be set to true if any tiles were
     fn poll(&mut self, context: &mut Context<'_>, changed: &mut bool) {
-        self.loading_tiles.retain(|coord, future| {
-            let image = future.as_mut().poll(context);
+        self.loading_tiles.retain(|coord, loader| {
+            let image = loader.image.as_mut().poll(context);
             match image {
                 Poll::Ready(image) => {
                     let _ = self.loaded_tiles.insert(*coord, image);
