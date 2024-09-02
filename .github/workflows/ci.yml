@@ -13,6 +13,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  IAI_CALLGRIND_RUNNER_VERSION: 0.13.1
 
 jobs:
   # Build the app on all supported platforms
@@ -72,8 +73,12 @@ jobs:
           key: "${{matrix.platform}}"
       - name: install packages
         run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1.10.3
       - name: install IAI runner
-        run: cargo install iai-callgrind-runner@0.12.3
-      # Ensure all the benches build
+        run: cargo binstall iai-callgrind-runner@${{ env. IAI_CALLGRIND_RUNNER_VERSION }}
+      # We care that all the benches build
       - run: cargo build --profile=bench --benches
-      - run: cargo bench -- iai
+      # But we only run IAI, as a time-measuring benchmark isn't repeatable on a CI runner.
+      - name: run benchmark
+        run: cargo bench -- iai
