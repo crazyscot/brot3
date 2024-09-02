@@ -669,7 +669,6 @@ dependencies = [
  "num-complex",
  "palette",
  "png",
- "quick_cache",
  "rayon",
  "serde",
  "strum",
@@ -3586,18 +3585,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f24d770aeca0eacb81ac29dfbc55ebcc09312fdd1f8bbecdc7e4a84e000e3b4"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "quick_cache"
-version = "0.6.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ec0b6fed0a0ff01fa82d0c8982389375dd59c72dae84d4f8a15b1a894c273f7"
-dependencies = [
- "ahash",
- "equivalent",
- "hashbrown",
- "parking_lot",
 ]
 
 [[package]]
