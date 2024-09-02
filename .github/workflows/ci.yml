@@ -40,17 +40,14 @@ jobs:
 
   # We only need to run the tests once; some are Linux-specific
   checks:
-    strategy:
-      matrix:
-        platform: [ubuntu-22.04]
-    runs-on: ${{ matrix.platform }}
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Select rust toolchain
         run: rustup update
       - uses: Swatinem/rust-cache@v2
         with:
-          key: "${{matrix.platform}}"
+          key: ubuntu-22.04
       - name: install packages
         run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold
       - name: Code style check
@@ -60,17 +57,14 @@ jobs:
 
   # Run IAI callgrind benchmark (ensure the release profile is working)
   benchmark:
-    strategy:
-      matrix:
-        platform: [ubuntu-22.04]
-    runs-on: ${{ matrix.platform }}
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Select rust toolchain
         run: rustup update
       - uses: Swatinem/rust-cache@v2
         with:
-          key: "${{matrix.platform}}"
+          key: ubuntu-22.04
       - name: install packages
         run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
       - name: Install cargo-binstall
