@@ -76,7 +76,7 @@ jobs:
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.10.3
       - name: install IAI runner
-        run: cargo binstall iai-callgrind-runner@${{ env. IAI_CALLGRIND_RUNNER_VERSION }}
+        run: cargo binstall --no-confirm iai-callgrind-runner@${{ env. IAI_CALLGRIND_RUNNER_VERSION }}
       # We care that all the benches build
       - run: cargo build --profile=bench --benches
       # But we only run IAI, as a time-measuring benchmark isn't repeatable on a CI runner.
