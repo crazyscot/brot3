@@ -42,7 +42,7 @@ export component MainUI inherits Window {
         fli.viewport-height = height;
     }
 
-    VerticalLayout {
+    layout := VerticalLayout {
         fli := Flickable {
             for t in tiles: Image {
                 x: t.x;
@@ -75,6 +75,16 @@ export component MainUI inherits Window {
                 }
             }
         }
+    }
+
+    // Background for the fractal area
+    Rectangle {
+        z: -1;
+        height: fli.height;
+        width: fli.width;
+        x: layout.x + fli.x;
+        y: layout.y + fli.y;
+        background: @linear-gradient(0deg, #777777 0%, #cccccc 100%);
     }
 
     /*
