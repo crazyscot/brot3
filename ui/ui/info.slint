@@ -20,7 +20,6 @@ export component InfoDisplay inherits Rectangle {
     // N.B. Caller should set x and y
 
     // Styling. These might become tweakable user preferences later.
-    private property <string> text_font: "Inter";
     private property <length> main_size: 18px;
     private property <length> legend_size: main_size * 0.7;
     private property <int> text_weight: 700;
@@ -48,12 +47,12 @@ export component InfoDisplay inherits Rectangle {
                 padding-top: main_size * 0.25;
                 Text {
                     text: "algorithm: ";
-                    font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
                 Text {
                     text: data.algorithm;
-                    font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour; 
+                    font-size: main_size; font-weight: text_weight; color: data_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
             }
@@ -62,12 +61,12 @@ export component InfoDisplay inherits Rectangle {
                 padding-top: main_size * 0.25;
                 Text {
                     text: "max_iter: ";
-                    font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
                 Text {
                     text: data.max_iter;
-                    font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                    font-size: main_size; font-weight: text_weight; color: data_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
             }
@@ -78,12 +77,12 @@ export component InfoDisplay inherits Rectangle {
                 padding-left: main_size * 0.25;
                 Text {
                     text: "colourer: ";
-                    font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
                 Text {
                     text: data.colourer;
-                    font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                    font-size: main_size; font-weight: text_weight; color: data_colour;
                     vertical-alignment: TextVerticalAlignment.bottom;
                 }
             }
@@ -95,12 +94,12 @@ export component InfoDisplay inherits Rectangle {
                 padding-left: main_size * 0.25;
                 Text {
                     text: "origin: ";
-                    font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
                 Text {
                     text: data.origin;
-                    font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                    font-size: main_size; font-weight: text_weight; color: data_colour;
                     vertical-alignment: TextVerticalAlignment.bottom;
                 }
             }
@@ -113,12 +112,12 @@ export component InfoDisplay inherits Rectangle {
                 padding-left: main_size * 0.25;
                 Text {
                     text: "centre: ";
-                    font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
                 Text {
                     text: data.centre;
-                    font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                    font-size: main_size; font-weight: text_weight; color: data_colour;
                     vertical-alignment: TextVerticalAlignment.bottom;
                 }
             }
@@ -131,12 +130,12 @@ export component InfoDisplay inherits Rectangle {
                 padding-bottom: main_size * 0.25;
                 Text {
                     text: "axes: ";
-                    font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
                 Text {
                     text: data.axes;
-                    font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                    font-size: main_size; font-weight: text_weight; color: data_colour;
                     vertical-alignment: TextVerticalAlignment.bottom;
                 }
             }
@@ -145,29 +144,29 @@ export component InfoDisplay inherits Rectangle {
                 padding-bottom: main_size * 0.25;
                 Text {
                     text: "zoom: ";
-                    font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
                 Text {
                     text: data.zoom_mantissa;
-                    font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                    font-size: main_size; font-weight: text_weight; color: data_colour;
                     vertical-alignment: TextVerticalAlignment.bottom;
                 }
                 HorizontalLayout {
                     visible: data.zoom-exponent10 != 0;
                     Text {
                         text: " ×";
-                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                        font-size: main_size; font-weight: text_weight; color: data_colour;
                         vertical-alignment: TextVerticalAlignment.bottom;
                     }
                     Text {
                         text: "10";
-                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                        font-size: main_size; font-weight: text_weight; color: data_colour;
                         vertical-alignment: TextVerticalAlignment.bottom;
                     }
                     Text {
                         text: data.zoom-exponent10;
-                        font-family: text_font; font-size: legend_size; font-weight: text_weight; color: data_colour;
+                        font-size: legend_size; font-weight: text_weight; color: data_colour;
                         vertical-alignment: TextVerticalAlignment.top;
                     }
                 }
