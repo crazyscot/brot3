@@ -8,6 +8,7 @@ export struct InfoDisplayData {
     colourer: string,
     max_iter: int,
     origin: string,
+    centre: string,
     axes: string,
     zoom_mantissa: string,
     zoom_exponent10: int,
@@ -36,7 +37,7 @@ export component InfoDisplay inherits Rectangle {
 
         width: main_size * 30;
         min-width: 500px;
-        height: main_size * 5.5;
+        height: main_size * 6.5;
         z: 10.0;
 
         // there is probably a less repetitititive way to do this ...
@@ -104,6 +105,25 @@ export component InfoDisplay inherits Rectangle {
                 }
             }
         }
+
+        Row {
+            HorizontalLayout {
+                colspan: 2;
+                alignment: LayoutAlignment.start;
+                padding-left: main_size * 0.25;
+                Text {
+                    text: "centre: ";
+                    font-family: text_font; font-size: legend_size; font-weight: text_weight; color: legend_colour;
+                    vertical-alignment: TextVerticalAlignment.center;
+                }
+                Text {
+                    text: data.centre;
+                    font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                    vertical-alignment: TextVerticalAlignment.bottom;
+                }
+            }
+        }
+
         Row {
             HorizontalLayout {
                 alignment: LayoutAlignment.start;
@@ -153,9 +173,10 @@ export component InfoDisplay inherits Rectangle {
                 }
             }
         }
+
     }
 
-    // Background for the area
+    // Background for the info area
     Rectangle {
         width <=> info.width;
         height <=> info.height;
