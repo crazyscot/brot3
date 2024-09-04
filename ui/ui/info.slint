@@ -9,7 +9,8 @@ export struct InfoDisplayData {
     max_iter: int,
     origin: string,
     axes: string,
-    zoom: string,
+    zoom_mantissa: string,
+    zoom_exponent10: int,
 }
 
 export component InfoDisplay inherits Rectangle {
@@ -128,9 +129,27 @@ export component InfoDisplay inherits Rectangle {
                     vertical-alignment: TextVerticalAlignment.center;
                 }
                 Text {
-                    text: data.zoom + " ×";
+                    text: data.zoom_mantissa;
                     font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
                     vertical-alignment: TextVerticalAlignment.bottom;
+                }
+                HorizontalLayout {
+                    visible: data.zoom-exponent10 != 0;
+                    Text {
+                        text: " ×";
+                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                        vertical-alignment: TextVerticalAlignment.bottom;
+                    }
+                    Text {
+                        text: "10";
+                        font-family: text_font; font-size: main_size; font-weight: text_weight; color: data_colour;
+                        vertical-alignment: TextVerticalAlignment.bottom;
+                    }
+                    Text {
+                        text: data.zoom-exponent10;
+                        font-family: text_font; font-size: legend_size; font-weight: text_weight; color: data_colour;
+                        vertical-alignment: TextVerticalAlignment.top;
+                    }
                 }
             }
         }

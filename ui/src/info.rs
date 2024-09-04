@@ -125,10 +125,14 @@ pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
     let origin = format!("{origin_real}{origin_imag}i");
 
     let z: u64 = 1 << (world.zoom_level - 1);
-    let zoom_str = if z < 1000 {
-        format!("{z}")
+    let (z_mantissa, z_exponent) = if z < 1000 {
+        (format!("{z}"), 0)
     } else {
-        format!("{z:.3e}")
+        let part = format!("{z:.3e}");
+        let mut bits = part.split('e');
+        let mantissa = bits.next().unwrap_or("").to_string();
+        let exp = bits.next().unwrap_or("").parse::<i32>().unwrap_or(0);
+        (mantissa, exp)
     };
 
     let info = InfoDisplayData {
@@ -137,7 +141,8 @@ pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
         max_iter: crate::types::UI_TEMP_MAXITER.into(), // TODO from alg spec
         origin: origin.into(),
         axes: axes.into(),
-        zoom: zoom_str.into(),
+        zoom_mantissa: z_mantissa.into(),
+        zoom_exponent10: z_exponent,
     };
     ui.set_info_data(info);
 }
