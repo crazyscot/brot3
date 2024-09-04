@@ -113,16 +113,27 @@ pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
     );
     let origin_absolute = origin_offset - algorithm_instance.default_axes().unscale(2.)
         + algorithm_instance.default_centre();
+    let centre_absolute = origin_absolute + visible_axes_length.unscale(2.);
 
-    let axes_precision = axes_precision_for_canvas(window_dimensions);
-    let real_axis = format_float_with_precision("", visible_axes_length.re, axes_precision);
-    let imag_axis = format_float_with_precision("+", visible_axes_length.im, axes_precision);
-    let axes = format!("{real_axis}{imag_axis}i");
+    let axes = {
+        let axes_precision = axes_precision_for_canvas(window_dimensions);
+        let real_axis = format_float_with_precision("", visible_axes_length.re, axes_precision);
+        let imag_axis = format_float_with_precision("+", visible_axes_length.im, axes_precision);
+        format!("{real_axis}{imag_axis}i")
+    };
 
     let position_dp = decimal_places_for_axes(window_dimensions, visible_axes_length);
-    let origin_real = format_float_fixed("", origin_absolute.re, position_dp);
-    let origin_imag = format_float_fixed("+", origin_absolute.im, position_dp);
-    let origin = format!("{origin_real}{origin_imag}i");
+    let origin = {
+        let origin_real = format_float_fixed("", origin_absolute.re, position_dp);
+        let origin_imag = format_float_fixed("+", origin_absolute.im, position_dp);
+        format!("{origin_real}{origin_imag}i")
+    };
+
+    let centre = {
+        let real = format_float_fixed("", centre_absolute.re, position_dp);
+        let imag = format_float_fixed("+", centre_absolute.im, position_dp);
+        format!("{real}{imag}i")
+    };
 
     let z: u64 = 1 << (world.zoom_level - 1);
     let (z_mantissa, z_exponent) = if z < 1000 {
@@ -140,6 +151,7 @@ pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
         colourer: "LogRainbow".into(), // TODO from alg spec
         max_iter: crate::types::UI_TEMP_MAXITER.into(), // TODO from alg spec
         origin: origin.into(),
+        centre: centre.into(),
         axes: axes.into(),
         zoom_mantissa: z_mantissa.into(),
         zoom_exponent10: z_exponent,
