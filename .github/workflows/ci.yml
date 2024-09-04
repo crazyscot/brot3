@@ -38,25 +38,8 @@ jobs:
     - name: Build
       run: cargo build --locked
 
-  # We only need to run the tests once; some are Linux-specific
+  # We only need to run the checks on a single platform
   checks:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Select rust toolchain
-        run: rustup update
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: ubuntu-22.04
-      - name: install packages
-        run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold
-      - name: Code style check
-        run: cargo fmt --all -- --check
-      - run: cargo test
-      - run: cargo clippy --all-targets
-
-  # Run IAI callgrind benchmark (ensure the release profile is working)
-  benchmark:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -71,8 +54,12 @@ jobs:
         uses: cargo-bins/cargo-binstall@v1.10.3
       - name: install IAI runner
         run: cargo binstall --no-confirm iai-callgrind-runner@${{ env. IAI_CALLGRIND_RUNNER_VERSION }}
-      # We care that all the benches build
-      - run: cargo build --profile=bench --benches
-      # But we only run IAI, as a time-measuring benchmark isn't repeatable on a CI runner.
-      - name: run benchmark
-        run: cargo bench -- iai
+      # Checks begin here!
+      - run: cargo fmt --all -- --check
+      - run: cargo test
+      - run: cargo clippy --all-targets
+      # We care that the benchmarks build and run, not about their numeric output.
+      # To keep the CI a bit leaner, do this in the dev profile.
+      - run: cargo build --all-targets
+      - run: cargo bench --profile=dev -- iai
+      - run: cargo bench -- fractals/iter_Original
