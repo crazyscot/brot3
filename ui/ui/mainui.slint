@@ -3,6 +3,8 @@
 
 import { Slider, Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { InfoDisplayData, InfoDisplay } from "info.slint";
+import { Menu, MenuItem } from "menu.slint";
+import { AboutBox, BuildInfo } from "about.slint";
 
 export struct Tile { x: length, y: length, tile: image}
 
@@ -32,6 +34,8 @@ export component MainUI inherits Window {
 
     out property <length> viewport-x <=> fli.viewport-x;
     out property <length> viewport-y <=> fli.viewport-y;
+
+    in property <BuildInfo> build-info;
 
     // ox,oy: Viewport offsets within the visible segment (these are usually negative?)
     // width, height: viewport size
@@ -108,5 +112,42 @@ export component MainUI inherits Window {
 
     dummy_img := Image {
         source: resized(root.width, root.height);
+    }
+
+    private property <bool> menu-open: false;
+    menu_btn := Button {
+        x: 5px;
+        y: 5px;
+        z: 5;
+        text: "☰";
+        primary: true;
+        colorize-icon: true;
+        clicked => {
+            menu.show();
+            root.menu-open = !root.menu-open;
+        }
+    }
+    callback menu-selected(string);
+    menu := Menu {
+        x: 20px;
+        y: 20px;
+        z: 6;
+        font-family: "Inter";
+        selected(what) => { root.menu-selected(what); }
+
+        items: [
+            { display: "About" },
+        ];
+    }
+
+    public function about_box() {
+        about.show();
+    }
+    about := AboutBox {
+        height: 400px;
+        width: 400px;
+        x: (root.width - self.width) /2;
+        y: (root.height - self.height) /2;
+        info <=> root.build-info;
     }
 }
