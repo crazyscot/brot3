@@ -6,6 +6,7 @@ mod engine;
 mod info;
 mod loader;
 use loader::LoadingTile;
+mod menu;
 mod types;
 use types::{
     PixelCoordinate, PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE,
@@ -16,7 +17,7 @@ use brot3_engine::util::build_info;
 
 use core::cell::RefCell;
 use core::task::{Context, Poll};
-use slint::{ComponentHandle, Rgba8Pixel, SharedPixelBuffer, VecModel};
+use slint::{ComponentHandle, Rgba8Pixel, SharedPixelBuffer, SharedString, VecModel};
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
@@ -403,6 +404,12 @@ fn main() {
     state
         .main_ui
         .set_window_title(format!("brot3 {}", build_info::PKG_VERSION).into());
+    state.main_ui.set_build_info(crate::components::BuildInfo {
+        version: SharedString::from(build_info::GIT_VERSION.unwrap_or("unknown version")),
+        authors: SharedString::from(build_info::PKG_AUTHORS),
+        description: SharedString::from(build_info::PKG_DESCRIPTION),
+        commit_hash: SharedString::from(build_info::GIT_COMMIT_HASH.unwrap_or("unknown")),
+    });
 
     let state_weak = Rc::downgrade(&state);
     #[allow(clippy::cast_possible_truncation)]
@@ -491,6 +498,11 @@ fn main() {
         .unwrap();
         let buffer = SharedPixelBuffer::<Rgba8Pixel>::new(1, 1);
         slint::Image::from_rgba8(buffer)
+    });
+
+    let state_weak = Rc::downgrade(&state);
+    state.main_ui.on_menu_selected(move |what| {
+        crate::menu::handle_menu(&state_weak, &what);
     });
 
     // Initial population of tiles also looks like a resize event

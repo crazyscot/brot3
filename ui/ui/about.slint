@@ -1,0 +1,70 @@
+// About box
+// (c) 2024 Ross Younger
+
+import { VerticalBox, AboutSlint, StandardButton } from "std-widgets.slint";
+
+export struct BuildInfo {
+    version: string,
+    authors: string,
+    description: string,
+    commit_hash: string,
+}
+
+export component AboutBox inherits PopupWindow {
+    close-on-click: true;
+    min-height: 300px;
+    min-width: 300px;
+
+    in property <BuildInfo> info;
+
+    Rectangle {
+        background: #eee; // TODO how to get it to not fill outside the rounded bits?
+        border-radius: 4px;
+        border-width: 1px;
+        border-color: #444;
+        width: 100%;
+        height: 100%;
+
+        VerticalBox {
+            alignment: LayoutAlignment.space-around;
+            VerticalLayout {
+                alignment: LayoutAlignment.center;
+                Text {
+                    font-family: "Inter";
+                    font-size: 24px;
+                    font-weight: 900;
+                    text: "brot3";
+                    horizontal-alignment: TextHorizontalAlignment.center;
+                }
+                Text {
+                    horizontal-alignment: TextHorizontalAlignment.center;
+                    font-family: "Inter";
+                    font-size: 12px;
+                    text: info.version + "\n(c) 2024 " + info.authors;
+                }
+            }
+            Text {
+                horizontal-alignment: TextHorizontalAlignment.center;
+                font-family: "Inter";
+                text: info.description;
+            }
+            Text {
+                horizontal-alignment: TextHorizontalAlignment.center;
+                font-family: "Inter";
+                font-italic: true;
+                text: "Dedicated to the memory of Benoît B. Mandelbrot.";
+            }
+
+            AboutSlint {
+                height: 100px;
+            }
+
+            Text {
+                font-family: "Inter";
+                font-size: 10px;
+                //x: 0;
+                text: "id: " + info.commit-hash;
+            }
+        }
+    }
+}
