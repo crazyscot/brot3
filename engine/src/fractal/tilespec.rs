@@ -16,7 +16,7 @@ use std::{
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
 /// Specification of the algorithmic part of a tile to plot
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AlgorithmSpec {
     /// The selected algorithm
     algorithm: fractal::Instance,

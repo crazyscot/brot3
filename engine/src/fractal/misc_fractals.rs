@@ -13,7 +13,7 @@ fn prepare_upside_down(point: &mut PointData) {
     point.iter = 1;
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Mandelbar {
     delegate: Original,
 }
@@ -42,7 +42,7 @@ impl Algorithm for Mandelbar {
 
 // ///////////////////////////////////////////////////////////
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct BurningShip {
     delegate: Original,
 }
@@ -80,7 +80,7 @@ impl Algorithm for BurningShip {
 
 // ///////////////////////////////////////////////////////////
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Celtic {
     delegate: Original,
 }
@@ -115,7 +115,7 @@ impl Algorithm for Celtic {
 
 // ///////////////////////////////////////////////////////////
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Variant {
     delegate: Original,
 }
@@ -154,7 +154,7 @@ impl Algorithm for Variant {
 
 // ///////////////////////////////////////////////////////////
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct BirdOfPrey {
     delegate: Original,
 }
@@ -189,7 +189,7 @@ impl Algorithm for BirdOfPrey {
 
 // ///////////////////////////////////////////////////////////
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Buffalo {
     delegate: Original,
 }

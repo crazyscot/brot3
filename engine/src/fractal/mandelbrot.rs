@@ -4,7 +4,7 @@
 use super::maths::{ln_3_f64, Point};
 use super::{Algorithm, PointData};
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Original {}
 
 impl Algorithm for Original {
@@ -57,7 +57,7 @@ impl Algorithm for Original {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Mandel3 {}
 
 impl Algorithm for Mandel3 {
