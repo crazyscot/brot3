@@ -103,6 +103,7 @@ export component MainUI inherits Window {
     */
 
     in property <InfoDisplayData> info_data;
+    in property <bool> info_visible <=> hud.visible;
     hud := InfoDisplay {
         data <=> info_data;
         // Position over the bottom of the fractal viewport
@@ -137,6 +138,7 @@ export component MainUI inherits Window {
 
         items: [
             { display: "About" },
+            { display: "Show/Hide Info", callback: "toggle-info" },
         ];
     }
 
