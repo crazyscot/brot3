@@ -31,6 +31,8 @@ use strum_macros::{
         EnumProperty,
         EnumString,
         VariantArray,
+        PartialOrd,
+        Ord,
     )
 )] // ... and specifies what it derives from
 pub enum Instance {

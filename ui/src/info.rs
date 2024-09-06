@@ -1,9 +1,13 @@
 // Info string ("heads up display") & formatting
 // (c) 2024 Ross Younger
 
-use std::{cell::RefCell, cmp};
+use std::{cell::RefCell, cmp, collections::BTreeMap};
 
-use brot3_engine::fractal::{Algorithm as _, Point, Scalar};
+use brot3_engine::{
+    colouring,
+    fractal::{self, Algorithm as _, Point, Scalar},
+};
+use slint::SharedString;
 
 use crate::{
     components::{InfoDisplayData, MainUI},
@@ -74,7 +78,17 @@ pub(crate) fn format_float_fixed(positive_prefix: &str, n: f64, decimal_places: 
 
 // SLINT INTERACTION ================================================================
 
-pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
+#[derive(Default)]
+pub(crate) struct StringCache {
+    fractals: BTreeMap<fractal::Selection, SharedString>,
+    colourers: BTreeMap<colouring::Selection, SharedString>,
+}
+
+pub(crate) fn update_info_display(
+    world_: &RefCell<World>,
+    ui: &MainUI,
+    cache: &RefCell<StringCache>,
+) {
     let world = world_.borrow();
     let window_dimensions = world.visible_dimensions();
     let world_size_pixels = world.world_size();
@@ -145,13 +159,28 @@ pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
         (mantissa, exp)
     };
 
-    let alg_str: &'static str = world.algspec.algorithm.into();
-    let col_str: &'static str = world.algspec.colourer.into();
+    let mut cache = cache.borrow_mut();
+    let algorithm = cache
+        .fractals
+        .entry(world.algspec.algorithm.into())
+        .or_insert_with(|| {
+            let str: &'static str = world.algspec.algorithm.into();
+            SharedString::from(str)
+        })
+        .clone();
+    let colourer = cache
+        .colourers
+        .entry(world.algspec.colourer.into())
+        .or_insert_with(|| {
+            let str: &'static str = world.algspec.colourer.into();
+            SharedString::from(str)
+        })
+        .clone();
 
     #[allow(clippy::cast_possible_wrap)]
     let info = InfoDisplayData {
-        algorithm: alg_str.into(),
-        colourer: col_str.into(),
+        algorithm,
+        colourer,
         max_iter: world.algspec.max_iter as _,
         origin: origin.into(),
         centre: centre.into(),
