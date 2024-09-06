@@ -3,14 +3,12 @@
 
 use brot3_engine::{
     colouring,
-    fractal::{self, Algorithm, Point, Scalar, TileSpec},
+    fractal::{self, Algorithm, AlgorithmSpec, Point, Scalar, TileSpec},
     util::Rect,
 };
 
 pub(crate) const UI_TILE_SIZE_LOG2: isize = 8;
 pub(crate) const UI_TILE_SIZE: i32 = 1 << UI_TILE_SIZE_LOG2;
-
-pub(crate) const UI_TEMP_MAXITER: u16 = 256;
 
 pub(crate) type TileIndex = i64; // TECHDEBT Precision limit: This will be converted to engine::Scalar [f64 at present]
 pub(crate) type PixelIndex = i64;
@@ -23,6 +21,15 @@ pub struct PixelCoordinate {
     pub y: PixelIndex,
 }
 
+/// Default algorithm for the UI
+pub(crate) fn default_algorithm() -> AlgorithmSpec {
+    AlgorithmSpec::new(
+        fractal::factory(fractal::Selection::Original),
+        256,
+        colouring::factory(colouring::Selection::LchGradient),
+    )
+}
+
 /// 3D coordinates ("address") of a tile within the universe
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct TileCoordinate {
@@ -32,6 +39,8 @@ pub struct TileCoordinate {
     pub x: TileIndex,
     /// Index of this tile within the universe, Y dimension
     pub y: TileIndex,
+    /// Algorithm details
+    pub algspec: AlgorithmSpec,
 }
 
 impl TileCoordinate {
@@ -48,8 +57,7 @@ impl TryFrom<&TileCoordinate> for TileSpec {
     type Error = anyhow::Error;
 
     fn try_from(spec: &TileCoordinate) -> anyhow::Result<Self> {
-        let algorithm = fractal::decode("Original")?; // TODO comes from spec
-        let colourer = colouring::decode("LogRainbow")?; // TODO comes from spec
+        let algorithm = spec.algspec.algorithm;
         let tile_size = crate::UI_TILE_SIZE as u32;
 
         // TECHDEBT: Max resolution is 2^53 at present, limited by f64 mantissa size.
@@ -92,8 +100,8 @@ impl TryFrom<&TileCoordinate> for TileSpec {
             axes,
             output_size,
             algorithm,
-            UI_TEMP_MAXITER.into(), /* TODO becomes spec.max_iter */
-            colourer,
+            spec.algspec.max_iter,
+            spec.algspec.colourer,
         ))
     }
 }

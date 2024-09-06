@@ -17,7 +17,7 @@ pub use framework::{decode, factory, Algorithm, Instance, Selection};
 pub use maths::{Point, Scalar};
 pub use pointdata::PointData;
 pub use tile::Tile;
-pub use tilespec::TileSpec;
+pub use tilespec::{AlgorithmSpec, TileSpec};
 
 /// The user is allowed to specify the plot location in multiple ways.
 #[derive(Debug, Clone, Copy)]

@@ -1,6 +1,7 @@
 //! User interface for brot3
 
 mod components;
+use brot3_engine::fractal::AlgorithmSpec;
 use components::{MainUI, Tile};
 mod engine;
 mod info;
@@ -54,6 +55,9 @@ struct World {
 
     /// Co-ordinates of the bottom-left-most tile currently rendered (caution, may not be visible)
     bottom_left_tile: TileCoordinate,
+
+    /// The algorithm etc we are displaying
+    algspec: AlgorithmSpec,
 }
 
 impl World {
@@ -72,7 +76,14 @@ impl World {
             segment_origin_x: 0,
             segment_origin_y: 0,
 
-            bottom_left_tile: TileCoordinate { z: 0, x: 0, y: 0 },
+            bottom_left_tile: TileCoordinate {
+                z: 0,
+                x: 0,
+                y: 0,
+                algspec: types::default_algorithm(),
+            },
+
+            algspec: types::default_algorithm(),
         }
     }
 
@@ -174,6 +185,9 @@ impl World {
 
         let m = 1 << self.zoom_level; // max number of tiles in either dimension
 
+        let algorithm = types::default_algorithm();
+        // TODO This will be selectable by the user
+
         // Compute currently visible tile range
         let offset_x = self.offset_to_world_x();
         let offset_y = self.offset_to_world_y();
@@ -189,6 +203,7 @@ impl World {
                 && (coord.x < max_x + KEEP_CACHED_TILES)
                 && (coord.y > min_y - KEEP_CACHED_TILES)
                 && (coord.y < max_y + KEEP_CACHED_TILES)
+                && coord.algspec == self.algspec
         };
         self.loading_tiles.retain(|coord, _| keep(coord));
         self.loaded_tiles.retain(|coord, _| keep(coord));
@@ -199,6 +214,7 @@ impl World {
                     z: self.zoom_level,
                     x,
                     y,
+                    algspec: algorithm,
                 };
                 if self.loaded_tiles.contains_key(&coord) {
                     continue;
@@ -215,6 +231,7 @@ impl World {
             z: self.zoom_level,
             x: min_x,
             y: max_y,
+            algspec: algorithm,
         }
     }
 

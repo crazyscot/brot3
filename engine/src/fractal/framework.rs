@@ -10,13 +10,16 @@ use super::mandeldrop::{Mandeldrop, Mandeldrop3};
 use super::misc_fractals::{BirdOfPrey, Buffalo, BurningShip, Celtic, Mandelbar, Variant};
 
 use enum_delegate;
+use strum::IntoStaticStr;
 use strum_macros::{
     Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, VariantArray,
 };
 
 /// Selector for available Algorithms
 #[enum_delegate::implement(Algorithm)]
-#[derive(Clone, Copy, Debug, Display, FromRepr, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Clone, Copy, Debug, Display, FromRepr, PartialEq, Eq, Hash, PartialOrd, Ord, IntoStaticStr,
+)]
 #[strum(serialize_all = "kebab_case")]
 #[derive(EnumDiscriminants)] // This creates the enum Selection ...
 #[strum_discriminants(
