@@ -19,11 +19,11 @@ const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AlgorithmSpec {
     /// The selected algorithm
-    algorithm: fractal::Instance,
+    pub algorithm: fractal::Instance,
     /// Iteration limit
-    max_iter: u32,
-    // The selected colourer
-    colourer: colouring::Instance,
+    pub max_iter: u32,
+    /// The selected colourer
+    pub colourer: colouring::Instance,
 }
 
 impl AlgorithmSpec {
