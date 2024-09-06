@@ -1,7 +1,7 @@
 // Info string ("heads up display") & formatting
 // (c) 2024 Ross Younger
 
-use std::{cell::RefCell, cmp, collections::BTreeMap, rc::Rc};
+use std::{cell::RefCell, cmp, collections::BTreeMap, rc::Rc, str::FromStr as _};
 
 use brot3_engine::{
     colouring,
@@ -224,10 +224,11 @@ pub(crate) fn populate_dropdowns(state: &Rc<State>) {
         let state = state_weak.upgrade().unwrap();
         let mut world = state.world.borrow_mut();
         let mut new_algspec = world.active_algspec;
-        new_algspec.algorithm = brot3_engine::fractal::decode(&selection).unwrap_or_else(|e| {
-            eprintln!("{e}: {selection}");
-            world.active_algspec.algorithm
-        });
+        new_algspec.algorithm = brot3_engine::fractal::Instance::from_str(selection.as_str())
+            .unwrap_or_else(|e| {
+                eprintln!("{e}: {selection}");
+                world.active_algspec.algorithm
+            });
         world.reset_view_2(Some(new_algspec));
         drop(world);
         state.do_poll();
@@ -238,10 +239,11 @@ pub(crate) fn populate_dropdowns(state: &Rc<State>) {
         let state = state_weak.upgrade().unwrap();
         let mut world = state.world.borrow_mut();
         let mut new_algspec = world.active_algspec;
-        new_algspec.colourer = brot3_engine::colouring::decode(&selection).unwrap_or_else(|e| {
-            eprintln!("{e}: {selection}");
-            world.active_algspec.colourer
-        });
+        new_algspec.colourer = brot3_engine::colouring::Instance::from_str(selection.as_str())
+            .unwrap_or_else(|e| {
+                eprintln!("{e}: {selection}");
+                world.active_algspec.colourer
+            });
         world.reset_view_2(Some(new_algspec));
         drop(world);
         state.do_poll();
