@@ -290,6 +290,8 @@ struct State {
     main_ui: MainUI,
     /// Polling handle
     poll_handle: RefCell<Option<slint::JoinHandle<()>>>,
+    /// String cache for the info box
+    info_cache: RefCell<info::StringCache>,
 }
 
 impl State {
@@ -338,7 +340,7 @@ impl State {
                 .collect::<Vec<Tile>>(),
         );
         self.main_ui.set_tiles(slint::ModelRc::new(vec));
-        crate::info::update_info_display(&self.world, &self.main_ui);
+        crate::info::update_info_display(&self.world, &self.main_ui, &self.info_cache);
     }
 
     /// Updates the viewport after the zoom or segment origin changes.
@@ -416,6 +418,7 @@ fn main() {
         world: RefCell::new(World::new()),
         main_ui: MainUI::new().unwrap(),
         poll_handle: None.into(),
+        info_cache: RefCell::default(),
     });
 
     state

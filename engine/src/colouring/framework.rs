@@ -35,6 +35,8 @@ pub type Rgb8 = palette::Srgb<u8>;
         EnumProperty,
         EnumString,
         VariantArray,
+        PartialOrd,
+        Ord,
     )
 )] // ... and specifies what it derives from
 pub enum Instance {
