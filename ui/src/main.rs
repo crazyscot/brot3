@@ -421,9 +421,98 @@ impl State {
     }
 }
 
-fn main() {
-    #![allow(trivial_numeric_casts)]
+fn setup_gestures(state: &Rc<State>) {
+    let state_weak = Rc::downgrade(state);
+    #[allow(clippy::cast_possible_truncation)]
+    // User flicked (dragged) the map
+    // * ox: New absolute viewport offset
+    // * oy: New absolute viewport offset
+    state.main_ui.on_flicked(move |ox, oy| {
+        let state = state_weak.upgrade().unwrap();
+        let mut world = state.world.borrow_mut();
+        world.segment_offset_x = -ox as _;
+        world.segment_offset_y = -oy as _;
+        world.visible_width = state.main_ui.get_visible_width() as _;
+        world.visible_height = state.main_ui.get_visible_height() as _;
+        world.reset_view();
+        drop(world); // drops the reference, not the actual world
+        state.do_poll();
+    });
 
+    let state_weak = Rc::downgrade(state);
+    #[allow(clippy::cast_possible_truncation)]
+    // User dragged the zoom slider. Change zoom without panning i.e. keep the centre where it is.
+    // * zoom: New zoom level
+    state.main_ui.on_zoom_changed(move |zoom| {
+        let state = state_weak.upgrade().unwrap();
+        let mut world = state.world.borrow_mut();
+        world.visible_width = state.main_ui.get_visible_width() as _;
+        world.visible_height = state.main_ui.get_visible_height() as _;
+        let (vw, vh) = (world.visible_width, world.visible_height);
+        world.set_zoom_level(zoom as _, vw / 2, vh / 2);
+        drop(world); // drops the reference, not the actual world
+        state.set_viewport_size();
+        state.do_poll();
+    });
+    let state_weak = Rc::downgrade(state);
+    #[allow(clippy::cast_possible_truncation)]
+    // User gestured to zoom in. Zoom around a given point.
+    // * ox: Zoom locus, X coordinate?
+    // * oy: Zoom locus, Y coordinate
+    state.main_ui.on_zoom_in(move |ox, oy| {
+        let state = state_weak.upgrade().unwrap();
+        let mut world = state.world.borrow_mut();
+        let z = (world.zoom_level + 1).min(UI_MAX_ZOOM_LEVEL);
+        world.visible_width = state.main_ui.get_visible_width() as _;
+        world.visible_height = state.main_ui.get_visible_height() as _;
+        world.set_zoom_level(z, ox as PixelIndex, oy as PixelIndex);
+        drop(world); // drops the reference, not the actual world
+        state.set_viewport_size();
+        state.do_poll();
+    });
+    let state_weak = Rc::downgrade(state);
+    #[allow(clippy::cast_possible_truncation)]
+    // User gestured to zoom out. Zoom around a given point.
+    // * ox: Zoom locus, X coordinate?
+    // * oy: Zoom locus, Y coordinate
+    state.main_ui.on_zoom_out(move |ox, oy| {
+        let state = state_weak.upgrade().unwrap();
+        let mut world = state.world.borrow_mut();
+        let z = (world.zoom_level - 1).max(world.minimum_zoom_level);
+        world.visible_width = state.main_ui.get_visible_width() as _;
+        world.visible_height = state.main_ui.get_visible_height() as _;
+        world.set_zoom_level(z, ox as PixelIndex, oy as PixelIndex);
+        drop(world); // drops the reference, not the actual world
+        state.set_viewport_size();
+        state.do_poll();
+    });
+
+    // Recentre the segment around the viewport visible region.
+    // TODO TECHDEBT: Do this automatically, if we can figure out how to get notified by slint when a drag episode ends.
+    // (Potentially triggering on every drag event is overkill. Such events are raised both during and after the drag episode.
+    // Modifying the viewport during a drag episode [button still pressed] doesn't work properly;
+    // we need to be able to tell that there is no current drag event. Perhaps we set a recentre-needed flag during the drag,
+    // then on poll we check the mouse button state and jump in after it has been released?)
+    let state_weak = Rc::downgrade(state);
+    state.main_ui.on_resegment_clicked(move || {
+        let state = state_weak.upgrade().unwrap();
+        state.recentre_segment();
+    });
+
+    let state_weak = Rc::downgrade(state);
+    state.main_ui.on_resized(move |_ww, _hh| {
+        let state2 = state_weak.clone();
+        let _a = slint::spawn_local(async move {
+            let state = state2.upgrade().unwrap();
+            state.size_changed();
+        })
+        .unwrap();
+        let buffer = SharedPixelBuffer::<Rgba8Pixel>::new(1, 1);
+        slint::Image::from_rgba8(buffer)
+    });
+}
+
+fn main() {
     let rt = tokio::runtime::Runtime::new().unwrap();
     let _tokio = rt.enter();
 
@@ -444,94 +533,7 @@ fn main() {
         commit_hash: SharedString::from(build_info::GIT_COMMIT_HASH.unwrap_or("unknown")),
     });
 
-    let state_weak = Rc::downgrade(&state);
-    #[allow(clippy::cast_possible_truncation)]
-    // User flicked (dragged) the map
-    // * ox: New absolute viewport offset
-    // * oy: New absolute viewport offset
-    state.main_ui.on_flicked(move |ox, oy| {
-        let state = state_weak.upgrade().unwrap();
-        let mut world = state.world.borrow_mut();
-        world.segment_offset_x = -ox as _;
-        world.segment_offset_y = -oy as _;
-        world.visible_width = state.main_ui.get_visible_width() as _;
-        world.visible_height = state.main_ui.get_visible_height() as _;
-        world.reset_view();
-        drop(world); // drops the reference, not the actual world
-        state.do_poll();
-    });
-
-    let state_weak = Rc::downgrade(&state);
-    #[allow(clippy::cast_possible_truncation)]
-    // User dragged the zoom slider. Change zoom without panning i.e. keep the centre where it is.
-    // * zoom: New zoom level
-    state.main_ui.on_zoom_changed(move |zoom| {
-        let state = state_weak.upgrade().unwrap();
-        let mut world = state.world.borrow_mut();
-        world.visible_width = state.main_ui.get_visible_width() as _;
-        world.visible_height = state.main_ui.get_visible_height() as _;
-        let (vw, vh) = (world.visible_width, world.visible_height);
-        world.set_zoom_level(zoom as _, vw / 2, vh / 2);
-        drop(world); // drops the reference, not the actual world
-        state.set_viewport_size();
-        state.do_poll();
-    });
-    let state_weak = Rc::downgrade(&state);
-    #[allow(clippy::cast_possible_truncation)]
-    // User gestured to zoom in. Zoom around a given point.
-    // * ox: Zoom locus, X coordinate?
-    // * oy: Zoom locus, Y coordinate
-    state.main_ui.on_zoom_in(move |ox, oy| {
-        let state = state_weak.upgrade().unwrap();
-        let mut world = state.world.borrow_mut();
-        let z = (world.zoom_level + 1).min(UI_MAX_ZOOM_LEVEL);
-        world.visible_width = state.main_ui.get_visible_width() as _;
-        world.visible_height = state.main_ui.get_visible_height() as _;
-        world.set_zoom_level(z as _, ox as PixelIndex, oy as PixelIndex);
-        drop(world); // drops the reference, not the actual world
-        state.set_viewport_size();
-        state.do_poll();
-    });
-    let state_weak = Rc::downgrade(&state);
-    #[allow(clippy::cast_possible_truncation)]
-    // User gestured to zoom out. Zoom around a given point.
-    // * ox: Zoom locus, X coordinate?
-    // * oy: Zoom locus, Y coordinate
-    state.main_ui.on_zoom_out(move |ox, oy| {
-        let state = state_weak.upgrade().unwrap();
-        let mut world = state.world.borrow_mut();
-        let z = (world.zoom_level - 1).max(world.minimum_zoom_level);
-        world.visible_width = state.main_ui.get_visible_width() as _;
-        world.visible_height = state.main_ui.get_visible_height() as _;
-        world.set_zoom_level(z as _, ox as PixelIndex, oy as PixelIndex);
-        drop(world); // drops the reference, not the actual world
-        state.set_viewport_size();
-        state.do_poll();
-    });
-
-    // Recentre the segment around the viewport visible region.
-    // TODO TECHDEBT: Do this automatically, if we can figure out how to get notified by slint when a drag episode ends.
-    // (Potentially triggering on every drag event is overkill. Such events are raised both during and after the drag episode.
-    // Modifying the viewport during a drag episode [button still pressed] doesn't work properly;
-    // we need to be able to tell that there is no current drag event. Perhaps we set a recentre-needed flag during the drag,
-    // then on poll we check the mouse button state and jump in after it has been released?)
-    let state_weak = Rc::downgrade(&state);
-    state.main_ui.on_resegment_clicked(move || {
-        let state = state_weak.upgrade().unwrap();
-        state.recentre_segment();
-    });
-
-    let state_weak = Rc::downgrade(&state);
-    state.main_ui.on_resized(move |_ww, _hh| {
-        let state2 = state_weak.clone();
-        let _a = slint::spawn_local(async move {
-            let state = state2.upgrade().unwrap();
-            state.size_changed();
-        })
-        .unwrap();
-        let buffer = SharedPixelBuffer::<Rgba8Pixel>::new(1, 1);
-        slint::Image::from_rgba8(buffer)
-    });
+    setup_gestures(&state);
 
     let state_weak = Rc::downgrade(&state);
     state.main_ui.on_menu_selected(move |what| {
