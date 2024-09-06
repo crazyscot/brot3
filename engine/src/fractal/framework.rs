@@ -87,11 +87,15 @@ pub fn factory(selection: Selection) -> Instance {
         panic!("Failed to convert enum discriminant {selection} into instance (can't happen)")
     })
 }
-/// Factory-from-string method
-pub fn decode(request: &str) -> anyhow::Result<Instance> {
-    match Selection::from_str(request) {
-        Ok(s) => Ok(factory(s)),
-        Err(_) => anyhow::bail!("unknown fractal name"),
+
+impl FromStr for Instance {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match Selection::from_str(s) {
+            Ok(s) => Ok(factory(s)),
+            Err(_) => anyhow::bail!("unknown fractal name"),
+        }
     }
 }
 
