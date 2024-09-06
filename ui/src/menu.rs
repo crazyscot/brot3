@@ -3,8 +3,16 @@
 
 use crate::State;
 use slint::{ComponentHandle, SharedString};
+use std::rc::Rc;
 
-pub(crate) fn handle_menu(state: &std::rc::Weak<State>, what: &SharedString) {
+pub(crate) fn setup_menu(state: &Rc<State>) {
+    let state_weak = Rc::downgrade(state);
+    state.main_ui.on_menu_selected(move |what| {
+        handle_menu(&state_weak, &what);
+    });
+}
+
+fn handle_menu(state: &std::rc::Weak<State>, what: &SharedString) {
     match what.as_str() {
         "About" => do_about(state),
         "toggle-info" => toggle_info(state),

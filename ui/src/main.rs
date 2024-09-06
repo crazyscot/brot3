@@ -526,6 +526,7 @@ fn main() {
     state
         .main_ui
         .set_window_title(format!("brot3 {}", build_info::PKG_VERSION).into());
+
     state.main_ui.set_build_info(crate::components::BuildInfo {
         version: SharedString::from(build_info::GIT_VERSION.unwrap_or("unknown version")),
         authors: SharedString::from(build_info::PKG_AUTHORS),
@@ -534,12 +535,7 @@ fn main() {
     });
 
     setup_gestures(&state);
-
-    let state_weak = Rc::downgrade(&state);
-    state.main_ui.on_menu_selected(move |what| {
-        crate::menu::handle_menu(&state_weak, &what);
-    });
-
+    menu::setup_menu(&state);
     info::populate_dropdowns(&state);
 
     // Initial population of tiles also looks like a resize event
