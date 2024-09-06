@@ -9,12 +9,6 @@ import { AboutBox, BuildInfo } from "about.slint";
 export struct Tile { x: length, y: length, tile: image}
 
 export component MainUI inherits Window {
-    callback flicked(length, length);
-    callback zoom-changed(float);
-    callback zoom-in(length, length);
-    callback zoom-out(length, length);
-    callback resegment-clicked();
-
     // Window sizing callback. This returns a dummy invisible image but triggers the logic to reconsider the visible tiles.
     pure callback resized(length, length) -> image;
     min-height: 500px;
@@ -24,6 +18,14 @@ export component MainUI inherits Window {
     out property <length> visible_height <=> fli.height;
 
     default-font-family: "Inter";
+
+    // FRACTAL VIEWPORT ==========================================================================
+
+    callback flicked(length, length);
+    callback zoom-changed(float);
+    callback zoom-in(length, length);
+    callback zoom-out(length, length);
+    callback resegment-clicked();
 
     in-out property <float> zoom <=> sli.value;
     in property <float> minimum-zoom <=> sli.minimum;
@@ -35,7 +37,6 @@ export component MainUI inherits Window {
     out property <length> viewport-x <=> fli.viewport-x;
     out property <length> viewport-y <=> fli.viewport-y;
 
-    in property <BuildInfo> build-info;
 
     // ox,oy: Viewport offsets within the visible segment (these are usually negative?)
     // width, height: viewport size
@@ -102,18 +103,37 @@ export component MainUI inherits Window {
     }
     */
 
+    // INFO DISPLAY (HUD) ========================================================================
+
     in property <InfoDisplayData> info_data;
     in property <bool> info_visible <=> hud.visible;
+
+    in-out property <string> fractal-selection <=> hud.fractal-selection;
+    in property <[string]> fractals-available <=> hud.fractals-available;
+    callback fractal-selected(string);
+
+    in-out property <string> colourer-selection <=> hud.colourer-selection;
+    in property <[string]> colourers-available <=> hud.colourers-available;
+    callback colourer-selected(string);
+
     hud := InfoDisplay {
         data <=> info_data;
         // Position over the bottom of the fractal viewport
         x: 0;
         y: fli.y + fli.height - self.height;
+        fractal-selected(s) => {
+            root.fractal-selected(s)
+        }
+        colourer-selected(s) => {
+            root.colourer-selected(s)
+        }
     }
 
     dummy_img := Image {
         source: resized(root.width, root.height);
     }
+
+    // MENU ======================================================================================
 
     private property <bool> menu-open: false;
     menu_btn := Button {
@@ -141,6 +161,10 @@ export component MainUI inherits Window {
             { display: "Show/Hide Info", callback: "toggle-info" },
         ];
     }
+
+    // ABOUT BOX =================================================================================
+
+    in property <BuildInfo> build-info;
 
     public function about_box() {
         about.show();

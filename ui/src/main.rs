@@ -56,8 +56,9 @@ struct World {
     /// Co-ordinates of the bottom-left-most tile currently rendered (caution, may not be visible)
     bottom_left_tile: TileCoordinate,
 
-    /// The algorithm etc we are displaying
-    algspec: AlgorithmSpec,
+    /// The algorithm etc we are currently displaying.
+    /// CAUTION: Only `reset_view_2` should modify this directly!
+    active_algspec: AlgorithmSpec,
 }
 
 impl World {
@@ -83,7 +84,7 @@ impl World {
                 algspec: types::default_algorithm(),
             },
 
-            algspec: types::default_algorithm(),
+            active_algspec: types::default_algorithm(),
         }
     }
 
@@ -179,14 +180,20 @@ impl World {
     /// Updates the view on startup or after a user action.
     /// Launches tile loads as necessary.
     fn reset_view(&mut self) {
+        self.reset_view_2(None);
+    }
+    /// Updates the view on startup or after a user action.
+    /// This version allows the algorithm spec to be changed.
+    /// Launches tile loads as necessary.
+    fn reset_view_2(&mut self, new_algspec: Option<AlgorithmSpec>) {
         /// How many cached tiles to keep around the currently-visible set?
         /// IOW: How far away does a tile need to be from the viewport in order to be dropped?
         const KEEP_CACHED_TILES: TileIndex = 10;
 
         let m = 1 << self.zoom_level; // max number of tiles in either dimension
 
-        let algorithm = types::default_algorithm();
-        // TODO This will be selectable by the user
+        // Are we changing algorithm?
+        let wanted_algspec = new_algspec.unwrap_or(self.active_algspec);
 
         // Compute currently visible tile range
         let offset_x = self.offset_to_world_x();
@@ -203,7 +210,7 @@ impl World {
                 && (coord.x < max_x + KEEP_CACHED_TILES)
                 && (coord.y > min_y - KEEP_CACHED_TILES)
                 && (coord.y < max_y + KEEP_CACHED_TILES)
-                && coord.algspec == self.algspec
+                && coord.algspec == wanted_algspec
         };
         self.loading_tiles.retain(|coord, _| keep(coord));
         self.loaded_tiles.retain(|coord, _| keep(coord));
@@ -214,7 +221,7 @@ impl World {
                     z: self.zoom_level,
                     x,
                     y,
-                    algspec: algorithm,
+                    algspec: wanted_algspec,
                 };
                 if self.loaded_tiles.contains_key(&coord) {
                     continue;
@@ -231,8 +238,9 @@ impl World {
             z: self.zoom_level,
             x: min_x,
             y: max_y,
-            algspec: algorithm,
-        }
+            algspec: wanted_algspec,
+        };
+        self.active_algspec = wanted_algspec;
     }
 
     /// Checks the `loading_tiles` set for tiles which have become ready.
@@ -524,6 +532,8 @@ fn main() {
     state.main_ui.on_menu_selected(move |what| {
         crate::menu::handle_menu(&state_weak, &what);
     });
+
+    info::populate_dropdowns(&state);
 
     // Initial population of tiles also looks like a resize event
     {
