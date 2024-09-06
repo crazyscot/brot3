@@ -109,11 +109,14 @@ pub fn factory(selection: Selection) -> Instance {
     })
 }
 
-/// Factory-from-string method
-pub fn decode(request: &str) -> anyhow::Result<Instance> {
-    match Selection::from_str(request) {
-        Ok(s) => Ok(factory(s)),
-        Err(_) => anyhow::bail!("unknown colourer name"),
+impl FromStr for Instance {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match Selection::from_str(s) {
+            Ok(s) => Ok(factory(s)),
+            Err(_) => anyhow::bail!("unknown colourer name"),
+        }
     }
 }
 
