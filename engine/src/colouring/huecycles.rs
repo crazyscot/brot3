@@ -6,7 +6,7 @@ use palette::{convert::FromColorUnclamped, encoding::Srgb, Hsv, LabHue, Lch, Rgb
 use super::{OutputsHsvf, OutputsRgb8, Rgb8};
 
 /// Cycling H; Fixed S=1.0, V=1.0
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct LinearRainbow {}
 
 const LINEAR_RAINBOW_WRAP: f32 = 32.0; // TODO this might become a parameter later
@@ -30,7 +30,7 @@ impl OutputsHsvf for LinearRainbow {
 }
 
 /// Cycling H; Fixed S=1.0, V=1.0
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct LogRainbow {}
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for LogRainbow {
@@ -44,7 +44,7 @@ impl OutputsHsvf for LogRainbow {
 }
 
 /// Cycling H; Fixed S=1.0, V=1.0
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct SqrtRainbow {}
 #[allow(clippy::cast_possible_truncation)]
 impl OutputsHsvf for SqrtRainbow {
@@ -58,7 +58,7 @@ impl OutputsHsvf for SqrtRainbow {
 }
 
 /// HSV Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#HSV_coloring>
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct HsvGradient {}
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
@@ -76,7 +76,7 @@ impl OutputsHsvf for HsvGradient {
 }
 
 /// LCH Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#LCH_coloring>
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct LchGradient {}
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
