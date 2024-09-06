@@ -11,7 +11,7 @@ const ITERS_CLAMP_EPSILON: f32 = 0.000_01;
 // /////////////////////////////////////////////////////////////
 /// The colouring algorithm from rjk's ``mandy``
 /// `https://github.com/ewxrjk/mandy/blob/master/lib/Color.h`
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Mandy {}
 
 impl OutputsRgb8 for Mandy {
@@ -31,7 +31,7 @@ impl OutputsRgb8 for Mandy {
 // /////////////////////////////////////////////////////////////
 /// fanf's White Fade algorithm
 /// `https://dotat.at/cgi/git/mandelbrot.git/blob/HEAD:/mandel2ppm.c`
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct WhiteFade {}
 
 impl OutputsRgb8 for WhiteFade {
@@ -58,7 +58,7 @@ impl OutputsRgb8 for WhiteFade {
 
 /// fanf's Black Fade algorithm
 /// `https://dotat.at/cgi/git/mandelbrot.git/blob/HEAD:/mandel2ppm.c`
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct BlackFade {}
 
 impl OutputsRgb8 for BlackFade {
@@ -85,7 +85,7 @@ impl OutputsRgb8 for BlackFade {
 
 /// fanf's Monochrome Shade algorithm
 /// `https://dotat.at/cgi/git/mandelbrot.git/blob/HEAD:/mandel2ppm.c`
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Monochrome {}
 
 impl OutputsRgb8 for Monochrome {
@@ -105,7 +105,7 @@ impl OutputsRgb8 for Monochrome {
 
 /// fanf's Monochrome Shade algorithm, Inverted
 /// `https://dotat.at/cgi/git/mandelbrot.git/blob/HEAD:/mandel2ppm.c`
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct MonochromeInverted {}
 
 impl OutputsRgb8 for MonochromeInverted {
@@ -128,7 +128,7 @@ impl OutputsRgb8 for MonochromeInverted {
 /// Colouring algorithm by `OneLoneCoder.com`
 /// `https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_Mandelbrot.cpp`
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct OneLoneCoder {}
 
 #[allow(clippy::cast_possible_truncation)]
