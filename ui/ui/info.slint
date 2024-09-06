@@ -3,6 +3,8 @@
 
 import "./assets/Inter_18pt-Bold.ttf";
 
+import { ComboBox } from "std-widgets.slint";
+
 export struct InfoDisplayData {
     algorithm: string,
     colourer: string,
@@ -18,6 +20,16 @@ export component InfoDisplay inherits Rectangle {
     // Data to display
     in property <InfoDisplayData> data;
     // N.B. Caller should set x and y
+
+    // Fractal selection
+    in-out property <string> fractal-selection <=> fractal-cb.current-value;
+    in property<[string]> fractals-available <=> fractal-cb.model; // Set by caller
+    callback fractal-selected(string);
+
+    // Colourer selection
+    in-out property <string> colourer-selection <=> colourer-cb.current-value;
+    in property<[string]> colourers-available <=> colourer-cb.model; // Set by caller
+    callback colourer-selected(string);
 
     // Styling. These might become tweakable user preferences later.
     private property <length> main_size: 18px;
@@ -50,10 +62,11 @@ export component InfoDisplay inherits Rectangle {
                     font-size: legend_size; font-weight: text_weight; color: legend_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
-                Text {
-                    text: data.algorithm;
-                    font-size: main_size; font-weight: text_weight; color: data_colour;
-                    vertical-alignment: TextVerticalAlignment.center;
+                fractal_cb := ComboBox {
+                    selected => {
+                        root.fractal-selected(self.current-value)
+                    }
+                    // TODO I'd really like a styled combobox! vivi?
                 }
             }
             HorizontalLayout {
@@ -80,10 +93,10 @@ export component InfoDisplay inherits Rectangle {
                     font-size: legend_size; font-weight: text_weight; color: legend_colour;
                     vertical-alignment: TextVerticalAlignment.center;
                 }
-                Text {
-                    text: data.colourer;
-                    font-size: main_size; font-weight: text_weight; color: data_colour;
-                    vertical-alignment: TextVerticalAlignment.bottom;
+                colourer-cb := ComboBox {
+                    selected => {
+                        root.colourer-selected(self.current-value)
+                    }
                 }
             }
         }

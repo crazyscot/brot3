@@ -26,7 +26,7 @@ pub(crate) fn default_algorithm() -> AlgorithmSpec {
     AlgorithmSpec::new(
         fractal::factory(fractal::Selection::Original),
         256,
-        colouring::factory(colouring::Selection::LchGradient),
+        colouring::factory(colouring::Selection::LinearRainbow),
     )
 }
 

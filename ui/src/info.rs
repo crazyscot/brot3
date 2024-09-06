@@ -1,18 +1,19 @@
 // Info string ("heads up display") & formatting
 // (c) 2024 Ross Younger
 
-use std::{cell::RefCell, cmp, collections::BTreeMap};
+use std::{cell::RefCell, cmp, collections::BTreeMap, rc::Rc};
 
 use brot3_engine::{
     colouring,
     fractal::{self, Algorithm as _, Point, Scalar},
+    util::listable,
 };
-use slint::SharedString;
+use slint::{SharedString, VecModel};
 
 use crate::{
     components::{InfoDisplayData, MainUI},
     types::PixelCoordinate,
-    World,
+    State, World,
 };
 
 // HELPER FUNCTIONS =================================================================
@@ -92,7 +93,7 @@ pub(crate) fn update_info_display(
     let world = world_.borrow();
     let window_dimensions = world.visible_dimensions();
     let world_size_pixels = world.world_size();
-    let algorithm_instance = world.algspec.algorithm;
+    let algorithm_instance = world.active_algspec.algorithm;
     let fractal_size = algorithm_instance.default_axes();
 
     #[allow(clippy::cast_precision_loss)]
@@ -162,17 +163,17 @@ pub(crate) fn update_info_display(
     let mut cache = cache.borrow_mut();
     let algorithm = cache
         .fractals
-        .entry(world.algspec.algorithm.into())
+        .entry(world.active_algspec.algorithm.into())
         .or_insert_with(|| {
-            let str: &'static str = world.algspec.algorithm.into();
+            let str: &'static str = world.active_algspec.algorithm.into();
             SharedString::from(str)
         })
         .clone();
     let colourer = cache
         .colourers
-        .entry(world.algspec.colourer.into())
+        .entry(world.active_algspec.colourer.into())
         .or_insert_with(|| {
-            let str: &'static str = world.algspec.colourer.into();
+            let str: &'static str = world.active_algspec.colourer.into();
             SharedString::from(str)
         })
         .clone();
@@ -181,7 +182,7 @@ pub(crate) fn update_info_display(
     let info = InfoDisplayData {
         algorithm,
         colourer,
-        max_iter: world.algspec.max_iter as _,
+        max_iter: world.active_algspec.max_iter as _,
         origin: origin.into(),
         centre: centre.into(),
         axes: axes.into(),
@@ -189,6 +190,62 @@ pub(crate) fn update_info_display(
         zoom_exponent10: z_exponent,
     };
     ui.set_info_data(info);
+}
+
+pub(crate) fn populate_dropdowns(state: &Rc<State>) {
+    let default = crate::types::default_algorithm();
+
+    let avail_fractals = listable::list_original_case::<brot3_engine::fractal::Selection>()
+        .map(|s| SharedString::from(s.name))
+        .collect::<Vec<_>>();
+    state
+        .main_ui
+        .set_fractals_available(slint::ModelRc::new(VecModel::from(avail_fractals)));
+    state.main_ui.set_fractal_selection(
+        brot3_engine::fractal::Selection::from(default.algorithm)
+            .to_string()
+            .into(),
+    );
+
+    let avail_colourers = listable::list_original_case::<brot3_engine::colouring::Selection>()
+        .map(|s| SharedString::from(s.name))
+        .collect::<Vec<_>>();
+    state
+        .main_ui
+        .set_colourers_available(slint::ModelRc::new(VecModel::from(avail_colourers)));
+    state.main_ui.set_colourer_selection(
+        brot3_engine::colouring::Selection::from(default.colourer)
+            .to_string()
+            .into(),
+    );
+
+    let state_weak = Rc::downgrade(state);
+    state.main_ui.on_fractal_selected(move |selection| {
+        let state = state_weak.upgrade().unwrap();
+        let mut world = state.world.borrow_mut();
+        let mut new_algspec = world.active_algspec;
+        new_algspec.algorithm = brot3_engine::fractal::decode(&selection).unwrap_or_else(|e| {
+            eprintln!("{e}: {selection}");
+            world.active_algspec.algorithm
+        });
+        world.reset_view_2(Some(new_algspec));
+        drop(world);
+        state.do_poll();
+    });
+
+    let state_weak = Rc::downgrade(state);
+    state.main_ui.on_colourer_selected(move |selection| {
+        let state = state_weak.upgrade().unwrap();
+        let mut world = state.world.borrow_mut();
+        let mut new_algspec = world.active_algspec;
+        new_algspec.colourer = brot3_engine::colouring::decode(&selection).unwrap_or_else(|e| {
+            eprintln!("{e}: {selection}");
+            world.active_algspec.colourer
+        });
+        world.reset_view_2(Some(new_algspec));
+        drop(world);
+        state.do_poll();
+    });
 }
 
 // TEST =============================================================================
