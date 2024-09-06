@@ -78,8 +78,7 @@ pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
     let world = world_.borrow();
     let window_dimensions = world.visible_dimensions();
     let world_size_pixels = world.world_size();
-    let algorithm_instance =
-        brot3_engine::fractal::factory(brot3_engine::fractal::Selection::Original); // TODO use algorithm from spec
+    let algorithm_instance = world.algspec.algorithm;
     let fractal_size = algorithm_instance.default_axes();
 
     #[allow(clippy::cast_precision_loss)]
@@ -146,10 +145,14 @@ pub(crate) fn update_info_display(world_: &RefCell<World>, ui: &MainUI) {
         (mantissa, exp)
     };
 
+    let alg_str: &'static str = world.algspec.algorithm.into();
+    let col_str: &'static str = world.algspec.colourer.into();
+
+    #[allow(clippy::cast_possible_wrap)]
     let info = InfoDisplayData {
-        algorithm: "Original".into(),  // TODO this comes from alg spec
-        colourer: "LogRainbow".into(), // TODO from alg spec
-        max_iter: crate::types::UI_TEMP_MAXITER.into(), // TODO from alg spec
+        algorithm: alg_str.into(),
+        colourer: col_str.into(),
+        max_iter: world.algspec.max_iter as _,
         origin: origin.into(),
         centre: centre.into(),
         axes: axes.into(),
