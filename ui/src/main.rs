@@ -10,7 +10,7 @@ use loader::LoadingTile;
 mod menu;
 mod types;
 use types::{
-    PixelCoordinate, PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE,
+    FinishedTile, PixelCoordinate, PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE,
     UI_TILE_SIZE_LOG2,
 };
 
@@ -28,7 +28,7 @@ const UI_MIN_ZOOM_LEVEL: ZoomLevel = 1; // We may set a higher minimum dynamical
 
 /// Tile source, tiles, and active viewport parameters
 struct World {
-    loaded_tiles: BTreeMap<TileCoordinate, slint::Image>,
+    loaded_tiles: BTreeMap<TileCoordinate, FinishedTile>,
     loading_tiles: BTreeMap<TileCoordinate, LoadingTile>,
     /// Currently displayed zoom level
     zoom_level: ZoomLevel,
@@ -99,7 +99,6 @@ impl World {
     /// * `oy`: Y coordinate of the zoom centre, in current-zoom-level pixel coordinates
     fn set_zoom_level(&mut self, zoom_level: ZoomLevel, ox: PixelIndex, oy: PixelIndex) {
         if self.zoom_level != zoom_level {
-            self.loaded_tiles.clear();
             self.clear_loading_tiles();
 
             // Apply the zoom to compute our new offset x and y
@@ -197,9 +196,6 @@ impl World {
 
         let m = 1 << self.zoom_level; // max number of tiles in either dimension
 
-        // Are we changing algorithm?
-        let wanted_algspec = new_algspec.unwrap_or(self.active_algspec);
-
         // Compute currently visible tile range
         let offset_x = self.offset_to_world_x();
         let offset_y = self.offset_to_world_y();
@@ -208,17 +204,46 @@ impl World {
         let max_x = (((offset_x + self.visible_width + 1) >> UI_TILE_SIZE_LOG2) + 1).min(m);
         let max_y = (((offset_y + self.visible_height + 1) >> UI_TILE_SIZE_LOG2) + 1).min(m);
 
+        let changing_alg = new_algspec.is_some();
+        let wanted_algspec = new_algspec.unwrap_or(self.active_algspec);
+
         // Remove tiles that are too far away
         let keep = |coord: &TileCoordinate| {
             coord.z == self.zoom_level
+                && coord.algspec == wanted_algspec
                 && (coord.x > min_x - KEEP_CACHED_TILES)
                 && (coord.x < max_x + KEEP_CACHED_TILES)
                 && (coord.y > min_y - KEEP_CACHED_TILES)
                 && (coord.y < max_y + KEEP_CACHED_TILES)
-                && coord.algspec == wanted_algspec
         };
-        self.loading_tiles.retain(|coord, _| keep(coord));
-        self.loaded_tiles.retain(|coord, _| keep(coord));
+
+        // Do we want to retain any calculations in flight?
+        if changing_alg {
+            self.loading_tiles.clear();
+        } else {
+            self.loading_tiles.retain(|coord, _| keep(coord));
+        }
+
+        // Is the previously-calculated tile data of use?
+        let mut previous_tiles: Option<BTreeMap<TileCoordinate, FinishedTile>> = None;
+        if new_algspec.map_or(false, |new_spec| {
+            self.active_algspec.can_recompute(&new_spec)
+        }) {
+            let mut temp_tiles = BTreeMap::<TileCoordinate, FinishedTile>::new();
+            std::mem::swap(&mut temp_tiles, &mut self.loaded_tiles);
+            // Mutate the previous tiles to the new algspec so we can reuse their data.
+            let tiles = temp_tiles
+                .into_iter()
+                .map(|(k, v)| {
+                    let mut new_key = k;
+                    new_key.algspec = wanted_algspec;
+                    (new_key, v)
+                })
+                .collect::<BTreeMap<_, _>>();
+            previous_tiles = Some(tiles);
+        } else {
+            self.loaded_tiles.retain(|coord, _| keep(coord));
+        }
 
         for y in min_y..max_y {
             for x in min_x..max_x {
@@ -232,11 +257,14 @@ impl World {
                     continue;
                 }
 
+                // Do we have prior data that is of use?
+                let seed = previous_tiles.as_ref().and_then(|bt| bt.get(&coord));
+
                 // forcibly bind the future to a variable, we care that it happens
                 let _a = self
                     .loading_tiles
                     .entry(coord)
-                    .or_insert_with(|| LoadingTile::new(coord));
+                    .or_insert_with(|| LoadingTile::new(coord, seed));
             }
         }
         self.bottom_left_tile = TileCoordinate {
@@ -254,10 +282,10 @@ impl World {
     /// * `changed`: (out) Will be set to true if any tiles were
     fn poll(&mut self, context: &mut Context<'_>, changed: &mut bool) {
         self.loading_tiles.retain(|coord, loader| {
-            let image = loader.image.as_mut().poll(context);
-            match image {
-                Poll::Ready(image) => {
-                    let _ = self.loaded_tiles.insert(*coord, image);
+            let poller = loader.data.as_mut().poll(context);
+            match poller {
+                Poll::Ready(plotted) => {
+                    let _ = self.loaded_tiles.insert(*coord, plotted.into());
                     *changed = true;
                     false
                 }
@@ -344,8 +372,8 @@ impl State {
                 .borrow()
                 .loaded_tiles
                 .iter()
-                .map(|(coord, image)| Tile {
-                    tile: image.clone(),
+                .map(|(coord, data)| Tile {
+                    tile: data.image.clone(),
                     // Tile coordinates passed to slint are relative to the segment origin
                     x: (coord.x * PixelIndex::from(UI_TILE_SIZE) - segment_origin_x) as f32,
                     y: (coord.y * PixelIndex::from(UI_TILE_SIZE) - segment_origin_y) as f32,

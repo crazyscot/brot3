@@ -1,6 +1,8 @@
 // brot3 shared ui types
 // (c) 2024 Ross Younger
 
+use std::cell::RefCell;
+
 use brot3_engine::{
     colouring,
     fractal::{self, Algorithm, AlgorithmSpec, Point, Scalar, TileSpec},
@@ -29,6 +31,8 @@ pub(crate) fn default_algorithm() -> AlgorithmSpec {
         colouring::factory(colouring::Selection::LinearRainbow),
     )
 }
+
+// TILE SPECIFICATION ======================================================================
 
 /// 3D coordinates ("address") of a tile within the universe
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
@@ -103,5 +107,30 @@ impl TryFrom<&TileCoordinate> for TileSpec {
             spec.algspec.max_iter,
             spec.algspec.colourer,
         ))
+    }
+}
+
+// TILE DATA ===============================================================================
+
+/// Data about tiles we've worked on which we may persist
+/// N.B. This struct must implement `Send` (which should be automatically derived)
+#[derive(Clone)]
+pub(crate) struct PlottedTile {
+    pub(crate) tile: RefCell<fractal::Tile>,
+    pub(crate) image: slint::SharedPixelBuffer<slint::Rgba8Pixel>, // this cannot be slint::Image, which is not Send
+}
+
+/// A tile that is "done for now" and renderable, though we might come back to it later.
+/// This struct is intended to be cached.
+#[derive(Clone)]
+pub(crate) struct FinishedTile {
+    pub(crate) tile: PlottedTile,
+    pub(crate) image: slint::Image,
+}
+
+impl From<PlottedTile> for FinishedTile {
+    fn from(tile: PlottedTile) -> Self {
+        let image = slint::Image::from_rgba8(tile.image.clone());
+        Self { tile, image }
     }
 }
