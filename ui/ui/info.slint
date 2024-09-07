@@ -4,6 +4,7 @@
 import "./assets/Inter_18pt-Bold.ttf";
 
 import { ComboBox, ComboBoxItem, MagicText } from "@vivi/magic.slint";
+import { TextBase, TextStyle } from "@vivi/foundation.slint";
 
 export struct InfoDisplayData {
     algorithm: string,
@@ -16,19 +17,23 @@ export struct InfoDisplayData {
     zoom_exponent10: int,
 }
 
-export component InfoText inherits TextBase {
+export component InfoData inherits TextBase {
     color: #fff;
     font-family: "Inter";
-    font-size: 18px;
-    font-weight: 700;
+    style: {
+        font-size: 18px,
+        font-weight: 700
+    };
     vertical-alignment: TextVerticalAlignment.center;
 }
 
 export component InfoLegend inherits TextBase {
     color: #aaa;
     font-family: "Inter";
-    font-size: 12px;
-    font-weight: 700;
+    style: {
+        font-size: 12px,
+        font-weight: 700
+    };
     vertical-alignment: TextVerticalAlignment.center;
 }
 
@@ -51,12 +56,7 @@ export component InfoDisplay inherits Rectangle {
 
     // Styling. These might become tweakable user preferences later.
     private property <length> main_size: 18px;
-    private property <length> legend_size: main_size * 0.7;
-    private property <int> text_weight: 700;
-    private property <brush> data_colour: white;
-    private property <brush> legend_colour: #aaa;
-    private property <brush> bg_colour: #111;
-    private property <float> bg_opacity: 0.6;
+    private property <length> superscript_size: main_size * 0.5;
 
     height: info.height;
     width: info.width;
@@ -64,21 +64,18 @@ export component InfoDisplay inherits Rectangle {
     info := GridLayout {
         // Caller should set x and y
 
-        width: main_size * 30;
+        width: 18px * 30;
         min-width: 500px;
-        height: main_size * 6.5;
+        height: 18px * 7.5;
         z: 10.0;
 
-        // there is probably a less repetitititive way to do this ...
         Row {
             HorizontalLayout {
                 alignment: LayoutAlignment.start;
                 padding-left: main_size * 0.25;
                 padding-top: main_size * 0.25;
-                Text {
+                InfoLegend {
                     text: "algorithm: ";
-                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
-                    vertical-alignment: TextVerticalAlignment.center;
                 }
                 fractal_cb := ComboBox {
                     selected => {
@@ -89,15 +86,11 @@ export component InfoDisplay inherits Rectangle {
             HorizontalLayout {
                 alignment: LayoutAlignment.start;
                 padding-top: main_size * 0.25;
-                Text {
+                InfoLegend {
                     text: "max_iter: ";
-                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
-                    vertical-alignment: TextVerticalAlignment.center;
                 }
-                Text {
+                InfoData {
                     text: data.max_iter;
-                    font-size: main_size; font-weight: text_weight; color: data_colour;
-                    vertical-alignment: TextVerticalAlignment.center;
                 }
             }
         }
@@ -105,10 +98,8 @@ export component InfoDisplay inherits Rectangle {
             HorizontalLayout {
                 alignment: LayoutAlignment.start;
                 padding-left: main_size * 0.25;
-                Text {
+                InfoLegend {
                     text: "colourer: ";
-                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
-                    vertical-alignment: TextVerticalAlignment.center;
                 }
                 colourer-cb := ComboBox {
                     selected => {
@@ -122,15 +113,11 @@ export component InfoDisplay inherits Rectangle {
                 colspan: 2;
                 alignment: LayoutAlignment.start;
                 padding-left: main_size * 0.25;
-                Text {
+                InfoLegend {
                     text: "origin: ";
-                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
-                    vertical-alignment: TextVerticalAlignment.center;
                 }
-                Text {
+                InfoData {
                     text: data.origin;
-                    font-size: main_size; font-weight: text_weight; color: data_colour;
-                    vertical-alignment: TextVerticalAlignment.bottom;
                 }
             }
         }
@@ -140,15 +127,11 @@ export component InfoDisplay inherits Rectangle {
                 colspan: 2;
                 alignment: LayoutAlignment.start;
                 padding-left: main_size * 0.25;
-                Text {
+                InfoLegend {
                     text: "centre: ";
-                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
-                    vertical-alignment: TextVerticalAlignment.center;
                 }
-                Text {
+                InfoData {
                     text: data.centre;
-                    font-size: main_size; font-weight: text_weight; color: data_colour;
-                    vertical-alignment: TextVerticalAlignment.bottom;
                 }
             }
         }
@@ -158,45 +141,31 @@ export component InfoDisplay inherits Rectangle {
                 alignment: LayoutAlignment.start;
                 padding-left: main_size * 0.25;
                 padding-bottom: main_size * 0.25;
-                Text {
+                InfoLegend {
                     text: "axes: ";
-                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
-                    vertical-alignment: TextVerticalAlignment.center;
                 }
-                Text {
+                InfoData {
                     text: data.axes;
-                    font-size: main_size; font-weight: text_weight; color: data_colour;
-                    vertical-alignment: TextVerticalAlignment.bottom;
                 }
             }
             HorizontalLayout {
                 alignment: LayoutAlignment.start;
                 padding-bottom: main_size * 0.25;
-                Text {
+                InfoLegend {
                     text: "zoom: ";
-                    font-size: legend_size; font-weight: text_weight; color: legend_colour;
-                    vertical-alignment: TextVerticalAlignment.center;
                 }
-                Text {
+                InfoData {
                     text: data.zoom_mantissa;
-                    font-size: main_size; font-weight: text_weight; color: data_colour;
-                    vertical-alignment: TextVerticalAlignment.bottom;
                 }
                 HorizontalLayout {
                     visible: data.zoom-exponent10 != 0;
-                    Text {
-                        text: " ×";
-                        font-size: main_size; font-weight: text_weight; color: data_colour;
-                        vertical-alignment: TextVerticalAlignment.bottom;
+                    InfoData {
+                        text: " × 10";
                     }
-                    Text {
-                        text: "10";
-                        font-size: main_size; font-weight: text_weight; color: data_colour;
-                        vertical-alignment: TextVerticalAlignment.bottom;
-                    }
-                    Text {
+                    InfoData {
                         text: data.zoom-exponent10;
-                        font-size: legend_size; font-weight: text_weight; color: data_colour;
+                        // superscript!
+                        font-size: superscript_size;
                         vertical-alignment: TextVerticalAlignment.top;
                     }
                 }
@@ -212,7 +181,7 @@ export component InfoDisplay inherits Rectangle {
         x <=> info.x;
         y <=> info.y;
         z: 1.0;
-        background: bg_colour;
-        opacity: bg_opacity;
+        background: #111;
+        opacity: 0.6;
     }
 }
