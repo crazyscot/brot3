@@ -88,6 +88,11 @@ impl World {
         }
     }
 
+    /// Drop all outstanding tile calculations; they are no longer needed.
+    fn clear_loading_tiles(&mut self) {
+        self.loading_tiles.clear();
+    }
+
     /// Actions a zoom in/out request
     /// * `zoom_level`: New zoom level
     /// * `ox`: X coordinate of the zoom centre, in current-zoom-level pixel coordinates
@@ -95,7 +100,7 @@ impl World {
     fn set_zoom_level(&mut self, zoom_level: ZoomLevel, ox: PixelIndex, oy: PixelIndex) {
         if self.zoom_level != zoom_level {
             self.loaded_tiles.clear();
-            self.loading_tiles.clear();
+            self.clear_loading_tiles();
 
             // Apply the zoom to compute our new offset x and y
             #[allow(clippy::cast_possible_wrap)]

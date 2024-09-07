@@ -229,6 +229,7 @@ pub(crate) fn populate_dropdowns(state: &Rc<State>) {
                 eprintln!("{e}: {selection}");
                 world.active_algspec.algorithm
             });
+        world.clear_loading_tiles();
         world.reset_view_2(Some(new_algspec));
         drop(world);
         state.do_poll();
@@ -244,6 +245,7 @@ pub(crate) fn populate_dropdowns(state: &Rc<State>) {
                 eprintln!("{e}: {selection}");
                 world.active_algspec.colourer
             });
+        world.clear_loading_tiles();
         world.reset_view_2(Some(new_algspec));
         drop(world);
         state.do_poll();
