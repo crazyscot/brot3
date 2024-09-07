@@ -6,7 +6,7 @@ use num_complex::ComplexFloat;
 use std::fmt;
 
 /// A section of a fractal plot
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Tile {
     /// Debug output level
     debug: u8,

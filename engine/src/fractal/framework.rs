@@ -77,6 +77,18 @@ pub enum Instance {
     Zero(Zero),
 }
 
+impl Default for Selection {
+    fn default() -> Self {
+        Self::Original
+    }
+}
+
+impl Default for Instance {
+    fn default() -> Self {
+        Self::Original(Original {})
+    }
+}
+
 impl crate::util::listable::Listable for Selection {}
 
 /// Factory method for fractals
