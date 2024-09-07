@@ -5,6 +5,7 @@ import { Slider, Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { InfoDisplayData, InfoDisplay } from "info.slint";
 import { Menu, MenuItem } from "menu.slint";
 import { AboutBox, BuildInfo } from "about.slint";
+import { IconButton, Icons } from "@vivi/magic.slint";
 
 export struct Tile { x: length, y: length, tile: image}
 
@@ -136,13 +137,12 @@ export component MainUI inherits Window {
     // MENU ======================================================================================
 
     private property <bool> menu-open: false;
-    menu_btn := Button {
+    menu_btn := IconButton {
         x: 5px;
         y: 5px + (hud.visible ? hud.height : 0px);
         z: 5;
-        text: "☰";
-        primary: true;
-        colorize-icon: true;
+        //text: "☰";
+        icon: Icons.menu;
         clicked => {
             menu.show();
             root.menu-open = !root.menu-open;
