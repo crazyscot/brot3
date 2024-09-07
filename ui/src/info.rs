@@ -11,7 +11,7 @@ use brot3_engine::{
 use slint::{SharedString, VecModel};
 
 use crate::{
-    components::{InfoDisplayData, MainUI},
+    components::{ComboBoxItem, InfoDisplayData, MainUI},
     types::PixelCoordinate,
     State, World,
 };
@@ -196,28 +196,30 @@ pub(crate) fn populate_dropdowns(state: &Rc<State>) {
     let default = crate::types::default_algorithm();
 
     let avail_fractals = listable::list_original_case::<brot3_engine::fractal::Selection>()
-        .map(|s| SharedString::from(s.name))
+        .map(|s| ComboBoxItem {
+            text: SharedString::from(s.name),
+        })
         .collect::<Vec<_>>();
     state
         .main_ui
         .set_fractals_available(slint::ModelRc::new(VecModel::from(avail_fractals)));
-    state.main_ui.set_fractal_selection(
-        brot3_engine::fractal::Selection::from(default.algorithm)
-            .to_string()
-            .into(),
-    );
+    // ASSUMPTION: `avail_fractals` are in the same order (share the same indices) as the list output.
+    state
+        .main_ui
+        .set_fractal_index(brot3_engine::fractal::Selection::from(default.algorithm) as i32);
 
     let avail_colourers = listable::list_original_case::<brot3_engine::colouring::Selection>()
-        .map(|s| SharedString::from(s.name))
+        .map(|s| ComboBoxItem {
+            text: SharedString::from(s.name),
+        })
         .collect::<Vec<_>>();
+    // ASSUMPTION: `avail_colourers` are in the same order (share the same indices) as the list output.
     state
         .main_ui
         .set_colourers_available(slint::ModelRc::new(VecModel::from(avail_colourers)));
-    state.main_ui.set_colourer_selection(
-        brot3_engine::colouring::Selection::from(default.colourer)
-            .to_string()
-            .into(),
-    );
+    state
+        .main_ui
+        .set_colourer_index(brot3_engine::colouring::Selection::from(default.colourer) as i32);
 
     let state_weak = Rc::downgrade(state);
     state.main_ui.on_fractal_selected(move |selection| {
