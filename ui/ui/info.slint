@@ -3,7 +3,7 @@
 
 import "./assets/Inter_18pt-Bold.ttf";
 
-import { ComboBox } from "std-widgets.slint";
+import { ComboBox, ComboBoxItem, MagicText } from "@vivi/magic.slint";
 
 export struct InfoDisplayData {
     algorithm: string,
@@ -16,19 +16,37 @@ export struct InfoDisplayData {
     zoom_exponent10: int,
 }
 
+export component InfoText inherits TextBase {
+    color: #fff;
+    font-family: "Inter";
+    font-size: 18px;
+    font-weight: 700;
+    vertical-alignment: TextVerticalAlignment.center;
+}
+
+export component InfoLegend inherits TextBase {
+    color: #aaa;
+    font-family: "Inter";
+    font-size: 12px;
+    font-weight: 700;
+    vertical-alignment: TextVerticalAlignment.center;
+}
+
 export component InfoDisplay inherits Rectangle {
     // Data to display
     in property <InfoDisplayData> data;
     // N.B. Caller should set x and y
 
     // Fractal selection
-    in-out property <string> fractal-selection <=> fractal-cb.current-value;
-    in property<[string]> fractals-available <=> fractal-cb.model; // Set by caller
+    out property <ComboBoxItem> fractal-selection <=> fractal-cb.current-value;
+    in-out property <int> fractal-index <=> fractal-cb.current-index;
+    in property<[ComboBoxItem]> fractals-available <=> fractal-cb.model; // Set by caller
     callback fractal-selected(string);
 
     // Colourer selection
-    in-out property <string> colourer-selection <=> colourer-cb.current-value;
-    in property<[string]> colourers-available <=> colourer-cb.model; // Set by caller
+    out property <ComboBoxItem> colourer-selection <=> colourer-cb.current-value;
+    in-out property <int> colourer-index <=> colourer-cb.current-index;
+    in property<[ComboBoxItem]> colourers-available <=> colourer-cb.model; // Set by caller
     callback colourer-selected(string);
 
     // Styling. These might become tweakable user preferences later.
@@ -64,9 +82,8 @@ export component InfoDisplay inherits Rectangle {
                 }
                 fractal_cb := ComboBox {
                     selected => {
-                        root.fractal-selected(self.current-value)
+                        root.fractal-selected(self.current-value.text)
                     }
-                    // TODO I'd really like a styled combobox! vivi?
                 }
             }
             HorizontalLayout {
@@ -95,7 +112,7 @@ export component InfoDisplay inherits Rectangle {
                 }
                 colourer-cb := ComboBox {
                     selected => {
-                        root.colourer-selected(self.current-value)
+                        root.colourer-selected(self.current-value.text)
                     }
                 }
             }
