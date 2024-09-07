@@ -118,9 +118,9 @@ export component MainUI inherits Window {
 
     hud := InfoDisplay {
         data <=> info_data;
-        // Position over the bottom of the fractal viewport
+        // Position over the top of the fractal viewport
         x: 0;
-        y: fli.y + fli.height - self.height;
+        y: 0;
         fractal-selected(s) => {
             root.fractal-selected(s)
         }
@@ -138,7 +138,7 @@ export component MainUI inherits Window {
     private property <bool> menu-open: false;
     menu_btn := Button {
         x: 5px;
-        y: 5px;
+        y: 5px + (hud.visible ? hud.height : 0px);
         z: 5;
         text: "☰";
         primary: true;
@@ -151,7 +151,7 @@ export component MainUI inherits Window {
     callback menu-selected(string);
     menu := Menu {
         x: 20px;
-        y: 20px;
+        y: menu_btn.y + 20px;
         z: 6;
         font-family: "Inter";
         selected(what) => { root.menu-selected(what); }
