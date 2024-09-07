@@ -16,7 +16,7 @@ use std::{
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
 /// Specification of the algorithmic part of a tile to plot
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct AlgorithmSpec {
     /// The selected algorithm
     pub algorithm: fractal::Instance,
@@ -64,7 +64,7 @@ fn alg_specs_are_equivalent(a1: &Arc<AlgorithmSpec>, a2: &Arc<AlgorithmSpec>) ->
 /// 2. We are genuinely only comparing tilespecs for identicality, not recreating them which might lead to inaccuracies, so can neglect that case.
 ///
 /// Therefore it is safe to naively treat f64s as bags of bits in implementing Eq and Hash.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TileSpec {
     /// Origin of this tile (bottom-left corner, smallest real/imaginary coefficients)
     origin: Point,
