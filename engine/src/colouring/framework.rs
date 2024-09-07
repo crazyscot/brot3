@@ -76,6 +76,18 @@ pub enum Instance {
     White(White),
 }
 
+impl Default for Selection {
+    fn default() -> Self {
+        Self::LinearRainbow
+    }
+}
+
+impl Default for Instance {
+    fn default() -> Self {
+        Self::LinearRainbow(LinearRainbow {})
+    }
+}
+
 impl crate::util::listable::Listable for Selection {}
 
 /// A colouring algorithm that outputs Rgb8 directly.
