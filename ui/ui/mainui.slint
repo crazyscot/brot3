@@ -5,7 +5,7 @@ import { Slider, Button, VerticalBox, HorizontalBox } from "std-widgets.slint";
 import { InfoDisplayData, InfoDisplay } from "info.slint";
 import { Menu, MenuItem } from "menu.slint";
 import { AboutBox, BuildInfo } from "about.slint";
-import { IconButton, Icons } from "@vivi/magic.slint";
+import { ComboBoxItem, ButtonAction, IconButton, TextButton, Icons } from "@vivi/magic.slint";
 
 export struct Tile { x: length, y: length, tile: image}
 
@@ -109,12 +109,14 @@ export component MainUI inherits Window {
     in property <InfoDisplayData> info_data;
     in property <bool> info_visible <=> hud.visible;
 
-    in-out property <string> fractal-selection <=> hud.fractal-selection;
-    in property <[string]> fractals-available <=> hud.fractals-available;
+    out property <ComboBoxItem> fractal-selection <=> hud.fractal-selection;
+    in-out property <int> fractal-index <=> hud.fractal-index;
+    in property <[ComboBoxItem]> fractals-available <=> hud.fractals-available;
     callback fractal-selected(string);
 
-    in-out property <string> colourer-selection <=> hud.colourer-selection;
-    in property <[string]> colourers-available <=> hud.colourers-available;
+    out property <ComboBoxItem> colourer-selection <=> hud.colourer-selection;
+    in-out property <int> colourer-index <=> hud.colourer-index;
+    in property <[ComboBoxItem]> colourers-available <=> hud.colourers-available;
     callback colourer-selected(string);
 
     hud := InfoDisplay {
