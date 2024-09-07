@@ -49,6 +49,12 @@ impl AlgorithmSpec {
     ) -> Arc<AlgorithmSpec> {
         Arc::new(Self::new(algorithm, max_iter, colourer))
     }
+
+    /// Can we use plotted tile data from this spec to seed some other spec?
+    #[must_use]
+    pub fn can_recompute(&self, other: &AlgorithmSpec) -> bool {
+        self.algorithm == other.algorithm
+    }
 }
 
 // this is a special-case implementation of PartialEq for cacheing support
