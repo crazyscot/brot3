@@ -62,4 +62,4 @@ jobs:
       # To keep the CI a bit leaner, do this in the dev profile.
       - run: cargo build --all-targets
       - run: cargo bench --profile=dev -- iai
-      - run: cargo bench -- fractals/iter_Original
+      - run: cargo bench --profile=dev -- fractals/iter_Original
