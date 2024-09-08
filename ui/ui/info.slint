@@ -5,6 +5,7 @@ import "./assets/Inter_18pt-Bold.ttf";
 
 import { ComboBox, ComboBoxItem, MagicText } from "@vivi/magic.slint";
 import { TextBase, TextStyle } from "@vivi/foundation.slint";
+import { GridBox } from "std-widgets.slint";
 
 export struct InfoDisplayData {
     algorithm: string,
@@ -21,10 +22,12 @@ export component InfoData inherits TextBase {
     color: #fff;
     font-family: "Inter";
     style: {
-        font-size: 18px,
+        font-size: 16px,
         font-weight: 700
     };
+    horizontal-alignment: TextHorizontalAlignment.left;
     vertical-alignment: TextVerticalAlignment.center;
+    horizontal-stretch: 0;
 }
 
 export component InfoLegend inherits TextBase {
@@ -34,7 +37,9 @@ export component InfoLegend inherits TextBase {
         font-size: 12px,
         font-weight: 700
     };
+    horizontal-alignment: TextHorizontalAlignment.right;
     vertical-alignment: TextVerticalAlignment.center;
+    horizontal-stretch: 0;
 }
 
 export component InfoDisplay inherits Rectangle {
@@ -58,106 +63,97 @@ export component InfoDisplay inherits Rectangle {
     private property <length> main_size: 18px;
     private property <length> superscript_size: main_size * 0.5;
 
-    height: info.height;
-    width: info.width;
+    // Caller should set x and y
+    height: info.preferred-height;
+    width: info.preferred-width;
 
-    info := GridLayout {
-        // Caller should set x and y
-
-        width: 18px * 30;
-        min-width: 500px;
-        height: 18px * 7.5;
+    info := GridBox {
+        x: 0;
         z: 10.0;
 
+        // COLUMN PLAN:
+        // 1,2: First legend and data
+        //      (long data may colspan 5)
+        // 3: Spacer
+        // 4,5: Second legend and data
+        // 6: Filler that stretches
+
+        // Right hand side filler
+        Rectangle {
+            col: 6;
+            rowspan: 10;
+            min-width: 10px;
+            height: 50px;
+            horizontal-stretch: 1;
+        }
+
         Row {
-            HorizontalLayout {
-                alignment: LayoutAlignment.start;
-                padding-left: main_size * 0.25;
-                padding-top: main_size * 0.25;
-                InfoLegend {
-                    text: "algorithm: ";
-                }
-                fractal_cb := ComboBox {
-                    selected => {
-                        root.fractal-selected(self.current-value.text)
-                    }
+            InfoLegend {
+                text: "algorithm: ";
+            }
+            fractal_cb := ComboBox {
+                horizontal-stretch: 0;
+                selected => {
+                    root.fractal-selected(self.current-value.text)
                 }
             }
-            HorizontalLayout {
-                alignment: LayoutAlignment.start;
-                padding-top: main_size * 0.25;
-                InfoLegend {
-                    text: "max_iter: ";
-                }
-                InfoData {
-                    text: data.max_iter;
+            Rectangle {} // spacer
+            InfoLegend {
+                text: "max_iter: ";
+            }
+            InfoData {
+                text: data.max_iter;
+            }
+        }
+        Row {
+            InfoLegend {
+                text: "colourer: ";
+            }
+            colourer-cb := ComboBox {
+                horizontal-stretch: 0;
+                selected => {
+                    root.colourer-selected(self.current-value.text)
                 }
             }
         }
         Row {
-            HorizontalLayout {
-                alignment: LayoutAlignment.start;
-                padding-left: main_size * 0.25;
-                InfoLegend {
-                    text: "colourer: ";
-                }
-                colourer-cb := ComboBox {
-                    selected => {
-                        root.colourer-selected(self.current-value.text)
-                    }
-                }
+            InfoLegend {
+                text: "origin: ";
             }
-        }
-        Row {
-            HorizontalLayout {
-                colspan: 2;
-                alignment: LayoutAlignment.start;
-                padding-left: main_size * 0.25;
-                InfoLegend {
-                    text: "origin: ";
-                }
-                InfoData {
-                    text: data.origin;
-                }
+            InfoData {
+                colspan: 5;
+                text: data.origin;
             }
         }
 
         Row {
-            HorizontalLayout {
-                colspan: 2;
-                alignment: LayoutAlignment.start;
-                padding-left: main_size * 0.25;
-                InfoLegend {
-                    text: "centre: ";
-                }
-                InfoData {
-                    text: data.centre;
-                }
+            InfoLegend {
+                text: "centre: ";
+            }
+            InfoData {
+                colspan: 5;
+                text: data.centre;
             }
         }
 
         Row {
-            HorizontalLayout {
-                alignment: LayoutAlignment.start;
-                padding-left: main_size * 0.25;
-                padding-bottom: main_size * 0.25;
-                InfoLegend {
-                    text: "axes: ";
-                }
-                InfoData {
-                    text: data.axes;
-                }
+            InfoLegend {
+                text: "axes: ";
+            }
+            InfoData {
+                text: data.axes;
+            }
+            Rectangle {} // spacer
+            InfoLegend {
+                text: "zoom: ";
             }
             HorizontalLayout {
-                alignment: LayoutAlignment.start;
-                padding-bottom: main_size * 0.25;
-                InfoLegend {
-                    text: "zoom: ";
-                }
+                horizontal-stretch: 0;
                 InfoData {
                     text: data.zoom_mantissa;
                 }
                 HorizontalLayout {
+                    horizontal-stretch: 0;
                     visible: data.zoom-exponent10 != 0;
                     InfoData {
                         text: " × 10";
@@ -171,7 +167,6 @@ export component InfoDisplay inherits Rectangle {
                 }
             }
         }
-
     }
 
     // Background for the info area
