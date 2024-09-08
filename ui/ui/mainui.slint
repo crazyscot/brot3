@@ -12,8 +12,8 @@ export struct Tile { x: length, y: length, tile: image}
 export component MainUI inherits Window {
     // Window sizing callback. This returns a dummy invisible image but triggers the logic to reconsider the visible tiles.
     pure callback resized(length, length) -> image;
-    min-height: 500px;
-    min-width: 500px;
+    min-width: 512px;
+    min-height: 512px + sli.height;
 
     out property <length> visible_width <=> fli.width;
     out property <length> visible_height <=> fli.height;
@@ -122,7 +122,7 @@ export component MainUI inherits Window {
     hud := InfoDisplay {
         data <=> info_data;
         // Position over the top of the fractal viewport
-        x: 0;
+        x: max(root.width - self.width, menu_btn.width + 2 * menu_btn.x);
         y: 0;
         fractal-selected(s) => {
             root.fractal-selected(s)
@@ -141,7 +141,7 @@ export component MainUI inherits Window {
     private property <bool> menu-open: false;
     menu_btn := IconButton {
         x: 5px;
-        y: 5px + (hud.visible ? hud.height : 0px);
+        y: 5px;
         z: 5;
         //text: "☰";
         icon: Icons.menu;
