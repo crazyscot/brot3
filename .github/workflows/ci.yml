@@ -47,7 +47,7 @@ jobs:
       - name: install packages
         run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.3
+        uses: cargo-bins/cargo-binstall@v1.10.9
       - name: install IAI runner
         run: cargo binstall --no-confirm --force iai-callgrind-runner@${{ env. IAI_CALLGRIND_RUNNER_VERSION }}
       # Checks begin here!
