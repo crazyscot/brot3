@@ -13,7 +13,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  IAI_CALLGRIND_RUNNER_VERSION: 0.13.1
 
 jobs:
   # Build the app on all supported platforms
@@ -44,12 +43,18 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ubuntu-22.04
-      - name: install packages
-        run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.10.9
+      - name: Interrogate cargo for required tool versions
+        id: cargo
+        run: |
+          VERSION=$(cargo metadata --format-version=1 --no-deps | jq  '.packages[] | select (.name == "brot3-engine") | .dependencies[] | select (.name == "iai-callgrind") | .req ')
+          echo "iai_callgrind=${VERSION}" >> $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
       - name: install IAI runner
-        run: cargo binstall --no-confirm --force iai-callgrind-runner@${{ env. IAI_CALLGRIND_RUNNER_VERSION }}
+        run: cargo binstall --no-confirm --force iai-callgrind-runner@${{ steps.cargo.outputs.iai_callgrind }}
+      - name: install deb packages
+        run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold valgrind
       # Checks begin here!
       - run: cargo fmt --all -- --check
       - run: cargo test
