@@ -226,9 +226,7 @@ impl World {
 
         // Is the previously-calculated tile data of use?
         let mut previous_tiles: Option<BTreeMap<TileCoordinate, FinishedTile>> = None;
-        if new_algspec.map_or(false, |new_spec| {
-            self.active_algspec.can_recompute(&new_spec)
-        }) {
+        if new_algspec.is_some_and(|new_spec| self.active_algspec.can_recompute(&new_spec)) {
             let mut temp_tiles = BTreeMap::<TileCoordinate, FinishedTile>::new();
             std::mem::swap(&mut temp_tiles, &mut self.loaded_tiles);
             // Mutate the previous tiles to the new algspec so we can reuse their data.
