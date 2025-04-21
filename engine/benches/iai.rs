@@ -1,5 +1,8 @@
 //! Benchmark harness for iai-callgrind
 // (c) 2024 Ross Younger
+
+#![allow(missing_docs)]
+
 use iai_callgrind::{library_benchmark, library_benchmark_group, main};
 use std::hint::black_box;
 
