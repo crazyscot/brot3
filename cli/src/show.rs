@@ -80,6 +80,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>
             build_info::PKG_AUTHORS
         ),
         // git info
-    };
+    }
     Ok(())
 }

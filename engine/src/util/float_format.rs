@@ -81,11 +81,7 @@ fn to_string_with_precision(float: f64, precision: usize, strip_trailing_zeroes:
     let precision = if a >= 1. {
         // reduce by number of digits, minimum 0
         let n = (1. + a.log10().floor()) as usize;
-        if n <= precision {
-            precision - n
-        } else {
-            0
-        }
+        precision.saturating_sub(n)
     // if precision is less than 1 (but non-zero), then precision becomes greater than "standard"
     } else if a > 0. {
         // increase number of digits
