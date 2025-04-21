@@ -44,6 +44,6 @@ pub(crate) fn list(args: &Args) -> anyhow::Result<()> {
         ListableThings::Colourers => {
             listable::print_list::<colouring::Selection>();
         }
-    };
+    }
     Ok(())
 }
