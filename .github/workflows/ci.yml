@@ -44,7 +44,7 @@ jobs:
         with:
           key: ubuntu-latest
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.12.2
+        uses: cargo-bins/cargo-binstall@v1.12.3
       - name: Interrogate cargo for required tool versions
         id: cargo
         run: |
