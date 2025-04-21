@@ -19,7 +19,7 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [ubuntu-22.04]
+        platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v4
@@ -30,19 +30,19 @@ jobs:
       with:
         key: "${{matrix.platform}}"
     - name: install packages (ubuntu)
-      if: matrix.platform == 'ubuntu-22.04'
+      if: matrix.platform == 'ubuntu-latest'
       run: sudo apt-get update && sudo apt-get -y --no-install-recommends install mold
     - name: Build
       run: cargo build --locked
 
   # We only need to run the checks on a single platform
   checks:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
         with:
-          key: ubuntu-22.04
+          key: ubuntu-latest
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.12.2
       - name: Interrogate cargo for required tool versions
