@@ -27,8 +27,8 @@ strum_macros = { workspace = true }
 
 [dev-dependencies]
 approx = "0.5.1"
-criterion = { version = "0.5", features = ["html_reports"] }
-iai-callgrind = "=0.14.0"
+criterion = { version = "0.7", features = ["html_reports"] }
+iai-callgrind = "=0.16.1"
 
 [[bench]]
 name = "engine"
@@ -39,4 +39,4 @@ name = "iai"
 harness = false
 
 [build-dependencies]
-built = { version = "0.7.7", features = ["git2"] }
+built = { version = "0.8.0", features = ["git2"] }
