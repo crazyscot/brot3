@@ -28,7 +28,7 @@ strum_macros = { workspace = true }
 [dev-dependencies]
 approx = "0.5.1"
 criterion = { version = "0.6", features = ["html_reports"] }
-iai-callgrind = "=0.14.1"
+iai-callgrind = "=0.15.1"
 
 [[bench]]
 name = "engine"
