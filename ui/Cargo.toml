@@ -6,6 +6,7 @@ authors.workspace = true
 license.workspace = true
 version.workspace = true
 build = "build.rs"
+rust-version = "1.74.0"
 
 [dependencies]
 brot3-engine = { path = "../engine" }
@@ -14,7 +15,7 @@ num-complex = { workspace = true }
 rayon = { workspace = true }
 slint = "1.12"
 image = { version = "0.25", default-features = false, features = [ "png" ] }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.47", features = ["full"] }
 
 [build-dependencies]
 slint-build = "1.12"
