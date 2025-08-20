@@ -76,6 +76,7 @@ export component MainUI inherits Window {
             sli := Slider {
                 minimum: 1; // initial value (UI_MIN_ZOOM_LEVEL); may be updated dynamically
                 maximum: 45; // !!! Must match UI_MAX_ZOOM_LEVEL
+                height: 20px;
                 released => {
                     zoom-changed(self.value);
                 }
@@ -130,10 +131,6 @@ export component MainUI inherits Window {
         colourer-selected(s) => {
             root.colourer-selected(s)
         }
-    }
-
-    dummy_img := Image {
-        source: resized(root.width, root.height);
     }
 
     // MENU ======================================================================================
