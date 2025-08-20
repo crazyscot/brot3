@@ -1,9 +1,12 @@
+use std::fs::File;
+
 // Rendering output in various ASCII-based formats
 // (c) 2024 Ross Younger
 use super::Renderer;
 use crate::colouring::Instance;
 use crate::fractal::{PointData, Tile, TileSpec};
-use crate::util::filename::Filename;
+
+use std::io::Write as _;
 
 /// CSV format, fractal points
 #[derive(Clone, Copy, Debug, Default)]
@@ -18,7 +21,7 @@ impl Renderer for Csv {
         _: Instance,
     ) -> anyhow::Result<()> {
         anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
-        let mut output = Filename::open_for_writing(filename)?;
+        let mut output = File::create(filename)?;
         for t in tiles {
             output.write_all(t.to_string().as_bytes())?;
         }
@@ -42,7 +45,7 @@ impl Renderer for AsciiArt {
         _: Instance,
     ) -> anyhow::Result<()> {
         anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
-        let mut output = Filename::open_for_writing(filename)?;
+        let mut output = File::create(filename)?;
         // Preprocess: Find the range of output levels, discounting INF.
         let iter = tiles
             .iter()
@@ -60,12 +63,7 @@ impl Renderer for AsciiArt {
 }
 
 impl AsciiArt {
-    fn render_tile(
-        output: &mut Box<dyn std::io::Write>,
-        tile: &Tile,
-        most: f32,
-        least: f32,
-    ) -> anyhow::Result<()> {
+    fn render_tile(output: &mut File, tile: &Tile, most: f32, least: f32) -> anyhow::Result<()> {
         // Map the output levels to a set of characters
         let n_levels = DEFAULT_ASCII_ART_CHARSET.len();
         let range = most - least;

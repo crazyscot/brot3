@@ -4,11 +4,11 @@
 use super::Renderer;
 use crate::colouring::{Instance, OutputsRgb8};
 use crate::fractal::{Tile, TileSpec};
-use crate::util::filename::Filename;
 
 use anyhow::{Context, Result};
 use palette::Srgb;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use std::fs::File;
 use std::io::BufWriter;
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -56,11 +56,11 @@ impl Png {
             });
     }
 
-    fn render_png(
+    fn render_png<W: std::io::Write>(
         spec: &TileSpec,
         tiles: &[Tile],
         colourer: Instance,
-        writer: Box<dyn std::io::Write>,
+        writer: Box<W>,
     ) -> Result<()> {
         let mut encoder = png::Encoder::new(writer, spec.width(), spec.height());
         encoder.set_color(png::ColorType::Rgba);
@@ -93,7 +93,7 @@ impl Renderer for Png {
         colourer: Instance,
     ) -> anyhow::Result<()> {
         anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
-        let handle = Filename::open_for_writing(filename)?;
+        let handle = File::create(filename)?;
         let bw = Box::new(BufWriter::new(handle));
         Png::render_png(spec, tiles, colourer, bw).with_context(|| "Failed to render PNG")?;
         // You can test this error pathway by trying to write to /dev/full
