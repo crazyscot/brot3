@@ -11,7 +11,8 @@ use brot3_engine::{
     util::Rect,
 };
 
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
+use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
+use std::hint::black_box;
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 // FRACTALS
@@ -89,7 +90,9 @@ fn colour_pixel(c: &mut Criterion) {
     // We run only a selection of algorithms through the full benchmarker
     // (See also IAI, which runs them all.)
     let selection = [LinearRainbow, LchGradient, Mandy, WhiteFade];
-    selection.iter().for_each(|i| bench(colouring::factory(*i)));
+    for i in &selection {
+        bench(colouring::factory(*i));
+    }
 }
 
 fn colour_tile(c: &mut Criterion) {
@@ -107,7 +110,9 @@ fn colour_tile(c: &mut Criterion) {
         });
     };
     let selection = [LinearRainbow, White];
-    selection.iter().for_each(|i| bench(colouring::factory(*i)));
+    for i in &selection {
+        bench(colouring::factory(*i));
+    }
 }
 
 criterion_group!(colourers, colour_pixel, colour_tile);

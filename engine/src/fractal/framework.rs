@@ -1,6 +1,8 @@
 // Fractal algorithm selection, dispatch framework & shared code
 // (c) 2024 Ross Younger
 
+#![allow(missing_docs)] // EnumDiscriminants
+
 use std::str::FromStr;
 
 use super::{Point, PointData, ESCAPE_THRESHOLD_SQ};

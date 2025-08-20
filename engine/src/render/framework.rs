@@ -1,6 +1,8 @@
 // Rendering selection & dispatch
 // (c) 2024 Ross Younger
 
+#![allow(missing_docs)] // EnumDiscriminants
+
 use std::ffi::OsStr;
 
 use crate::colouring::Instance;

@@ -1,6 +1,8 @@
 // Palette selection & dispatch framework
 // (c) 2024 Ross Younger
 
+#![allow(missing_docs)] // EnumDiscriminants
+
 use std::str::FromStr;
 
 use enum_delegate;
