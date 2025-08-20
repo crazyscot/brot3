@@ -4,38 +4,41 @@
 		{
 			"type": "cargo",
 			"command": "build",
+			"args": ["--locked"],
 			"problemMatcher": [
 				"$rustc"
 			],
 			"group": {
 				"kind": "build",
-				"isDefault": true
+				"isDefault": false
 			},
-			"label": "rust: cargo build"
+			"label": "rust: cargo build --locked"
 		},
 		{
 			"type": "cargo",
-			"command": "check",
+			"command": "doc",
+			"args": ["--no-deps", "--locked"],
 			"problemMatcher": [
 				"$rustc"
 			],
 			"group": {
 				"kind": "build",
-				"isDefault": true
+				"isDefault": false
 			},
-			"label": "rust: cargo check"
+			"label": "rust: cargo doc"
 		},
 		{
 			"type": "cargo",
-			"command": "clippy",
+			"command": "doc",
+			"args": ["--no-deps", "--locked", "--document-private-items"],
 			"problemMatcher": [
 				"$rustc"
 			],
 			"group": {
 				"kind": "build",
-				"isDefault": true
+				"isDefault": false
 			},
-			"label": "rust: cargo clippy"
+			"label": "rust: cargo doc --document-private-items"
 		}
 	]
 }
