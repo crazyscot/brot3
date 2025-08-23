@@ -1,0 +1,30 @@
+#!/bin/sh -e
+
+# Script prerequisites:
+#   Rust toolchain
+#   lcov package (for genhtml)
+#   cargo install cargo-llvm-cov
+
+COVERAGE_DIR=target/coverage
+
+if [ "$1" != "--stable" ]; then
+    NIGHTLY="+nightly";
+    echo "NOTE: Using nightly compiler. Run with --stable to use your default set in rustup."
+else
+    :
+fi
+
+# CAUTION: llvm-cov sets cfg(nightly) by default.
+# At the time of writing, one (tiny-xlib) has an older MSRV and uses config options
+# which have since been removed. These choke the analysis.
+#
+#     #[cfg_attr(coverage, no_coverage)]
+#
+# So for now, --no-cfg-coverage.
+# We can still use #[cfg_attr(coverage_nightly, coverage(off))] locally.
+
+mkdir -p $COVERAGE_DIR
+# shellcheck disable=SC2086
+cargo ${NIGHTLY} llvm-cov --all-features --workspace --doctests --lcov --output-path $COVERAGE_DIR/lcov.info --no-cfg-coverage --show-instantiations
+genhtml $COVERAGE_DIR/lcov.info -o $COVERAGE_DIR/html
+echo Coverage written to $COVERAGE_DIR/html
