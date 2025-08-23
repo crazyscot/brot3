@@ -5,10 +5,10 @@ use std::time::SystemTime;
 
 use brot3_engine::colouring;
 use brot3_engine::fractal::{self, Algorithm, Point, Scalar, Size, Tile, TileSpec};
-use brot3_engine::render::{self, autodetect_extension, Renderer};
+use brot3_engine::render::{self, Renderer, autodetect_extension};
 use brot3_engine::util::Rect;
 
-use anyhow::{ensure, Context};
+use anyhow::{Context, ensure};
 use clap::ArgAction;
 use rayon::prelude::*;
 
@@ -307,28 +307,36 @@ mod tests {
     }
     #[test]
     fn axes_inf_error() {
-        assert!(check_fix_axes(Point {
-            re: Scalar::INFINITY,
-            im: 2.0
-        })
-        .is_err());
-        assert!(check_fix_axes(Point {
-            re: 2.0,
-            im: Scalar::INFINITY
-        })
-        .is_err());
+        assert!(
+            check_fix_axes(Point {
+                re: Scalar::INFINITY,
+                im: 2.0
+            })
+            .is_err()
+        );
+        assert!(
+            check_fix_axes(Point {
+                re: 2.0,
+                im: Scalar::INFINITY
+            })
+            .is_err()
+        );
     }
     #[test]
     fn axes_nan_error() {
-        assert!(check_fix_axes(Point {
-            re: Scalar::NAN,
-            im: 2.0
-        })
-        .is_err());
-        assert!(check_fix_axes(Point {
-            re: 2.0,
-            im: Scalar::NAN
-        })
-        .is_err());
+        assert!(
+            check_fix_axes(Point {
+                re: Scalar::NAN,
+                im: 2.0
+            })
+            .is_err()
+        );
+        assert!(
+            check_fix_axes(Point {
+                re: 2.0,
+                im: Scalar::NAN
+            })
+            .is_err()
+        );
     }
 }

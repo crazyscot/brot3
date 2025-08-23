@@ -113,8 +113,8 @@ fn to_string_with_dp(float: f64, precision: usize, strip_trailing_zeroes: bool) 
 #[cfg(test)]
 mod tests {
     use super::{
-        to_string_with_dp, to_string_with_precision, DisplayDecimalPlacesTrimmed,
-        DisplaySignificantFigures,
+        DisplayDecimalPlacesTrimmed, DisplaySignificantFigures, to_string_with_dp,
+        to_string_with_precision,
     };
     use crate::fractal::maths::Point;
 

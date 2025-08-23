@@ -8,7 +8,7 @@ use std::hint::black_box;
 
 #[allow(clippy::wildcard_imports)]
 use brot3_engine::{
-    colouring::{self, direct_rgb::*, huecycles::*, OutputsRgb8, Rgb8},
+    colouring::{self, OutputsRgb8, Rgb8, direct_rgb::*, huecycles::*},
     fractal::{self, Algorithm, Point, PointData},
 };
 #[allow(clippy::enum_glob_use)]

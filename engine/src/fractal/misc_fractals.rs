@@ -1,7 +1,7 @@
 // Miscellaneous fractals
 // (c) 2024 Ross Younger
 
-use super::{mandelbrot::Original, Algorithm, Point, PointData};
+use super::{Algorithm, Point, PointData, mandelbrot::Original};
 
 /// Prep function for fractals which appear upside down in this coordinate system
 /// (i.e. invert them)

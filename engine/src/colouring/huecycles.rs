@@ -1,7 +1,7 @@
 // Colouring algorithms that cycle around a given hue
 // (c) 2024 Ross Younger
 
-use palette::{convert::FromColorUnclamped, encoding::Srgb, Hsv, LabHue, Lch, RgbHue};
+use palette::{Hsv, LabHue, Lch, RgbHue, convert::FromColorUnclamped, encoding::Srgb};
 
 use super::{OutputsHsvf, OutputsRgb8, Rgb8};
 
@@ -98,9 +98,9 @@ impl OutputsRgb8 for LchGradient {
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
-    use palette::{convert::FromColorUnclamped, rgb::Srgb, IntoColor, Lch, RgbHue};
+    use palette::{IntoColor, Lch, RgbHue, convert::FromColorUnclamped, rgb::Srgb};
 
-    use super::{LinearRainbow, LINEAR_RAINBOW_WRAP};
+    use super::{LINEAR_RAINBOW_WRAP, LinearRainbow};
     use crate::colouring::{OutputsHsvf, Rgb8};
 
     #[test]

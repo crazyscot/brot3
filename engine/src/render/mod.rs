@@ -5,5 +5,5 @@ mod framework;
 mod png;
 
 #[allow(clippy::module_name_repetitions)]
-pub use framework::{autodetect_extension, factory, RenderInstance, Renderer, Selection};
+pub use framework::{RenderInstance, Renderer, Selection, autodetect_extension, factory};
 pub use png::Png;

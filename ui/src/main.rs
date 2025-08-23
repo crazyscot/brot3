@@ -10,8 +10,8 @@ use loader::LoadingTile;
 mod menu;
 mod types;
 use types::{
-    FinishedTile, PixelCoordinate, PixelIndex, TileCoordinate, TileIndex, ZoomLevel, UI_TILE_SIZE,
-    UI_TILE_SIZE_LOG2,
+    FinishedTile, PixelCoordinate, PixelIndex, TileCoordinate, TileIndex, UI_TILE_SIZE,
+    UI_TILE_SIZE_LOG2, ZoomLevel,
 };
 
 use brot3_engine::util::build_info;
@@ -156,7 +156,10 @@ impl World {
     fn recentre_world_segment(&mut self) {
         let world_offset_x = self.segment_origin_x + self.segment_offset_x;
         let world_offset_y = self.segment_origin_y + self.segment_offset_y;
-        println!("Recentring around x={world_offset_x} y={world_offset_y} z={}; offset x={}, offset y={} ", self.zoom_level, self.segment_origin_x, self.segment_origin_y);
+        println!(
+            "Recentring around x={world_offset_x} y={world_offset_y} z={}; offset x={}, offset y={} ",
+            self.zoom_level, self.segment_origin_x, self.segment_origin_y
+        );
         self.reset_segment(self.zoom_level, world_offset_x, world_offset_y);
 
         // Self check: If we recompute world_offset_x and y now, they haven't changed.
@@ -428,8 +431,8 @@ impl State {
         world.minimum_zoom_level = zoom;
         if false {
             println!(
-            "Window size changed to {} x {}; new minimum {n_tiles} tiles displayed; zoom level is {zoom}",
-            world.visible_width, world.visible_height
+                "Window size changed to {} x {}; new minimum {n_tiles} tiles displayed; zoom level is {zoom}",
+                world.visible_width, world.visible_height
             );
         }
         self.main_ui.set_minimum_zoom(zoom_f);
