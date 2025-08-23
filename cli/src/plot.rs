@@ -214,10 +214,12 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         args.max_iter,
         colourer,
     );
-    if !args.no_auto_aspect {
-        if let Ok(Some(new_axes)) = spec.auto_adjust_aspect_ratio() {
-            println!("Auto adjusted aspect ratio. Axes are now {new_axes} (you can suppress this behaviour with `--no-auto-aspect')");
-        }
+    if !args.no_auto_aspect
+        && let Ok(Some(new_axes)) = spec.auto_adjust_aspect_ratio()
+    {
+        println!(
+            "Auto adjusted aspect ratio. Axes are now {new_axes} (you can suppress this behaviour with `--no-auto-aspect')"
+        );
     }
     if debug > 0 {
         println!("Computed plot spec: {spec:#?}");
