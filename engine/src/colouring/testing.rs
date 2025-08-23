@@ -16,7 +16,7 @@ impl OutputsRgb8 for White {
 mod tests {
     use crate::colouring::framework::Rgb8;
 
-    use palette::{convert::FromColorUnclamped, rgb, Hsv, IntoColor, RgbHue, Srgb};
+    use palette::{Hsv, IntoColor, RgbHue, Srgb, convert::FromColorUnclamped, rgb};
 
     #[test]
     fn red_conversion() {

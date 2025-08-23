@@ -6,7 +6,7 @@
 use std::str::FromStr;
 
 use enum_delegate;
-use palette::{convert::FromColorUnclamped, Hsv, Srgb};
+use palette::{Hsv, Srgb, convert::FromColorUnclamped};
 use strum::IntoStaticStr;
 use strum_macros::{
     self, Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, VariantArray,

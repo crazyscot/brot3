@@ -5,7 +5,7 @@
 
 use std::str::FromStr;
 
-use super::{Point, PointData, ESCAPE_THRESHOLD_SQ};
+use super::{ESCAPE_THRESHOLD_SQ, Point, PointData};
 
 use super::mandelbrot::{Mandel3, Original};
 use super::mandeldrop::{Mandeldrop, Mandeldrop3};

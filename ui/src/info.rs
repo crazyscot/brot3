@@ -11,9 +11,9 @@ use brot3_engine::{
 use slint::{SharedString, VecModel};
 
 use crate::{
+    State, World,
     components::{ComboBoxItem, InfoDisplayData, MainUI},
     types::PixelCoordinate,
-    State, World,
 };
 
 // HELPER FUNCTIONS =================================================================

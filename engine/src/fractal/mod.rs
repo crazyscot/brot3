@@ -13,7 +13,7 @@ mod tile;
 mod tilespec;
 
 #[allow(clippy::module_name_repetitions)]
-pub use framework::{factory, Algorithm, Instance, Selection};
+pub use framework::{Algorithm, Instance, Selection, factory};
 pub use maths::{Point, Scalar};
 pub use pointdata::PointData;
 pub use tile::Tile;

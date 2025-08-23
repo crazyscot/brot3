@@ -1,7 +1,7 @@
 // Mandelbrot set implementation
 // (c) 2024 Ross Younger
 
-use super::maths::{ln_3_f64, Point};
+use super::maths::{Point, ln_3_f64};
 use super::{Algorithm, PointData};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
