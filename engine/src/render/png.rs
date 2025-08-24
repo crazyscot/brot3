@@ -1,7 +1,7 @@
 // Rendering output to PNG files
 // (c) 2024 Ross Younger
 
-use super::Renderer;
+use super::IRenderer;
 use crate::colouring::{Instance, OutputsRgb8};
 use crate::fractal::{Tile, TileSpec};
 
@@ -13,7 +13,7 @@ use std::io::BufWriter;
 
 #[derive(Clone, Copy, Debug, Default)]
 /// Render output to a PNG file (or, if you call it directly, to pixels in PNG format)
-pub struct Png {}
+pub struct Png;
 
 impl Png {
     /// Renders a tile as a low-level array of RGBA values.
@@ -84,7 +84,7 @@ impl Png {
     }
 }
 
-impl Renderer for Png {
+impl IRenderer for Png {
     fn render_file(
         &self,
         filename: &str,

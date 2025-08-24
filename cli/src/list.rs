@@ -3,8 +3,8 @@
 use brot3_engine::{
     colouring,
     fractal::{self},
-    render,
-    util::listable,
+    render::Renderer,
+    util::Listable as _,
 };
 
 use clap::ArgAction;
@@ -39,10 +39,10 @@ pub struct Args {
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
-        ListableThings::Renderers => listable::print_list::<render::Selection>(),
-        ListableThings::Fractals => listable::print_list::<fractal::Selection>(),
+        ListableThings::Renderers => Renderer::print_list(),
+        ListableThings::Fractals => fractal::Selection::print_list(),
         ListableThings::Colourers => {
-            listable::print_list::<colouring::Selection>();
+            colouring::Selection::print_list();
         }
     }
     Ok(())

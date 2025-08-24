@@ -6,7 +6,7 @@ use std::{cell::RefCell, cmp, collections::BTreeMap, rc::Rc, str::FromStr as _};
 use brot3_engine::{
     colouring,
     fractal::{self, Algorithm as _, Point, Scalar},
-    util::listable,
+    util::Listable as _,
 };
 use slint::{SharedString, VecModel};
 
@@ -195,7 +195,7 @@ pub(crate) fn update_info_display(
 pub(crate) fn populate_dropdowns(state: &Rc<State>) {
     let default = crate::types::default_algorithm();
 
-    let avail_fractals = listable::list_original_case::<brot3_engine::fractal::Selection>()
+    let avail_fractals = brot3_engine::fractal::Selection::list_original_case()
         .map(|s| ComboBoxItem {
             text: SharedString::from(s.name),
         })
@@ -208,7 +208,7 @@ pub(crate) fn populate_dropdowns(state: &Rc<State>) {
         .main_ui
         .set_fractal_index(brot3_engine::fractal::Selection::from(default.algorithm) as i32);
 
-    let avail_colourers = listable::list_original_case::<brot3_engine::colouring::Selection>()
+    let avail_colourers = brot3_engine::colouring::Selection::list_original_case()
         .map(|s| ComboBoxItem {
             text: SharedString::from(s.name),
         })

@@ -4,6 +4,5 @@ mod ascii;
 mod framework;
 mod png;
 
-#[allow(clippy::module_name_repetitions)]
-pub use framework::{RenderInstance, Renderer, Selection, autodetect_extension, factory};
+pub use framework::{IRenderer, Renderer};
 pub use png::Png;

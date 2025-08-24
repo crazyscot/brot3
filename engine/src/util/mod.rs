@@ -1,5 +1,6 @@
 /// Support code for enums which the user can select from
-pub mod listable;
+mod listable;
+pub use listable::{ListItem, Listable};
 
 mod rect;
 pub use rect::Rect;

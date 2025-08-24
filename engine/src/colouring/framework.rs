@@ -9,7 +9,8 @@ use enum_delegate;
 use palette::{Hsv, Srgb, convert::FromColorUnclamped};
 use strum::IntoStaticStr;
 use strum_macros::{
-    self, Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, VariantArray,
+    self, Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr,
+    VariantArray, VariantNames,
 };
 
 use super::direct_rgb::{
@@ -37,8 +38,10 @@ pub type Rgb8 = palette::Srgb<u8>;
         EnumProperty,
         EnumString,
         VariantArray,
+        VariantNames,
         PartialOrd,
         Ord,
+        strum::EnumIter,
     )
 )] // ... and specifies what it derives from
 pub enum Instance {
@@ -90,7 +93,7 @@ impl Default for Instance {
     }
 }
 
-impl crate::util::listable::Listable for Selection {}
+impl crate::util::Listable for Selection {}
 
 /// A colouring algorithm that outputs Rgb8 directly.
 #[enum_delegate::register]
@@ -137,22 +140,22 @@ impl FromStr for Instance {
 #[cfg(test)]
 mod tests {
     use super::Selection;
-    use crate::util::listable::{self, list_kebab_case};
+    use crate::util::Listable as _;
 
     #[test]
     fn iter_works() {
-        assert!(listable::elements::<Selection>(false).any(|s| s == &Selection::LinearRainbow));
+        assert!(Selection::elements().any(|s| s == Selection::LinearRainbow));
     }
 
     #[test]
     fn test_algorithms_should_not_be_listed() {
-        assert!(listable::elements::<Selection>(false).all(|s| s != &Selection::White));
+        assert!(Selection::elements().all(|s| s != Selection::White));
     }
 
     #[test]
     fn discriminant_naming() {
         // We use kebab case in the CLI, so ensure that the helper output is in kebab case.
-        let colourers: Vec<_> = list_kebab_case::<super::Selection>().collect();
+        let colourers: Vec<_> = super::Selection::list_kebab_case().collect();
         assert!(colourers.iter().any(|it| it.name == "linear-rainbow"));
         assert!(!colourers.iter().any(|it| it.name == "LinearRainbow"));
     }

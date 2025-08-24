@@ -2,7 +2,7 @@ use std::fs::File;
 
 // Rendering output in various ASCII-based formats
 // (c) 2024 Ross Younger
-use super::Renderer;
+use super::IRenderer;
 use crate::colouring::Instance;
 use crate::fractal::{PointData, Tile, TileSpec};
 
@@ -10,9 +10,9 @@ use std::io::Write as _;
 
 /// CSV format, fractal points
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Csv {}
+pub struct Csv;
 
-impl Renderer for Csv {
+impl IRenderer for Csv {
     fn render_file(
         &self,
         filename: &str,
@@ -32,11 +32,11 @@ impl Renderer for Csv {
 /// Rough and ready ASCII art renderer
 #[derive(Clone, Copy, Debug, Default)]
 #[allow(clippy::module_name_repetitions)]
-pub struct AsciiArt {}
+pub struct AsciiArt;
 
 const DEFAULT_ASCII_ART_CHARSET: &[u8] = " .,:obOB%#".as_bytes();
 
-impl Renderer for AsciiArt {
+impl IRenderer for AsciiArt {
     fn render_file(
         &self,
         filename: &str,
