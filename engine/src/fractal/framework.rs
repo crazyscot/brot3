@@ -15,6 +15,7 @@ use enum_delegate;
 use strum::IntoStaticStr;
 use strum_macros::{
     Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, VariantArray,
+    VariantNames,
 };
 
 /// Selector for available Algorithms
@@ -33,8 +34,10 @@ use strum_macros::{
         EnumProperty,
         EnumString,
         VariantArray,
+        VariantNames,
         PartialOrd,
         Ord,
+        strum::EnumIter,
     )
 )] // ... and specifies what it derives from
 pub enum Instance {
@@ -91,7 +94,7 @@ impl Default for Instance {
     }
 }
 
-impl crate::util::listable::Listable for Selection {}
+impl crate::util::Listable for Selection {}
 
 /// Factory method for fractals
 #[must_use]

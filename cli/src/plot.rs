@@ -5,7 +5,7 @@ use std::time::SystemTime;
 
 use brot3_engine::colouring;
 use brot3_engine::fractal::{self, Algorithm, Point, Scalar, Size, Tile, TileSpec};
-use brot3_engine::render::{self, Renderer, autodetect_extension};
+use brot3_engine::render::{IRenderer, Renderer};
 use brot3_engine::util::Rect;
 
 use anyhow::{Context, ensure};
@@ -159,7 +159,7 @@ pub struct Args {
         help_heading("Output"),
         display_order(120)
     )]
-    pub(crate) output_type: Option<render::Selection>,
+    pub(crate) output_type: Option<Renderer>,
 
     /// Prints the plot info string to stdout
     #[arg(long, display_order(130), help_heading("Output"))]
@@ -226,14 +226,12 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     }
 
     // If they didn't specify an output file type, attempt to autodetect
-    let render_selection: render::Selection = if let Some(s) = args.output_type {
-        Ok::<render::Selection, anyhow::Error>(s)
+    let renderer: Renderer = if let Some(s) = args.output_type {
+        s
     } else {
-        let v = autodetect_extension(&args.output_filename)
-            .context("Could not autodetect desired output type from filename (try `--type ...')")?;
-        Ok(*v)
-    }?;
-    let renderer = render::factory(render_selection);
+        Renderer::try_from_file_extension(&args.output_filename)
+            .context("Could not autodetect desired output type from filename (try `--type ...')")?
+    };
 
     if args.info {
         println!("{spec}");
