@@ -1,7 +1,6 @@
 // Tile loading logic, parallelisation and synchronisation
 // (c) 2024 Ross Younger
 
-use crate::engine::{self};
 use crate::types::{FinishedTile, PlottedTile, TileCoordinate};
 
 use core::future::Future;
@@ -24,7 +23,7 @@ impl LoadingTile {
                 rayon::spawn(move || {
                     // If the LoadingTile is dropped, the channel becomes closed.
                     if !image_send.is_closed() {
-                        let _a = image_send.send(engine::draw_tile(&coord, seed_tile));
+                        let _a = image_send.send(crate::engine::draw_tile(&coord, seed_tile));
                     }
                 });
                 image_recv.await.unwrap().unwrap_or_else(|e| {

@@ -20,6 +20,7 @@ pub type Rgb8 = palette::Srgb<u8>;
     Clone,
     Copy,
     Debug,
+    Hash,
     PartialEq,
     Eq,
     PartialOrd,

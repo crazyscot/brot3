@@ -1,12 +1,12 @@
 // (c) 2024 Ross Younger
 
-use super::{Algorithm, Point, PointData, TileSpec};
+use super::{IAlgorithm, Point, PointData, TileSpec};
 
 use num_complex::ComplexFloat;
 use std::fmt;
 
 /// A section of a fractal plot
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Tile {
     /// Debug output level
     debug: u8,

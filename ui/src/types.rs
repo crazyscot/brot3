@@ -4,8 +4,10 @@
 use std::cell::RefCell;
 
 use brot3_engine::{
-    colouring,
-    fractal::{self, Algorithm, AlgorithmSpec, Point, Scalar, TileSpec},
+    colouring::Colourer,
+    fractal::{
+        Algorithm, AlgorithmSpec, IAlgorithm as _, Location, Point, Scalar, Size, Tile, TileSpec,
+    },
     util::Rect,
 };
 
@@ -25,11 +27,7 @@ pub struct PixelCoordinate {
 
 /// Default algorithm for the UI
 pub(crate) fn default_algorithm() -> AlgorithmSpec {
-    AlgorithmSpec::new(
-        fractal::factory(fractal::Selection::Original),
-        256,
-        colouring::factory(colouring::Selection::LinearRainbow),
-    )
+    AlgorithmSpec::new(Algorithm::default(), 256, Colourer::default())
 }
 
 // TILE SPECIFICATION ======================================================================
@@ -97,8 +95,8 @@ impl TryFrom<&TileCoordinate> for TileSpec {
         };
 
         let output_size = Rect::new(tile_size, tile_size);
-        let origin = fractal::Location::Origin(tile_bottom_left);
-        let axes = fractal::Size::AxesLength(tile_axes);
+        let origin = Location::Origin(tile_bottom_left);
+        let axes = Size::AxesLength(tile_axes);
         Ok(TileSpec::new(
             origin,
             axes,
@@ -116,7 +114,7 @@ impl TryFrom<&TileCoordinate> for TileSpec {
 /// N.B. This struct must implement `Send` (which should be automatically derived)
 #[derive(Clone)]
 pub(crate) struct PlottedTile {
-    pub(crate) tile: RefCell<fractal::Tile>,
+    pub(crate) tile: RefCell<Tile>,
     pub(crate) image: slint::SharedPixelBuffer<slint::Rgba8Pixel>, // this cannot be slint::Image, which is not Send
 }
 

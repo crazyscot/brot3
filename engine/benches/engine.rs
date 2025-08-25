@@ -5,13 +5,14 @@
 
 use brot3_engine::{
     colouring::{Colourer, IColourer, huecycles::LinearRainbow},
-    fractal::{self, Algorithm, Location, Point, PointData, Size, Tile, TileSpec},
+    fractal::{Algorithm, IAlgorithm, Location, Point, PointData, Size, Tile, TileSpec},
     render::Png,
     util::Rect,
 };
 
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
+use std::str::FromStr as _;
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 // FRACTALS
@@ -24,8 +25,8 @@ const TEST_COLOURER: Colourer = Colourer::LinearRainbow(LinearRainbow {});
 fn iteration(c: &mut Criterion) {
     let mut group = c.benchmark_group("fractals");
     let mut alg = |alg, point: Point| {
-        let fractal = fractal::factory(alg);
-        let _ = group.bench_function(format!("iter_{alg:?}"), |b| {
+        let fractal = Algorithm::from_str(alg).unwrap_or_else(|_| panic!("can't find {alg}"));
+        let _ = group.bench_function(format!("iter_{alg}"), |b| {
             b.iter_batched_ref(
                 || {
                     let mut pd = PointData::new(point);
@@ -38,19 +39,19 @@ fn iteration(c: &mut Criterion) {
             );
         });
     };
-    alg(fractal::Selection::Original, TEST_POINT_M2);
-    alg(fractal::Selection::Mandel3, TEST_POINT_M3);
-    alg(fractal::Selection::Mandelbar, TEST_POINT_M3);
-    alg(fractal::Selection::Variant, TEST_POINT_M3);
-    alg(fractal::Selection::Zero, TEST_POINT_M3);
+    alg("mandelbrot", TEST_POINT_M2);
+    alg("mandel3", TEST_POINT_M3);
+    alg("mandelbar", TEST_POINT_M3);
+    alg("variant", TEST_POINT_M3);
+    alg("zero", TEST_POINT_M3);
 }
 
-fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
+fn get_test_tile_spec(alg: Algorithm, dimension: u32) -> TileSpec {
     TileSpec::new(
         Location::Origin(Point { re: -1.0, im: 0.0 }),
         Size::AxesLength(Point { re: 4.0, im: 4.0 }),
         Rect::new(dimension, dimension),
-        fractal::factory(alg),
+        alg,
         512,
         TEST_COLOURER,
     )
@@ -59,8 +60,9 @@ fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
 fn plot_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
     let mut do_alg = |alg| {
-        let spec = get_test_tile_spec(alg, 100);
-        let _ = group.bench_function(format!("plot_{alg:?}"), |b| {
+        let fractal = Algorithm::from_str(alg).unwrap();
+        let spec = get_test_tile_spec(fractal, 100);
+        let _ = group.bench_function(format!("plot_{alg}"), |b| {
             b.iter_batched_ref(
                 || Tile::new(&spec, 0),
                 |t| black_box(t).plot(),
@@ -68,16 +70,14 @@ fn plot_tile(c: &mut Criterion) {
             );
         });
     };
-    do_alg(fractal::Selection::Original);
-    do_alg(fractal::Selection::Zero);
+    do_alg("mandelbrot");
+    do_alg("zero");
 }
 
 criterion_group!(fractals, iteration, plot_tile);
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 // COLOURING
-
-use std::str::FromStr as _;
 
 fn colour_pixel(c: &mut Criterion) {
     let mut group = c.benchmark_group("colourers");
@@ -92,14 +92,15 @@ fn colour_pixel(c: &mut Criterion) {
     // (See also IAI, which runs them all.)
     let selection = ["linear-rainbow", "lch-gradient", "mandy", "white-fade"];
     for i in &selection {
-        let it = Colourer::from_str(i).unwrap();
+        let it = Colourer::from_str(i).unwrap_or_else(|_| panic!("can't find {}", *i));
         bench(it);
     }
 }
 
 fn colour_tile(c: &mut Criterion) {
     let mut group = c.benchmark_group("tiles");
-    let spec = get_test_tile_spec(fractal::Selection::Original, 100);
+    let alg = Algorithm::from_str("mandelbrot").unwrap();
+    let spec = get_test_tile_spec(alg, 100);
     let mut tile = Tile::new(&spec, 0);
     tile.plot();
 
@@ -113,7 +114,7 @@ fn colour_tile(c: &mut Criterion) {
     };
     let selection = ["linear-rainbow", "white"];
     for i in &selection {
-        let it = Colourer::from_str(i).unwrap();
+        let it = Colourer::from_str(i).unwrap_or_else(|_| panic!("can't find {alg}"));
         bench(it);
     }
 }

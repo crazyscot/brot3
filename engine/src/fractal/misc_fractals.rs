@@ -1,7 +1,7 @@
 // Miscellaneous fractals
 // (c) 2024 Ross Younger
 
-use super::{Algorithm, Point, PointData, mandelbrot::Original};
+use super::{IAlgorithm, Point, PointData, mandelbrot::Original};
 
 /// Prep function for fractals which appear upside down in this coordinate system
 /// (i.e. invert them)
@@ -18,7 +18,7 @@ pub struct Mandelbar {
     delegate: Original,
 }
 
-impl Algorithm for Mandelbar {
+impl IAlgorithm for Mandelbar {
     // Standard prepare
 
     #[inline]
@@ -47,7 +47,7 @@ pub struct BurningShip {
     delegate: Original,
 }
 
-impl Algorithm for BurningShip {
+impl IAlgorithm for BurningShip {
     #[inline]
     fn prepare(&self, point: &mut PointData) {
         prepare_upside_down(point);
@@ -85,7 +85,7 @@ pub struct Celtic {
     delegate: Original,
 }
 
-impl Algorithm for Celtic {
+impl IAlgorithm for Celtic {
     // standard prepare
 
     #[inline]
@@ -120,7 +120,7 @@ pub struct Variant {
     delegate: Original,
 }
 
-impl Algorithm for Variant {
+impl IAlgorithm for Variant {
     // standard prepare
 
     #[inline]
@@ -159,7 +159,7 @@ pub struct BirdOfPrey {
     delegate: Original,
 }
 
-impl Algorithm for BirdOfPrey {
+impl IAlgorithm for BirdOfPrey {
     #[inline]
     fn prepare(&self, point: &mut PointData) {
         prepare_upside_down(point);
@@ -194,7 +194,7 @@ pub struct Buffalo {
     delegate: Original,
 }
 
-impl Algorithm for Buffalo {
+impl IAlgorithm for Buffalo {
     #[inline]
     fn prepare(&self, point: &mut PointData) {
         prepare_upside_down(point);

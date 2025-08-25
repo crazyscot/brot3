@@ -4,11 +4,12 @@
 use std::{cell::RefCell, cmp, collections::BTreeMap, rc::Rc, str::FromStr as _};
 
 use brot3_engine::{
-    colouring,
-    fractal::{self, Algorithm as _, Point, Scalar},
+    colouring::Colourer,
+    fractal::{Algorithm, IAlgorithm as _, Point, Scalar},
     util::Listable as _,
 };
 use slint::{SharedString, VecModel};
+use strum::IntoDiscriminant as _;
 
 use crate::{
     State, World,
@@ -81,8 +82,8 @@ pub(crate) fn format_float_fixed(positive_prefix: &str, n: f64, decimal_places: 
 
 #[derive(Default)]
 pub(crate) struct StringCache {
-    fractals: BTreeMap<fractal::Selection, SharedString>,
-    colourers: BTreeMap<colouring::Selection, SharedString>,
+    fractals: BTreeMap<Algorithm, SharedString>,
+    colourers: BTreeMap<Colourer, SharedString>,
 }
 
 pub(crate) fn update_info_display(
@@ -163,19 +164,13 @@ pub(crate) fn update_info_display(
     let mut cache = cache.borrow_mut();
     let algorithm = cache
         .fractals
-        .entry(world.active_algspec.algorithm.into())
-        .or_insert_with(|| {
-            let str: &'static str = world.active_algspec.algorithm.into();
-            SharedString::from(str)
-        })
+        .entry(world.active_algspec.algorithm)
+        .or_insert_with(|| SharedString::from(world.active_algspec.algorithm.to_string()))
         .clone();
     let colourer = cache
         .colourers
-        .entry(world.active_algspec.colourer.into())
-        .or_insert_with(|| {
-            let str: &'static str = world.active_algspec.colourer.into();
-            SharedString::from(str)
-        })
+        .entry(world.active_algspec.colourer)
+        .or_insert_with(|| SharedString::from(world.active_algspec.colourer.to_string()))
         .clone();
 
     #[allow(clippy::cast_possible_wrap)]
@@ -195,7 +190,7 @@ pub(crate) fn update_info_display(
 pub(crate) fn populate_dropdowns(state: &Rc<State>) {
     let default = crate::types::default_algorithm();
 
-    let avail_fractals = brot3_engine::fractal::Selection::list_original_case()
+    let avail_fractals = Algorithm::list_original_case()
         .map(|s| ComboBoxItem {
             text: SharedString::from(s.name),
         })
@@ -206,9 +201,9 @@ pub(crate) fn populate_dropdowns(state: &Rc<State>) {
     // ASSUMPTION: `avail_fractals` are in the same order (share the same indices) as the list output.
     state
         .main_ui
-        .set_fractal_index(brot3_engine::fractal::Selection::from(default.algorithm) as i32);
+        .set_fractal_index(default.algorithm.discriminant() as i32);
 
-    let avail_colourers = brot3_engine::colouring::Selection::list_original_case()
+    let avail_colourers = Algorithm::list_original_case()
         .map(|s| ComboBoxItem {
             text: SharedString::from(s.name),
         })
@@ -219,18 +214,17 @@ pub(crate) fn populate_dropdowns(state: &Rc<State>) {
         .set_colourers_available(slint::ModelRc::new(VecModel::from(avail_colourers)));
     state
         .main_ui
-        .set_colourer_index(brot3_engine::colouring::Selection::from(default.colourer) as i32);
+        .set_colourer_index(default.colourer.discriminant() as i32);
 
     let state_weak = Rc::downgrade(state);
     state.main_ui.on_fractal_selected(move |selection| {
         let state = state_weak.upgrade().unwrap();
         let mut world = state.world.borrow_mut();
         let mut new_algspec = world.active_algspec;
-        new_algspec.algorithm = brot3_engine::fractal::Instance::from_str(selection.as_str())
-            .unwrap_or_else(|e| {
-                eprintln!("{e}: {selection}");
-                world.active_algspec.algorithm
-            });
+        new_algspec.algorithm = Algorithm::from_str(selection.as_str()).unwrap_or_else(|e| {
+            eprintln!("{e}: {selection}");
+            world.active_algspec.algorithm
+        });
         world.clear_loading_tiles();
         world.reset_view_2(Some(new_algspec));
         drop(world);
@@ -242,11 +236,10 @@ pub(crate) fn populate_dropdowns(state: &Rc<State>) {
         let state = state_weak.upgrade().unwrap();
         let mut world = state.world.borrow_mut();
         let mut new_algspec = world.active_algspec;
-        new_algspec.colourer = brot3_engine::colouring::Instance::from_str(selection.as_str())
-            .unwrap_or_else(|e| {
-                eprintln!("{e}: {selection}");
-                world.active_algspec.colourer
-            });
+        new_algspec.colourer = Colourer::from_str(selection.as_str()).unwrap_or_else(|e| {
+            eprintln!("{e}: {selection}");
+            world.active_algspec.colourer
+        });
         world.clear_loading_tiles();
         world.reset_view_2(Some(new_algspec));
         drop(world);
