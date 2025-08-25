@@ -287,7 +287,7 @@ checksum = "0ae92a5119aa49cdbcf6b9f893fe4e1d98b04ccbf82ee0584ad948a44a734dea"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -401,7 +401,7 @@ checksum = "3b43422f69d8ff38f95f1b2bb76517c91589a924d1559a0e935d7c8ce0274c11"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -436,7 +436,7 @@ checksum = "9035ad2d096bed7955a320ee7e2230574d28fd3c3a0f186cbea1ff3c7eed5dbb"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -504,7 +504,7 @@ dependencies = [
  "derive_utils",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -593,7 +593,7 @@ dependencies = [
  "regex",
  "rustc-hash 2.1.1",
  "shlex",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -674,6 +674,7 @@ dependencies = [
  "rayon",
  "slint",
  "slint-build",
+ "strum",
  "tokio",
  "vivi_ui",
 ]
@@ -699,7 +700,7 @@ dependencies = [
  "built 0.8.0",
  "clap",
  "criterion",
- "enum_delegate",
+ "derive_more",
  "heck 0.5.0",
  "iai-callgrind",
  "num-complex",
@@ -756,7 +757,7 @@ checksum = "4f154e572231cb6ba2bd1176980827e3d5dc04cc183a75dea38109fbdd672d29"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -963,7 +964,7 @@ dependencies = [
  "heck 0.5.0",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1052,7 +1053,7 @@ checksum = "5387f5bbc9e9e6c96436ea125afa12614cebf8ac67f49abc08c1e7a891466c90"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1199,7 +1200,7 @@ dependencies = [
  "lazy_static",
  "proc-macro2",
  "regex",
- "syn 2.0.106",
+ "syn",
  "unicode-xid",
 ]
 
@@ -1211,7 +1212,7 @@ checksum = "25fcfea2ee05889597d35e986c2ad0169694320ae5cc8f6d2640a4bb8a884560"
 dependencies = [
  "lazy_static",
  "proc-macro2",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1226,7 +1227,7 @@ dependencies = [
  "lazy_static",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1345,7 +1346,7 @@ dependencies = [
  "deluxe-macros",
  "once_cell",
  "proc-macro2",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1358,7 +1359,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "strsim 0.10.0",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1373,7 +1374,7 @@ dependencies = [
  "proc-macro-crate 1.3.1",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1393,7 +1394,7 @@ checksum = "bda628edc44c4bb645fbe0f758797143e4e07926f7ebf4e9bdfbd3d2ce621df3"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
  "unicode-xid",
 ]
 
@@ -1405,7 +1406,7 @@ checksum = "ccfae181bab5ab6c5478b2ccb69e4c68a02f8c3ec72f6616bfec9dbc599d2ee0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1432,7 +1433,7 @@ checksum = "97369cbbc041bc366949bc74d34658d6cda5621039731c6310521892a3a20ae0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1523,30 +1524,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3d8a32ae18130a3c84dd492d4215c3d913c3b07c6b63c2eb3eb7ff1101ab7bf"
 
 [[package]]
-name = "enum_delegate"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8ea75f31022cba043afe037940d73684327e915f88f62478e778c3de914cd0a"
-dependencies = [
- "enum_delegate_lib",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "enum_delegate_lib"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e1f6c3800b304a6be0012039e2a45a322a093539c45ab818d9e6895a39c90fe"
-dependencies = [
- "proc-macro2",
- "quote",
- "rand",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "enumflags2"
 version = "0.7.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1564,7 +1541,7 @@ checksum = "67c78a4d8fdf9953a5c9d458f9efe940fd97a0cab0941c075a813ac594733827"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1584,7 +1561,7 @@ checksum = "44f23cf4b44bfce11a86ace86f8a73ffdec849c9fd00a386a53d278bd9e81fb3"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1800,7 +1777,7 @@ checksum = "1a5c6c585bc94aaf2c7b51dd4c2ba22680844aba4c687be581871a6f518c5742"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -1887,7 +1864,7 @@ checksum = "162ee34ebcb7c64a8abebc059ce0fee27c2262618d7b60ed8faf72fef13c3650"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -2349,7 +2326,7 @@ checksum = "81504739c60f11af98f80f287624379514923888ecdf37e0bc43c5dc1cadafa5"
 dependencies = [
  "quote",
  "serde_json",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -2440,7 +2417,7 @@ dependencies = [
  "quote",
  "serde",
  "serde_json",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -2680,7 +2657,7 @@ checksum = "c34819042dc3d3971c46c2190835914dfbe0c3c13f61449b2997f4e9722dfa60"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -3201,7 +3178,7 @@ checksum = "ed3955f1a9c7c0c15e092f9c887db08b1fc683305fdf6eb6684f22555355e202"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -3253,7 +3230,7 @@ dependencies = [
  "proc-macro-crate 3.3.0",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -3678,7 +3655,7 @@ dependencies = [
  "by_address",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -3720,7 +3697,7 @@ dependencies = [
  "parsel_derive",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -3732,7 +3709,7 @@ dependencies = [
  "deluxe",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -3777,7 +3754,7 @@ dependencies = [
  "phf_shared",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -3812,7 +3789,7 @@ checksum = "6e918e4ff8c4549eb882f14b3a4bc8c8bc93de829416eacf579f1207a8fbf861"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -3948,7 +3925,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "479ca8adacdd7ce8f1fb39ce9ecccbfe93a3f1344b3d0d97f20bc0196208f62b"
 dependencies = [
  "proc-macro2",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -3989,7 +3966,7 @@ dependencies = [
  "proc-macro-error-attr2",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -4017,7 +3994,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52717f9a02b6965224f95ca2a81e2e0c5c43baacd28ca057577988930b6c3d5b"
 dependencies = [
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -4435,7 +4412,7 @@ checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -4458,7 +4435,7 @@ checksum = "175ee3e80ae9982737ca543e96133087cbd9a485eecc3bc4de9c1a37b47ea59c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -4734,7 +4711,7 @@ dependencies = [
  "parsel",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -4788,7 +4765,7 @@ dependencies = [
  "heck 0.5.0",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -4799,17 +4776,6 @@ checksum = "68c7541fff44b35860c1a7a47a7cadf3e4a304c457b58f9870d9706ece028afc"
 dependencies = [
  "kurbo",
  "siphasher",
-]
-
-[[package]]
-name = "syn"
-version = "1.0.109"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
-dependencies = [
- "proc-macro2",
- "quote",
- "unicode-ident",
 ]
 
 [[package]]
@@ -4831,7 +4797,7 @@ checksum = "728a70f3dbaf5bab7f0c4b1ac8d7ae5ea60a4b5549c8a5914361c99147a709d2"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -4937,7 +4903,7 @@ checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -4948,7 +4914,7 @@ checksum = "6c5e1be1c48b9172ee610da68fd9cd2770e7a4056cb3fc98710ee6906f0c7960"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -5064,7 +5030,7 @@ checksum = "6e06d43f1345a3bcd39f6a56dbb7dcab2ba47e68e8ac134855e7e2bdbaf8cab8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -5139,7 +5105,7 @@ checksum = "81383ab64e72a7a8b8e13130c49e3dab29def6d0c7d76a03087b3cf71c5c6903"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -5370,7 +5336,7 @@ checksum = "8cfcf6171aa2b0f85718ca5888ca32f6edf61d1849f8e4b3786ad890e5b68f68"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -5420,7 +5386,7 @@ dependencies = [
  "log",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
  "wasm-bindgen-shared",
 ]
 
@@ -5455,7 +5421,7 @@ checksum = "8ae87ea40c9f689fc23f209965b6fb8a99ad69aeeb0231408be24920604395de"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -5689,7 +5655,7 @@ checksum = "a47fddd13af08290e67f4acabf4b459f647552718f683a7b415d290ac744a836"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -5700,7 +5666,7 @@ checksum = "bd9211b69f8dcdfa817bfd14bf1c97c9188afa36f4750130fcdf3f400eca9fa8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -6248,7 +6214,7 @@ checksum = "38da3c9736e16c5d3c8c597a9aaa5d1fa565d0532ae05e27c24aa62fb32c0ab6"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
  "synstructure",
 ]
 
@@ -6303,7 +6269,7 @@ checksum = "dc6821851fa840b708b4cbbaf6241868cabc85a2dc22f426361b0292bfc0b836"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
  "zbus-lockstep",
  "zbus_xml",
  "zvariant",
@@ -6318,7 +6284,7 @@ dependencies = [
  "proc-macro-crate 3.3.0",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
  "zbus_names",
  "zvariant",
  "zvariant_utils",
@@ -6366,7 +6332,7 @@ checksum = "9ecf5b4cc5364572d7f4c329661bcc82724222973f2cab6f050a4e5c22f75181"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -6386,7 +6352,7 @@ checksum = "d71e5d6e06ab090c67b5e44993ec16b72dcbaabc526db883a360057678b48502"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
  "synstructure",
 ]
 
@@ -6420,7 +6386,7 @@ checksum = "5b96237efa0c878c64bd89c436f661be4e46b2f3eff1ebb976f7ef2321d2f58f"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -6470,7 +6436,7 @@ dependencies = [
  "proc-macro-crate 3.3.0",
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
  "zvariant_utils",
 ]
 
@@ -6484,6 +6450,6 @@ dependencies = [
  "quote",
  "serde",
  "static_assertions",
- "syn 2.0.106",
+ "syn",
  "winnow 0.7.12",
 ]

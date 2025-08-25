@@ -1,10 +1,7 @@
 // List subcommand
 // (c) 2024 Ross Younger
 use brot3_engine::{
-    colouring::Colourer,
-    fractal::{self},
-    render::Renderer,
-    util::Listable as _,
+    colouring::Colourer, fractal::Algorithm, render::Renderer, util::Listable as _,
 };
 
 use clap::ArgAction;
@@ -40,7 +37,7 @@ pub struct Args {
 pub(crate) fn list(args: &Args) -> anyhow::Result<()> {
     match args.thing {
         ListableThings::Renderers => Renderer::print_list(),
-        ListableThings::Fractals => fractal::Selection::print_list(),
+        ListableThings::Fractals => Algorithm::print_list(),
         ListableThings::Colourers => {
             Colourer::print_list();
         }

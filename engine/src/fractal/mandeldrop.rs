@@ -3,7 +3,7 @@
 
 use super::mandelbrot::{Mandel3, Original};
 use super::maths::Point;
-use super::{Algorithm, PointData};
+use super::{IAlgorithm, PointData};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Mandeldrop {
@@ -21,7 +21,7 @@ fn prepare_drop(point: &mut PointData) {
     point.iter = 1;
 }
 
-impl Algorithm for Mandeldrop {
+impl IAlgorithm for Mandeldrop {
     #[inline]
     fn prepare(&self, point: &mut PointData) {
         prepare_drop(point);
@@ -44,13 +44,12 @@ impl Algorithm for Mandeldrop {
     }
 }
 
-#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Mandeldrop3 {
     delegate: Mandel3,
 }
 
-impl Algorithm for Mandeldrop3 {
+impl IAlgorithm for Mandeldrop3 {
     #[inline]
     fn prepare(&self, point: &mut PointData) {
         prepare_drop(point);

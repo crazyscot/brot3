@@ -1,66 +1,61 @@
 // Fractal algorithm selection, dispatch framework & shared code
 // (c) 2024 Ross Younger
 
-#![allow(missing_docs)] // EnumDiscriminants
-
-use std::str::FromStr;
-
 use super::{ESCAPE_THRESHOLD_SQ, Point, PointData};
 
 use super::mandelbrot::{Mandel3, Original};
 use super::mandeldrop::{Mandeldrop, Mandeldrop3};
 use super::misc_fractals::{BirdOfPrey, Buffalo, BurningShip, Celtic, Mandelbar, Variant};
 
-use enum_delegate;
-use strum::IntoStaticStr;
-use strum_macros::{
-    Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr, VariantArray,
-    VariantNames,
-};
+use spire_enum::prelude::{delegate_impl, delegated_enum};
 
-/// Selector for available Algorithms
-#[enum_delegate::implement(Algorithm)]
+/// Framework for all available fractal algorithms.
+/// see [`IAlgorithm`]
+#[delegated_enum(impl_conversions)]
 #[derive(
-    Clone, Copy, Debug, Display, FromRepr, PartialEq, Eq, Hash, PartialOrd, Ord, IntoStaticStr,
+    Clone,
+    Copy,
+    Debug,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    strum_macros::FromRepr,
+    strum_macros::Display,
+    strum_macros::EnumDiscriminants,
+    strum_macros::EnumIter,
+    strum_macros::EnumMessage,
+    strum_macros::EnumProperty,
+    strum_macros::EnumString,
 )]
 #[strum(serialize_all = "kebab_case")]
-#[derive(EnumDiscriminants)] // This creates the enum Selection ...
-#[strum_discriminants(
-    name(Selection),
-    derive(
-        clap::ValueEnum,
-        Display,
-        EnumMessage,
-        EnumProperty,
-        EnumString,
-        VariantArray,
-        VariantNames,
-        PartialOrd,
-        Ord,
-        strum::EnumIter,
-    )
-)] // ... and specifies what it derives from
-pub enum Instance {
+pub enum Algorithm {
     /// The original Mandelbrot set, `z := z^2+c` (aliases: "m", "m2")
-    #[strum_discriminants(value(alias = "m", alias = "m2"))]
+    #[strum(
+        serialize = "m",
+        serialize = "m2",
+        serialize = "mandelbrot",
+        serialize = "original"
+    )]
     Original(Original),
     /// Mandelbrot^3 z:=z^3+c (alias: "m3")
-    #[strum_discriminants(value(alias = "m3"))]
+    #[strum(serialize = "m3", serialize = "mandel3")]
     Mandel3(Mandel3),
 
-    #[strum_discriminants(value(alias = "drop"))]
+    #[strum(serialize = "drop", serialize = "mandeldrop")]
     /// Mandeldrop (Inverted set) `z:=z^2+c` using 1/z0 (alias: drop)
     Mandeldrop(Mandeldrop),
 
-    #[strum_discriminants(value(alias = "drop3"))]
+    #[strum(serialize = "drop3", serialize = "mandeldrop3")]
     /// Mandeldrop (Inverted set) `z:=z^3+c` using 1/z0 (alias: drop3)
     Mandeldrop3(Mandeldrop3),
 
-    #[strum_discriminants(value(alias = "bar"))]
+    #[strum(serialize = "bar", serialize = "mandelbar")]
     /// Mandelbar (Tricorn) `z:=(z*)^2+c` (alias: bar)
     Mandelbar(Mandelbar),
 
-    #[strum_discriminants(value(alias = "ship"))]
+    #[strum(serialize = "ship", serialize = "burningship")]
     /// The Burning Ship `z:=(|Re(z)|+i|Im(z)|)^2+c` (alias: ship)
     BurningShip(BurningShip),
 
@@ -70,7 +65,7 @@ pub enum Instance {
     /// The Variant `z:=z^2+c with Re(z):=|Re(z)|` on odd iterations
     Variant(Variant),
 
-    #[strum_discriminants(value(alias = "bird"))]
+    #[strum(serialize = "bird", serialize = "bird-of-prey")]
     /// Bird of Prey `z:=(Re(z)+i|Im(z)|)^2+c` (alias: bird)
     BirdOfPrey(BirdOfPrey),
 
@@ -78,48 +73,21 @@ pub enum Instance {
     Buffalo(Buffalo),
 
     /// Test algorithm that always outputs zero
-    #[strum_discriminants(strum(props(hide_from_list = "1")))]
+    #[strum(props(hide_from_list = "1"))]
     Zero(Zero),
 }
 
-impl Default for Selection {
+impl crate::util::Listable for Algorithm {}
+
+impl Default for Algorithm {
     fn default() -> Self {
-        Self::Original
-    }
-}
-
-impl Default for Instance {
-    fn default() -> Self {
-        Self::Original(Original {})
-    }
-}
-
-impl crate::util::Listable for Selection {}
-
-/// Factory method for fractals
-#[must_use]
-#[allow(clippy::missing_panics_doc)]
-pub fn factory(selection: Selection) -> Instance {
-    Instance::from_repr(selection as usize).unwrap_or_else(|| {
-        panic!("Failed to convert enum discriminant {selection} into instance (can't happen)")
-    })
-}
-
-impl FromStr for Instance {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> anyhow::Result<Self> {
-        match Selection::from_str(s) {
-            Ok(s) => Ok(factory(s)),
-            Err(_) => anyhow::bail!("unknown fractal name"),
-        }
+        Algorithm::Original(Original {})
     }
 }
 
 /// A fractal algorithm
 /// This knows nothing about colouring, only maths on the complex plane.
-#[enum_delegate::register]
-pub trait Algorithm {
+pub trait IAlgorithm {
     /// Algorithm-specific data preparation before we iterate for the first time
     #[inline]
     fn prepare(&self, point: &mut PointData) {
@@ -155,10 +123,21 @@ pub trait Algorithm {
     }
 }
 
+#[delegate_impl]
+impl IAlgorithm for Algorithm {
+    fn prepare(&self, point: &mut PointData);
+    fn iterate(&self, point: &mut PointData);
+    #[inline]
+    fn pixel(&self, point: &mut PointData, max_iter: u32);
+    fn finish(&self, point: &mut PointData);
+    fn default_centre(&self) -> Point;
+    fn default_axes(&self) -> Point;
+}
+
 /// Test algorithm, doesn't do anything useful
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Zero {}
-impl Algorithm for Zero {
+impl IAlgorithm for Zero {
     fn iterate(&self, point: &mut PointData) {
         point.result = Some(0.0);
     }

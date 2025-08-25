@@ -2,12 +2,12 @@
 // (c) 2024 Ross Younger
 
 use super::maths::{Point, ln_3_f64};
-use super::{Algorithm, PointData};
+use super::{IAlgorithm, PointData};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Original {}
 
-impl Algorithm for Original {
+impl IAlgorithm for Original {
     #[doc = r" Prepares the ``PointData`` to iterate"]
     #[inline]
     fn prepare(&self, point: &mut PointData) {
@@ -60,7 +60,7 @@ impl Algorithm for Original {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Mandel3 {}
 
-impl Algorithm for Mandel3 {
+impl IAlgorithm for Mandel3 {
     // Default prepare
 
     #[doc = r" The iteration function"]

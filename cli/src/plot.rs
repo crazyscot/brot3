@@ -4,7 +4,9 @@
 use std::time::SystemTime;
 
 use brot3_engine::colouring::Colourer;
-use brot3_engine::fractal::{self, Algorithm, Point, Scalar, Size, Tile, TileSpec};
+use brot3_engine::fractal::{
+    Algorithm, IAlgorithm as _, Location, Point, Scalar, Size, Tile, TileSpec,
+};
 use brot3_engine::render::{IRenderer, Renderer};
 use brot3_engine::util::Rect;
 
@@ -32,7 +34,7 @@ pub struct Args {
         help_heading("Plot control"),
         display_order(5)
     )]
-    pub(crate) fractal: fractal::Selection,
+    pub(crate) algorithm: Algorithm,
 
     /// Maximum number of iterations before assuming a pixel has escaped
     #[arg(
@@ -203,13 +205,11 @@ fn check_zoom(input: Scalar) -> anyhow::Result<Scalar> {
 
 /// Implementation of 'plot'
 pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
-    let algorithm = fractal::factory(args.fractal);
-
     let mut spec = TileSpec::new(
-        args_location(args, algorithm),
-        args_axes(args, algorithm)?,
+        args_location(args, args.algorithm),
+        args_axes(args, args.algorithm)?,
         Rect::new(args.width, args.height),
-        algorithm,
+        args.algorithm,
         args.max_iter,
         args.colourer,
     );
@@ -248,9 +248,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         .map(|ts| Tile::new(ts, debug))
         .collect_into_vec(&mut tiles);
     let time1 = SystemTime::now();
-    tiles
-        .par_iter_mut()
-        .for_each(brot3_engine::fractal::Tile::plot);
+    tiles.par_iter_mut().for_each(Tile::plot);
     let time2 = SystemTime::now();
 
     let result = renderer.render_file(&args.output_filename, &spec, &tiles, args.colourer);
@@ -267,16 +265,16 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
 }
 
 /// Unpick the possible user specifications for the plot location
-fn args_location(args: &Args, algorithm: fractal::Instance) -> fractal::Location {
+fn args_location(args: &Args, algorithm: Algorithm) -> Location {
     if let Some(o) = args.origin {
-        fractal::Location::Origin(o)
+        Location::Origin(o)
     } else {
-        fractal::Location::Centre(args.centre.unwrap_or(algorithm.default_centre()))
+        Location::Centre(args.centre.unwrap_or(algorithm.default_centre()))
     }
 }
 
 /// Unpick the possible user specifications for the plot axes
-fn args_axes(args: &Args, algorithm: fractal::Instance) -> anyhow::Result<fractal::Size> {
+fn args_axes(args: &Args, algorithm: Algorithm) -> anyhow::Result<Size> {
     if let Some(size) = args.pixel_size {
         Ok(Size::PixelSize(check_fix_axes(size)?))
     } else if let Some(zoom) = args.zoom {

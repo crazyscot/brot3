@@ -8,7 +8,7 @@ use super::{Location, Point, Scalar, Size};
 use crate::{colouring, fractal, util::Rect};
 
 use std::{
-    fmt::{self, Display, Formatter},
+    fmt::{Display, Formatter},
     hash::Hash,
     sync::Arc,
 };
@@ -16,10 +16,12 @@ use std::{
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
 /// Specification of the algorithmic part of a tile to plot
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, derive_more::Constructor, Default,
+)]
 pub struct AlgorithmSpec {
     /// The selected algorithm
-    pub algorithm: fractal::Instance,
+    pub algorithm: fractal::Algorithm,
     /// Iteration limit
     pub max_iter: u32,
     /// The selected colourer
@@ -27,23 +29,10 @@ pub struct AlgorithmSpec {
 }
 
 impl AlgorithmSpec {
-    /// Standard constructor
-    #[must_use]
-    pub fn new(
-        algorithm: fractal::Instance,
-        max_iter: u32,
-        colourer: colouring::Colourer,
-    ) -> AlgorithmSpec {
-        AlgorithmSpec {
-            algorithm,
-            max_iter,
-            colourer,
-        }
-    }
     /// Syntactic sugar constructor (wraps new struct in an Arc)
     #[must_use]
     pub fn new_arc(
-        algorithm: fractal::Instance,
+        algorithm: fractal::Algorithm,
         max_iter: u32,
         colourer: colouring::Colourer,
     ) -> Arc<AlgorithmSpec> {
@@ -70,7 +59,7 @@ fn alg_specs_are_equivalent(a1: &Arc<AlgorithmSpec>, a2: &Arc<AlgorithmSpec>) ->
 /// 2. We are genuinely only comparing tilespecs for identicality, not recreating them which might lead to inaccuracies, so can neglect that case.
 ///
 /// Therefore it is safe to naively treat f64s as bags of bits in implementing Eq and Hash.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TileSpec {
     /// Origin of this tile (bottom-left corner, smallest real/imaginary coefficients)
     origin: Point,
@@ -92,7 +81,7 @@ impl TileSpec {
         location: Location,
         size: Size,
         size_in_pixels: Rect<u32>,
-        algorithm: fractal::Instance,
+        algorithm: fractal::Algorithm,
         max_iter: u32,
         colourer: colouring::Colourer,
     ) -> TileSpec {
@@ -299,7 +288,7 @@ impl TileSpec {
     }
     /// Accessor
     #[must_use]
-    pub fn algorithm(&self) -> &fractal::Instance {
+    pub fn algorithm(&self) -> &fractal::Algorithm {
         &self.alg_spec.algorithm
     }
     /// Accessor
@@ -376,7 +365,7 @@ impl TileSpec {
 }
 
 impl Display for TileSpec {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
         write!(
             f,
             "{},origin={},axes={},max={},col={}",
@@ -450,7 +439,10 @@ mod tests {
             self, Colourer,
             direct_rgb::{BlackFade, WhiteFade},
         },
-        fractal::{self, Location, Point, Scalar, Size, TileSpec},
+        fractal::{
+            self, Algorithm, Location, Point, Scalar, Size, TileSpec,
+            mandelbrot::{Mandel3, Original},
+        },
         util::Rect,
     };
     use approx::assert_relative_eq;
@@ -460,8 +452,8 @@ mod tests {
     const ONETWO: Point = Point { re: 1.0, im: 2.0 };
     const CENTI: Point = Point { re: 0.01, im: 0.01 };
 
-    const MANDELBROT: fractal::Instance =
-        fractal::Instance::Original(fractal::mandelbrot::Original {});
+    const MANDELBROT: fractal::Algorithm =
+        fractal::Algorithm::Original(fractal::mandelbrot::Original {});
 
     const BLACK_FADE: colouring::Colourer =
         colouring::Colourer::BlackFade(colouring::direct_rgb::BlackFade {});
@@ -728,14 +720,14 @@ mod tests {
             Location::Origin(Point { re: 0.0, im: -0.5 }),
             Size::AxesLength(Point { re: -1.0, im: 2.0 }),
             Rect::new(200, 400),
-            fractal::framework::factory(fractal::framework::Selection::Original),
+            Original {}.into(),
             256,
             BLACK_FADE,
         );
         let result = uut.to_string();
         assert_eq!(
             result,
-            "original,origin=0-0.5i,axes=-1+2i,max=256,col=black-fade"
+            "mandelbrot,origin=0-0.5i,axes=-1+2i,max=256,col=black-fade"
         );
     }
 
@@ -747,23 +739,23 @@ mod tests {
 
     #[test]
     fn hashability() {
-        fn test_tilespec(f: fractal::framework::Selection) -> TileSpec {
+        fn test_tilespec(f: Algorithm) -> TileSpec {
             TileSpec::new(
                 Location::Origin(Point { re: 0.0, im: -0.5 }),
                 Size::AxesLength(Point { re: -1.0, im: 2.0 }),
                 Rect::new(200, 400),
-                fractal::framework::factory(f),
+                f,
                 256,
                 BLACK_FADE,
             )
         }
 
-        let uut = test_tilespec(fractal::framework::Selection::Original);
+        let uut = test_tilespec(Original {}.into());
         let h1 = hash(&uut);
         let h2 = hash(&uut);
         assert_eq!(h1, h2);
 
-        let uut2 = test_tilespec(fractal::framework::Selection::Mandel3);
+        let uut2 = test_tilespec(Mandel3 {}.into());
         let h3 = hash(&uut2);
         assert_ne!(h1, h3);
     }
