@@ -1,17 +1,8 @@
 // Palette selection & dispatch framework
 // (c) 2024 Ross Younger
 
-#![allow(missing_docs)] // EnumDiscriminants
-
-use std::str::FromStr;
-
-use enum_delegate;
 use palette::{Hsv, Srgb, convert::FromColorUnclamped};
-use strum::IntoStaticStr;
-use strum_macros::{
-    self, Display, EnumDiscriminants, EnumMessage, EnumProperty, EnumString, FromRepr,
-    VariantArray, VariantNames,
-};
+use spire_enum::prelude::{delegate_impl, delegated_enum};
 
 use super::direct_rgb::{
     BlackFade, Mandy, Monochrome, MonochromeInverted, OneLoneCoder, WhiteFade,
@@ -22,29 +13,26 @@ use super::testing::White;
 /// Type sugar: Standard RGB, u8 storage
 pub type Rgb8 = palette::Srgb<u8>;
 
-/// Selector for available Palettes
-#[enum_delegate::implement(OutputsRgb8)]
+/// Framework for all available colourers.
+/// see [`IColourer`] and [`HsvfColourer`]
+#[delegated_enum(impl_conversions)]
 #[derive(
-    Clone, Copy, Debug, Display, FromRepr, PartialEq, Eq, Hash, PartialOrd, Ord, IntoStaticStr,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    strum_macros::Display,
+    strum_macros::EnumDiscriminants,
+    strum_macros::EnumIter,
+    strum_macros::EnumMessage,
+    strum_macros::EnumProperty,
+    strum_macros::EnumString,
 )]
 #[strum(serialize_all = "kebab_case")]
-#[derive(EnumDiscriminants)] // This creates the enum Selection ...
-#[strum_discriminants(
-    name(Selection),
-    derive(
-        clap::ValueEnum,
-        Display,
-        EnumMessage,
-        EnumProperty,
-        EnumString,
-        VariantArray,
-        VariantNames,
-        PartialOrd,
-        Ord,
-        strum::EnumIter,
-    )
-)] // ... and specifies what it derives from
-pub enum Instance {
+pub enum Colourer {
     /// Cyclic rainbow
     LinearRainbow(LinearRainbow),
     /// Cyclic rainbow (log-smoothed)
@@ -60,15 +48,19 @@ pub enum Instance {
     /// fanf's Black Fade algorithm
     BlackFade(BlackFade),
     /// fanf's Monochrome Shade algorithm
-    #[strum_discriminants(value(alias = "mono"))]
+    #[strum(serialize = "mono", serialize = "monochrome")]
     Monochrome(Monochrome),
     /// fanf's Monochrome Shade algorithm, inverted
-    #[strum_discriminants(value(alias = "mono-inv"))]
+    #[strum(serialize = "mono-inv", serialize = "monochrome-inverted")]
     MonochromeInverted(MonochromeInverted),
 
     /// OneLoneCoder's algorithm
     #[allow(clippy::doc_markdown)] // false positive
-    #[strum_discriminants(value(alias = "onelonecoder", alias = "olc"))]
+    #[strum(
+        serialize = "one-lone-coder",
+        serialize = "onelonecoder",
+        serialize = "olc"
+    )]
     OneLoneCoder(OneLoneCoder),
 
     /// A gradient in the HSV colour space
@@ -77,39 +69,36 @@ pub enum Instance {
     LchGradient(LchGradient),
 
     /// Test algorithm that always outputs white pixels
-    #[strum_discriminants(strum(props(hide_from_list = "1")))]
+    #[strum(props(hide_from_list = "1"))]
     White(White),
 }
 
-impl Default for Selection {
+impl crate::util::Listable for Colourer {}
+
+impl Default for Colourer {
     fn default() -> Self {
-        Self::LinearRainbow
+        Colourer::LinearRainbow(LinearRainbow {})
     }
 }
-
-impl Default for Instance {
-    fn default() -> Self {
-        Self::LinearRainbow(LinearRainbow {})
-    }
-}
-
-impl crate::util::Listable for Selection {}
-
 /// A colouring algorithm that outputs Rgb8 directly.
-#[enum_delegate::register]
-pub trait OutputsRgb8 {
+pub trait IColourer {
     /// Colouring function
     fn colour_rgb8(&self, iters: f32, max_iter: u32) -> Rgb8;
 }
 
+#[delegate_impl]
+impl IColourer for Colourer {
+    fn colour_rgb8(&self, iters: f32, max_iter: u32) -> Rgb8;
+}
+
 /// A colouring algorithm that outputs HSV colours
-pub trait OutputsHsvf {
+pub trait HsvfColourer {
     /// Colouring function
     fn colour_hsvf(&self, iters: f32, max_iters: u32) -> Hsv<palette::encoding::Srgb, f32>;
 }
 
 /// Auto conversion helper
-impl<T: OutputsHsvf> OutputsRgb8 for T {
+impl<T: HsvfColourer> IColourer for T {
     #[inline]
     fn colour_rgb8(&self, iters: f32, max_iters: u32) -> Rgb8 {
         let hsv = self.colour_hsvf(iters, max_iters);
@@ -117,45 +106,30 @@ impl<T: OutputsHsvf> OutputsRgb8 for T {
     }
 }
 
-/// Factory method
-#[must_use]
-#[allow(clippy::missing_panics_doc)]
-pub fn factory(selection: Selection) -> Instance {
-    Instance::from_repr(selection as usize).unwrap_or_else(|| {
-        panic!("Failed to convert enum discriminant {selection} into instance (can't happen)")
-    })
-}
-
-impl FromStr for Instance {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> anyhow::Result<Self> {
-        match Selection::from_str(s) {
-            Ok(s) => Ok(factory(s)),
-            Err(_) => anyhow::bail!("unknown colourer name"),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::Selection;
-    use crate::util::Listable as _;
+    use super::Colourer;
+    use crate::{
+        colouring::{huecycles::LinearRainbow, testing::White},
+        util::Listable as _,
+    };
 
     #[test]
     fn iter_works() {
-        assert!(Selection::elements().any(|s| s == Selection::LinearRainbow));
+        let it = LinearRainbow {}.into();
+        assert!(Colourer::elements().any(|s| s == it));
     }
 
     #[test]
     fn test_algorithms_should_not_be_listed() {
-        assert!(Selection::elements().all(|s| s != Selection::White));
+        let it = White {}.into();
+        assert!(Colourer::elements().all(|s| s != it));
     }
 
     #[test]
     fn discriminant_naming() {
         // We use kebab case in the CLI, so ensure that the helper output is in kebab case.
-        let colourers: Vec<_> = super::Selection::list_kebab_case().collect();
+        let colourers: Vec<_> = super::Colourer::list_kebab_case().collect();
         assert!(colourers.iter().any(|it| it.name == "linear-rainbow"));
         assert!(!colourers.iter().any(|it| it.name == "LinearRainbow"));
     }

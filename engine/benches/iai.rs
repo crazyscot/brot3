@@ -8,7 +8,7 @@ use std::hint::black_box;
 
 #[allow(clippy::wildcard_imports)]
 use brot3_engine::{
-    colouring::{self, OutputsRgb8, Rgb8, direct_rgb::*, huecycles::*},
+    colouring::{self, IColourer, Rgb8, direct_rgb::*, huecycles::*},
     fractal::{self, Algorithm, Point, PointData},
 };
 #[allow(clippy::enum_glob_use)]
@@ -114,7 +114,7 @@ use brot3_engine::colouring::testing::White;
 #[bench::olc(OneLoneCoder {}.into())]
 #[bench::hsv_grad(HsvGradient{}.into())]
 #[bench::lch_grad(LchGradient{}.into())]
-fn colour(alg: colouring::Instance) -> Rgb8 {
+fn colour(alg: colouring::Colourer) -> Rgb8 {
     alg.colour_rgb8(black_box(42.0), 256)
 }
 

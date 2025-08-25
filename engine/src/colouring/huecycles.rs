@@ -3,7 +3,7 @@
 
 use palette::{Hsv, LabHue, Lch, RgbHue, convert::FromColorUnclamped, encoding::Srgb};
 
-use super::{OutputsHsvf, OutputsRgb8, Rgb8};
+use super::{HsvfColourer, IColourer, Rgb8};
 
 /// Cycling H; Fixed S=1.0, V=1.0
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -15,7 +15,7 @@ const BLACK_HSV: Hsv<Srgb, f32> = Hsv::new_const(RgbHue::new(0.0), 0.0, 0.0);
 const BLACK_RGB: Rgb8 = Rgb8::new(0, 0, 0);
 
 #[allow(clippy::cast_possible_truncation)]
-impl OutputsHsvf for LinearRainbow {
+impl HsvfColourer for LinearRainbow {
     fn colour_hsvf(&self, iters: f32, _: u32) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
             return BLACK_HSV;
@@ -33,7 +33,7 @@ impl OutputsHsvf for LinearRainbow {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct LogRainbow {}
 #[allow(clippy::cast_possible_truncation)]
-impl OutputsHsvf for LogRainbow {
+impl HsvfColourer for LogRainbow {
     fn colour_hsvf(&self, iters: f32, _: u32) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
             return BLACK_HSV;
@@ -47,7 +47,7 @@ impl OutputsHsvf for LogRainbow {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct SqrtRainbow {}
 #[allow(clippy::cast_possible_truncation)]
-impl OutputsHsvf for SqrtRainbow {
+impl HsvfColourer for SqrtRainbow {
     fn colour_hsvf(&self, iters: f32, _: u32) -> Hsv<Srgb, f32> {
         if iters.is_infinite() {
             return BLACK_HSV;
@@ -62,7 +62,7 @@ impl OutputsHsvf for SqrtRainbow {
 pub struct HsvGradient {}
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
-impl OutputsHsvf for HsvGradient {
+impl HsvfColourer for HsvGradient {
     fn colour_hsvf(&self, iters: f32, max_iters: u32) -> Hsv<Srgb, f32> {
         if iters.is_infinite() || iters >= (max_iters as f32 - 1.0) {
             return BLACK_HSV;
@@ -80,7 +80,7 @@ impl OutputsHsvf for HsvGradient {
 pub struct LchGradient {}
 #[allow(clippy::cast_precision_loss)]
 #[allow(clippy::cast_possible_truncation)]
-impl OutputsRgb8 for LchGradient {
+impl IColourer for LchGradient {
     fn colour_rgb8(&self, iters: f32, max_iters: u32) -> Rgb8 {
         if iters.is_infinite() {
             return BLACK_RGB;
@@ -101,7 +101,7 @@ mod tests {
     use palette::{IntoColor, Lch, RgbHue, convert::FromColorUnclamped, rgb::Srgb};
 
     use super::{LINEAR_RAINBOW_WRAP, LinearRainbow};
-    use crate::colouring::{OutputsHsvf, Rgb8};
+    use crate::colouring::{HsvfColourer, Rgb8};
 
     #[test]
     fn hue_cycles() {

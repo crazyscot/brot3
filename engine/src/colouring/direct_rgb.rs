@@ -1,7 +1,7 @@
 // Direct-to-RGB colouring functions
 // (c) 2024 Ross Younger
 
-use super::{OutputsRgb8, Rgb8};
+use super::{IColourer, Rgb8};
 
 const BLACK: Rgb8 = Rgb8::new(0, 0, 0);
 const WHITE: Rgb8 = Rgb8::new(255, 255, 255);
@@ -14,7 +14,7 @@ const ITERS_CLAMP_EPSILON: f32 = 0.000_01;
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Mandy {}
 
-impl OutputsRgb8 for Mandy {
+impl IColourer for Mandy {
     fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
@@ -34,7 +34,7 @@ impl OutputsRgb8 for Mandy {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct WhiteFade {}
 
-impl OutputsRgb8 for WhiteFade {
+impl IColourer for WhiteFade {
     fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
@@ -61,7 +61,7 @@ impl OutputsRgb8 for WhiteFade {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct BlackFade {}
 
-impl OutputsRgb8 for BlackFade {
+impl IColourer for BlackFade {
     fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
@@ -88,7 +88,7 @@ impl OutputsRgb8 for BlackFade {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Monochrome {}
 
-impl OutputsRgb8 for Monochrome {
+impl IColourer for Monochrome {
     fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
@@ -108,7 +108,7 @@ impl OutputsRgb8 for Monochrome {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct MonochromeInverted {}
 
-impl OutputsRgb8 for MonochromeInverted {
+impl IColourer for MonochromeInverted {
     fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         #![allow(clippy::cast_possible_truncation)]
         #![allow(clippy::cast_sign_loss)]
@@ -133,7 +133,7 @@ pub struct OneLoneCoder {}
 
 #[allow(clippy::cast_possible_truncation)]
 #[allow(clippy::cast_sign_loss)]
-impl OutputsRgb8 for OneLoneCoder {
+impl IColourer for OneLoneCoder {
     fn colour_rgb8(&self, iters: f32, _: u32) -> Rgb8 {
         if iters.is_infinite() {
             //return BLACK;

@@ -16,14 +16,14 @@ use std::{
 const DEFAULT_AXIS_LENGTH: Scalar = 4.0;
 
 /// Specification of the algorithmic part of a tile to plot
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AlgorithmSpec {
     /// The selected algorithm
     pub algorithm: fractal::Instance,
     /// Iteration limit
     pub max_iter: u32,
     /// The selected colourer
-    pub colourer: colouring::Instance,
+    pub colourer: colouring::Colourer,
 }
 
 impl AlgorithmSpec {
@@ -32,7 +32,7 @@ impl AlgorithmSpec {
     pub fn new(
         algorithm: fractal::Instance,
         max_iter: u32,
-        colourer: colouring::Instance,
+        colourer: colouring::Colourer,
     ) -> AlgorithmSpec {
         AlgorithmSpec {
             algorithm,
@@ -45,7 +45,7 @@ impl AlgorithmSpec {
     pub fn new_arc(
         algorithm: fractal::Instance,
         max_iter: u32,
-        colourer: colouring::Instance,
+        colourer: colouring::Colourer,
     ) -> Arc<AlgorithmSpec> {
         Arc::new(Self::new(algorithm, max_iter, colourer))
     }
@@ -70,7 +70,7 @@ fn alg_specs_are_equivalent(a1: &Arc<AlgorithmSpec>, a2: &Arc<AlgorithmSpec>) ->
 /// 2. We are genuinely only comparing tilespecs for identicality, not recreating them which might lead to inaccuracies, so can neglect that case.
 ///
 /// Therefore it is safe to naively treat f64s as bags of bits in implementing Eq and Hash.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct TileSpec {
     /// Origin of this tile (bottom-left corner, smallest real/imaginary coefficients)
     origin: Point,
@@ -94,7 +94,7 @@ impl TileSpec {
         size_in_pixels: Rect<u32>,
         algorithm: fractal::Instance,
         max_iter: u32,
-        colourer: colouring::Instance,
+        colourer: colouring::Colourer,
     ) -> TileSpec {
         // Must compute axes first as origin may depend on them
         let axes: Point = match size {
@@ -314,7 +314,7 @@ impl TileSpec {
     }
     /// Accessor
     #[must_use]
-    pub fn colourer(&self) -> &colouring::Instance {
+    pub fn colourer(&self) -> &colouring::Colourer {
         &self.alg_spec.colourer
     }
 
@@ -446,7 +446,10 @@ mod tests {
     use std::hash::{DefaultHasher, Hasher};
 
     use crate::{
-        colouring,
+        colouring::{
+            self, Colourer,
+            direct_rgb::{BlackFade, WhiteFade},
+        },
         fractal::{self, Location, Point, Scalar, Size, TileSpec},
         util::Rect,
     };
@@ -460,8 +463,8 @@ mod tests {
     const MANDELBROT: fractal::Instance =
         fractal::Instance::Original(fractal::mandelbrot::Original {});
 
-    const BLACK_FADE: colouring::Instance =
-        colouring::Instance::BlackFade(colouring::direct_rgb::BlackFade {});
+    const BLACK_FADE: colouring::Colourer =
+        colouring::Colourer::BlackFade(colouring::direct_rgb::BlackFade {});
 
     fn td_centre() -> TileSpec {
         TileSpec::new(
@@ -767,19 +770,19 @@ mod tests {
 
     #[test]
     fn different_colourer_same_hash() {
-        fn test_tilespec(c: colouring::Selection) -> TileSpec {
+        fn test_tilespec(c: Colourer) -> TileSpec {
             TileSpec::new(
                 Location::Origin(Point { re: 0.0, im: -0.5 }),
                 Size::AxesLength(Point { re: -1.0, im: 2.0 }),
                 Rect::new(200, 400),
                 MANDELBROT,
                 256,
-                colouring::factory(c),
+                c,
             )
         }
-        let data1 = test_tilespec(colouring::Selection::BlackFade);
+        let data1 = test_tilespec(BlackFade {}.into());
         let h1 = hash(&data1);
-        let data2 = test_tilespec(colouring::Selection::WhiteFade);
+        let data2 = test_tilespec(WhiteFade {}.into());
         let h2 = hash(&data2);
         assert_eq!(h1, h2);
     }

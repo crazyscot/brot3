@@ -1,7 +1,7 @@
 // List subcommand
 // (c) 2024 Ross Younger
 use brot3_engine::{
-    colouring,
+    colouring::Colourer,
     fractal::{self},
     render::Renderer,
     util::Listable as _,
@@ -42,7 +42,7 @@ pub(crate) fn list(args: &Args) -> anyhow::Result<()> {
         ListableThings::Renderers => Renderer::print_list(),
         ListableThings::Fractals => fractal::Selection::print_list(),
         ListableThings::Colourers => {
-            colouring::Selection::print_list();
+            Colourer::print_list();
         }
     }
     Ok(())

@@ -1,12 +1,12 @@
 // Colour space testing
 // (c) 2024 Ross Younger
 
-use super::framework::{OutputsRgb8, Rgb8};
+use super::framework::{IColourer, Rgb8};
 
 /// Test algorithm, doesn't do anything useful
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct White {}
-impl OutputsRgb8 for White {
+impl IColourer for White {
     fn colour_rgb8(&self, _: f32, _: u32) -> Rgb8 {
         Rgb8::new(255, 255, 255)
     }

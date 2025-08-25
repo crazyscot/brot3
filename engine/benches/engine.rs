@@ -3,9 +3,8 @@
 
 #![allow(missing_docs)]
 
-#[allow(clippy::enum_glob_use)]
 use brot3_engine::{
-    colouring::{self, Instance, OutputsRgb8, Selection::*},
+    colouring::{Colourer, IColourer, huecycles::LinearRainbow},
     fractal::{self, Algorithm, Location, Point, PointData, Size, Tile, TileSpec},
     render::Png,
     util::Rect,
@@ -20,7 +19,7 @@ use std::hint::black_box;
 /// A point (found by experiment) that's in the set but not in the special-case cut-off regions
 const TEST_POINT_M2: Point = Point::new(-0.158_653_6, 1.034_804);
 const TEST_POINT_M3: Point = Point::new(-0.573_133_7, 0.569_299_8);
-const TEST_COLOURER: colouring::Selection = colouring::Selection::LinearRainbow;
+const TEST_COLOURER: Colourer = Colourer::LinearRainbow(LinearRainbow {});
 
 fn iteration(c: &mut Criterion) {
     let mut group = c.benchmark_group("fractals");
@@ -53,7 +52,7 @@ fn get_test_tile_spec(alg: fractal::Selection, dimension: u32) -> TileSpec {
         Rect::new(dimension, dimension),
         fractal::factory(alg),
         512,
-        colouring::factory(TEST_COLOURER),
+        TEST_COLOURER,
     )
 }
 
@@ -78,9 +77,11 @@ criterion_group!(fractals, iteration, plot_tile);
 // //////////////////////////////////////////////////////////////////////////////////////////
 // COLOURING
 
+use std::str::FromStr as _;
+
 fn colour_pixel(c: &mut Criterion) {
     let mut group = c.benchmark_group("colourers");
-    let mut bench = |instance: Instance| {
+    let mut bench = |instance: Colourer| {
         let _ = group.bench_function(format!("{instance}"), |b| {
             b.iter(|| {
                 let _ = instance.colour_rgb8(black_box(42.0), 256);
@@ -89,9 +90,10 @@ fn colour_pixel(c: &mut Criterion) {
     };
     // We run only a selection of algorithms through the full benchmarker
     // (See also IAI, which runs them all.)
-    let selection = [LinearRainbow, LchGradient, Mandy, WhiteFade];
+    let selection = ["linear-rainbow", "lch-gradient", "mandy", "white-fade"];
     for i in &selection {
-        bench(colouring::factory(*i));
+        let it = Colourer::from_str(i).unwrap();
+        bench(it);
     }
 }
 
@@ -101,7 +103,7 @@ fn colour_tile(c: &mut Criterion) {
     let mut tile = Tile::new(&spec, 0);
     tile.plot();
 
-    let mut bench = |colourer: Instance| {
+    let mut bench = |colourer: Colourer| {
         let _ = group.bench_function(format!("colour_{colourer}"), |b| {
             b.iter(|| {
                 // TODO use render_rgba_into()
@@ -109,9 +111,10 @@ fn colour_tile(c: &mut Criterion) {
             });
         });
     };
-    let selection = [LinearRainbow, White];
+    let selection = ["linear-rainbow", "white"];
     for i in &selection {
-        bench(colouring::factory(*i));
+        let it = Colourer::from_str(i).unwrap();
+        bench(it);
     }
 }
 

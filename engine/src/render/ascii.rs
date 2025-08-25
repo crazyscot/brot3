@@ -3,7 +3,7 @@ use std::fs::File;
 // Rendering output in various ASCII-based formats
 // (c) 2024 Ross Younger
 use super::IRenderer;
-use crate::colouring::Instance;
+use crate::colouring::Colourer;
 use crate::fractal::{PointData, Tile, TileSpec};
 
 use std::io::Write as _;
@@ -18,7 +18,7 @@ impl IRenderer for Csv {
         filename: &str,
         _: &TileSpec,
         tiles: &[Tile],
-        _: Instance,
+        _: Colourer,
     ) -> anyhow::Result<()> {
         anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
         let mut output = File::create(filename)?;
@@ -42,7 +42,7 @@ impl IRenderer for AsciiArt {
         filename: &str,
         _: &TileSpec,
         tiles: &[Tile],
-        _: Instance,
+        _: Colourer,
     ) -> anyhow::Result<()> {
         anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
         let mut output = File::create(filename)?;
