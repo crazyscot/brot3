@@ -3,7 +3,7 @@
 
 use std::time::SystemTime;
 
-use brot3_engine::colouring;
+use brot3_engine::colouring::Colourer;
 use brot3_engine::fractal::{self, Algorithm, Point, Scalar, Size, Tile, TileSpec};
 use brot3_engine::render::{IRenderer, Renderer};
 use brot3_engine::util::Rect;
@@ -58,7 +58,7 @@ pub struct Args {
         hide_possible_values = true,
         display_order(7)
     )]
-    pub(crate) colourer: colouring::Selection,
+    pub(crate) colourer: Colourer,
 
     /// The origin (bottom-left) point of the plot, e.g. -3-3i.
     #[arg(
@@ -204,7 +204,6 @@ fn check_zoom(input: Scalar) -> anyhow::Result<Scalar> {
 /// Implementation of 'plot'
 pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
     let algorithm = fractal::factory(args.fractal);
-    let colourer = colouring::factory(args.colourer);
 
     let mut spec = TileSpec::new(
         args_location(args, algorithm),
@@ -212,7 +211,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         Rect::new(args.width, args.height),
         algorithm,
         args.max_iter,
-        colourer,
+        args.colourer,
     );
     if !args.no_auto_aspect
         && let Ok(Some(new_axes)) = spec.auto_adjust_aspect_ratio()
@@ -254,7 +253,7 @@ pub(crate) fn plot(args: &Args, debug: u8) -> anyhow::Result<()> {
         .for_each(brot3_engine::fractal::Tile::plot);
     let time2 = SystemTime::now();
 
-    let result = renderer.render_file(&args.output_filename, &spec, &tiles, colourer);
+    let result = renderer.render_file(&args.output_filename, &spec, &tiles, args.colourer);
     let time3 = SystemTime::now();
     if args.show_timing {
         println!(

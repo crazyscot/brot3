@@ -2,7 +2,7 @@
 // (c) 2024 Ross Younger
 
 use super::IRenderer;
-use crate::colouring::{Instance, OutputsRgb8};
+use crate::colouring::{Colourer, IColourer};
 use crate::fractal::{Tile, TileSpec};
 
 use anyhow::{Context, Result};
@@ -19,7 +19,7 @@ impl Png {
     /// Renders a tile as a low-level array of RGBA values.
     /// These are returned in the obvious left to right, top to bottom order.
     #[must_use]
-    pub fn render_rgba(tile: &Tile, colourer: Instance) -> Vec<u8> {
+    pub fn render_rgba(tile: &Tile, colourer: Colourer) -> Vec<u8> {
         let mut image_data: Vec<u8> =
             vec![0; 4 * tile.spec.width() as usize * tile.spec.height() as usize];
         Png::render_rgba_into(tile, colourer, image_data.as_mut_slice());
@@ -29,7 +29,7 @@ impl Png {
     /// Pixels are rendered in the obvious left to right, top to bottom order.
     /// # Panics
     /// `image_data` must be precisely 4 x tile height x tile width.
-    pub fn render_rgba_into(tile: &Tile, colourer: Instance, image_data: &mut [u8]) {
+    pub fn render_rgba_into(tile: &Tile, colourer: Colourer, image_data: &mut [u8]) {
         let tile_data = tile.result();
         let max_iter = tile.max_iter_plotted;
         let expected_size = 4 * tile.spec.width() as usize * tile.spec.height() as usize;
@@ -59,7 +59,7 @@ impl Png {
     fn render_png<W: std::io::Write>(
         spec: &TileSpec,
         tiles: &[Tile],
-        colourer: Instance,
+        colourer: Colourer,
         writer: Box<W>,
     ) -> Result<()> {
         let mut encoder = png::Encoder::new(writer, spec.width(), spec.height());
@@ -90,7 +90,7 @@ impl IRenderer for Png {
         filename: &str,
         spec: &TileSpec,
         tiles: &[Tile],
-        colourer: Instance,
+        colourer: Colourer,
     ) -> anyhow::Result<()> {
         anyhow::ensure!(self.check_ordering(tiles), "Tiles out of order");
         let handle = File::create(filename)?;

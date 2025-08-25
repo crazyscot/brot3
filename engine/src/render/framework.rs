@@ -9,7 +9,7 @@ use strum_macros::{Display, EnumIter, EnumMessage, EnumProperty, EnumString};
 
 use super::ascii::{AsciiArt, Csv};
 use super::png::Png;
-use crate::colouring::Instance;
+use crate::colouring::Colourer;
 use crate::fractal::{Tile, TileSpec};
 
 /// Framework for all available renderers.
@@ -43,7 +43,7 @@ pub trait IRenderer {
         filename: &str,
         spec: &TileSpec,
         data: &[Tile],
-        colourer: Instance,
+        colourer: Colourer,
     ) -> anyhow::Result<()>;
 
     /// A sanity check that the input tiles are in the correct order
@@ -61,7 +61,7 @@ impl IRenderer for Renderer {
         filename: &str,
         spec: &TileSpec,
         data: &[Tile],
-        colourer: Instance,
+        colourer: Colourer,
     ) -> anyhow::Result<()>;
 }
 
