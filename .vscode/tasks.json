@@ -3,8 +3,25 @@
 	"tasks": [
 		{
 			"type": "cargo",
+			"command": "run",
+			"args": [
+				"--locked"
+			],
+			"problemMatcher": [
+				"$rustc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"label": "rust: cargo run --locked"
+		},
+		{
+			"type": "cargo",
 			"command": "build",
-			"args": ["--locked"],
+			"args": [
+				"--locked"
+			],
 			"problemMatcher": [
 				"$rustc"
 			],
@@ -17,7 +34,10 @@
 		{
 			"type": "cargo",
 			"command": "doc",
-			"args": ["--no-deps", "--locked"],
+			"args": [
+				"--no-deps",
+				"--locked"
+			],
 			"problemMatcher": [
 				"$rustc"
 			],
@@ -30,7 +50,11 @@
 		{
 			"type": "cargo",
 			"command": "doc",
-			"args": ["--no-deps", "--locked", "--document-private-items"],
+			"args": [
+				"--no-deps",
+				"--locked",
+				"--document-private-items"
+			],
 			"problemMatcher": [
 				"$rustc"
 			],
