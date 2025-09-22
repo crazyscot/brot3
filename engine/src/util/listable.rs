@@ -4,7 +4,6 @@
 use std::{fmt::Display, str::FromStr};
 
 use heck::ToKebabCase;
-use serde::Serialize;
 use strum::{EnumMessage, EnumProperty, IntoEnumIterator};
 
 /// A compound trait for Listable operations
@@ -56,7 +55,7 @@ pub trait Listable
     }
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Clone, Debug)]
 /// A representation of a listable item
 pub struct ListItem {
     /// Item name (in kebab case)

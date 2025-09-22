@@ -11,18 +11,16 @@ rust-version = "1.89"
 workspace = true
 
 [dependencies]
-anyhow = { workspace = true }
-clap = { workspace = true, features = ["wrap_help", "derive"] }
+anyhow.workspace = true
 derive_more = { version = "2.0.1", features = ["constructor"] }
 heck = "0.5.0"
-num-complex = { workspace = true }
+num-complex.workspace = true
 palette = "0.7.6"
-png = { workspace = true }
-rayon = { workspace = true }
-serde = { workspace = true }
+png.workspace = true
+rayon = "1.11.0"
 spire_enum = "0.6.0"
-strum = { workspace = true }
-strum_macros = { workspace = true }
+strum = { version = "0.27.2", features = ["derive"] }
+strum_macros = "0.27.2"
 
 [dev-dependencies]
 approx = "0.5.1"
