@@ -2,15 +2,16 @@ name: CI
 
 on:
   push:
-    branches: ["main", "dev"]
-  pull_request:
-    branches: ["main", "dev"]
   workflow_dispatch:
+
+permissions: {}
 
 env:
   CARGO_TERM_COLOR: always
-  BROT3_RUST_VERSION: 1.89
+  CLICOLOR_FORCE: 1
+  RUST_BACKTRACE: 1
   CARGO_INCREMENTAL: 0
+  BROT3_RUST_VERSION: nightly-2025-06-23
 
 jobs:
   # Build the app on all supported platforms
@@ -19,6 +20,7 @@ jobs:
       matrix:
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - name: Install Rust
@@ -39,6 +41,7 @@ jobs:
   # We only need to run the checks on a single platform
   clippy:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - name: Install Rust
@@ -52,6 +55,9 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Not enabled for now as no unit tests exist
+    if: false
     steps:
       - uses: actions/checkout@v5
       - name: Install Rust
@@ -66,14 +72,15 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Not enabled for now as no unit tests exist
+    if: false
     steps:
       - uses: actions/checkout@v5
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          # update periodically
-          toolchain: nightly-2025-07-31
-          components: llvm-tools-preview,rust-src
+          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          components: llvm-tools-preview,rust-src,rustc-dev
       - uses: taiki-e/install-action@33734a118689b0b418824fb78ea2bf18e970b43b # v2.50.4
         with:
           tool: cargo-llvm-cov
