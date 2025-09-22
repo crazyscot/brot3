@@ -1,5 +1,5 @@
 [workspace]
-members = ["cli", "engine", "ui"]
+members = ["engine"]
 resolver = "2"
 package.edition = "2024"
 package.authors = ["Ross Younger <crazyscot@gmail.com>"]
