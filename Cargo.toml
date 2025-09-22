@@ -3,7 +3,7 @@ members = ["cli", "engine", "ui"]
 resolver = "2"
 package.edition = "2024"
 package.authors = ["Ross Younger <crazyscot@gmail.com>"]
-package.version = "2.0.0-pre"
+package.version = "3.0.0-wip"
 package.license = "AGPL-3.0-or-later"
 
 # note: rust-cache turns off incremental builds, so we don't need a profile mod for CI.
