@@ -2,29 +2,21 @@
 name = "shared"
 version = "0.0.0"
 publish = false
-authors.workspace = true
-edition.workspace = true
+authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
 license.workspace = true
+edition.workspace = true
 
 [dependencies]
 spirv-std = { workspace = true }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
 glam = { workspace = true }
-abels-complex = { version = "0.2.0", default-features = false, features = [
-  "libm",
-  "glam",
-] }
+abels-complex = { version = "0.2.0", default-features = false, features = ["libm", "glam"] }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 glam = { workspace = true, features = ["bytemuck"] }
 bytemuck = { workspace = true, features = ["derive"] }
-abels-complex = { version = "0.2.0", default-features = false, features = [
-  "std",
-  "glam",
-] }
+abels-complex = { version = "0.2.0", default-features = false, features = ["std", "glam"] }
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = [
-  'cfg(target_arch, values("spirv"))',
-] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_arch, values("spirv"))'] }

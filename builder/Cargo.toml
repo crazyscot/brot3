@@ -2,9 +2,9 @@
 name = "builder"
 version = "0.0.0"
 publish = false
-authors.workspace = true
+authors = ["Abel <abel465@gmail.com>"]
 edition.workspace = true
-license.workspace = true
+license = "MIT"
 
 [dependencies]
 spirv-builder.workspace = true
