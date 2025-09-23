@@ -184,8 +184,7 @@ impl TileSpec {
             };
             ensure!(
                 y_offset == last_height,
-                "Unexpected remainder strip height ({}, expected {last_height}) - logic error?",
-                y_offset
+                "Unexpected remainder strip height ({y_offset}, expected {last_height}) - logic error?"
             );
             y_offset = 0;
             output.push(TileSpec::new_subtile(
