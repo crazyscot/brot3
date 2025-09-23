@@ -3,7 +3,9 @@ use std::path::PathBuf;
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
+    // TODO !!! Hard-wired path !!!
     println!("cargo:rerun-if-changed=../builder/");
+    // TODO !!! Hard-wired path !!!
     println!("cargo:rerun-if-changed=../shader/");
     println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
