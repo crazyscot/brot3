@@ -17,6 +17,4 @@ spirv-std = { workspace = true }
 shared = { path = "../shared" }
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = [
-  'cfg(target_arch, values("spirv"))',
-] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_arch, values("spirv"))'] }
