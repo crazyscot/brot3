@@ -27,7 +27,7 @@ pub fn main_fs(
         / constants.size.height as f32;
 
     // both coords of uv are in range (-0.5,0.5); map this to colour space
-    uv.x = 0.5 + uv.x;
+    uv.x += 0.5;
     uv.y = 0.5 - uv.y; // invert y axis
     *output = vec4(0.0, uv.x, uv.y, 1.0);
 }
