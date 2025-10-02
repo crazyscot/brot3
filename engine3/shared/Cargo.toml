@@ -11,6 +11,7 @@ test = false
 doctest = false
 
 [dependencies]
+shader_util = { path = "../../shader_util" }
 spirv-std = { workspace = true }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]

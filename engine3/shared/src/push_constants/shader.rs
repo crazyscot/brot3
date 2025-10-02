@@ -1,6 +1,7 @@
-use super::*;
 #[cfg(not(target_arch = "spirv"))]
 use bytemuck::NoUninit;
+
+use shader_util::{Bool, Size};
 
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]

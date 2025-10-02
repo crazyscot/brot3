@@ -6,6 +6,7 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
 glam = { workspace = true }
