@@ -1,8 +1,7 @@
 use crate::Options;
 use easy_shader_runner::{ControllerTrait, GraphicsContext, wgpu};
+use engine3_common::*;
 use glam::*;
-use shared::GRID_SIZE;
-use shared::push_constants::shader::*;
 
 pub(crate) struct Controller {
     /// viewport pixel size

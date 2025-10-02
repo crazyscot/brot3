@@ -15,7 +15,7 @@ emulate_constants = []
 
 [dependencies]
 spirv-std = { workspace = true }
-shared = { path = "../shared" }
+engine3_common = { path = "../common" }
 shader_util = { path = "../../shader_util" }
 
 [lints.rust]

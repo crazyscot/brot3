@@ -1,3 +1,10 @@
+#![cfg_attr(target_arch = "spirv", no_std)]
+pub use abels_complex as complex;
+
+use glam::{UVec2, uvec2};
+
+pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
+
 #[cfg(not(target_arch = "spirv"))]
 use bytemuck::NoUninit;
 

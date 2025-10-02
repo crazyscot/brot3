@@ -1,8 +1,8 @@
 [package]
-name = "shared"
-version = "0.0.0"
+name = "engine3_common"
+authors = ["Ross Younger <crazyscot@gmail.com>"]
 publish = false
-authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
+version.workspace = true
 license.workspace = true
 edition.workspace = true
 

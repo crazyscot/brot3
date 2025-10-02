@@ -7,10 +7,8 @@ use spirv_std::glam::*;
 use spirv_std::num_traits::real::Real;
 use spirv_std::spirv;
 
+use engine3_common::{FragmentConstants, GRID_SIZE, RenderData, complex::Complex};
 use shader_util::grid::{GridRef, GridRefMut};
-use shared::GRID_SIZE;
-use shared::complex::Complex;
-use shared::push_constants::shader::{FragmentConstants, RenderData};
 
 #[spirv(fragment)]
 pub fn main_fs(
