@@ -1,5 +1,5 @@
 [workspace]
-members = ["engine3/shader", "engine3/shared", "ui3", "engine3/builder"]
+members = ["engine3/shader", "engine3/shared", "ui3", "engine3/builder", "shader_util"]
 resolver = "2"
 
 [workspace.package]
@@ -59,6 +59,7 @@ trivial_numeric_casts = "deny"
 unsafe_code = "deny"
 unsafe_op_in_unsafe_fn = "deny"
 unreachable_pub = "deny"
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(coverage_nightly)'] }
 # unused_crate_dependencies = "deny" # false positives
 unused_extern_crates = "deny"
 unused_lifetimes = "deny"

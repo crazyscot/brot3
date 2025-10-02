@@ -1,6 +1,5 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 
-pub mod grid;
 pub mod push_constants;
 pub use abels_complex as complex;
 

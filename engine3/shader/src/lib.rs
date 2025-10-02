@@ -7,9 +7,9 @@ use spirv_std::glam::*;
 use spirv_std::num_traits::real::Real;
 use spirv_std::spirv;
 
+use shader_util::grid::{GridRef, GridRefMut};
 use shared::GRID_SIZE;
 use shared::complex::Complex;
-use shared::grid::{GridRef, GridRefMut};
 use shared::push_constants::shader::{FragmentConstants, RenderData};
 
 #[spirv(fragment)]

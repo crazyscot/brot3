@@ -16,6 +16,7 @@ emulate_constants = []
 [dependencies]
 spirv-std = { workspace = true }
 shared = { path = "../shared" }
+shader_util = { path = "../../shader_util" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_arch, values("spirv"))'] }
