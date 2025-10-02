@@ -8,6 +8,7 @@ license.workspace = true
 
 [lib]
 crate-type = ["dylib"]
+test = false
 
 [features]
 emulate_constants = []

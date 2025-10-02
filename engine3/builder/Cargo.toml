@@ -6,5 +6,9 @@ authors = ["Abel <abel465@gmail.com>"]
 edition.workspace = true
 license = "MIT"
 
+[[bin]]
+name = "builder"
+test = false
+
 [dependencies]
 spirv-builder.workspace = true

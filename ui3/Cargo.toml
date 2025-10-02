@@ -9,6 +9,14 @@ default-run = "runner"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+test = false
+doctest = false
+
+[[bin]]
+name = "runner"
+test = false
+doc = false
+
 
 [features]
 default = ["hot-reload-shader"]

@@ -6,6 +6,10 @@ authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
 license.workspace = true
 edition.workspace = true
 
+[lib]
+test = false
+doctest = false
+
 [dependencies]
 spirv-std = { workspace = true }
 
