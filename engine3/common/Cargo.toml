@@ -1,5 +1,6 @@
 [package]
 name = "engine3_common"
+description = "Common types shared by the brot3 shader and UI crates"
 authors = ["Ross Younger <crazyscot@gmail.com>"]
 publish = false
 version.workspace = true

@@ -1,5 +1,6 @@
 [package]
 name = "shader_util"
+description = "Helper types for GPU shader crates"
 authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
 license = "MIT"
 version = "0.1.0"

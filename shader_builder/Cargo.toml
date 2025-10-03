@@ -1,7 +1,8 @@
 [package]
 name = "shader_builder"
-version = "0.0.0"
+description = "Builds the brot3 shader crate (optionally, at runtime with hot reload)"
 publish = false
+version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license = "MIT"

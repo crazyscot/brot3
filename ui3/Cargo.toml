@@ -1,5 +1,6 @@
 [package]
 name = "brot3-ui"
+description = "Interactive fractal explorer"
 publish = false
 default-run = "brot3"
 version.workspace = true
