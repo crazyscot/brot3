@@ -4,7 +4,7 @@ use std::path::PathBuf;
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     // CAUTION: Hard-wired path !
-    println!("cargo:rerun-if-changed=../engine3/builder/");
+    println!("cargo:rerun-if-changed=../shader_builder/");
     // CAUTION: Hard-wired path !
     println!("cargo:rerun-if-changed=../engine3/shader/");
     println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
@@ -36,7 +36,7 @@ fn main() {
     // rebuilding of `rustc_codegen_spirv` (likely due to common proc macro deps).
     let dir = dir.join("builder");
     let status = std::process::Command::new("cargo")
-        .args(["run", "--release", "-p", "builder"])
+        .args(["run", "--release", "-p", "shader_builder"])
         .arg("--target-dir")
         .arg(dir)
         .env_remove("CARGO_ENCODED_RUSTFLAGS")

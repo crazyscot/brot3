@@ -6,7 +6,7 @@ fn build_shader(path_to_crate: &str) {
     let builder_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path_to_crate = builder_dir.join(path_to_crate);
     let mut builder = SpirvBuilder::new(path_to_crate, "spirv-unknown-vulkan1.1");
-    if env::var("CARGO_CFG_TARGET_ARCH").unwrap() == "wasm32" {
+    if env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default() == "wasm32" {
         builder = builder.shader_crate_features(["emulate_constants".into()]);
     }
     let compile_result = builder.build().unwrap();
@@ -17,5 +17,5 @@ fn build_shader(path_to_crate: &str) {
 
 fn main() {
     // CAUTION: Hard-wired path !
-    build_shader("../shader");
+    build_shader("../engine3/shader");
 }

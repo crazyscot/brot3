@@ -1,13 +1,13 @@
 [package]
-name = "builder"
+name = "shader_builder"
 version = "0.0.0"
 publish = false
-authors = ["Abel <abel465@gmail.com>"]
+authors.workspace = true
 edition.workspace = true
 license = "MIT"
 
 [[bin]]
-name = "builder"
+name = "shader_builder"
 test = false
 
 [dependencies]

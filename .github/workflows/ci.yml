@@ -32,11 +32,13 @@ jobs:
         run: rustup set profile minimal
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
         with:
-          #  key: "${{matrix.platform}}"
           cache-all-crates: true
-      - run: cargo build --locked --release --all-targets
-      # N.B. building --all-targets includes benchmarks
-      # We care that the benchmarks build, not how they run on CI.
+      - name: host
+        run: cargo build --locked --release
+      # For a packaged release, consider building without hot-reload and runtime-config.
+      - name: shader
+        # We may as well build the shader in the same run, I mean, we're going to build the shader_builder and all that it pulls in one way or another
+        run: cargo run --release --locked -p shader_builder
 
   # We only need to run the checks on a single platform
   clippy:

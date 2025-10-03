@@ -1,5 +1,5 @@
 [workspace]
-members = ["engine3/shader", "engine3/common", "ui3", "engine3/builder", "shader_util"]
+members = ["engine3/shader", "engine3/common", "ui3", "shader_builder", "shader_util"]
 resolver = "2"
 
 [workspace.package]
