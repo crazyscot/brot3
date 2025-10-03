@@ -7,17 +7,23 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
-bytemuck = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+glam = { workspace = true }
+dashu-base = "0.4.1"
+dashu-float = "0.4.3"
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
-glam = { workspace = true }
 abels-complex = { version = "0.2.0", default-features = false, features = ["libm", "glam"] }
+glam = { workspace = true }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
-glam = { workspace = true, features = ["bytemuck"] }
-bytemuck = { workspace = true, features = ["derive"] }
 abels-complex = { version = "0.2.0", default-features = false, features = ["std", "glam"] }
-
+bytemuck = { workspace = true, features = ["derive"] }
+dashu = { version = "0.4.2", default-features = false, features = [] }
+dashu-base = "0.4.1"
+dashu-float = "0.4.3"
+glam = { workspace = true, features = ["bytemuck"] }
 
 [lints]
 workspace = true

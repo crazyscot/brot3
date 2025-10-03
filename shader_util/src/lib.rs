@@ -11,6 +11,11 @@ pub use glam::UVec2;
 use glam::{Vec2, uvec2, vec2};
 
 #[cfg(not(target_arch = "spirv"))]
+pub mod big_complex;
+#[cfg(not(target_arch = "spirv"))]
+pub mod big_vec2;
+
+#[cfg(not(target_arch = "spirv"))]
 use bytemuck::NoUninit;
 
 /// Representation of a two-dimensional size
