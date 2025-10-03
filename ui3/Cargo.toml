@@ -1,11 +1,11 @@
 [package]
-name = "runner"
-version = "0.0.0"
+name = "brot3-ui"
 publish = false
+default-run = "brot3"
+version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
-default-run = "runner"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -13,7 +13,7 @@ test = false
 doctest = false
 
 [[bin]]
-name = "runner"
+name = "brot3"
 test = false
 doc = false
 
