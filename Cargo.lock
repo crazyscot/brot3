@@ -266,8 +266,8 @@ dependencies = [
  "cfg-if",
  "dashu",
  "easy-shader-runner",
- "engine3_common",
  "glam",
+ "shader_common",
  "structopt",
  "wasm-bindgen-futures",
  "web-time",
@@ -836,17 +836,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "45fd7bc25f769a3c198fe1cf183124bf4de3bd62ef7b4f1eaf6b08711a3af8db"
 dependencies = [
  "bytemuck",
-]
-
-[[package]]
-name = "engine3_common"
-version = "3.0.0-wip"
-dependencies = [
- "abels-complex",
- "bytemuck",
- "glam",
- "shader_util",
- "spirv-std",
 ]
 
 [[package]]
@@ -2818,7 +2807,7 @@ dependencies = [
 name = "shader"
 version = "3.0.0-wip"
 dependencies = [
- "engine3_common",
+ "shader_common",
  "shader_util",
  "spirv-std",
 ]
@@ -2828,6 +2817,17 @@ name = "shader_builder"
 version = "3.0.0-wip"
 dependencies = [
  "spirv-builder",
+]
+
+[[package]]
+name = "shader_common"
+version = "3.0.0-wip"
+dependencies = [
+ "abels-complex",
+ "bytemuck",
+ "glam",
+ "shader_util",
+ "spirv-std",
 ]
 
 [[package]]

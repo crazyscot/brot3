@@ -6,7 +6,7 @@ fn main() {
     // CAUTION: Hard-wired path !
     println!("cargo:rerun-if-changed=../shader_builder/");
     // CAUTION: Hard-wired path !
-    println!("cargo:rerun-if-changed=../engine3/shader/");
+    println!("cargo:rerun-if-changed=../shader/");
     println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     if cfg!(any(

@@ -17,5 +17,5 @@ fn build_shader(path_to_crate: &str) {
 
 fn main() {
     // CAUTION: Hard-wired path !
-    build_shader("../engine3/shader");
+    build_shader("../shader");
 }

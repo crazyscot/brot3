@@ -21,7 +21,7 @@ pub fn main() {
             not(target_arch = "wasm32")
         ))] {
             // CAUTION: Hard-wired path !
-            easy_shader_runner::run_with_runtime_compilation(controller, "../engine3/shader", TITLE);
+            easy_shader_runner::run_with_runtime_compilation(controller, "../shader", TITLE);
         } else {
             easy_shader_runner::run_with_prebuilt_shader(controller, include_bytes!(env!("shader.spv")), TITLE);
         }

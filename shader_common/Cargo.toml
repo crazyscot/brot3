@@ -1,5 +1,5 @@
 [package]
-name = "engine3_common"
+name = "shader_common"
 description = "Common types shared by the brot3 shader and UI crates"
 authors = ["Ross Younger <crazyscot@gmail.com>"]
 publish = false
@@ -12,7 +12,7 @@ test = false
 doctest = false
 
 [dependencies]
-shader_util = { path = "../../shader_util" }
+shader_util = { path = "../shader_util" }
 spirv-std = { workspace = true }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
