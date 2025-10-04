@@ -22,27 +22,19 @@ pub fn main_fs(
     #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [RenderData],
     output: &mut Vec4,
 ) {
+    // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we ignore depth & 1/w
     let coord = frag_coord.xy();
+    // viewport pixel size e.g. 1920x1080
     let size = constants.size.as_vec2();
-    // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5)
-    // we ignore depth & 1/w
-
-    // map xy coords to (-0.5,0.5) in both dimensions whilst applying an aspect ratio fix
-    //let mut uv = (coord - 0.5 * size) / constants.size.height as f32;
-
-    // (this will become panned and zoomed soon)
-    //uv *= 2.0;
 
     let render_data = if constants.needs_reiterate.into() {
-        let dc = (coord - 0.5 * size) / size.y;
-        // both coords of dc are in range (-0.5,0.5); map this to the fixed locus (-2,2) for now
-        // TODO zoom factor
-        let dc = 2.5 * dc;
+        // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
+        let cplx = (coord - 0.5 * size) / size.y / constants.viewport_zoom;
         let render_data = render_fractal(
             constants,
             Mandelbrot {
                 z0: Complex::ZERO,
-                c: dc.into(),
+                c: (cplx + constants.viewport_translate).into(),
             },
         );
         let mut cache = GridRefMut::new(GRID_SIZE, grid);

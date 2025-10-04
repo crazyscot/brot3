@@ -1,7 +1,7 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 pub use abels_complex as complex;
 
-use glam::{UVec2, uvec2};
+use glam::{UVec2, Vec2, uvec2};
 
 pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
 
@@ -14,6 +14,9 @@ use shader_util::{Bool, Size};
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
 pub struct FragmentConstants {
+    pub viewport_translate: Vec2,
+    pub viewport_zoom: f32,
+    /// window pixel size
     pub size: Size,
     pub needs_reiterate: Bool,
 }

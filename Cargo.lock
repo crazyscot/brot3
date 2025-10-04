@@ -267,8 +267,10 @@ dependencies = [
  "easy-shader-runner",
  "glam",
  "shader_common",
+ "shader_util",
  "structopt",
  "wasm-bindgen-futures",
+ "web-time",
 ]
 
 [[package]]

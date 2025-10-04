@@ -30,6 +30,8 @@ shader_common = { path = "../shader_common" }
 structopt = { version = "0.3.26", default-features = false }
 bytemuck = { workspace = true }
 glam = { workspace = true }
+shader_util = { version = "0.1.0", path = "../shader_util" }
+web-time = "1.1.0"
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
 easy-shader-runner = { workspace = true, default-features = false }
