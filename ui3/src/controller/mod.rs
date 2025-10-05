@@ -10,7 +10,7 @@ mod keyboard;
 mod ui;
 
 const PRECISION: usize = 128;
-const MAX_ZOOM: f64 = 1e36;
+const MAX_ZOOM: f64 = 13000.; // TODO: implement perturbed mbrot
 
 pub(crate) struct Controller {
     /// viewport pixel size
@@ -21,7 +21,8 @@ pub(crate) struct Controller {
     movement: Movement,
     last_instant: Instant,
     mouse_position: DVec2,
-    debug_coords: bool,
+    show_coords_window: bool,
+    show_fps: bool,
     dragging: bool,
 }
 
@@ -36,7 +37,8 @@ impl Controller {
             movement: Movement::default(),
             last_instant: Instant::now(),
             mouse_position: DVec2::default(),
-            debug_coords: true,
+            show_coords_window: true,
+            show_fps: true, // TODO will become an option
             dragging: false,
         }
     }
@@ -61,11 +63,6 @@ impl ControllerTrait for Controller {
     ) -> impl bytemuck::NoUninit {
         let reiterate = self.reiterate;
         self.reiterate = false;
-        if reiterate && self.debug_coords {
-            let vv = self.viewport_translate.as_vec2();
-            let zz = self.viewport_zoom as f32;
-            eprintln!("reiterating: {vv:?}, zoom {zz}, size {}", self.size);
-        }
         FragmentConstants {
             size: self.size.into(),
             needs_reiterate: reiterate.into(),
