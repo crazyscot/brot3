@@ -23,6 +23,7 @@ abels-complex = { version = "0.2.0", default-features = false, features = ["libm
 glam = { workspace = true, features = ["bytemuck"] }
 bytemuck = { workspace = true, features = ["derive"] }
 abels-complex = { version = "0.2.0", default-features = false, features = ["std", "glam"] }
+strum = { version = "0.27.2", features = ["derive"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_arch, values("spirv"))'] }

@@ -18,6 +18,7 @@ pub struct FragmentConstants {
     pub viewport_zoom: f32,
     /// window pixel size
     pub size: Size,
+    pub algorithm: Algorithm,
     pub max_iter: u32,
     pub needs_reiterate: Bool,
 }
@@ -49,4 +50,17 @@ impl RenderData {
             }
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    not(target_arch = "spirv"),
+    derive(NoUninit, strum::EnumIter, strum::IntoStaticStr)
+)]
+#[repr(u32)]
+pub enum Algorithm {
+    #[default]
+    Mandelbrot,
+    Mandeldrop,
+    // TODO others.. but impl the alg switch & reiterate first
 }

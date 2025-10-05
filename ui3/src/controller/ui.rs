@@ -1,6 +1,7 @@
 use easy_shader_runner::{UiState, egui};
 
 use super::{DVec2, Instant};
+use shader_common::Algorithm;
 
 const DEFAULT_WIDTH: f32 = 130.;
 
@@ -42,6 +43,21 @@ impl super::Controller {
             .default_width(DEFAULT_WIDTH)
             .resizable(false)
             .show(ctx, |ui| {
+                let algorithm_before = self.algorithm;
+                egui::ComboBox::from_label(egui::RichText::new("Algorithm").size(15.0))
+                    .selected_text(format!("{:?}", self.algorithm))
+                    .show_ui(ui, |ui| {
+                        use strum::IntoEnumIterator as _;
+                        for it in Algorithm::iter() {
+                            let label: &'static str = it.into();
+                            ui.selectable_value(&mut self.algorithm, it, label);
+                        }
+                    });
+                if self.algorithm != algorithm_before {
+                    self.reiterate = true;
+                }
+
+                ui.separator();
                 ui.label(egui::RichText::new("Iterations"));
                 if ui
                     .add(egui::Slider::new(&mut self.max_iter, 1..=100_000).logarithmic(true))

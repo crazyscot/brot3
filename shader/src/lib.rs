@@ -11,6 +11,9 @@ use spirv_std::spirv;
 use shader_common::{FragmentConstants, GRID_SIZE, RenderData, complex::Complex};
 use shader_util::grid::{GridRef, GridRefMut};
 
+mod fractal;
+use fractal::Fractal;
+
 #[spirv(fragment)]
 pub fn main_fs(
     #[spirv(frag_coord)] frag_coord: Vec4,
@@ -31,13 +34,7 @@ pub fn main_fs(
     let render_data = if constants.needs_reiterate.into() {
         // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
         let cplx = (coord - 0.5 * size) / size.y / constants.viewport_zoom;
-        let render_data = render_fractal(
-            constants,
-            Mandelbrot {
-                z0: Complex::ZERO,
-                c: (cplx + constants.viewport_translate).into(),
-            },
-        );
+        let render_data = fractal::render(constants, cplx + constants.viewport_translate);
         let mut cache = GridRefMut::new(GRID_SIZE, grid);
         cache.set(coord.as_uvec2(), render_data);
         render_data
@@ -64,20 +61,18 @@ pub fn main_vs(
     *out_pos = pos.extend(0.0).extend(1.0);
 }
 
-fn render_fractal(constants: &FragmentConstants, m: Mandelbrot) -> RenderData {
-    let builder = Builder {
-        constants,
-        fractal: m,
-    };
-    builder.iterations()
-}
-
-struct Builder<'a> {
+struct Builder<'a, F>
+where
+    F: Fractal,
+{
     constants: &'a FragmentConstants,
-    fractal: Mandelbrot, // TODO this will become a trait obj
+    fractal: F,
 }
 
-impl Builder<'_> {
+impl<F> Builder<'_, F>
+where
+    F: Fractal,
+{
     fn iterations(self) -> RenderData {
         let FractalResult {
             inside,
@@ -95,46 +90,6 @@ struct FractalResult {
     iters: u32,
     /// smoothed iteration count (where available)
     smoothed_iters: f32,
-}
-
-struct Mandelbrot {
-    z0: Complex,
-    c: Complex,
-}
-
-impl Mandelbrot {
-    fn iterate(self, constants: &FragmentConstants) -> FractalResult {
-        const ESCAPE_THRESHOLD_SQ: f32 = 4.0;
-
-        let mut iters = 0;
-        let mut z = self.z0;
-        let c = self.c;
-        let mut norm_sqr = z.abs_sq();
-        let max_iter = constants.max_iter;
-        // TODO: Cardoid and period-2 bulb checks?
-
-        while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
-            z = z * z + c;
-            iters += 1;
-            norm_sqr = z.abs_sq();
-        }
-        let inside = iters == max_iter && (norm_sqr < ESCAPE_THRESHOLD_SQ);
-
-        // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-        // A couple of extra iterations helps decrease the size of the error term
-        z = z * z + c;
-        z = z * z + c;
-        // by the logarithm of a power law,
-        // point.value.norm().ln().ln() === (point.value.norm_sqr().ln() * 0.5).ln())
-        let smoothed_iters =
-            (iters + 2) as f32 - (z.abs_sq().ln() * 0.5).ln() / core::f32::consts::LN_2;
-
-        FractalResult {
-            inside,
-            iters,
-            smoothed_iters,
-        }
-    }
 }
 
 fn colour_data(data: RenderData, _constants: &FragmentConstants) -> Vec3 {
@@ -186,6 +141,7 @@ fn log_rainbow(t: f32) -> Vec3 {
 mod tests {
     use super::{FragmentConstants, GRID_SIZE, RenderData};
 
+    use shader_common::Algorithm;
     use shader_util::Size;
     use spirv_std::glam::{Vec4, vec2, vec4};
 
@@ -213,6 +169,7 @@ mod tests {
             size: Size::new(2, 2),
             max_iter: 10,
             needs_reiterate: true.into(),
+            algorithm: Algorithm::Mandelbrot,
         }
     }
 

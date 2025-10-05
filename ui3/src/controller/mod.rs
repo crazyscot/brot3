@@ -25,6 +25,7 @@ pub(crate) struct Controller {
     max_iter: u32,
     show_fps: bool,
     dragging: bool,
+    algorithm: Algorithm,
 }
 
 impl Controller {
@@ -42,6 +43,7 @@ impl Controller {
             max_iter: 100,
             show_fps: false,
             dragging: false,
+            algorithm: Algorithm::default(),
         }
     }
 }
@@ -66,11 +68,12 @@ impl ControllerTrait for Controller {
         let reiterate = self.reiterate;
         self.reiterate = false;
         FragmentConstants {
-            size: self.size.into(),
-            needs_reiterate: reiterate.into(),
             viewport_translate: self.viewport_translate.as_vec2(),
             viewport_zoom: self.viewport_zoom as f32,
+            size: self.size.into(),
+            algorithm: self.algorithm,
             max_iter: self.max_iter,
+            needs_reiterate: reiterate.into(),
         }
     }
 
