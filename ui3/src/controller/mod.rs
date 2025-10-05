@@ -40,7 +40,7 @@ impl Controller {
             mouse_position: DVec2::default(),
             show_coords_window: true,
             max_iter: 100,
-            show_fps: true, // TODO will become an option
+            show_fps: false,
             dragging: false,
         }
     }

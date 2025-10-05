@@ -2,6 +2,8 @@ use easy_shader_runner::{UiState, egui};
 
 use super::{DVec2, Instant};
 
+const DEFAULT_WIDTH: f32 = 130.;
+
 impl super::Controller {
     pub(super) fn ui_impl(
         &mut self,
@@ -37,6 +39,7 @@ impl super::Controller {
 
     fn controls_window(&mut self, ctx: &egui::Context) {
         egui::Window::new("brot3")
+            .default_width(DEFAULT_WIDTH)
             .resizable(false)
             .show(ctx, |ui| {
                 ui.label(egui::RichText::new("Iterations"));
@@ -46,6 +49,10 @@ impl super::Controller {
                 {
                     self.reiterate = true;
                 }
+                ui.separator();
+
+                ui.checkbox(&mut self.show_coords_window, "Show co-ordinates");
+                ui.checkbox(&mut self.show_fps, "Show FPS");
             })
             .unwrap();
     }
@@ -53,6 +60,7 @@ impl super::Controller {
         egui::Window::new("coords")
             .title_bar(false)
             .resizable(false)
+            .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(-10., 10.))
             .show(ctx, |ui| {
                 egui::Grid::new("coords_position").show(ui, |ui| {
                     ui.label("Fractal X (Re)");
