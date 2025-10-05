@@ -18,6 +18,7 @@ pub struct FragmentConstants {
     pub viewport_zoom: f32,
     /// window pixel size
     pub size: Size,
+    pub max_iter: u32,
     pub needs_reiterate: Bool,
 }
 

@@ -22,6 +22,7 @@ pub(crate) struct Controller {
     last_instant: Instant,
     mouse_position: DVec2,
     show_coords_window: bool,
+    max_iter: u32,
     show_fps: bool,
     dragging: bool,
 }
@@ -38,6 +39,7 @@ impl Controller {
             last_instant: Instant::now(),
             mouse_position: DVec2::default(),
             show_coords_window: true,
+            max_iter: 100,
             show_fps: true, // TODO will become an option
             dragging: false,
         }
@@ -68,6 +70,7 @@ impl ControllerTrait for Controller {
             needs_reiterate: reiterate.into(),
             viewport_translate: self.viewport_translate.as_vec2(),
             viewport_zoom: self.viewport_zoom as f32,
+            max_iter: self.max_iter,
         }
     }
 

@@ -10,6 +10,9 @@ impl super::Controller {
         _graphics_context: &easy_shader_runner::GraphicsContext,
     ) {
         self.apply_movement();
+
+        self.controls_window(ctx);
+
         if self.show_coords_window {
             self.coords_window(ctx);
         }
@@ -32,6 +35,20 @@ impl super::Controller {
         }
     }
 
+    fn controls_window(&mut self, ctx: &egui::Context) {
+        egui::Window::new("brot3")
+            .resizable(false)
+            .show(ctx, |ui| {
+                ui.label(egui::RichText::new("Iterations"));
+                if ui
+                    .add(egui::Slider::new(&mut self.max_iter, 1..=100_000).logarithmic(true))
+                    .changed()
+                {
+                    self.reiterate = true;
+                }
+            })
+            .unwrap();
+    }
     fn coords_window(&mut self, ctx: &egui::Context) {
         egui::Window::new("coords")
             .title_bar(false)

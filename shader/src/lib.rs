@@ -100,22 +100,22 @@ struct Mandelbrot {
 }
 
 impl Mandelbrot {
-    fn iterate(self, _constants: &FragmentConstants) -> FractalResult {
+    fn iterate(self, constants: &FragmentConstants) -> FractalResult {
         const ESCAPE_THRESHOLD_SQ: f32 = 4.0;
-        const ITER_LIMIT: u32 = 256;
 
         let mut iters = 0;
         let mut z = self.z0;
         let c = self.c;
         let mut norm_sqr = z.abs_sq();
+        let max_iter = constants.max_iter;
         // TODO: Cardoid and period-2 bulb checks?
 
-        while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < ITER_LIMIT {
+        while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
             z = z * z + c;
             iters += 1;
             norm_sqr = z.abs_sq();
         }
-        let inside = iters == ITER_LIMIT && (norm_sqr < ESCAPE_THRESHOLD_SQ);
+        let inside = iters == max_iter && (norm_sqr < ESCAPE_THRESHOLD_SQ);
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // A couple of extra iterations helps decrease the size of the error term
