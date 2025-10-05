@@ -38,7 +38,8 @@ impl<'a, T: Copy> GridRef<'a, T> {
     pub fn new(size: UVec2, buffer: &'a [T]) -> Self {
         debug_assert!(
             buffer.len() >= (size.x * size.y).try_into().unwrap(),
-            "storage not large enough" // rust-analyzer false positive with the rust-gpu toolchain; https://github.com/Rust-GPU/rust-cuda/issues/261 refers
+            "storage not large enough (needed {})",
+            size.x * size.y // rust-analyzer false positive with the rust-gpu toolchain; https://github.com/Rust-GPU/rust-cuda/issues/261 refers
         );
         Self { size, buffer }
     }

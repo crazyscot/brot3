@@ -9,7 +9,6 @@ license.workspace = true
 
 [lib]
 crate-type = ["dylib"]
-test = false
 
 [features]
 emulate_constants = []
@@ -20,4 +19,10 @@ shader_common = { path = "../shader_common" }
 shader_util = { path = "../shader_util" }
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_arch, values("spirv"))'] }
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(target_arch, values("spirv"))',
+    'cfg(coverage_nightly)',
+] }
+
+[dev-dependencies]
+approx = { version = "0.5.1", default-features = false }

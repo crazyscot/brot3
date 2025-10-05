@@ -1,6 +1,7 @@
 //! Fractal shader entrypoint
 
-#![no_std]
+#![cfg_attr(target_arch = "spirv", no_std)]
+#![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 use spirv_std::glam::*;
 #[cfg(target_arch = "spirv")]
@@ -47,7 +48,7 @@ pub fn main_fs(
 
     let colour = colour_data(render_data, constants);
 
-    *output = colour.powf(2.2).extend(1.0);
+    *output = colour.extend(1.0);
 }
 
 #[spirv(vertex)]
@@ -56,9 +57,11 @@ pub fn main_vs(
     #[spirv(position, invariant)] out_pos: &mut Vec4,
 ) {
     let uv = vec2(((vert_id << 1) & 2) as f32, (vert_id & 2) as f32);
+    // uv expresses the cycle: (0,0) (2,0) (0,2) (2,2)
     let pos = 2.0 * uv - Vec2::ONE;
+    // pos expresses the cycle: (-1,-1) (3,-1) (-1,3) (3,3)
+
     *out_pos = pos.extend(0.0).extend(1.0);
-    // This has the effect of generating a loop of the cycle (0,0,0,1) (2,0,0,1) (0,2,0,1) (2,2,0,1)
 }
 
 fn render_fractal(constants: &FragmentConstants, m: Mandelbrot) -> RenderData {
@@ -176,4 +179,53 @@ fn hsv_to_rgb(hue: f32, saturation: f32, value: f32) -> Vec3 {
 fn log_rainbow(t: f32) -> Vec3 {
     let angle = t.ln() * 60.0; // DEGREES
     hsv_to_rgb(angle, 1.0, 1.0)
+}
+
+#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg_attr(coverage_nightly, coverage(off))]
+mod tests {
+    use super::{FragmentConstants, GRID_SIZE, RenderData};
+
+    use shader_util::Size;
+    use spirv_std::glam::{Vec4, vec2, vec4};
+
+    #[test]
+    fn vertex() {
+        let cases = &[
+            (0, vec4(-1., -1., 0., 1.)),
+            (1, vec4(3., -1., 0., 1.)),
+            (2, vec4(-1., 3., 0., 1.)),
+            (3, vec4(3., 3., 0., 1.)),
+            (4, vec4(-1., -1., 0., 1.)),
+        ];
+
+        for (id, expected) in cases {
+            let mut res = Vec4::default();
+            super::main_vs(*id, &mut res);
+            assert_eq!(&res, expected, "failing case: {id}");
+        }
+    }
+
+    fn test_frag_consts() -> FragmentConstants {
+        FragmentConstants {
+            viewport_translate: vec2(0., 0.),
+            viewport_zoom: 0.3,
+            size: Size::new(2, 2),
+            max_iter: 10,
+            needs_reiterate: true.into(),
+        }
+    }
+
+    #[test]
+    fn fragment() {
+        let mut res = Vec4::default();
+        let consts = test_frag_consts();
+        let mut grid = vec![RenderData::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+        super::main_fs(vec4(0., 0., 0., 0.), &consts, &mut grid, &mut res);
+        let expected = vec4(1., 0.34425634, 0., 1.);
+        assert!(
+            res.abs_diff_eq(expected, 0.000_000_1),
+            "mismatch: {res} vs {expected}"
+        );
+    }
 }
