@@ -30,11 +30,22 @@ pub struct RenderData {
 }
 
 impl RenderData {
-    pub fn new(_constants: &FragmentConstants, inside: bool, iters: u32) -> Self {
-        let iters = if inside { u32::MAX } else { iters };
-        Self {
-            iters,
-            smooth_iters: iters as f32,
+    pub fn new(
+        _constants: &FragmentConstants,
+        inside: bool,
+        iters: u32,
+        smooth_iters: f32,
+    ) -> Self {
+        if inside {
+            Self {
+                iters: u32::MAX,
+                smooth_iters: u32::MAX as f32,
+            }
+        } else {
+            Self {
+                iters,
+                smooth_iters,
+            }
         }
     }
 }

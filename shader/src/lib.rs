@@ -76,8 +76,12 @@ struct Builder<'a> {
 
 impl Builder<'_> {
     fn iterations(self) -> RenderData {
-        let FractalResult { inside, iters } = self.fractal.iterate(self.constants);
-        RenderData::new(self.constants, inside, iters)
+        let FractalResult {
+            inside,
+            iters,
+            smoothed_iters,
+        } = self.fractal.iterate(self.constants);
+        RenderData::new(self.constants, inside, iters, smoothed_iters)
     }
 }
 
@@ -86,6 +90,8 @@ struct FractalResult {
     inside: bool,
     /// iteration count
     iters: u32,
+    /// smoothed iteration count (where available)
+    smoothed_iters: f32,
 }
 
 struct Mandelbrot {
@@ -110,7 +116,21 @@ impl Mandelbrot {
             norm_sqr = z.abs_sq();
         }
         let inside = iters == ITER_LIMIT && (norm_sqr < ESCAPE_THRESHOLD_SQ);
-        FractalResult { inside, iters }
+
+        // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
+        // A couple of extra iterations helps decrease the size of the error term
+        z = z * z + c;
+        z = z * z + c;
+        // by the logarithm of a power law,
+        // point.value.norm().ln().ln() === (point.value.norm_sqr().ln() * 0.5).ln())
+        let smoothed_iters =
+            (iters + 2) as f32 - (z.abs_sq().ln() * 0.5).ln() / core::f32::consts::LN_2;
+
+        FractalResult {
+            inside,
+            iters,
+            smoothed_iters,
+        }
     }
 }
 
