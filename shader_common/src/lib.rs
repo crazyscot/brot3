@@ -63,5 +63,9 @@ pub enum Algorithm {
     Mandelbrot,
     Mandeldrop,
     Mandelbar,
-    // TODO others.. but impl the alg switch & reiterate first
+    // TODO:
+    //BurningShip,
+    //Celtic,
+    //Variant,
+    //BirdOfPrey,
 }
