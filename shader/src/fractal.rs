@@ -18,18 +18,13 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
         Algorithm::Mandelbrot => builder!(Mandelbrot { c }).iterations(),
         // Mandeldrop is the same algorithm but with a different c
         Algorithm::Mandeldrop => builder!(Mandelbrot { c: c.recip() }).iterations(),
-        // Mandelbar: Same as mandelbrot, but conjugate c each time
         Algorithm::Mandelbar => builder!(Mandelbar { c }).iterations(),
+        Algorithm::BurningShip => builder!(BurningShip { c }).iterations(),
+        Algorithm::Celtic => builder!(Celtic { c }).iterations(),
+        Algorithm::Variant => builder!(Variant { c }).iterations(),
+        Algorithm::BirdOfPrey => builder!(BirdOfPrey { c }).iterations(),
     }
 }
-
-/*
- * Mandelbar: Same as mandelbrot, but conjugate c each time
- * Burning Ship: Same as mandelbrot, but abs(z) each time
- * Celtic: Same as mandelbrot, but abs(Re(z)) each time
- * Variant: Same as mandelbrot, but abs(Re(z)) on odd iterations (this one will be challenging to make efficient!)
- * BirdOfPrey: Same as mandelbrot, but abs(Im(z)) each time
- */
 
 pub(crate) trait Fractal: private::Modifier {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult;
@@ -44,7 +39,7 @@ pub(crate) trait Fractal: private::Modifier {
 
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
             self.modify(&mut z);
-            z = z * z + c;
+            z = self.iterate_algorithm(z, c, iters);
             iters += 1;
             norm_sqr = z.abs_sq();
         }
@@ -52,8 +47,8 @@ pub(crate) trait Fractal: private::Modifier {
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // A couple of extra iterations helps decrease the size of the error term
-        z = z * z + c;
-        z = z * z + c;
+        z = self.iterate_algorithm(z, c, iters);
+        z = self.iterate_algorithm(z, c, iters + 1);
         // by the logarithm of a power law,
         // point.value.norm().ln().ln() === (point.value.norm_sqr().ln() * 0.5).ln())
         let smoothed_iters =
@@ -68,9 +63,14 @@ pub(crate) trait Fractal: private::Modifier {
 }
 
 mod private {
+    use super::Complex;
     pub trait Modifier {
         #[inline(always)]
-        fn modify(&self, _z: &mut super::Complex) {}
+        fn modify(&self, _z: &mut Complex) {}
+        #[inline(always)]
+        fn iterate_algorithm(&self, z: Complex, c: Complex, _iters: u32) -> Complex {
+            z * z + c
+        }
     }
 }
 
@@ -96,5 +96,58 @@ impl private::Modifier for Mandelbar {
     #[inline(always)]
     fn modify(&self, z: &mut super::Complex) {
         *z = z.conjugate();
+    }
+}
+
+standard_fractal!(BurningShip);
+impl private::Modifier for BurningShip {
+    // Same as mandelbrot, but take abs(re) and abs(im) each time
+    #[inline(always)]
+    fn modify(&self, z: &mut super::Complex) {
+        z.re = z.re.abs();
+        z.im = z.im.abs();
+    }
+}
+
+standard_fractal!(Celtic);
+impl private::Modifier for Celtic {
+    #[inline(always)]
+    fn iterate_algorithm(&self, z: Complex, c: Complex, _iters: u32) -> Complex {
+        // Based on mandelbrot, but using the formula:
+        //   z := abs(re(z^2)) + i.im(z^2) + c
+        let z2 = z * z;
+        Complex {
+            // unrolled version (fixed power):
+            // re: (z.re * z.re - z.im * z.im).abs() + c.re,
+            // im: 2.0 * z.re * z.im + c.im,
+            re: z2.re.abs() + c.re,
+            im: z2.im + c.im,
+        }
+    }
+}
+
+standard_fractal!(BirdOfPrey);
+impl private::Modifier for BirdOfPrey {
+    // Same as mandelbrot, but take abs(im) each time
+    #[inline(always)]
+    fn modify(&self, z: &mut super::Complex) {
+        z.im = z.im.abs();
+    }
+}
+
+standard_fractal!(Variant);
+impl private::Modifier for Variant {
+    #[inline(always)]
+    fn iterate_algorithm(&self, z: Complex, c: Complex, iters: u32) -> Complex {
+        // Based on mandelbrot, but take abs(Re(z)) on odd iterations
+        let z2 = z * z;
+        if (iters % 2) == 1 {
+            Complex {
+                re: z2.re.abs() + c.re,
+                im: z2.im + c.im,
+            }
+        } else {
+            z2 + c
+        }
     }
 }

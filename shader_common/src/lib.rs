@@ -63,9 +63,8 @@ pub enum Algorithm {
     Mandelbrot,
     Mandeldrop,
     Mandelbar,
-    // TODO:
-    //BurningShip,
-    //Celtic,
-    //Variant,
-    //BirdOfPrey,
+    BurningShip,
+    Celtic,
+    Variant,
+    BirdOfPrey,
 }
