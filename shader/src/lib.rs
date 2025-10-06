@@ -166,10 +166,11 @@ mod tests {
         FragmentConstants {
             viewport_translate: vec2(0., 0.),
             viewport_zoom: 0.3,
-            size: Size::new(2, 2),
+            size: Size::new(1024, 1024),
             max_iter: 10,
             needs_reiterate: true.into(),
             algorithm: Algorithm::Mandelbrot,
+            exponent_i: 2,
         }
     }
 

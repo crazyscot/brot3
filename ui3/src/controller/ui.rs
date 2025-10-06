@@ -37,6 +37,14 @@ impl super::Controller {
             self.viewport_translate += movement.translate / self.viewport_zoom * dt;
             self.reiterate = true;
         }
+        if movement.exponent != 0 {
+            let new_exponent = (self.exponent_u as i32 + movement.exponent).clamp(2, 30);
+            if new_exponent != self.exponent_u as i32 {
+                self.exponent_u = new_exponent as u32;
+                self.reiterate = true;
+            }
+            movement.exponent = 0;
+        }
     }
 
     fn controls_window(&mut self, ctx: &egui::Context) {
@@ -55,6 +63,20 @@ impl super::Controller {
                         }
                     });
                 if self.algorithm != algorithm_before {
+                    self.reiterate = true;
+                }
+                ui.separator();
+                ui.label(egui::RichText::new("Exponent"));
+                if ui
+                    .add(egui::Slider::new(&mut self.exponent_u, 2..=30))
+                    .changed()
+                {
+                    self.reiterate = true;
+                }
+                if ui
+                    .add(egui::Checkbox::new(&mut self.exponent_negative, "Negative"))
+                    .changed()
+                {
                     self.reiterate = true;
                 }
 

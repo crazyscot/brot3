@@ -39,20 +39,29 @@ pub(crate) trait Fractal: private::Modifier {
 
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
             self.modify(&mut z);
-            z = self.iterate_algorithm(z, c, iters);
+            z = self.iterate_algorithm(constants, z, c, iters);
             iters += 1;
             norm_sqr = z.abs_sq();
         }
         let inside = iters == max_iter && (norm_sqr < ESCAPE_THRESHOLD_SQ);
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-        // A couple of extra iterations helps decrease the size of the error term
-        z = self.iterate_algorithm(z, c, iters);
-        z = self.iterate_algorithm(z, c, iters + 1);
+        if constants.exponent_i < 4 {
+            // A couple of extra iterations helps decrease the size of the error term
+            // This does not work above exp=3, as the repeated iterations quickly cause overflow
+            for _ in 0..2 {
+                z = self.iterate_algorithm(constants, z, c, iters);
+                iters += 1;
+            }
+        }
         // by the logarithm of a power law,
-        // point.value.norm().ln().ln() === (point.value.norm_sqr().ln() * 0.5).ln())
-        let smoothed_iters =
-            (iters + 2) as f32 - (z.abs_sq().ln() * 0.5).ln() / core::f32::consts::LN_2;
+        // z.norm().ln().ln() === (z.norm_sqr().ln() * 0.5).ln())
+        let ln_exponent = if constants.exponent_i == 2 {
+            core::f32::consts::LN_2
+        } else {
+            (constants.exponent_i as f32).abs().ln()
+        };
+        let smoothed_iters = (iters) as f32 - (z.abs_sq().ln() * 0.5).ln() / ln_exponent;
 
         FractalResult {
             inside,
@@ -63,13 +72,23 @@ pub(crate) trait Fractal: private::Modifier {
 }
 
 mod private {
-    use super::Complex;
+    use super::{Complex, FragmentConstants};
     pub trait Modifier {
         #[inline(always)]
         fn modify(&self, _z: &mut Complex) {}
         #[inline(always)]
-        fn iterate_algorithm(&self, z: Complex, c: Complex, _iters: u32) -> Complex {
-            z * z + c
+        fn iterate_algorithm(
+            &self,
+            constants: &FragmentConstants,
+            z: Complex,
+            c: Complex,
+            _iters: u32,
+        ) -> Complex {
+            if constants.exponent_i == 2 {
+                z * z + c
+            } else {
+                z.powi(constants.exponent_i).to_rectangular() + c
+            }
         }
     }
 }
@@ -112,16 +131,26 @@ impl private::Modifier for BurningShip {
 standard_fractal!(Celtic);
 impl private::Modifier for Celtic {
     #[inline(always)]
-    fn iterate_algorithm(&self, z: Complex, c: Complex, _iters: u32) -> Complex {
+    fn iterate_algorithm(
+        &self,
+        constants: &FragmentConstants,
+        z: Complex,
+        c: Complex,
+        _iters: u32,
+    ) -> Complex {
         // Based on mandelbrot, but using the formula:
         //   z := abs(re(z^2)) + i.im(z^2) + c
-        let z2 = z * z;
+        let zz = if constants.exponent_i == 2 {
+            z * z
+        } else {
+            z.powi(constants.exponent_i).to_rectangular()
+        };
         Complex {
             // unrolled version (fixed power):
             // re: (z.re * z.re - z.im * z.im).abs() + c.re,
             // im: 2.0 * z.re * z.im + c.im,
-            re: z2.re.abs() + c.re,
-            im: z2.im + c.im,
+            re: zz.re.abs() + c.re,
+            im: zz.im + c.im,
         }
     }
 }
@@ -138,16 +167,26 @@ impl private::Modifier for BirdOfPrey {
 standard_fractal!(Variant);
 impl private::Modifier for Variant {
     #[inline(always)]
-    fn iterate_algorithm(&self, z: Complex, c: Complex, iters: u32) -> Complex {
+    fn iterate_algorithm(
+        &self,
+        constants: &FragmentConstants,
+        z: Complex,
+        c: Complex,
+        iters: u32,
+    ) -> Complex {
         // Based on mandelbrot, but take abs(Re(z)) on odd iterations
-        let z2 = z * z;
+        let zz = if constants.exponent_i == 2 {
+            z * z
+        } else {
+            z.powi(constants.exponent_i).to_rectangular()
+        };
         if (iters % 2) == 1 {
             Complex {
-                re: z2.re.abs() + c.re,
-                im: z2.im + c.im,
+                re: zz.re.abs() + c.re,
+                im: zz.im + c.im,
             }
         } else {
-            z2 + c
+            zz + c
         }
     }
 }

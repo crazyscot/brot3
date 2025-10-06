@@ -21,6 +21,7 @@ pub struct FragmentConstants {
     pub algorithm: Algorithm,
     pub max_iter: u32,
     pub needs_reiterate: Bool,
+    pub exponent_i: i32,
 }
 
 #[derive(Copy, Clone, Debug, Default)]

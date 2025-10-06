@@ -27,6 +27,8 @@ pub(crate) struct Controller {
     vsync: bool,
     dragging: bool,
     algorithm: Algorithm,
+    exponent_u: u32,
+    exponent_negative: bool,
 }
 
 impl Controller {
@@ -46,6 +48,8 @@ impl Controller {
             vsync: true,
             dragging: false,
             algorithm: Algorithm::default(),
+            exponent_u: 2,
+            exponent_negative: false,
         }
     }
 }
@@ -54,6 +58,7 @@ impl Controller {
 struct Movement {
     translate: DVec2,
     zoom: f64,
+    exponent: i32,
 }
 
 impl ControllerTrait for Controller {
@@ -76,6 +81,7 @@ impl ControllerTrait for Controller {
             algorithm: self.algorithm,
             max_iter: self.max_iter,
             needs_reiterate: reiterate.into(),
+            exponent_i: self.exponent_u as i32 * if self.exponent_negative { -1 } else { 1 },
         }
     }
 

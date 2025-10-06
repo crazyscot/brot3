@@ -46,6 +46,8 @@ impl super::Controller {
                 match c {
                     'z' => self.kbd_zoom(true, pressed),
                     'x' => self.kbd_zoom(false, pressed),
+                    'e' => self.expo(false, pressed),
+                    'r' => self.expo(true, pressed),
                     _ => {}
                 }
             }
@@ -67,6 +69,19 @@ impl super::Controller {
         } else if self.movement.zoom < 1. {
             /* !inwards */
             self.movement.zoom = 0.;
+        }
+    }
+
+    fn expo(&mut self, increase: bool, active: bool) {
+        if active {
+            self.movement.exponent = if increase { 1 } else { -1 };
+        } else if increase {
+            if self.movement.exponent > 0 {
+                self.movement.exponent = 0;
+            }
+        } else if self.movement.exponent < 0 {
+            /* !inwards */
+            self.movement.exponent = 0;
         }
     }
 }
