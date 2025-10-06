@@ -26,10 +26,9 @@ package.spirv-tools-sys.opt-level = 1
 
 [workspace.dependencies]
 anyhow = "1.0.100"
-bytemuck = { version = "1.22.0", default-features = false }
-glam = { version = "0.30.5", default-features = false }
-num-complex = "0.4.6"
-png = "0.18.0"
+bytemuck = { version = "1.24.0", default-features = false }
+glam = { version = "=0.30.7", default-features = false }
+#png = "0.18.0"
 
 [workspace.dependencies.spirv-std]
 git = "https://github.com/Rust-GPU/rust-gpu"
