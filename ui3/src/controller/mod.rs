@@ -24,6 +24,7 @@ pub(crate) struct Controller {
     show_coords_window: bool,
     max_iter: u32,
     show_fps: bool,
+    vsync: bool,
     dragging: bool,
     algorithm: Algorithm,
 }
@@ -42,6 +43,7 @@ impl Controller {
             show_coords_window: true,
             max_iter: 100,
             show_fps: false,
+            vsync: true,
             dragging: false,
             algorithm: Algorithm::default(),
         }

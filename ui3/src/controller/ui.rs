@@ -12,6 +12,7 @@ impl super::Controller {
         ui_state: &mut UiState,
         _graphics_context: &easy_shader_runner::GraphicsContext,
     ) {
+        ui_state.vsync = self.vsync;
         self.apply_movement();
 
         self.controls_window(ctx);
@@ -69,9 +70,11 @@ impl super::Controller {
 
                 ui.checkbox(&mut self.show_coords_window, "Show co-ordinates");
                 ui.checkbox(&mut self.show_fps, "Show FPS");
+                ui.checkbox(&mut self.vsync, "vsync");
             })
             .unwrap();
     }
+
     fn coords_window(&mut self, ctx: &egui::Context) {
         egui::Window::new("coords")
             .title_bar(false)
