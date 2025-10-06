@@ -17,8 +17,10 @@ NIGHTLY="+nightly-2025-06-23"
 # So for now, --no-cfg-coverage.
 # We can still use #[cfg_attr(coverage_nightly, coverage(off))] locally.
 
+PREFIX=$(pwd)
+
 mkdir -p $COVERAGE_DIR
 # shellcheck disable=SC2086
 cargo ${NIGHTLY} llvm-cov --all-features --workspace --doctests --lcov --output-path $COVERAGE_DIR/lcov.info --no-cfg-coverage --show-instantiations
-genhtml $COVERAGE_DIR/lcov.info -o $COVERAGE_DIR/html
+genhtml $COVERAGE_DIR/lcov.info -o $COVERAGE_DIR/html --prefix ${PREFIX}
 echo Coverage written to $COVERAGE_DIR/html
