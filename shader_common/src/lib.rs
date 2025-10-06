@@ -62,5 +62,6 @@ pub enum Algorithm {
     #[default]
     Mandelbrot,
     Mandeldrop,
+    Mandelbar,
     // TODO others.. but impl the alg switch & reiterate first
 }
