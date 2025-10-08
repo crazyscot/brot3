@@ -29,6 +29,8 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
 pub(crate) trait Fractal: private::Modifier {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult;
     fn iterate_inner(&self, c: Complex, constants: &FragmentConstants) -> FractalResult {
+        use shader_common::NumericType;
+
         const ESCAPE_THRESHOLD_SQ: f32 = 4.0;
 
         let mut iters = 0;
@@ -46,21 +48,29 @@ pub(crate) trait Fractal: private::Modifier {
         let inside = iters == max_iter && (norm_sqr < ESCAPE_THRESHOLD_SQ);
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-        if constants.exponent_i < 4 {
+
+        let (exponent, ln_exponent) = match constants.exponent.typ {
+            NumericType::Integer if constants.exponent.int == 2 => (2., core::f32::consts::LN_2),
+            NumericType::Integer => (
+                constants.exponent.int as f32,
+                (constants.exponent.int as f32).abs().ln(),
+            ),
+            NumericType::Float => (
+                constants.exponent.float,
+                constants.exponent.float.abs().ln(),
+            ),
+        };
+
+        if exponent.abs() < 4. {
             // A couple of extra iterations helps decrease the size of the error term
-            // This does not work above exp=3, as the repeated iterations quickly cause overflow
-            for _ in 0..2 {
-                z = self.iterate_algorithm(constants, z, c, iters);
-                iters += 1;
-            }
+            // This does not work above about exp=3, as the repeated iterations quickly cause overflow
+            z = self.iterate_algorithm(constants, z, c, iters);
+            iters += 1;
+            z = self.iterate_algorithm(constants, z, c, iters);
+            iters += 1;
         }
         // by the logarithm of a power law,
         // z.norm().ln().ln() === (z.norm_sqr().ln() * 0.5).ln())
-        let ln_exponent = if constants.exponent_i == 2 {
-            core::f32::consts::LN_2
-        } else {
-            (constants.exponent_i as f32).abs().ln()
-        };
         let smoothed_iters = (iters) as f32 - (z.abs_sq().ln() * 0.5).ln() / ln_exponent;
 
         FractalResult {
@@ -74,20 +84,36 @@ pub(crate) trait Fractal: private::Modifier {
 mod private {
     use super::{Complex, FragmentConstants};
     pub trait Modifier {
+        /// Override as necessary
         #[inline(always)]
         fn modify(&self, _z: &mut Complex) {}
+
+        /// Override as necessary
         #[inline(always)]
         fn iterate_algorithm(
             &self,
             constants: &FragmentConstants,
             z: Complex,
             c: Complex,
+            iters: u32,
+        ) -> Complex {
+            self.iterate_algorithm_base(constants, z, c, iters)
+        }
+
+        /// Do not override!
+        #[inline(always)]
+        fn iterate_algorithm_base(
+            &self,
+            constants: &FragmentConstants,
+            z: Complex,
+            c: Complex,
             _iters: u32,
         ) -> Complex {
-            if constants.exponent_i == 2 {
-                z * z + c
-            } else {
-                z.powi(constants.exponent_i).to_rectangular() + c
+            use shader_common::NumericType;
+            match constants.exponent.typ {
+                NumericType::Integer if constants.exponent.int == 2 => z * z + c,
+                NumericType::Integer => z.powi(constants.exponent.int).to_rectangular() + c,
+                NumericType::Float => z.powf(constants.exponent.float).to_rectangular() + c,
             }
         }
     }
@@ -136,15 +162,11 @@ impl private::Modifier for Celtic {
         constants: &FragmentConstants,
         z: Complex,
         c: Complex,
-        _iters: u32,
+        iters: u32,
     ) -> Complex {
         // Based on mandelbrot, but using the formula:
         //   z := abs(re(z^2)) + i.im(z^2) + c
-        let zz = if constants.exponent_i == 2 {
-            z * z
-        } else {
-            z.powi(constants.exponent_i).to_rectangular()
-        };
+        let zz = self.iterate_algorithm_base(constants, z, c, iters);
         Complex {
             // unrolled version (fixed power):
             // re: (z.re * z.re - z.im * z.im).abs() + c.re,
@@ -174,12 +196,7 @@ impl private::Modifier for Variant {
         c: Complex,
         iters: u32,
     ) -> Complex {
-        // Based on mandelbrot, but take abs(Re(z)) on odd iterations
-        let zz = if constants.exponent_i == 2 {
-            z * z
-        } else {
-            z.powi(constants.exponent_i).to_rectangular()
-        };
+        let zz = self.iterate_algorithm_base(constants, z, c, iters);
         if (iters % 2) == 1 {
             Complex {
                 re: zz.re.abs() + c.re,

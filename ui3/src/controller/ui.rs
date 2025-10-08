@@ -5,6 +5,11 @@ use shader_common::Algorithm;
 
 const DEFAULT_WIDTH: f32 = 130.;
 
+const EXPONENT_MIN: f32 = 0.;
+const EXPONENT_MIN_INT: u32 = 0;
+const EXPONENT_MAX: f32 = 20.;
+const EXPONENT_MAX_INT: u32 = 20;
+
 impl super::Controller {
     pub(super) fn ui_impl(
         &mut self,
@@ -37,13 +42,17 @@ impl super::Controller {
             self.viewport_translate += movement.translate / self.viewport_zoom * dt;
             self.reiterate = true;
         }
-        if movement.exponent != 0 {
-            let new_exponent = (self.exponent_u as i32 + movement.exponent).clamp(2, 30);
-            if new_exponent != self.exponent_u as i32 {
-                self.exponent_u = new_exponent as u32;
+        if movement.exponent != 0. {
+            let new_exp =
+                (self.exponent.value + movement.exponent).clamp(EXPONENT_MIN, EXPONENT_MAX);
+            if self.exponent.value != new_exp {
                 self.reiterate = true;
+                self.exponent.value = new_exp;
+                if self.exponent.is_integer {
+                    self.exponent.value_i = self.exponent.value.round() as u32;
+                }
             }
-            movement.exponent = 0;
+            movement.exponent = 0.;
         }
     }
 
@@ -52,6 +61,8 @@ impl super::Controller {
             .default_width(DEFAULT_WIDTH)
             .resizable(false)
             .show(ctx, |ui| {
+                use shader_common::NumericType;
+
                 let algorithm_before = self.algorithm;
                 egui::ComboBox::from_label(egui::RichText::new("Algorithm").size(15.0))
                     .selected_text(format!("{:?}", self.algorithm))
@@ -66,15 +77,60 @@ impl super::Controller {
                     self.reiterate = true;
                 }
                 ui.separator();
-                ui.label(egui::RichText::new("Exponent"));
-                if ui
-                    .add(egui::Slider::new(&mut self.exponent_u, 2..=30))
-                    .changed()
-                {
-                    self.reiterate = true;
+                ui.vertical_centered(|ui| {
+                    ui.label(egui::RichText::new("Exponent").size(15.0));
+                });
+                egui::Grid::new("exponent_grid").show(ui, |ui| {
+                    let previous_int = self.exponent.is_integer;
+                    ui.radio_value(&mut self.exponent.is_integer, true, "Integer");
+                    ui.radio_value(&mut self.exponent.is_integer, false, "Float");
+                    ui.end_row();
+                    if self.exponent.is_integer != previous_int {
+                        if previous_int {
+                            // was integer, now float
+                            self.exponent.value = self.exponent.value_i as f32;
+                        } else {
+                            // was float, now integer
+                            self.exponent.value_i = self.exponent.value.round() as u32;
+                            self.exponent.value = self.exponent.value_i as f32;
+                        }
+                        self.reiterate = true;
+                    }
+                });
+                match self.exponent.variant() {
+                    NumericType::Integer => {
+                        if ui
+                            .add(egui::Slider::new(
+                                &mut self.exponent.value_i,
+                                EXPONENT_MIN_INT..=EXPONENT_MAX_INT,
+                            ))
+                            .changed()
+                        {
+                            self.exponent.value = self.exponent.value_i as f32;
+                            self.reiterate = true;
+                        }
+                    }
+                    NumericType::Float => {
+                        if ui
+                            .add(
+                                egui::Slider::new(
+                                    &mut self.exponent.value,
+                                    EXPONENT_MIN..=EXPONENT_MAX,
+                                )
+                                .step_by(0.1),
+                            )
+                            .changed()
+                        {
+                            self.reiterate = true;
+                        }
+                    }
                 }
+
                 if ui
-                    .add(egui::Checkbox::new(&mut self.exponent_negative, "Negative"))
+                    .add(egui::Checkbox::new(
+                        &mut self.exponent.is_negative,
+                        "Negative",
+                    ))
                     .changed()
                 {
                     self.reiterate = true;

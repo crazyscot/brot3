@@ -21,7 +21,7 @@ pub struct FragmentConstants {
     pub algorithm: Algorithm,
     pub max_iter: u32,
     pub needs_reiterate: Bool,
-    pub exponent_i: i32,
+    pub exponent: PushExponent,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -49,6 +49,34 @@ impl RenderData {
                 iters,
                 smooth_iters,
             }
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[repr(u32)]
+pub enum NumericType {
+    #[default]
+    Integer,
+    Float,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[repr(C)]
+pub struct PushExponent {
+    pub typ: NumericType,
+    pub int: i32,
+    pub float: f32,
+}
+
+impl From<i32> for PushExponent {
+    fn from(i: i32) -> Self {
+        Self {
+            typ: NumericType::Integer,
+            int: i,
+            float: 0.,
         }
     }
 }

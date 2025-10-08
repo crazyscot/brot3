@@ -27,8 +27,7 @@ pub(crate) struct Controller {
     vsync: bool,
     dragging: bool,
     algorithm: Algorithm,
-    exponent_u: u32,
-    exponent_negative: bool,
+    exponent: Exponent,
 }
 
 impl Controller {
@@ -48,8 +47,60 @@ impl Controller {
             vsync: true,
             dragging: false,
             algorithm: Algorithm::default(),
-            exponent_u: 2,
-            exponent_negative: false,
+            exponent: Exponent::default(),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+struct Exponent {
+    pub(crate) value: f32,
+    pub(crate) value_i: u32,
+    pub(crate) is_integer: bool,
+    pub(crate) is_negative: bool,
+}
+impl Default for Exponent {
+    fn default() -> Self {
+        Self {
+            value: 2.0,
+            value_i: 2,
+            is_integer: true,
+            is_negative: false,
+        }
+    }
+}
+impl Exponent {
+    fn variant(&self) -> NumericType {
+        if self.is_integer {
+            NumericType::Integer
+        } else {
+            NumericType::Float
+        }
+    }
+    fn as_int(&self) -> i32 {
+        self.value as i32 * if self.is_negative { -1 } else { 1 }
+    }
+    fn as_float(&self) -> f32 {
+        self.value * if self.is_negative { -1. } else { 1. }
+    }
+    fn step(&self) -> f32 {
+        if self.is_integer { 1. } else { 0.1 }
+    }
+}
+impl From<Exponent> for PushExponent {
+    fn from(exp: Exponent) -> Self {
+        if exp.is_integer {
+            PushExponent {
+                typ: NumericType::Integer,
+                int: exp.as_int(),
+                float: 0.,
+            }
+        } else {
+            PushExponent {
+                typ: NumericType::Float,
+                int: 0,
+                float: exp.as_float(),
+            }
         }
     }
 }
@@ -58,7 +109,7 @@ impl Controller {
 struct Movement {
     translate: DVec2,
     zoom: f64,
-    exponent: i32,
+    exponent: f32,
 }
 
 impl ControllerTrait for Controller {
@@ -81,7 +132,7 @@ impl ControllerTrait for Controller {
             algorithm: self.algorithm,
             max_iter: self.max_iter,
             needs_reiterate: reiterate.into(),
-            exponent_i: self.exponent_u as i32 * if self.exponent_negative { -1 } else { 1 },
+            exponent: self.exponent.into(),
         }
     }
 

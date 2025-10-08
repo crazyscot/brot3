@@ -141,7 +141,7 @@ fn log_rainbow(t: f32) -> Vec3 {
 mod tests {
     use super::{FragmentConstants, GRID_SIZE, RenderData};
 
-    use shader_common::Algorithm;
+    use shader_common::{Algorithm, PushExponent};
     use shader_util::Size;
     use spirv_std::glam::{Vec4, vec2, vec4};
 
@@ -170,7 +170,7 @@ mod tests {
             max_iter: 10,
             needs_reiterate: true.into(),
             algorithm: Algorithm::Mandelbrot,
-            exponent_i: 2,
+            exponent: PushExponent::from(2),
         }
     }
 

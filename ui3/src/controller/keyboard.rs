@@ -74,14 +74,16 @@ impl super::Controller {
 
     fn expo(&mut self, increase: bool, active: bool) {
         if active {
-            self.movement.exponent = if increase { 1 } else { -1 };
+            let magnitude = self.exponent.step();
+            let sign = if increase { 1. } else { -1. };
+            self.movement.exponent = sign * magnitude;
         } else if increase {
-            if self.movement.exponent > 0 {
-                self.movement.exponent = 0;
+            if self.movement.exponent > 0. {
+                self.movement.exponent = 0.;
             }
-        } else if self.movement.exponent < 0 {
+        } else if self.movement.exponent < 0. {
             /* !inwards */
-            self.movement.exponent = 0;
+            self.movement.exponent = 0.;
         }
     }
 }
