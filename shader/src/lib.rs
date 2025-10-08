@@ -11,6 +11,9 @@ use spirv_std::spirv;
 use shader_common::{FragmentConstants, GRID_SIZE, RenderData, complex::Complex};
 use shader_util::grid::{GridRef, GridRefMut};
 
+mod exponentiation;
+use exponentiation::Exponentiator;
+
 mod fractal;
 use fractal::Fractal;
 
@@ -61,17 +64,20 @@ pub fn main_vs(
     *out_pos = pos.extend(0.0).extend(1.0);
 }
 
-struct Builder<'a, F>
+struct Builder<'a, F, E>
 where
-    F: Fractal,
+    F: Fractal<E>,
+    E: Exponentiator,
 {
     constants: &'a FragmentConstants,
     fractal: F,
+    _phantom: core::marker::PhantomData<E>,
 }
 
-impl<F> Builder<'_, F>
+impl<F, E> Builder<'_, F, E>
 where
-    F: Fractal,
+    F: Fractal<E>,
+    E: Exponentiator,
 {
     fn iterations(self) -> RenderData {
         let FractalResult {

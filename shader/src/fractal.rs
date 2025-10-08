@@ -3,32 +3,59 @@ use spirv_std::num_traits::real::Real;
 
 use super::{Builder, Complex, FractalResult, FragmentConstants, RenderData, Vec2};
 
+use crate::exponentiation::Exponentiator;
+
 pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
-    use shader_common::Algorithm;
-    macro_rules! builder {
-        ($fractal:expr) => {
-            Builder {
-                constants,
-                fractal: $fractal,
-            }
-        };
-    }
+    use shader_common::{Algorithm, NumericType};
     let c = Complex::from(point);
+    macro_rules! builder {
+        ($fractal:ident, $c_value:expr) => {{
+            match constants.exponent.typ {
+                NumericType::Integer if constants.exponent.int == 2 => Builder {
+                    constants,
+                    fractal: $fractal {
+                        c: $c_value,
+                        exponent: crate::exponentiation::Exp2,
+                    },
+                    _phantom: core::marker::PhantomData,
+                }
+                .iterations(),
+                NumericType::Integer => Builder {
+                    constants,
+                    fractal: $fractal {
+                        c: $c_value,
+                        exponent: crate::exponentiation::ExpIntN(constants.exponent.int),
+                    },
+                    _phantom: core::marker::PhantomData,
+                }
+                .iterations(),
+                NumericType::Float => Builder {
+                    constants,
+                    fractal: $fractal {
+                        c: $c_value,
+                        exponent: crate::exponentiation::ExpFloat(constants.exponent.float),
+                    },
+                    _phantom: core::marker::PhantomData,
+                }
+                .iterations(),
+            }
+        }};
+    }
     match constants.algorithm {
-        Algorithm::Mandelbrot => builder!(Mandelbrot { c }).iterations(),
+        Algorithm::Mandelbrot => builder!(Mandelbrot, c),
         // Mandeldrop is the same algorithm but with a different c
-        Algorithm::Mandeldrop => builder!(Mandelbrot { c: c.recip() }).iterations(),
-        Algorithm::Mandelbar => builder!(Mandelbar { c }).iterations(),
-        Algorithm::BurningShip => builder!(BurningShip { c }).iterations(),
-        Algorithm::Celtic => builder!(Celtic { c }).iterations(),
-        Algorithm::Variant => builder!(Variant { c }).iterations(),
-        Algorithm::BirdOfPrey => builder!(BirdOfPrey { c }).iterations(),
+        Algorithm::Mandeldrop => builder!(Mandelbrot, c.recip()),
+        Algorithm::Mandelbar => builder!(Mandelbar, c),
+        Algorithm::BurningShip => builder!(BurningShip, c),
+        Algorithm::Celtic => builder!(Celtic, c),
+        Algorithm::Variant => builder!(Variant, c),
+        Algorithm::BirdOfPrey => builder!(BirdOfPrey, c),
     }
 }
 
-pub(crate) trait Fractal: private::Modifier {
+pub(crate) trait Fractal<E: Exponentiator>: private::Modifier<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult;
-    fn iterate_inner(&self, c: Complex, constants: &FragmentConstants) -> FractalResult {
+    fn iterate_inner(&self, c: Complex, constants: &FragmentConstants, exp: E) -> FractalResult {
         use shader_common::NumericType;
 
         const ESCAPE_THRESHOLD_SQ: f32 = 4.0;
@@ -41,7 +68,7 @@ pub(crate) trait Fractal: private::Modifier {
 
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
             self.modify(&mut z);
-            z = self.iterate_algorithm(constants, z, c, iters);
+            z = self.iterate_algorithm(exp, z, c, iters);
             iters += 1;
             norm_sqr = z.abs_sq();
         }
@@ -64,9 +91,9 @@ pub(crate) trait Fractal: private::Modifier {
         if exponent.abs() < 4. {
             // A couple of extra iterations helps decrease the size of the error term
             // This does not work above about exp=3, as the repeated iterations quickly cause overflow
-            z = self.iterate_algorithm(constants, z, c, iters);
+            z = self.iterate_algorithm(exp, z, c, iters);
             iters += 1;
-            z = self.iterate_algorithm(constants, z, c, iters);
+            z = self.iterate_algorithm(exp, z, c, iters);
             iters += 1;
         }
         // by the logarithm of a power law,
@@ -82,61 +109,41 @@ pub(crate) trait Fractal: private::Modifier {
 }
 
 mod private {
-    use super::{Complex, FragmentConstants};
-    pub trait Modifier {
+    use crate::exponentiation::Exponentiator;
+
+    use super::Complex;
+    pub trait Modifier<E: Exponentiator> {
         /// Override as necessary
         #[inline(always)]
         fn modify(&self, _z: &mut Complex) {}
 
-        /// Override as necessary
+        // Override as necessary
         #[inline(always)]
-        fn iterate_algorithm(
-            &self,
-            constants: &FragmentConstants,
-            z: Complex,
-            c: Complex,
-            iters: u32,
-        ) -> Complex {
-            self.iterate_algorithm_base(constants, z, c, iters)
-        }
-
-        /// Do not override!
-        #[inline(always)]
-        fn iterate_algorithm_base(
-            &self,
-            constants: &FragmentConstants,
-            z: Complex,
-            c: Complex,
-            _iters: u32,
-        ) -> Complex {
-            use shader_common::NumericType;
-            match constants.exponent.typ {
-                NumericType::Integer if constants.exponent.int == 2 => z * z + c,
-                NumericType::Integer => z.powi(constants.exponent.int).to_rectangular() + c,
-                NumericType::Float => z.powf(constants.exponent.float).to_rectangular() + c,
-            }
+        fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
+            e.apply_to(z) + c
         }
     }
 }
 
 macro_rules! standard_fractal {
     ($name: ident) => {
-        struct $name {
+        struct $name<E: Exponentiator> {
             pub c: Complex,
+            pub exponent: E,
         }
-        impl Fractal for $name {
+        impl<E: Exponentiator> Fractal<E> for $name<E> {
             fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
-                self.iterate_inner(self.c, constants)
+                self.iterate_inner(self.c, constants, self.exponent)
             }
         }
     };
 }
 
 standard_fractal!(Mandelbrot);
-impl private::Modifier for Mandelbrot {}
+impl<E: Exponentiator> private::Modifier<E> for Mandelbrot<E> {}
 
 standard_fractal!(Mandelbar);
-impl private::Modifier for Mandelbar {
+impl<E: Exponentiator> private::Modifier<E> for Mandelbar<E> {
     // Same as mandelbrot, but conjugate c each time
     #[inline(always)]
     fn modify(&self, z: &mut super::Complex) {
@@ -145,7 +152,7 @@ impl private::Modifier for Mandelbar {
 }
 
 standard_fractal!(BurningShip);
-impl private::Modifier for BurningShip {
+impl<E: Exponentiator> private::Modifier<E> for BurningShip<E> {
     // Same as mandelbrot, but take abs(re) and abs(im) each time
     #[inline(always)]
     fn modify(&self, z: &mut super::Complex) {
@@ -155,18 +162,12 @@ impl private::Modifier for BurningShip {
 }
 
 standard_fractal!(Celtic);
-impl private::Modifier for Celtic {
+impl<E: Exponentiator> private::Modifier<E> for Celtic<E> {
     #[inline(always)]
-    fn iterate_algorithm(
-        &self,
-        constants: &FragmentConstants,
-        z: Complex,
-        c: Complex,
-        iters: u32,
-    ) -> Complex {
+    fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
         // Based on mandelbrot, but using the formula:
         //   z := abs(re(z^2)) + i.im(z^2) + c
-        let zz = self.iterate_algorithm_base(constants, z, c, iters);
+        let zz = e.apply_to(z) + c;
         Complex {
             // unrolled version (fixed power):
             // re: (z.re * z.re - z.im * z.im).abs() + c.re,
@@ -178,7 +179,7 @@ impl private::Modifier for Celtic {
 }
 
 standard_fractal!(BirdOfPrey);
-impl private::Modifier for BirdOfPrey {
+impl<E: Exponentiator> private::Modifier<E> for BirdOfPrey<E> {
     // Same as mandelbrot, but take abs(im) each time
     #[inline(always)]
     fn modify(&self, z: &mut super::Complex) {
@@ -187,16 +188,10 @@ impl private::Modifier for BirdOfPrey {
 }
 
 standard_fractal!(Variant);
-impl private::Modifier for Variant {
+impl<E: Exponentiator> private::Modifier<E> for Variant<E> {
     #[inline(always)]
-    fn iterate_algorithm(
-        &self,
-        constants: &FragmentConstants,
-        z: Complex,
-        c: Complex,
-        iters: u32,
-    ) -> Complex {
-        let zz = self.iterate_algorithm_base(constants, z, c, iters);
+    fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, iters: u32) -> Complex {
+        let zz = e.apply_to(z);
         if (iters % 2) == 1 {
             Complex {
                 re: zz.re.abs() + c.re,
