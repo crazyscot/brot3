@@ -7,6 +7,8 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
+derive_more = { version = "2.0.1", default-features = false, features = ["constructor"] }
+spirv-std = { workspace = true }
 
 [dev-dependencies]
 glam = { workspace = true }

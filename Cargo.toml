@@ -21,11 +21,7 @@ strip = "debuginfo"
 strip = false
 debug = true
 
-[profile.dev]
-package.spirv-tools-sys.opt-level = 1
-
 [workspace.dependencies]
-anyhow = "1.0.100"
 bytemuck = { version = "1.24.0", default-features = false }
 glam = { version = "=0.30.7", default-features = false }
 #png = "0.18.0"

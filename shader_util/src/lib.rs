@@ -7,13 +7,15 @@ pub mod grid;
 pub use grid::*;
 
 /// Re-exported from [`glam`].
-pub use glam::UVec2;
+pub use glam::{UVec2, Vec3};
 use glam::{Vec2, uvec2, vec2};
 
 #[cfg(not(target_arch = "spirv"))]
 pub mod big_complex;
 #[cfg(not(target_arch = "spirv"))]
 pub mod big_vec2;
+
+pub mod colourspace;
 
 #[cfg(not(target_arch = "spirv"))]
 use bytemuck::NoUninit;
