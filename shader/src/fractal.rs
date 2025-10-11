@@ -4,6 +4,8 @@ use spirv_std::num_traits::real::Real;
 use super::{Complex, FragmentConstants, PointResult, Vec2};
 use crate::exponentiation::Exponentiator;
 
+use core::marker::PhantomData;
+
 pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
     use shader_common::{Algorithm, NumericType};
     let c = Complex::from(point);
@@ -12,21 +14,21 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> PointResult 
             match constants.exponent.typ {
                 NumericType::Integer if constants.exponent.int == 2 => FractalRunner {
                     constants,
-                    algo: $fractal {},
+                    algo: PhantomData::<$fractal>,
                     expo: crate::exponentiation::Exp2,
                     c: $c_value,
                 }
                 .iterations(),
                 NumericType::Integer => FractalRunner {
                     constants,
-                    algo: $fractal {},
+                    algo: PhantomData::<$fractal>,
                     expo: crate::exponentiation::ExpIntN(constants.exponent.int),
                     c: $c_value,
                 }
                 .iterations(),
                 NumericType::Float => FractalRunner {
                     constants,
-                    algo: $fractal {},
+                    algo: PhantomData::<$fractal>,
                     expo: crate::exponentiation::ExpFloat(constants.exponent.float),
                     c: $c_value,
                 }
@@ -52,7 +54,7 @@ where
     E: Exponentiator,
 {
     constants: &'a FragmentConstants,
-    algo: F,
+    algo: PhantomData<F>,
     expo: E,
     c: Complex,
 }
@@ -63,15 +65,6 @@ where
     E: Exponentiator,
 {
     fn iterations(self) -> PointResult {
-        Self::iteration_loop(self.c, self.constants, self.algo, self.expo)
-    }
-
-    pub(super) fn iteration_loop(
-        c: Complex,
-        constants: &FragmentConstants,
-        algo: F,
-        exp: E,
-    ) -> PointResult {
         use shader_common::NumericType;
 
         const ESCAPE_THRESHOLD_SQ: f32 = 4.0;
@@ -79,12 +72,12 @@ where
         let mut iters = 0;
         let mut z = Complex::ZERO;
         let mut norm_sqr = z.abs_sq();
-        let max_iter = constants.max_iter;
+        let max_iter = self.constants.max_iter;
         // TODO: Cardoid and period-2 bulb checks in original?
 
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
-            algo.pre_modify_point(&mut z);
-            z = algo.iterate_algorithm(exp, z, c, iters);
+            F::pre_modify_point(&mut z);
+            z = F::iterate_algorithm(self.expo, z, self.c, iters);
             iters += 1;
             norm_sqr = z.abs_sq();
         }
@@ -92,24 +85,26 @@ where
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
 
-        let (exponent, ln_exponent) = match constants.exponent.typ {
-            NumericType::Integer if constants.exponent.int == 2 => (2., core::f32::consts::LN_2),
+        let (exponent, ln_exponent) = match self.constants.exponent.typ {
+            NumericType::Integer if self.constants.exponent.int == 2 => {
+                (2., core::f32::consts::LN_2)
+            }
             NumericType::Integer => (
-                constants.exponent.int as f32,
-                (constants.exponent.int as f32).abs().ln(),
+                self.constants.exponent.int as f32,
+                (self.constants.exponent.int as f32).abs().ln(),
             ),
             NumericType::Float => (
-                constants.exponent.float,
-                constants.exponent.float.abs().ln(),
+                self.constants.exponent.float,
+                self.constants.exponent.float.abs().ln(),
             ),
         };
 
         if exponent.abs() < 4. {
             // A couple of extra iterations helps decrease the size of the error term
             // This does not work above about exp=3, as the repeated iterations quickly cause overflow
-            z = algo.iterate_algorithm(exp, z, c, iters);
+            z = F::iterate_algorithm(self.expo, z, self.c, iters);
             iters += 1;
-            z = algo.iterate_algorithm(exp, z, c, iters);
+            z = F::iterate_algorithm(self.expo, z, self.c, iters);
             iters += 1;
         }
         // by the logarithm of a power law,
@@ -125,14 +120,14 @@ pub(crate) trait FractalImpl<E: Exponentiator> {
     ///
     /// Override as necessary.
     #[inline(always)]
-    fn pre_modify_point(&self, _z: &mut Complex) {}
+    fn pre_modify_point(_z: &mut Complex) {}
 
     /// One iteration of the fractal algorithm.
     ///
     /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
     /// suit all algorithms. Override as necessary.
     #[inline(always)]
-    fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
+    fn iterate_algorithm(e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
         e.apply_to(z) + c
     }
 }
@@ -144,7 +139,7 @@ struct Mandelbar {}
 impl<E: Exponentiator> FractalImpl<E> for Mandelbar {
     // Same as mandelbrot, but conjugate c each time
     #[inline(always)]
-    fn pre_modify_point(&self, z: &mut super::Complex) {
+    fn pre_modify_point(z: &mut super::Complex) {
         *z = z.conjugate();
     }
 }
@@ -153,7 +148,7 @@ struct BurningShip {}
 impl<E: Exponentiator> FractalImpl<E> for BurningShip {
     // Same as mandelbrot, but take abs(re) and abs(im) each time
     #[inline(always)]
-    fn pre_modify_point(&self, z: &mut super::Complex) {
+    fn pre_modify_point(z: &mut super::Complex) {
         z.re = z.re.abs();
         z.im = z.im.abs();
     }
@@ -162,7 +157,7 @@ impl<E: Exponentiator> FractalImpl<E> for BurningShip {
 struct Celtic {}
 impl<E: Exponentiator> FractalImpl<E> for Celtic {
     #[inline(always)]
-    fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
+    fn iterate_algorithm(e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
         // Based on mandelbrot, but using the formula:
         //   z := abs(re(z^2)) + i.im(z^2) + c
         let zz = e.apply_to(z);
@@ -178,7 +173,7 @@ struct BirdOfPrey {}
 impl<E: Exponentiator> FractalImpl<E> for BirdOfPrey {
     // Same as mandelbrot, but take abs(im) each time
     #[inline(always)]
-    fn pre_modify_point(&self, z: &mut super::Complex) {
+    fn pre_modify_point(z: &mut super::Complex) {
         z.im = z.im.abs();
     }
 }
@@ -186,7 +181,7 @@ impl<E: Exponentiator> FractalImpl<E> for BirdOfPrey {
 struct Variant {}
 impl<E: Exponentiator> FractalImpl<E> for Variant {
     #[inline(always)]
-    fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, iters: u32) -> Complex {
+    fn iterate_algorithm(e: E, z: Complex, c: Complex, iters: u32) -> Complex {
         let zz = e.apply_to(z);
         if (iters % 2) == 1 {
             Complex {
