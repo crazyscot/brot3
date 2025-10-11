@@ -12,27 +12,27 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> PointResult 
     macro_rules! builder {
         ($fractal:ident, $c_value:expr) => {{
             match constants.exponent.typ {
-                NumericType::Integer if constants.exponent.int == 2 => FractalRunner {
+                NumericType::Integer if constants.exponent.int == 2 => Runner {
                     constants,
                     algo: PhantomData::<$fractal>,
                     expo: crate::exponentiation::Exp2,
                     c: $c_value,
                 }
-                .iterations(),
-                NumericType::Integer => FractalRunner {
+                .run(),
+                NumericType::Integer => Runner {
                     constants,
                     algo: PhantomData::<$fractal>,
                     expo: crate::exponentiation::ExpIntN(constants.exponent.int),
                     c: $c_value,
                 }
-                .iterations(),
-                NumericType::Float => FractalRunner {
+                .run(),
+                NumericType::Float => Runner {
                     constants,
                     algo: PhantomData::<$fractal>,
                     expo: crate::exponentiation::ExpFloat(constants.exponent.float),
                     c: $c_value,
                 }
-                .iterations(),
+                .run(),
             }
         }};
     }
@@ -48,9 +48,9 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> PointResult 
     }
 }
 
-struct FractalRunner<'a, F, E>
+struct Runner<'a, F, E>
 where
-    F: FractalImpl<E>,
+    F: AlgorithmDetail<E>,
     E: Exponentiator,
 {
     constants: &'a FragmentConstants,
@@ -59,12 +59,12 @@ where
     c: Complex,
 }
 
-impl<F, E> FractalRunner<'_, F, E>
+impl<F, E> Runner<'_, F, E>
 where
-    F: FractalImpl<E>,
+    F: AlgorithmDetail<E>,
     E: Exponentiator,
 {
-    fn iterations(self) -> PointResult {
+    fn run(self) -> PointResult {
         use shader_common::NumericType;
 
         const ESCAPE_THRESHOLD_SQ: f32 = 4.0;
@@ -115,7 +115,7 @@ where
     }
 }
 
-pub(crate) trait FractalImpl<E: Exponentiator> {
+pub(crate) trait AlgorithmDetail<E: Exponentiator> {
     /// Pre-modifies a point before applying the algorithm.
     ///
     /// Override as necessary.
@@ -133,10 +133,10 @@ pub(crate) trait FractalImpl<E: Exponentiator> {
 }
 
 struct Mandelbrot {}
-impl<E: Exponentiator> FractalImpl<E> for Mandelbrot {}
+impl<E: Exponentiator> AlgorithmDetail<E> for Mandelbrot {}
 
 struct Mandelbar {}
-impl<E: Exponentiator> FractalImpl<E> for Mandelbar {
+impl<E: Exponentiator> AlgorithmDetail<E> for Mandelbar {
     // Same as mandelbrot, but conjugate c each time
     #[inline(always)]
     fn pre_modify_point(z: &mut super::Complex) {
@@ -145,7 +145,7 @@ impl<E: Exponentiator> FractalImpl<E> for Mandelbar {
 }
 
 struct BurningShip {}
-impl<E: Exponentiator> FractalImpl<E> for BurningShip {
+impl<E: Exponentiator> AlgorithmDetail<E> for BurningShip {
     // Same as mandelbrot, but take abs(re) and abs(im) each time
     #[inline(always)]
     fn pre_modify_point(z: &mut super::Complex) {
@@ -155,7 +155,7 @@ impl<E: Exponentiator> FractalImpl<E> for BurningShip {
 }
 
 struct Celtic {}
-impl<E: Exponentiator> FractalImpl<E> for Celtic {
+impl<E: Exponentiator> AlgorithmDetail<E> for Celtic {
     #[inline(always)]
     fn iterate_algorithm(e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
         // Based on mandelbrot, but using the formula:
@@ -170,7 +170,7 @@ impl<E: Exponentiator> FractalImpl<E> for Celtic {
 }
 
 struct BirdOfPrey {}
-impl<E: Exponentiator> FractalImpl<E> for BirdOfPrey {
+impl<E: Exponentiator> AlgorithmDetail<E> for BirdOfPrey {
     // Same as mandelbrot, but take abs(im) each time
     #[inline(always)]
     fn pre_modify_point(z: &mut super::Complex) {
@@ -179,7 +179,7 @@ impl<E: Exponentiator> FractalImpl<E> for BirdOfPrey {
 }
 
 struct Variant {}
-impl<E: Exponentiator> FractalImpl<E> for Variant {
+impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
     #[inline(always)]
     fn iterate_algorithm(e: E, z: Complex, c: Complex, iters: u32) -> Complex {
         let zz = e.apply_to(z);
