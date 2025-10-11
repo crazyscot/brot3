@@ -55,6 +55,15 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
 
 pub(crate) trait Fractal<E: Exponentiator>: private::Modifier<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult;
+    /// One iteration of the fractal algorithm.
+    ///
+    /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
+    /// suit all algorithms. Override as necessary.
+    #[inline(always)]
+    fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
+        e.apply_to(z) + c
+    }
+
     fn iterate_inner(&self, c: Complex, constants: &FragmentConstants, exp: E) -> FractalResult {
         use shader_common::NumericType;
 
@@ -118,15 +127,6 @@ mod private {
         /// Override as necessary.
         #[inline(always)]
         fn pre_modify_point(&self, _z: &mut Complex) {}
-
-        /// One iteration of the fractal algorithm.
-        ///
-        /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
-        /// suit all algorithms. Override as necessary.
-        #[inline(always)]
-        fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
-            e.apply_to(z) + c
-        }
     }
 }
 
@@ -140,6 +140,15 @@ macro_rules! standard_fractal {
             fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
                 self.iterate_inner(self.c, constants, self.exponent)
             }
+        }
+    };
+}
+
+macro_rules! standard_fractal_2 {
+    ($name: ident) => {
+        struct $name<E: Exponentiator> {
+            pub c: Complex,
+            pub exponent: E,
         }
     };
 }
@@ -166,8 +175,11 @@ impl<E: Exponentiator> private::Modifier<E> for BurningShip<E> {
     }
 }
 
-standard_fractal!(Celtic);
-impl<E: Exponentiator> private::Modifier<E> for Celtic<E> {
+standard_fractal_2!(Celtic);
+impl<E: Exponentiator> Fractal<E> for Celtic<E> {
+    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
+        self.iterate_inner(self.c, constants, self.exponent)
+    }
     #[inline(always)]
     fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
         // Based on mandelbrot, but using the formula:
@@ -180,6 +192,7 @@ impl<E: Exponentiator> private::Modifier<E> for Celtic<E> {
         z2 + c
     }
 }
+impl<E: Exponentiator> private::Modifier<E> for Celtic<E> {}
 
 standard_fractal!(BirdOfPrey);
 impl<E: Exponentiator> private::Modifier<E> for BirdOfPrey<E> {
@@ -190,8 +203,12 @@ impl<E: Exponentiator> private::Modifier<E> for BirdOfPrey<E> {
     }
 }
 
-standard_fractal!(Variant);
-impl<E: Exponentiator> private::Modifier<E> for Variant<E> {
+standard_fractal_2!(Variant);
+impl<E: Exponentiator> private::Modifier<E> for Variant<E> {}
+impl<E: Exponentiator> Fractal<E> for Variant<E> {
+    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
+        self.iterate_inner(self.c, constants, self.exponent)
+    }
     #[inline(always)]
     fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, iters: u32) -> Complex {
         let zz = e.apply_to(z);
