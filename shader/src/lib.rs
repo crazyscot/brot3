@@ -65,7 +65,7 @@ pub fn main_vs(
 mod tests {
     use super::{FragmentConstants, GRID_SIZE, PointResult};
 
-    use shader_common::{Algorithm, PushExponent};
+    use shader_common::{Algorithm, Colourer, PushExponent};
     use shader_util::Size;
     use spirv_std::glam::{Vec4, vec2, vec4};
 
@@ -95,6 +95,7 @@ mod tests {
             needs_reiterate: true.into(),
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
+            colourer: Colourer::LogRainbow,
         }
     }
 

@@ -3,26 +3,38 @@
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
+use shader_common::Colourer as ColourerSelection;
 use shader_util::colourspace::{Hsl, Vec3Rgb};
 
 use super::{FragmentConstants, PointResult};
 
 pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb {
+    use ColourerSelection as CS;
     if data.iters == u32::MAX {
         return Vec3Rgb::ZERO;
     }
-    LogRainbow {}.colour(constants, &data)
+    match constants.colourer {
+        CS::LogRainbow => LogRainbow {}.colour(constants, &data),
+        CS::SqrtRainbow => SqrtRainbow {}.colour(constants, &data),
+    }
 }
 
-trait Colourer {
+trait RgbColourer {
     fn colour(&self, constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb;
 }
-// TODO there might become an HsvColourer, etc.
 
 struct LogRainbow {}
-impl Colourer for LogRainbow {
+impl RgbColourer for LogRainbow {
     fn colour(&self, _constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
         let angle: f32 = pixel.smooth_iters.ln() * 60.0; // DEGREES
+        Hsl::new(angle, 100., 50.).into()
+    }
+}
+
+struct SqrtRainbow {}
+impl RgbColourer for SqrtRainbow {
+    fn colour(&self, _constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
+        let angle: f32 = pixel.smooth_iters.sqrt() * 20.0; // DEGREES
         Hsl::new(angle, 100., 50.).into()
     }
 }

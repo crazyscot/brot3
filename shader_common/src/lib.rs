@@ -22,6 +22,7 @@ pub struct FragmentConstants {
     pub max_iter: u32,
     pub needs_reiterate: Bool,
     pub exponent: PushExponent,
+    pub colourer: Colourer,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -93,4 +94,16 @@ pub enum Algorithm {
     Celtic,
     Variant,
     BirdOfPrey,
+}
+
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    not(target_arch = "spirv"),
+    derive(NoUninit, strum::EnumIter, strum::IntoStaticStr)
+)]
+#[repr(u32)]
+pub enum Colourer {
+    #[default]
+    LogRainbow,
+    SqrtRainbow,
 }

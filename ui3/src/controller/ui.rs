@@ -1,7 +1,8 @@
 use easy_shader_runner::{UiState, egui};
 
 use super::{DVec2, Instant};
-use shader_common::Algorithm;
+use crate::controller::egui::Separator;
+use shader_common::{Algorithm, Colourer};
 
 const DEFAULT_WIDTH: f32 = 130.;
 
@@ -76,7 +77,7 @@ impl super::Controller {
                 if self.algorithm != algorithm_before {
                     self.reiterate = true;
                 }
-                ui.separator();
+                ui.add(Separator::default().shrink(10.));
                 ui.vertical_centered(|ui| {
                     ui.label(egui::RichText::new("Exponent").size(15.0));
                 });
@@ -136,7 +137,8 @@ impl super::Controller {
                     self.reiterate = true;
                 }
 
-                ui.separator();
+                ui.add(Separator::default().shrink(10.));
+
                 ui.label(egui::RichText::new("Iterations"));
                 if ui
                     .add(egui::Slider::new(&mut self.max_iter, 1..=100_000).logarithmic(true))
@@ -144,6 +146,18 @@ impl super::Controller {
                 {
                     self.reiterate = true;
                 }
+                ui.separator();
+
+                egui::ComboBox::from_label(egui::RichText::new("Palette").size(15.0))
+                    .selected_text(format!("{:?}", self.colourer))
+                    .show_ui(ui, |ui| {
+                        use strum::IntoEnumIterator as _;
+                        for it in Colourer::iter() {
+                            let label: &'static str = it.into();
+                            ui.selectable_value(&mut self.colourer, it, label);
+                        }
+                    });
+
                 ui.separator();
 
                 ui.checkbox(&mut self.show_coords_window, "Show co-ordinates");
