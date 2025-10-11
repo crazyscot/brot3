@@ -67,7 +67,7 @@ pub(crate) trait Fractal<E: Exponentiator>: private::Modifier<E> {
         // TODO: Cardoid and period-2 bulb checks in original?
 
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
-            self.modify(&mut z);
+            self.pre_modify_point(&mut z);
             z = self.iterate_algorithm(exp, z, c, iters);
             iters += 1;
             norm_sqr = z.abs_sq();
@@ -113,11 +113,16 @@ mod private {
 
     use super::Complex;
     pub trait Modifier<E: Exponentiator> {
-        /// Override as necessary
+        /// Pre-modifies a point before applying the algorithm.
+        ///
+        /// Override as necessary.
         #[inline(always)]
-        fn modify(&self, _z: &mut Complex) {}
+        fn pre_modify_point(&self, _z: &mut Complex) {}
 
-        // Override as necessary
+        /// One iteration of the fractal algorithm.
+        ///
+        /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
+        /// suit all algorithms. Override as necessary.
         #[inline(always)]
         fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
             e.apply_to(z) + c
@@ -146,7 +151,7 @@ standard_fractal!(Mandelbar);
 impl<E: Exponentiator> private::Modifier<E> for Mandelbar<E> {
     // Same as mandelbrot, but conjugate c each time
     #[inline(always)]
-    fn modify(&self, z: &mut super::Complex) {
+    fn pre_modify_point(&self, z: &mut super::Complex) {
         *z = z.conjugate();
     }
 }
@@ -155,7 +160,7 @@ standard_fractal!(BurningShip);
 impl<E: Exponentiator> private::Modifier<E> for BurningShip<E> {
     // Same as mandelbrot, but take abs(re) and abs(im) each time
     #[inline(always)]
-    fn modify(&self, z: &mut super::Complex) {
+    fn pre_modify_point(&self, z: &mut super::Complex) {
         z.re = z.re.abs();
         z.im = z.im.abs();
     }
@@ -180,7 +185,7 @@ standard_fractal!(BirdOfPrey);
 impl<E: Exponentiator> private::Modifier<E> for BirdOfPrey<E> {
     // Same as mandelbrot, but take abs(im) each time
     #[inline(always)]
-    fn modify(&self, z: &mut super::Complex) {
+    fn pre_modify_point(&self, z: &mut super::Complex) {
         z.im = z.im.abs();
     }
 }
