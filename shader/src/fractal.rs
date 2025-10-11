@@ -55,6 +55,13 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
 
 pub(crate) trait Fractal<E: Exponentiator>: private::Modifier<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult;
+
+    /// Pre-modifies a point before applying the algorithm.
+    ///
+    /// Override as necessary.
+    #[inline(always)]
+    fn pre_modify_point(&self, _z: &mut Complex) {}
+
     /// One iteration of the fractal algorithm.
     ///
     /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
@@ -119,32 +126,10 @@ pub(crate) trait Fractal<E: Exponentiator>: private::Modifier<E> {
 
 mod private {
     use crate::exponentiation::Exponentiator;
-
-    use super::Complex;
-    pub trait Modifier<E: Exponentiator> {
-        /// Pre-modifies a point before applying the algorithm.
-        ///
-        /// Override as necessary.
-        #[inline(always)]
-        fn pre_modify_point(&self, _z: &mut Complex) {}
-    }
+    pub trait Modifier<E: Exponentiator> {}
 }
 
 macro_rules! standard_fractal {
-    ($name: ident) => {
-        struct $name<E: Exponentiator> {
-            pub c: Complex,
-            pub exponent: E,
-        }
-        impl<E: Exponentiator> Fractal<E> for $name<E> {
-            fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
-                self.iterate_inner(self.c, constants, self.exponent)
-            }
-        }
-    };
-}
-
-macro_rules! standard_fractal_2 {
     ($name: ident) => {
         struct $name<E: Exponentiator> {
             pub c: Complex,
@@ -155,9 +140,18 @@ macro_rules! standard_fractal_2 {
 
 standard_fractal!(Mandelbrot);
 impl<E: Exponentiator> private::Modifier<E> for Mandelbrot<E> {}
+impl<E: Exponentiator> Fractal<E> for Mandelbrot<E> {
+    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
+        self.iterate_inner(self.c, constants, self.exponent)
+    }
+}
 
 standard_fractal!(Mandelbar);
-impl<E: Exponentiator> private::Modifier<E> for Mandelbar<E> {
+impl<E: Exponentiator> private::Modifier<E> for Mandelbar<E> {}
+impl<E: Exponentiator> Fractal<E> for Mandelbar<E> {
+    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
+        self.iterate_inner(self.c, constants, self.exponent)
+    }
     // Same as mandelbrot, but conjugate c each time
     #[inline(always)]
     fn pre_modify_point(&self, z: &mut super::Complex) {
@@ -166,7 +160,11 @@ impl<E: Exponentiator> private::Modifier<E> for Mandelbar<E> {
 }
 
 standard_fractal!(BurningShip);
-impl<E: Exponentiator> private::Modifier<E> for BurningShip<E> {
+impl<E: Exponentiator> private::Modifier<E> for BurningShip<E> {}
+impl<E: Exponentiator> Fractal<E> for BurningShip<E> {
+    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
+        self.iterate_inner(self.c, constants, self.exponent)
+    }
     // Same as mandelbrot, but take abs(re) and abs(im) each time
     #[inline(always)]
     fn pre_modify_point(&self, z: &mut super::Complex) {
@@ -175,7 +173,7 @@ impl<E: Exponentiator> private::Modifier<E> for BurningShip<E> {
     }
 }
 
-standard_fractal_2!(Celtic);
+standard_fractal!(Celtic);
 impl<E: Exponentiator> Fractal<E> for Celtic<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
         self.iterate_inner(self.c, constants, self.exponent)
@@ -195,7 +193,11 @@ impl<E: Exponentiator> Fractal<E> for Celtic<E> {
 impl<E: Exponentiator> private::Modifier<E> for Celtic<E> {}
 
 standard_fractal!(BirdOfPrey);
-impl<E: Exponentiator> private::Modifier<E> for BirdOfPrey<E> {
+impl<E: Exponentiator> private::Modifier<E> for BirdOfPrey<E> {}
+impl<E: Exponentiator> Fractal<E> for BirdOfPrey<E> {
+    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
+        self.iterate_inner(self.c, constants, self.exponent)
+    }
     // Same as mandelbrot, but take abs(im) each time
     #[inline(always)]
     fn pre_modify_point(&self, z: &mut super::Complex) {
@@ -203,7 +205,7 @@ impl<E: Exponentiator> private::Modifier<E> for BirdOfPrey<E> {
     }
 }
 
-standard_fractal_2!(Variant);
+standard_fractal!(Variant);
 impl<E: Exponentiator> private::Modifier<E> for Variant<E> {}
 impl<E: Exponentiator> Fractal<E> for Variant<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
