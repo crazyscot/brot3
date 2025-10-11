@@ -4,8 +4,6 @@
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 use spirv_std::glam::*;
-#[cfg(target_arch = "spirv")]
-use spirv_std::num_traits::real::Real;
 use spirv_std::spirv;
 
 use shader_common::{FragmentConstants, GRID_SIZE, PointResult, complex::Complex};
@@ -13,6 +11,8 @@ use shader_util::grid::{GridRef, GridRefMut};
 
 mod exponentiation;
 mod fractal;
+
+mod colour;
 
 #[spirv(fragment)]
 pub fn main_fs(
@@ -43,8 +43,7 @@ pub fn main_fs(
         cache.get(coord.as_uvec2())
     };
 
-    let colour = colour_data(render_data, constants);
-
+    let colour = colour::colour_data(render_data, constants);
     *output = colour.extend(1.0);
 }
 
@@ -59,47 +58,6 @@ pub fn main_vs(
     // pos expresses the cycle: (-1,-1) (3,-1) (-1,3) (3,3)
 
     *out_pos = pos.extend(0.0).extend(1.0);
-}
-
-fn colour_data(data: PointResult, _constants: &FragmentConstants) -> Vec3 {
-    if data.iters == u32::MAX {
-        Vec3::ZERO
-    } else {
-        log_rainbow(data.smooth_iters)
-    }
-}
-
-/// quick and dirty hsv to rgb conversion for now
-fn hsv_to_rgb(hue: f32, saturation: f32, value: f32) -> Vec3 {
-    fn is_between(value: f32, min: f32, max: f32) -> bool {
-        min <= value && value < max
-    }
-
-    let c = value * saturation;
-    let h = hue / 60.0;
-    let x = c * (1.0 - ((h % 2.0) - 1.0).abs());
-    let m = value - c;
-
-    let (r, g, b): (f32, f32, f32) = if is_between(h, 0.0, 1.0) {
-        (c, x, 0.0)
-    } else if is_between(h, 1.0, 2.0) {
-        (x, c, 0.0)
-    } else if is_between(h, 2.0, 3.0) {
-        (0.0, c, x)
-    } else if is_between(h, 3.0, 4.0) {
-        (0.0, x, c)
-    } else if is_between(h, 4.0, 5.0) {
-        (x, 0.0, c)
-    } else {
-        (c, 0.0, x)
-    };
-
-    Vec3::new(r + m, g + m, b + m)
-}
-
-fn log_rainbow(t: f32) -> Vec3 {
-    let angle = t.ln() * 60.0; // DEGREES
-    hsv_to_rgb(angle, 1.0, 1.0)
 }
 
 #[cfg(all(test, not(target_arch = "spirv")))]

@@ -11,7 +11,7 @@ use bytemuck::NoUninit;
 use shader_util::{Bool, Size};
 
 #[derive(Copy, Clone, Debug)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit, Default))]
 #[repr(C)]
 pub struct FragmentConstants {
     pub viewport_translate: Vec2,
@@ -60,7 +60,7 @@ pub enum NumericType {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit, Default))]
 #[repr(C)]
 pub struct PushExponent {
     pub typ: NumericType,
