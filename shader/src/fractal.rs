@@ -167,14 +167,12 @@ impl<E: Exponentiator> private::Modifier<E> for Celtic<E> {
     fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
         // Based on mandelbrot, but using the formula:
         //   z := abs(re(z^2)) + i.im(z^2) + c
-        let zz = e.apply_to(z) + c;
-        Complex {
-            // unrolled version (fixed power):
-            // re: (z.re * z.re - z.im * z.im).abs() + c.re,
-            // im: 2.0 * z.re * z.im + c.im,
-            re: zz.re.abs() + c.re,
-            im: zz.im + c.im,
-        }
+        let zz = e.apply_to(z);
+        let z2 = Complex {
+            re: zz.re.abs(),
+            im: zz.im,
+        };
+        z2 + c
     }
 }
 
