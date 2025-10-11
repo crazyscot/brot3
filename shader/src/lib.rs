@@ -15,7 +15,7 @@ mod exponentiation;
 use exponentiation::Exponentiator;
 
 mod fractal;
-use fractal::FractalImpl;
+use fractal::{FractalImpl, FractalIterator};
 
 #[spirv(fragment)]
 pub fn main_fs(
@@ -70,8 +70,9 @@ where
     E: Exponentiator,
 {
     constants: &'a FragmentConstants,
-    f_impl: F,
-    _phantom: core::marker::PhantomData<E>,
+    algo: F,
+    expo: E,
+    c: Complex,
 }
 
 impl<F, E> Builder<'_, F, E>
@@ -84,7 +85,7 @@ where
             inside,
             iters,
             smoothed_iters,
-        } = self.f_impl.iterate(self.constants);
+        } = FractalIterator::iteration_loop(self.c, self.constants, self.algo, self.expo);
         RenderData::new(self.constants, inside, iters, smoothed_iters)
     }
 }

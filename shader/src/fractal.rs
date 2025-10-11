@@ -1,8 +1,9 @@
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
-use super::{Builder, Complex, FractalResult, FragmentConstants, RenderData, Vec2};
+use core::marker::PhantomData;
 
+use super::{Builder, Complex, FractalResult, FragmentConstants, RenderData, Vec2};
 use crate::exponentiation::Exponentiator;
 
 pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
@@ -13,29 +14,23 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
             match constants.exponent.typ {
                 NumericType::Integer if constants.exponent.int == 2 => Builder {
                     constants,
-                    f_impl: $fractal {
-                        c: $c_value,
-                        exponent: crate::exponentiation::Exp2,
-                    },
-                    _phantom: core::marker::PhantomData,
+                    algo: $fractal {},
+                    expo: crate::exponentiation::Exp2,
+                    c: $c_value,
                 }
                 .iterations(),
                 NumericType::Integer => Builder {
                     constants,
-                    f_impl: $fractal {
-                        c: $c_value,
-                        exponent: crate::exponentiation::ExpIntN(constants.exponent.int),
-                    },
-                    _phantom: core::marker::PhantomData,
+                    algo: $fractal {},
+                    expo: crate::exponentiation::ExpIntN(constants.exponent.int),
+                    c: $c_value,
                 }
                 .iterations(),
                 NumericType::Float => Builder {
                     constants,
-                    f_impl: $fractal {
-                        c: $c_value,
-                        exponent: crate::exponentiation::ExpFloat(constants.exponent.float),
-                    },
-                    _phantom: core::marker::PhantomData,
+                    algo: $fractal {},
+                    expo: crate::exponentiation::ExpFloat(constants.exponent.float),
+                    c: $c_value,
                 }
                 .iterations(),
             }
@@ -54,8 +49,6 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
 }
 
 pub(crate) trait FractalImpl<E: Exponentiator> {
-    fn iterate(&self, constants: &FragmentConstants) -> FractalResult;
-
     /// Pre-modifies a point before applying the algorithm.
     ///
     /// Override as necessary.
@@ -70,8 +63,28 @@ pub(crate) trait FractalImpl<E: Exponentiator> {
     fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
         e.apply_to(z) + c
     }
+}
 
-    fn iterate_inner(&self, c: Complex, constants: &FragmentConstants, exp: E) -> FractalResult {
+pub(super) struct FractalIterator<'a, F, E>
+where
+    F: FractalImpl<E>,
+    E: Exponentiator,
+{
+    _phantom1: PhantomData<&'a F>,
+    _phantom2: PhantomData<&'a E>,
+}
+
+impl<F, E> FractalIterator<'_, F, E>
+where
+    F: FractalImpl<E>,
+    E: Exponentiator,
+{
+    pub(super) fn iteration_loop(
+        c: Complex,
+        constants: &FragmentConstants,
+        algo: F,
+        exp: E,
+    ) -> FractalResult {
         use shader_common::NumericType;
 
         const ESCAPE_THRESHOLD_SQ: f32 = 4.0;
@@ -83,8 +96,8 @@ pub(crate) trait FractalImpl<E: Exponentiator> {
         // TODO: Cardoid and period-2 bulb checks in original?
 
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
-            self.pre_modify_point(&mut z);
-            z = self.iterate_algorithm(exp, z, c, iters);
+            algo.pre_modify_point(&mut z);
+            z = algo.iterate_algorithm(exp, z, c, iters);
             iters += 1;
             norm_sqr = z.abs_sq();
         }
@@ -107,9 +120,9 @@ pub(crate) trait FractalImpl<E: Exponentiator> {
         if exponent.abs() < 4. {
             // A couple of extra iterations helps decrease the size of the error term
             // This does not work above about exp=3, as the repeated iterations quickly cause overflow
-            z = self.iterate_algorithm(exp, z, c, iters);
+            z = algo.iterate_algorithm(exp, z, c, iters);
             iters += 1;
-            z = self.iterate_algorithm(exp, z, c, iters);
+            z = algo.iterate_algorithm(exp, z, c, iters);
             iters += 1;
         }
         // by the logarithm of a power law,
@@ -124,27 +137,11 @@ pub(crate) trait FractalImpl<E: Exponentiator> {
     }
 }
 
-macro_rules! standard_fractal {
-    ($name: ident) => {
-        struct $name<E: Exponentiator> {
-            pub c: Complex,
-            pub exponent: E,
-        }
-    };
-}
+struct Mandelbrot {}
+impl<E: Exponentiator> FractalImpl<E> for Mandelbrot {}
 
-standard_fractal!(Mandelbrot);
-impl<E: Exponentiator> FractalImpl<E> for Mandelbrot<E> {
-    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
-        self.iterate_inner(self.c, constants, self.exponent)
-    }
-}
-
-standard_fractal!(Mandelbar);
-impl<E: Exponentiator> FractalImpl<E> for Mandelbar<E> {
-    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
-        self.iterate_inner(self.c, constants, self.exponent)
-    }
+struct Mandelbar {}
+impl<E: Exponentiator> FractalImpl<E> for Mandelbar {
     // Same as mandelbrot, but conjugate c each time
     #[inline(always)]
     fn pre_modify_point(&self, z: &mut super::Complex) {
@@ -152,11 +149,8 @@ impl<E: Exponentiator> FractalImpl<E> for Mandelbar<E> {
     }
 }
 
-standard_fractal!(BurningShip);
-impl<E: Exponentiator> FractalImpl<E> for BurningShip<E> {
-    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
-        self.iterate_inner(self.c, constants, self.exponent)
-    }
+struct BurningShip {}
+impl<E: Exponentiator> FractalImpl<E> for BurningShip {
     // Same as mandelbrot, but take abs(re) and abs(im) each time
     #[inline(always)]
     fn pre_modify_point(&self, z: &mut super::Complex) {
@@ -165,11 +159,8 @@ impl<E: Exponentiator> FractalImpl<E> for BurningShip<E> {
     }
 }
 
-standard_fractal!(Celtic);
-impl<E: Exponentiator> FractalImpl<E> for Celtic<E> {
-    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
-        self.iterate_inner(self.c, constants, self.exponent)
-    }
+struct Celtic {}
+impl<E: Exponentiator> FractalImpl<E> for Celtic {
     #[inline(always)]
     fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
         // Based on mandelbrot, but using the formula:
@@ -183,11 +174,8 @@ impl<E: Exponentiator> FractalImpl<E> for Celtic<E> {
     }
 }
 
-standard_fractal!(BirdOfPrey);
-impl<E: Exponentiator> FractalImpl<E> for BirdOfPrey<E> {
-    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
-        self.iterate_inner(self.c, constants, self.exponent)
-    }
+struct BirdOfPrey {}
+impl<E: Exponentiator> FractalImpl<E> for BirdOfPrey {
     // Same as mandelbrot, but take abs(im) each time
     #[inline(always)]
     fn pre_modify_point(&self, z: &mut super::Complex) {
@@ -195,11 +183,8 @@ impl<E: Exponentiator> FractalImpl<E> for BirdOfPrey<E> {
     }
 }
 
-standard_fractal!(Variant);
-impl<E: Exponentiator> FractalImpl<E> for Variant<E> {
-    fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
-        self.iterate_inner(self.c, constants, self.exponent)
-    }
+struct Variant {}
+impl<E: Exponentiator> FractalImpl<E> for Variant {
     #[inline(always)]
     fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, iters: u32) -> Complex {
         let zz = e.apply_to(z);
