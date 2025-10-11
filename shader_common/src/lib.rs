@@ -27,18 +27,15 @@ pub struct FragmentConstants {
 #[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
-pub struct RenderData {
+pub struct PointResult {
+    /// iteration count
     pub iters: u32,
+    /// smoothed iteration count (where available)
     pub smooth_iters: f32,
 }
 
-impl RenderData {
-    pub fn new(
-        _constants: &FragmentConstants,
-        inside: bool,
-        iters: u32,
-        smooth_iters: f32,
-    ) -> Self {
+impl PointResult {
+    pub fn new(inside: bool, iters: u32, smooth_iters: f32) -> Self {
         if inside {
             Self {
                 iters: u32::MAX,

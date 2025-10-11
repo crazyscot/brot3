@@ -159,7 +159,7 @@ impl ControllerTrait for Controller {
         let render_data_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("render_data_buffer"),
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            contents: &[0; std::mem::size_of::<RenderData>()
+            contents: &[0; std::mem::size_of::<PointResult>()
                 * GRID_SIZE.x as usize
                 * GRID_SIZE.y as usize],
         });

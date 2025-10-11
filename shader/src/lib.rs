@@ -8,7 +8,7 @@ use spirv_std::glam::*;
 use spirv_std::num_traits::real::Real;
 use spirv_std::spirv;
 
-use shader_common::{FragmentConstants, GRID_SIZE, RenderData, complex::Complex};
+use shader_common::{FragmentConstants, GRID_SIZE, PointResult, complex::Complex};
 use shader_util::grid::{GridRef, GridRefMut};
 
 mod exponentiation;
@@ -23,7 +23,7 @@ pub fn main_fs(
     #[cfg(feature = "emulate_constants")]
     #[spirv(storage_buffer, descriptor_set = 1, binding = 0)]
     constants: &FragmentConstants,
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [RenderData],
+    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [PointResult],
     output: &mut Vec4,
 ) {
     // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we ignore depth & 1/w
@@ -61,24 +61,12 @@ pub fn main_vs(
     *out_pos = pos.extend(0.0).extend(1.0);
 }
 
-struct FractalResult {
-    /// is the pixel inside the set
-    inside: bool,
-    /// iteration count
-    iters: u32,
-    /// smoothed iteration count (where available)
-    smoothed_iters: f32,
-}
-
-fn colour_data(data: RenderData, _constants: &FragmentConstants) -> Vec3 {
-    let RenderData {
-        iters,
-        smooth_iters,
-    } = data;
-    if iters == u32::MAX {
-        return Vec3::ZERO;
+fn colour_data(data: PointResult, _constants: &FragmentConstants) -> Vec3 {
+    if data.iters == u32::MAX {
+        Vec3::ZERO
+    } else {
+        log_rainbow(data.smooth_iters)
     }
-    log_rainbow(smooth_iters)
 }
 
 /// quick and dirty hsv to rgb conversion for now
@@ -117,7 +105,7 @@ fn log_rainbow(t: f32) -> Vec3 {
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{FragmentConstants, GRID_SIZE, RenderData};
+    use super::{FragmentConstants, GRID_SIZE, PointResult};
 
     use shader_common::{Algorithm, PushExponent};
     use shader_util::Size;
@@ -156,7 +144,7 @@ mod tests {
     fn fragment() {
         let mut res = Vec4::default();
         let consts = test_frag_consts();
-        let mut grid = vec![RenderData::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+        let mut grid = vec![PointResult::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
         super::main_fs(vec4(0., 0., 0., 0.), &consts, &mut grid, &mut res);
         let expected = vec4(1., 0.34425634, 0., 1.);
         assert!(

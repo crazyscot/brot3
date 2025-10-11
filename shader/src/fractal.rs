@@ -1,10 +1,10 @@
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
-use super::{Complex, FractalResult, FragmentConstants, RenderData, Vec2};
+use super::{Complex, FragmentConstants, PointResult, Vec2};
 use crate::exponentiation::Exponentiator;
 
-pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
+pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
     use shader_common::{Algorithm, NumericType};
     let c = Complex::from(point);
     macro_rules! builder {
@@ -62,13 +62,8 @@ where
     F: FractalImpl<E>,
     E: Exponentiator,
 {
-    fn iterations(self) -> RenderData {
-        let FractalResult {
-            inside,
-            iters,
-            smoothed_iters,
-        } = Self::iteration_loop(self.c, self.constants, self.algo, self.expo);
-        RenderData::new(self.constants, inside, iters, smoothed_iters)
+    fn iterations(self) -> PointResult {
+        Self::iteration_loop(self.c, self.constants, self.algo, self.expo)
     }
 
     pub(super) fn iteration_loop(
@@ -76,7 +71,7 @@ where
         constants: &FragmentConstants,
         algo: F,
         exp: E,
-    ) -> FractalResult {
+    ) -> PointResult {
         use shader_common::NumericType;
 
         const ESCAPE_THRESHOLD_SQ: f32 = 4.0;
@@ -121,11 +116,7 @@ where
         // z.norm().ln().ln() === (z.norm_sqr().ln() * 0.5).ln())
         let smoothed_iters = (iters) as f32 - (z.abs_sq().ln() * 0.5).ln() / ln_exponent;
 
-        FractalResult {
-            inside,
-            iters,
-            smoothed_iters,
-        }
+        PointResult::new(inside, iters, smoothed_iters)
     }
 }
 
