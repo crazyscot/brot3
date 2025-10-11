@@ -1,3 +1,6 @@
+//! Fractal algorithms.
+//! Can also be called on the host.
+
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 

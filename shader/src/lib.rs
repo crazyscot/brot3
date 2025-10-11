@@ -1,4 +1,5 @@
-//! Fractal shader entrypoint
+//! GPU shader implementing fractal rendering.
+//! Can also be used on the host.
 
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
@@ -14,6 +15,8 @@ mod fractal;
 
 mod colour;
 
+/// SPIRV `fragment` entrypoint.
+/// This does the iteration and rendering work.
 #[spirv(fragment)]
 pub fn main_fs(
     #[spirv(frag_coord)] frag_coord: Vec4,
@@ -47,6 +50,7 @@ pub fn main_fs(
     *output = colour.extend(1.0);
 }
 
+/// SPIRV `vertex` entrypoint.
 #[spirv(vertex)]
 pub fn main_vs(
     #[spirv(vertex_index)] vert_id: i32,

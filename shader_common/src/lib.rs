@@ -106,4 +106,7 @@ pub enum Colourer {
     #[default]
     LogRainbow,
     SqrtRainbow,
+    WhiteFade,
+    BlackFade,
+    OneLoneCoder,
 }
