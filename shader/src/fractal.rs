@@ -1,9 +1,7 @@
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
-use core::marker::PhantomData;
-
-use super::{Builder, Complex, FractalResult, FragmentConstants, RenderData, Vec2};
+use super::{Complex, FractalResult, FragmentConstants, RenderData, Vec2};
 use crate::exponentiation::Exponentiator;
 
 pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
@@ -12,21 +10,21 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
     macro_rules! builder {
         ($fractal:ident, $c_value:expr) => {{
             match constants.exponent.typ {
-                NumericType::Integer if constants.exponent.int == 2 => Builder {
+                NumericType::Integer if constants.exponent.int == 2 => FractalRunner {
                     constants,
                     algo: $fractal {},
                     expo: crate::exponentiation::Exp2,
                     c: $c_value,
                 }
                 .iterations(),
-                NumericType::Integer => Builder {
+                NumericType::Integer => FractalRunner {
                     constants,
                     algo: $fractal {},
                     expo: crate::exponentiation::ExpIntN(constants.exponent.int),
                     c: $c_value,
                 }
                 .iterations(),
-                NumericType::Float => Builder {
+                NumericType::Float => FractalRunner {
                     constants,
                     algo: $fractal {},
                     expo: crate::exponentiation::ExpFloat(constants.exponent.float),
@@ -48,37 +46,31 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
     }
 }
 
-pub(crate) trait FractalImpl<E: Exponentiator> {
-    /// Pre-modifies a point before applying the algorithm.
-    ///
-    /// Override as necessary.
-    #[inline(always)]
-    fn pre_modify_point(&self, _z: &mut Complex) {}
+struct FractalRunner<'a, F, E>
+where
+    F: FractalImpl<E>,
+    E: Exponentiator,
+{
+    constants: &'a FragmentConstants,
+    algo: F,
+    expo: E,
+    c: Complex,
+}
 
-    /// One iteration of the fractal algorithm.
-    ///
-    /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
-    /// suit all algorithms. Override as necessary.
-    #[inline(always)]
-    fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
-        e.apply_to(z) + c
+impl<F, E> FractalRunner<'_, F, E>
+where
+    F: FractalImpl<E>,
+    E: Exponentiator,
+{
+    fn iterations(self) -> RenderData {
+        let FractalResult {
+            inside,
+            iters,
+            smoothed_iters,
+        } = Self::iteration_loop(self.c, self.constants, self.algo, self.expo);
+        RenderData::new(self.constants, inside, iters, smoothed_iters)
     }
-}
 
-pub(super) struct FractalIterator<'a, F, E>
-where
-    F: FractalImpl<E>,
-    E: Exponentiator,
-{
-    _phantom1: PhantomData<&'a F>,
-    _phantom2: PhantomData<&'a E>,
-}
-
-impl<F, E> FractalIterator<'_, F, E>
-where
-    F: FractalImpl<E>,
-    E: Exponentiator,
-{
     pub(super) fn iteration_loop(
         c: Complex,
         constants: &FragmentConstants,
@@ -134,6 +126,23 @@ where
             iters,
             smoothed_iters,
         }
+    }
+}
+
+pub(crate) trait FractalImpl<E: Exponentiator> {
+    /// Pre-modifies a point before applying the algorithm.
+    ///
+    /// Override as necessary.
+    #[inline(always)]
+    fn pre_modify_point(&self, _z: &mut Complex) {}
+
+    /// One iteration of the fractal algorithm.
+    ///
+    /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
+    /// suit all algorithms. Override as necessary.
+    #[inline(always)]
+    fn iterate_algorithm(&self, e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
+        e.apply_to(z) + c
     }
 }
 

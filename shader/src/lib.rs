@@ -12,10 +12,7 @@ use shader_common::{FragmentConstants, GRID_SIZE, RenderData, complex::Complex};
 use shader_util::grid::{GridRef, GridRefMut};
 
 mod exponentiation;
-use exponentiation::Exponentiator;
-
 mod fractal;
-use fractal::{FractalImpl, FractalIterator};
 
 #[spirv(fragment)]
 pub fn main_fs(
@@ -62,32 +59,6 @@ pub fn main_vs(
     // pos expresses the cycle: (-1,-1) (3,-1) (-1,3) (3,3)
 
     *out_pos = pos.extend(0.0).extend(1.0);
-}
-
-struct Builder<'a, F, E>
-where
-    F: FractalImpl<E>,
-    E: Exponentiator,
-{
-    constants: &'a FragmentConstants,
-    algo: F,
-    expo: E,
-    c: Complex,
-}
-
-impl<F, E> Builder<'_, F, E>
-where
-    F: FractalImpl<E>,
-    E: Exponentiator,
-{
-    fn iterations(self) -> RenderData {
-        let FractalResult {
-            inside,
-            iters,
-            smoothed_iters,
-        } = FractalIterator::iteration_loop(self.c, self.constants, self.algo, self.expo);
-        RenderData::new(self.constants, inside, iters, smoothed_iters)
-    }
 }
 
 struct FractalResult {
