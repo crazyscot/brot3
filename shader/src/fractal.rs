@@ -13,7 +13,7 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
             match constants.exponent.typ {
                 NumericType::Integer if constants.exponent.int == 2 => Builder {
                     constants,
-                    fractal: $fractal {
+                    f_impl: $fractal {
                         c: $c_value,
                         exponent: crate::exponentiation::Exp2,
                     },
@@ -22,7 +22,7 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
                 .iterations(),
                 NumericType::Integer => Builder {
                     constants,
-                    fractal: $fractal {
+                    f_impl: $fractal {
                         c: $c_value,
                         exponent: crate::exponentiation::ExpIntN(constants.exponent.int),
                     },
@@ -31,7 +31,7 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
                 .iterations(),
                 NumericType::Float => Builder {
                     constants,
-                    fractal: $fractal {
+                    f_impl: $fractal {
                         c: $c_value,
                         exponent: crate::exponentiation::ExpFloat(constants.exponent.float),
                     },
@@ -53,7 +53,7 @@ pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> RenderData {
     }
 }
 
-pub(crate) trait Fractal<E: Exponentiator> {
+pub(crate) trait FractalImpl<E: Exponentiator> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult;
 
     /// Pre-modifies a point before applying the algorithm.
@@ -134,14 +134,14 @@ macro_rules! standard_fractal {
 }
 
 standard_fractal!(Mandelbrot);
-impl<E: Exponentiator> Fractal<E> for Mandelbrot<E> {
+impl<E: Exponentiator> FractalImpl<E> for Mandelbrot<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
         self.iterate_inner(self.c, constants, self.exponent)
     }
 }
 
 standard_fractal!(Mandelbar);
-impl<E: Exponentiator> Fractal<E> for Mandelbar<E> {
+impl<E: Exponentiator> FractalImpl<E> for Mandelbar<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
         self.iterate_inner(self.c, constants, self.exponent)
     }
@@ -153,7 +153,7 @@ impl<E: Exponentiator> Fractal<E> for Mandelbar<E> {
 }
 
 standard_fractal!(BurningShip);
-impl<E: Exponentiator> Fractal<E> for BurningShip<E> {
+impl<E: Exponentiator> FractalImpl<E> for BurningShip<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
         self.iterate_inner(self.c, constants, self.exponent)
     }
@@ -166,7 +166,7 @@ impl<E: Exponentiator> Fractal<E> for BurningShip<E> {
 }
 
 standard_fractal!(Celtic);
-impl<E: Exponentiator> Fractal<E> for Celtic<E> {
+impl<E: Exponentiator> FractalImpl<E> for Celtic<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
         self.iterate_inner(self.c, constants, self.exponent)
     }
@@ -184,7 +184,7 @@ impl<E: Exponentiator> Fractal<E> for Celtic<E> {
 }
 
 standard_fractal!(BirdOfPrey);
-impl<E: Exponentiator> Fractal<E> for BirdOfPrey<E> {
+impl<E: Exponentiator> FractalImpl<E> for BirdOfPrey<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
         self.iterate_inner(self.c, constants, self.exponent)
     }
@@ -196,7 +196,7 @@ impl<E: Exponentiator> Fractal<E> for BirdOfPrey<E> {
 }
 
 standard_fractal!(Variant);
-impl<E: Exponentiator> Fractal<E> for Variant<E> {
+impl<E: Exponentiator> FractalImpl<E> for Variant<E> {
     fn iterate(&self, constants: &FragmentConstants) -> FractalResult {
         self.iterate_inner(self.c, constants, self.exponent)
     }

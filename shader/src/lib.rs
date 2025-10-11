@@ -15,7 +15,7 @@ mod exponentiation;
 use exponentiation::Exponentiator;
 
 mod fractal;
-use fractal::Fractal;
+use fractal::FractalImpl;
 
 #[spirv(fragment)]
 pub fn main_fs(
@@ -66,17 +66,17 @@ pub fn main_vs(
 
 struct Builder<'a, F, E>
 where
-    F: Fractal<E>,
+    F: FractalImpl<E>,
     E: Exponentiator,
 {
     constants: &'a FragmentConstants,
-    fractal: F,
+    f_impl: F,
     _phantom: core::marker::PhantomData<E>,
 }
 
 impl<F, E> Builder<'_, F, E>
 where
-    F: Fractal<E>,
+    F: FractalImpl<E>,
     E: Exponentiator,
 {
     fn iterations(self) -> RenderData {
@@ -84,7 +84,7 @@ where
             inside,
             iters,
             smoothed_iters,
-        } = self.fractal.iterate(self.constants);
+        } = self.f_impl.iterate(self.constants);
         RenderData::new(self.constants, inside, iters, smoothed_iters)
     }
 }
