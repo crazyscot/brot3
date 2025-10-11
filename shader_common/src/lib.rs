@@ -149,6 +149,7 @@ pub enum Colourer {
     WhiteFade,
     BlackFade,
     OneLoneCoder,
+    LchGradient,
     Monochrome,
 }
 

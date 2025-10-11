@@ -5,7 +5,7 @@ use spirv_std::num_traits::real::Real;
 
 use core::f32::consts::TAU;
 use shader_common::Colourer as ColourerSelection;
-use shader_util::colourspace::{Hsl, Vec3Rgb};
+use shader_util::colourspace::{Hsl, Lch, Vec3Rgb};
 
 use super::{FragmentConstants, PointResult, f32::vec3};
 
@@ -20,6 +20,7 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
         CS::WhiteFade => white_fade(constants, &data),
         CS::BlackFade => black_fade(constants, &data),
         CS::OneLoneCoder => one_lone_coder(constants, &data),
+        CS::LchGradient => lch_gradient(constants, &data),
         CS::Monochrome => monochrome(constants, &data),
     }
 }
@@ -113,11 +114,28 @@ fn monochrome(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     Vec3Rgb::splat(shade)
 }
 
+/// LCH Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#LCH_coloring>
+fn lch_gradient(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
+    if pixel.iters == u32::MAX {
+        return vec3(0., 0., 0.);
+    }
+    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
+    let offset = constants.palette.offset * 36.;
+
+    let s: f32 = pixel.value(constants.fractional_iters.into()) / constants.max_iter as f32;
+    let v1 = (core::f32::consts::PI * s).cos();
+    let v2 = 1.0 - v1 * v1;
+    let lightness = 75.0 - (75.0 * v2);
+    let hue = (s * 360.0 * constants.palette.gradient).powf(1.5) + offset;
+    let lch = Lch::new(lightness, 28.0 + lightness, hue);
+    lch.into()
+}
+
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::{PointResult, Vec3Rgb};
-    use shader_common::FragmentConstants;
+    use shader_common::{Colourer, FragmentConstants, Palette};
     #[test]
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
@@ -127,5 +145,25 @@ mod tests {
         };
         let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
         assert_eq!(expected, super::colour_data(data, &consts));
+    }
+
+    #[test]
+    fn lch_known_answer() {
+        let consts = FragmentConstants {
+            max_iter: 100,
+            palette: Palette {
+                colourer: Colourer::LchGradient,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        assert_eq!(consts.algorithm, shader_common::Algorithm::Mandelbrot);
+        let data = PointResult {
+            iters: 5,
+            fractional_iters: 4.31876,
+        };
+        let expected = Vec3Rgb::from([0.901042, 0.3573773, 0.]);
+        let result = super::colour_data(data, &consts);
+        assert_eq!(result, expected);
     }
 }

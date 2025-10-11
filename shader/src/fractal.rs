@@ -196,3 +196,36 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
         }
     }
 }
+
+#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg_attr(coverage_nightly, coverage(off))]
+mod tests {
+    use crate::{FragmentConstants, fractal, vec2};
+    use shader_common::{Algorithm, Palette, PushExponent};
+    use shader_util::Size;
+
+    use pretty_assertions::assert_eq;
+
+    fn test_frag_consts() -> FragmentConstants {
+        FragmentConstants {
+            viewport_translate: vec2(0., 0.),
+            viewport_zoom: 0.3,
+            size: Size::new(1, 1),
+            max_iter: 10,
+            needs_reiterate: true.into(),
+            algorithm: Algorithm::Mandelbrot,
+            exponent: PushExponent::from(2),
+            palette: Palette::default(),
+            fractional_iters: true.into(),
+        }
+    }
+
+    #[test]
+    fn mandelbrot_known_answer() {
+        let point = crate::vec2(-0.75, 0.75);
+        let result = fractal::render(&test_frag_consts(), point);
+        eprintln!("{result:?}");
+        // expected result created by previous brot3 engine (adapted to this incarnation's maths)
+        assert_eq!(result.fractional_iters, 5.31876);
+    }
+}

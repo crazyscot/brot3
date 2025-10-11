@@ -35,4 +35,5 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 [dev-dependencies]
 approx = { version = "0.5.1", default-features = false }
 divan = "0.1.21"
+pretty_assertions = "1.4.1"
 strum = { version = "0.27.2", default-features = false }
