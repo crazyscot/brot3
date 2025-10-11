@@ -36,7 +36,7 @@ impl Controller {
             size: UVec2::ZERO,
             reiterate: true,
             // TODO figure out what precision is best
-            viewport_translate: BigVec2::try_new(0., 0.).unwrap().with_precision(PRECISION),
+            viewport_translate: BigVec2::try_new(-1., 0.).unwrap().with_precision(PRECISION),
             viewport_zoom: 0.25,
             movement: Movement::default(),
             last_instant: Instant::now(),
