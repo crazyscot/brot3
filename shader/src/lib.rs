@@ -69,7 +69,7 @@ pub fn main_vs(
 mod tests {
     use super::{FragmentConstants, GRID_SIZE, PointResult};
 
-    use shader_common::{Algorithm, Colourer, PushExponent};
+    use shader_common::{Algorithm, Palette, PushExponent};
     use shader_util::Size;
     use spirv_std::glam::{Vec4, vec2, vec4};
 
@@ -99,7 +99,7 @@ mod tests {
             needs_reiterate: true.into(),
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
-            colourer: Colourer::LogRainbow,
+            palette: Palette::default(),
         }
     }
 
@@ -109,7 +109,7 @@ mod tests {
         let consts = test_frag_consts();
         let mut grid = vec![PointResult::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
         super::main_fs(vec4(0., 0., 0., 0.), &consts, &mut grid, &mut res);
-        let expected = vec4(1., 0.8800168, 0., 1.);
+        let expected = vec4(0.5333053, 1., 0., 1.);
         assert!(
             res.abs_diff_eq(expected, 0.000_000_1),
             "mismatch: {res} vs {expected}"

@@ -3,6 +3,7 @@
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
+use core::f32::consts::TAU;
 use shader_common::Colourer as ColourerSelection;
 use shader_util::colourspace::{Hsl, Vec3Rgb};
 
@@ -13,7 +14,7 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
     if data.iters == u32::MAX {
         return Vec3Rgb::ZERO;
     }
-    match constants.colourer {
+    match constants.palette.colourer {
         CS::LogRainbow => LogRainbow {}.colour(constants, &data),
         CS::SqrtRainbow => SqrtRainbow {}.colour(constants, &data),
         CS::WhiteFade => WhiteFade {}.colour(constants, &data),
@@ -28,51 +29,71 @@ trait RgbColourer {
 
 struct LogRainbow {}
 impl RgbColourer for LogRainbow {
-    fn colour(&self, _constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
-        let angle: f32 = pixel.smooth_iters.ln() * 60.0; // DEGREES
-        Hsl::new(angle, 100., 50.).into()
+    fn colour(&self, constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
+        // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
+        let offset = constants.palette.offset * 36.;
+        let angle: f32 = pixel.smooth_iters.ln() * constants.palette.gradient * 100. + offset; // DEGREES
+        Hsl::new(
+            angle,
+            constants.palette.saturation as f32,
+            constants.palette.lightness as f32,
+        )
+        .into()
     }
 }
 
 struct SqrtRainbow {}
 impl RgbColourer for SqrtRainbow {
-    fn colour(&self, _constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
-        let angle: f32 = pixel.smooth_iters.sqrt() * 20.0; // DEGREES
-        Hsl::new(angle, 100., 50.).into()
+    fn colour(&self, constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
+        // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
+        let offset = constants.palette.offset * 36.;
+        let angle: f32 = pixel.smooth_iters.sqrt() * constants.palette.gradient * 100. + offset; // DEGREES
+        Hsl::new(
+            angle,
+            constants.palette.saturation as f32,
+            constants.palette.lightness as f32,
+        )
+        .into()
     }
 }
 
-/// Tony Finch's "White Fade" colourer
+/// Based on Tony Finch's "White Fade" colourer
 /// <https://dotat.at/prog/mandelbrot/>
 struct WhiteFade {}
 impl RgbColourer for WhiteFade {
-    fn colour(&self, _constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
+    fn colour(&self, constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
         let iters = pixel.smooth_iters.ln();
+        let grad = constants.palette.gradient;
+        // Offset is applied before cos(), so scale the input (0..10) to 2pi
+        let off = constants.palette.offset * TAU / 10.;
         if iters < 0.0 {
             vec3(1., 1., 1.)
         } else {
             vec3(
-                (iters * 2.0).cos() * 0.5 + 0.5,
-                (iters * 1.5).cos() * 0.5 + 0.5,
-                (iters * 1.0).cos() * 0.5 + 0.5,
+                (iters * 2.0 * grad + off).cos() * 0.5 + 0.5,
+                (iters * 1.5 * grad + off).cos() * 0.5 + 0.5,
+                (iters * 1.0 * grad + off).cos() * 0.5 + 0.5,
             )
         }
     }
 }
 
-/// Tony Finch's "Black Fade" colourer
+/// Based on Tony Finch's "Black Fade" colourer
 /// <https://dotat.at/prog/mandelbrot/>
 struct BlackFade {}
 impl RgbColourer for BlackFade {
-    fn colour(&self, _constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
+    fn colour(&self, constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
         let iters = pixel.smooth_iters.ln();
+        let grad = constants.palette.gradient;
+        // Offset is applied before cos(), so scale the input (0..10) to 2pi
+        let off = constants.palette.offset * TAU / 10.;
         if iters < 0.0 {
             vec3(0., 0., 0.)
         } else {
             vec3(
-                0.5 - (iters * 1.0).cos() * 0.5,
-                0.5 - (iters * 2.0).cos() * 0.5,
-                0.5 - (iters * 3.0).cos() * 0.5,
+                0.5 - (iters * 1.0 * grad + off).cos() * 0.5,
+                0.5 - (iters * 2.0 * grad + off).cos() * 0.5,
+                0.5 - (iters * 3.0 * grad + off).cos() * 0.5,
             )
         }
     }
@@ -82,12 +103,15 @@ impl RgbColourer for BlackFade {
 /// <https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_Mandelbrot.cpp>
 struct OneLoneCoder {}
 impl RgbColourer for OneLoneCoder {
-    fn colour(&self, _constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
+    fn colour(&self, constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
         let iters = pixel.smooth_iters;
+        let grad = constants.palette.gradient;
+        // Offset is applied before cos(), so scale the input (0..10) to 2pi
+        let off = constants.palette.offset * TAU / 10.;
         vec3(
-            (0.1 * iters).sin() * 0.5 + 0.5,
-            (0.1 * iters + 2.094).sin() * 0.5 + 0.5,
-            (0.1 * iters + 4.188).sin() * 0.5 + 0.5,
+            (0.1 * grad * iters + off).sin() * 0.5 + 0.5,
+            (0.1 * grad * iters + off + 2.094).sin() * 0.5 + 0.5,
+            (0.1 * grad * iters + off + 4.188).sin() * 0.5 + 0.5,
         )
     }
 }
@@ -104,7 +128,7 @@ mod tests {
             iters: 100,
             smooth_iters: 100.0,
         };
-        let expected = Vec3Rgb::from([0.60517025, 0., 1.]); // from the previous brot3's log-rainbow
+        let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
         assert_eq!(expected, super::colour_data(data, &consts));
     }
 }

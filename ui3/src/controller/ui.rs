@@ -65,7 +65,7 @@ impl super::Controller {
                 use shader_common::NumericType;
 
                 let algorithm_before = self.algorithm;
-                egui::ComboBox::from_label(egui::RichText::new("Algorithm").size(15.0))
+                egui::ComboBox::from_label(egui::RichText::new("Fractal"))
                     .selected_text(format!("{:?}", self.algorithm))
                     .show_ui(ui, |ui| {
                         use strum::IntoEnumIterator as _;
@@ -78,9 +78,8 @@ impl super::Controller {
                     self.reiterate = true;
                 }
                 ui.add(Separator::default().shrink(10.));
-                ui.vertical_centered(|ui| {
-                    ui.label(egui::RichText::new("Exponent").size(15.0));
-                });
+
+                ui.label(egui::RichText::new("Exponent").size(15.0));
                 egui::Grid::new("exponent_grid").show(ui, |ui| {
                     let previous_int = self.exponent.is_integer;
                     ui.radio_value(&mut self.exponent.is_integer, true, "Integer");
@@ -148,16 +147,30 @@ impl super::Controller {
                 }
                 ui.separator();
 
-                egui::ComboBox::from_label(egui::RichText::new("Palette").size(15.0))
-                    .selected_text(format!("{:?}", self.colourer))
+                egui::ComboBox::from_label("Palette")
+                    .selected_text(format!("{:?}", self.palette.colourer))
                     .show_ui(ui, |ui| {
                         use strum::IntoEnumIterator as _;
                         for it in Colourer::iter() {
                             let label: &'static str = it.into();
-                            ui.selectable_value(&mut self.colourer, it, label);
+                            ui.selectable_value(&mut self.palette.colourer, it, label);
                         }
                     });
-
+                // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
+                ui.label(egui::RichText::new("Gradient"));
+                ui.add(egui::Slider::new(&mut self.palette.gradient, 0.1..=10.));
+                ui.label(egui::RichText::new("Offset"));
+                ui.add(egui::Slider::new(&mut self.palette.offset, 0.0..=10.));
+                // Hide parameters when they don't apply
+                match self.palette.colourer {
+                    Colourer::LogRainbow | Colourer::SqrtRainbow => {
+                        ui.label(egui::RichText::new("Saturation"));
+                        ui.add(egui::Slider::new(&mut self.palette.saturation, 0..=100));
+                        ui.label(egui::RichText::new("Lightness"));
+                        ui.add(egui::Slider::new(&mut self.palette.lightness, 0..=100));
+                    }
+                    _ => (),
+                }
                 ui.separator();
 
                 ui.checkbox(&mut self.show_coords_window, "Show co-ordinates");

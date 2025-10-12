@@ -22,7 +22,30 @@ pub struct FragmentConstants {
     pub max_iter: u32,
     pub needs_reiterate: Bool,
     pub exponent: PushExponent,
+    pub palette: Palette,
+}
+
+#[derive(Copy, Clone, Debug)]
+#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[repr(C)]
+pub struct Palette {
     pub colourer: Colourer,
+    pub gradient: f32,
+    pub offset: f32,
+    pub saturation: u32,
+    pub lightness: u32,
+}
+impl Default for Palette {
+    fn default() -> Self {
+        Self {
+            colourer: Default::default(),
+            // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
+            gradient: 1.,
+            offset: 0.,
+            saturation: 100, // Not available on all palette algorithms
+            lightness: 50,   // Not available on all palette algorithms
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Default)]

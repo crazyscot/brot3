@@ -27,7 +27,7 @@ pub(crate) struct Controller {
     vsync: bool,
     dragging: bool,
     algorithm: Algorithm,
-    colourer: Colourer,
+    palette: Palette,
     exponent: Exponent,
 }
 
@@ -48,7 +48,7 @@ impl Controller {
             vsync: true,
             dragging: false,
             algorithm: Algorithm::default(),
-            colourer: Colourer::default(),
+            palette: Palette::default(),
             exponent: Exponent::default(),
         }
     }
@@ -135,7 +135,7 @@ impl ControllerTrait for Controller {
             max_iter: self.max_iter,
             needs_reiterate: reiterate.into(),
             exponent: self.exponent.into(),
-            colourer: self.colourer,
+            palette: self.palette,
         }
     }
 
