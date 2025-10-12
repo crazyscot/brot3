@@ -112,7 +112,7 @@ where
         }
         // by the logarithm of a power law,
         // z.norm().ln().ln() === (z.norm_sqr().ln() * 0.5).ln())
-        let smoothed_iters = (iters) as f32 - (z.abs_sq().ln() * 0.5).ln() / ln_exponent;
+        let smoothed_iters = (iters) as f32 + 1. - (z.abs_sq().ln() * 0.5).ln() / ln_exponent;
 
         PointResult::new(inside, iters, smoothed_iters)
     }
