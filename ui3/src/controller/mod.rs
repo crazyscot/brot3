@@ -15,41 +15,52 @@ const MAX_ZOOM: f64 = 13000.; // TODO: implement perturbed mbrot
 pub(crate) struct Controller {
     /// viewport pixel size
     size: UVec2,
-    reiterate: bool,
+    // Viewport position and movement
     viewport_translate: BigVec2,
     viewport_zoom: f64,
     movement: Movement,
-    last_instant: Instant,
-    mouse_position: DVec2,
-    show_coords_window: bool,
-    max_iter: u32,
-    show_fps: bool,
-    vsync: bool,
-    dragging: bool,
+    // Fractal detail
     algorithm: Algorithm,
+    max_iter: u32,
     palette: Palette,
     exponent: Exponent,
+    // User-facing options
+    show_coords_window: bool,
+    show_fps: bool,
+    vsync: bool,
+    show_ui: bool,
+    // UI operational data
+    last_instant: Instant,
+    mouse_position: DVec2,
+    reiterate: bool,
+    dragging: bool,
+    ctrl_pressed: bool,
 }
 
 impl Controller {
     pub fn new(_options: &Options) -> Self {
         Self {
             size: UVec2::ZERO,
-            reiterate: true,
             // TODO figure out what precision is best
             viewport_translate: BigVec2::try_new(-1., 0.).unwrap().with_precision(PRECISION),
             viewport_zoom: 0.25,
             movement: Movement::default(),
-            last_instant: Instant::now(),
-            mouse_position: DVec2::default(),
-            show_coords_window: true,
-            max_iter: 100,
-            show_fps: false,
-            vsync: true,
-            dragging: false,
+
             algorithm: Algorithm::default(),
+            max_iter: 100,
             palette: Palette::default(),
             exponent: Exponent::default(),
+
+            show_coords_window: true,
+            show_fps: false,
+            vsync: true,
+            show_ui: true,
+
+            last_instant: Instant::now(),
+            mouse_position: DVec2::default(),
+            reiterate: true,
+            dragging: false,
+            ctrl_pressed: false,
         }
     }
 }

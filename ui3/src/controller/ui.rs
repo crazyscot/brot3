@@ -21,13 +21,15 @@ impl super::Controller {
         ui_state.vsync = self.vsync;
         self.apply_movement();
 
-        self.controls_window(ctx);
+        if self.show_ui {
+            self.controls_window(ctx);
 
-        if self.show_coords_window {
-            self.coords_window(ctx);
-        }
-        if self.show_fps {
-            self.fps_window(ctx, ui_state);
+            if self.show_coords_window {
+                self.coords_window(ctx);
+            }
+            if self.show_fps {
+                self.fps_window(ctx, ui_state);
+            }
         }
     }
 

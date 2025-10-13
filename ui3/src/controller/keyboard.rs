@@ -10,6 +10,9 @@ impl super::Controller {
     pub(super) fn keyboard_input_impl(&mut self, key: KeyEvent) {
         let pressed = key.state.is_pressed();
         match key.logical_key {
+            Key::Named(NamedKey::Control) => {
+                self.ctrl_pressed = pressed;
+            }
             Key::Named(NamedKey::ArrowLeft) => {
                 if pressed {
                     self.movement.translate.x = -MOVE_SPEED;
@@ -48,6 +51,12 @@ impl super::Controller {
                     'x' => self.kbd_zoom(false, pressed),
                     'e' => self.expo(false, pressed),
                     'r' => self.expo(true, pressed),
+                    'q' if pressed && self.ctrl_pressed => std::process::exit(0),
+                    // N.B. Escape also instructs easy-shader-runner to quit.
+                    // SOMEDAY: It would be tidier to call event_loop.exit().
+                    // Expose this in easy-shader-runner, or add a new CustomEvent
+                    // and expose an EventLoopProxy.
+                    't' if pressed => self.show_ui = !self.show_ui,
                     _ => {}
                 }
             }
