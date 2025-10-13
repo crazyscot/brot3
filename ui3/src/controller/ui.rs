@@ -160,7 +160,7 @@ impl super::Controller {
                 ui.label(egui::RichText::new("Gradient"));
                 ui.add(egui::Slider::new(&mut self.palette.gradient, 0.1..=10.));
                 ui.label(egui::RichText::new("Offset"));
-                ui.add(egui::Slider::new(&mut self.palette.offset, 0.0..=10.));
+                ui.add(egui::Slider::new(&mut self.palette.offset, -10.0..=10.));
                 // Hide parameters when they don't apply
                 match self.palette.colourer {
                     Colourer::LogRainbow | Colourer::SqrtRainbow => {
