@@ -32,8 +32,8 @@ pub struct Palette {
     pub colourer: Colourer,
     pub gradient: f32,
     pub offset: f32,
-    pub saturation: u32,
-    pub lightness: u32,
+    pub saturation: f32,
+    pub lightness: f32,
     pub gamma: f32,
 }
 impl Default for Palette {
@@ -43,8 +43,8 @@ impl Default for Palette {
             // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
             gradient: 1.,
             offset: 0.,
-            saturation: 100, // Not available on all palette algorithms
-            lightness: 50,   // Not available on all palette algorithms
+            saturation: 100., // Not available on all palette algorithms
+            lightness: 50.,   // Not available on all palette algorithms
             gamma: 1.9,
         }
     }

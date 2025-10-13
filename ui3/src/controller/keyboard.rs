@@ -6,6 +6,22 @@ use easy_shader_runner::winit::{
 const MOVE_SPEED: f64 = 0.2;
 const ZOOM_SPEED: f64 = 1.4;
 
+/// DRY... Define a standard field function
+macro_rules! field_fn {
+    ($($id:ident), *) => {
+        $(
+            fn $id(&mut self, increase: bool, active: bool) {
+                if active {
+                    let sign = if increase { 1. } else { -1. };
+                    self.movement.$id = sign * 0.1;
+                } else {
+                    minimax(&mut self.movement.$id, 0., 0., increase);
+                }
+            }
+        )*
+    };
+}
+
 impl super::Controller {
     pub(super) fn keyboard_input_impl(&mut self, key: KeyEvent) {
         let pressed = key.state.is_pressed();
@@ -47,10 +63,8 @@ impl super::Controller {
                     None => return, // should never happen
                 };
                 match c {
-                    'z' => self.kbd_zoom(true, pressed),
-                    'x' => self.kbd_zoom(false, pressed),
-                    'e' => self.expo(false, pressed),
-                    'r' => self.expo(true, pressed),
+                    'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
+                    'e' | 'r' => self.expo(c == 'r', pressed),
                     'q' if pressed && self.ctrl_pressed => std::process::exit(0),
                     // N.B. Escape also instructs easy-shader-runner to quit.
                     // SOMEDAY: It would be tidier to call event_loop.exit().
@@ -58,6 +72,11 @@ impl super::Controller {
                     // and expose an EventLoopProxy.
                     't' if pressed => self.show_ui = !self.show_ui,
                     '[' | ']' if pressed => self.palette(c == ']'),
+                    'y' | 'u' => self.gradient(c == 'u', pressed),
+                    'h' | 'j' => self.offset(c == 'j', pressed),
+                    'n' | 'm' => self.gamma(c == 'm', pressed),
+                    'i' | 'o' => self.saturation(c == 'o', pressed),
+                    'k' | 'l' => self.lightness(c == 'l', pressed),
                     _ => {}
                 }
             }
@@ -77,7 +96,7 @@ impl super::Controller {
                 self.movement.zoom = 0.;
             }
         } else if self.movement.zoom < 1. {
-            /* !inwards */
+            /* !active !inwards */
             self.movement.zoom = 0.;
         }
     }
@@ -87,18 +106,27 @@ impl super::Controller {
             let magnitude = self.exponent.step();
             let sign = if increase { 1. } else { -1. };
             self.movement.exponent = sign * magnitude;
-        } else if increase {
-            if self.movement.exponent > 0. {
-                self.movement.exponent = 0.;
-            }
-        } else if self.movement.exponent < 0. {
-            /* !inwards */
-            self.movement.exponent = 0.;
+        } else {
+            minimax(&mut self.movement.exponent, 0., 0., increase);
         }
     }
 
     fn palette(&mut self, increment: bool) {
         let delta = if increment { 1 } else { -1 };
         self.palette.colourer += delta;
+    }
+
+    field_fn!(gradient, offset, gamma, saturation, lightness);
+}
+
+/// Clamps a value with either a minimum or a maximum.
+fn minimax<T>(value: &mut T, min: T, max: T, clamp_max: bool)
+where
+    T: Copy + core::cmp::PartialOrd,
+{
+    if clamp_max {
+        *value = num_traits::clamp_max(*value, max);
+    } else {
+        *value = num_traits::clamp_min(*value, min);
     }
 }

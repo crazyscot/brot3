@@ -30,8 +30,8 @@ fn log_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     let angle: f32 = pixel.smooth_iters.ln() * constants.palette.gradient * 100. + offset; // DEGREES
     Hsl::new(
         angle,
-        constants.palette.saturation as f32,
-        constants.palette.lightness as f32,
+        constants.palette.saturation,
+        constants.palette.lightness,
     )
     .into()
 }
@@ -42,8 +42,8 @@ fn sqrt_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     let angle: f32 = pixel.smooth_iters.sqrt() * constants.palette.gradient * 100. + offset; // DEGREES
     Hsl::new(
         angle,
-        constants.palette.saturation as f32,
-        constants.palette.lightness as f32,
+        constants.palette.saturation,
+        constants.palette.lightness,
     )
     .into()
 }

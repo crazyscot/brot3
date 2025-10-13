@@ -57,6 +57,18 @@ impl super::Controller {
             }
             movement.exponent = 0.;
         }
+
+        macro_rules! palette_fields {
+            ($($id:ident), * ) => {
+                $(
+                    if movement.$id != 0. {
+                        self.palette.$id += movement.$id;
+                        movement.$id = 0.;
+                    }
+                )*
+            }
+        }
+        palette_fields!(gradient, offset, gamma, saturation, lightness);
     }
 
     fn controls_window(&mut self, ctx: &egui::Context) {
@@ -167,9 +179,9 @@ impl super::Controller {
                 match self.palette.colourer {
                     Colourer::LogRainbow | Colourer::SqrtRainbow => {
                         ui.label(egui::RichText::new("Saturation"));
-                        ui.add(egui::Slider::new(&mut self.palette.saturation, 0..=100));
+                        ui.add(egui::Slider::new(&mut self.palette.saturation, 0. ..=100.));
                         ui.label(egui::RichText::new("Lightness"));
-                        ui.add(egui::Slider::new(&mut self.palette.lightness, 0..=100));
+                        ui.add(egui::Slider::new(&mut self.palette.lightness, 0. ..=100.));
                     }
                     Colourer::Monochrome => {
                         ui.label(egui::RichText::new("Gamma"));

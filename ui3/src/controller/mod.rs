@@ -123,6 +123,11 @@ struct Movement {
     translate: DVec2,
     zoom: f64,
     exponent: f32,
+    gradient: f32,
+    offset: f32,
+    gamma: f32,
+    saturation: f32,
+    lightness: f32,
 }
 
 impl ControllerTrait for Controller {

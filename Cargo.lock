@@ -275,6 +275,7 @@ dependencies = [
  "cfg-if",
  "easy-shader-runner",
  "glam",
+ "num-traits",
  "shader_common",
  "shader_util",
  "strum 0.27.2",
