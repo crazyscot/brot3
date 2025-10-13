@@ -34,6 +34,7 @@ pub struct Palette {
     pub offset: f32,
     pub saturation: u32,
     pub lightness: u32,
+    pub gamma: f32,
 }
 impl Default for Palette {
     fn default() -> Self {
@@ -44,6 +45,7 @@ impl Default for Palette {
             offset: 0.,
             saturation: 100, // Not available on all palette algorithms
             lightness: 50,   // Not available on all palette algorithms
+            gamma: 1.9,
         }
     }
 }

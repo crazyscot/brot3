@@ -103,8 +103,8 @@ fn monochrome(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     let input = pixel.smooth_iters.ln() / (constants.max_iter as f32).ln();
     // Scale the offset down to -2..2
     let offset = constants.palette.offset / 5.;
-    // Gamma 2.4 seems to work well; might make this configurable some day
-    let shade: f32 = input.powf(1.5) * constants.palette.gradient + offset;
+    // This palette has a gamma transfer function
+    let shade: f32 = input.powf(constants.palette.gamma) * constants.palette.gradient + offset;
     Vec3Rgb::splat(shade)
 }
 

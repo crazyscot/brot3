@@ -169,6 +169,10 @@ impl super::Controller {
                         ui.label(egui::RichText::new("Lightness"));
                         ui.add(egui::Slider::new(&mut self.palette.lightness, 0..=100));
                     }
+                    Colourer::Monochrome => {
+                        ui.label(egui::RichText::new("Gamma"));
+                        ui.add(egui::Slider::new(&mut self.palette.gamma, 0.0..=4.0));
+                    }
                     _ => (),
                 }
                 ui.separator();
