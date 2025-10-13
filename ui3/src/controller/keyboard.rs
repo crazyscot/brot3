@@ -57,6 +57,7 @@ impl super::Controller {
                     // Expose this in easy-shader-runner, or add a new CustomEvent
                     // and expose an EventLoopProxy.
                     't' if pressed => self.show_ui = !self.show_ui,
+                    '[' | ']' if pressed => self.palette(c == ']'),
                     _ => {}
                 }
             }
@@ -94,5 +95,10 @@ impl super::Controller {
             /* !inwards */
             self.movement.exponent = 0.;
         }
+    }
+
+    fn palette(&mut self, increment: bool) {
+        let delta = if increment { 1 } else { -1 };
+        self.palette.colourer += delta;
     }
 }

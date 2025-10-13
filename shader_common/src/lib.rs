@@ -124,7 +124,14 @@ pub enum Algorithm {
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     not(target_arch = "spirv"),
-    derive(NoUninit, strum::EnumIter, strum::IntoStaticStr, strum::VariantArray)
+    derive(
+        NoUninit,
+        strum::EnumIter,
+        strum::IntoStaticStr,
+        strum::VariantArray,
+        num_derive::FromPrimitive,
+        num_derive::ToPrimitive,
+    )
 )]
 #[repr(u32)]
 pub enum Colourer {
@@ -135,4 +142,27 @@ pub enum Colourer {
     BlackFade,
     OneLoneCoder,
     Monochrome,
+}
+
+#[cfg(not(target_arch = "spirv"))]
+impl core::ops::Add<i32> for Colourer {
+    type Output = Self;
+
+    fn add(self, delta: i32) -> Self::Output {
+        use num_traits::FromPrimitive as _;
+        use num_traits::ToPrimitive as _;
+        use strum::VariantArray as _;
+        let n = Self::VARIANTS.len() as i32;
+        let mut i = self.to_i32().unwrap_or_default() + delta;
+        i = i.rem_euclid(n);
+        Self::from_i32(i).unwrap()
+    }
+}
+
+#[cfg(not(target_arch = "spirv"))]
+impl core::ops::AddAssign<i32> for Colourer {
+    fn add_assign(&mut self, delta: i32) {
+        let t = *self + delta;
+        *self = t;
+    }
 }

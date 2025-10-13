@@ -18,10 +18,12 @@ glam = { workspace = true }
 abels-complex = { version = "0.2.0", default-features = false, features = ["libm", "glam"] }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
-glam = { workspace = true, features = ["bytemuck"] }
-bytemuck = { workspace = true, features = ["derive"] }
 abels-complex = { version = "0.2.0", default-features = false, features = ["std", "glam"] }
-strum = { version = "0.27.2", features = ["derive"] }
+bytemuck = { workspace = true, features = ["derive"] }
+glam = { workspace = true, features = ["bytemuck"] }
+num-derive = "0.4.2"
+num-traits = { version = "0.2.19", default-features = false }
+strum = { version = "0.27.2", default-features = false, features = ["derive"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_arch, values("spirv"))'] }
