@@ -12,11 +12,13 @@ license.workspace = true
 crate-type = ["cdylib", "rlib"]
 test = false
 doctest = false
+bench = false
 
 [[bin]]
 name = "brot3"
 test = false
 doc = false
+bench = false
 
 
 [features]

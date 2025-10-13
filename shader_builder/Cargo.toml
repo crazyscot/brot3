@@ -10,6 +10,7 @@ license = "MIT"
 [[bin]]
 name = "shader_builder"
 test = false
+bench = false
 
 [dependencies]
 spirv-builder.workspace = true

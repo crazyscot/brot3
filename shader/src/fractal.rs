@@ -9,7 +9,7 @@ use crate::exponentiation::Exponentiator;
 
 use core::marker::PhantomData;
 
-pub(super) fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
+pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
     use shader_common::{Algorithm, NumericType};
     let c = Complex::from(point);
     macro_rules! builder {

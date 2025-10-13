@@ -10,10 +10,9 @@ use spirv_std::spirv;
 use shader_common::{FragmentConstants, GRID_SIZE, PointResult, complex::Complex};
 use shader_util::grid::{GridRef, GridRefMut};
 
-mod exponentiation;
-mod fractal;
-
-mod colour;
+pub mod colour;
+pub mod exponentiation;
+pub mod fractal;
 
 /// SPIRV `fragment` entrypoint.
 /// This does the iteration and rendering work.

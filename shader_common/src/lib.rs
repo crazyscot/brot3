@@ -107,7 +107,7 @@ impl From<i32> for PushExponent {
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     not(target_arch = "spirv"),
-    derive(NoUninit, strum::EnumIter, strum::IntoStaticStr)
+    derive(NoUninit, strum::EnumIter, strum::IntoStaticStr, strum::VariantArray)
 )]
 #[repr(u32)]
 pub enum Algorithm {
@@ -124,7 +124,7 @@ pub enum Algorithm {
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     not(target_arch = "spirv"),
-    derive(NoUninit, strum::EnumIter, strum::IntoStaticStr)
+    derive(NoUninit, strum::EnumIter, strum::IntoStaticStr, strum::VariantArray)
 )]
 #[repr(u32)]
 pub enum Colourer {

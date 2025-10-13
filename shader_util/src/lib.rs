@@ -7,8 +7,7 @@ pub mod grid;
 pub use grid::*;
 
 /// Re-exported from [`glam`].
-pub use glam::{UVec2, Vec3};
-use glam::{Vec2, uvec2, vec2};
+pub use glam::{UVec2, Vec2, Vec3, uvec2, vec2};
 
 #[cfg(not(target_arch = "spirv"))]
 pub mod big_complex;

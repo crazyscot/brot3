@@ -7,8 +7,16 @@ authors.workspace = true
 edition.workspace = true
 license.workspace = true
 
+# TODO: It would be nice to build dylib only on spirv and rlib on host builds.
+# This is not currently supported by cargo; https://github.com/rust-lang/cargo/issues/12260 refers.
 [lib]
-crate-type = ["dylib"]
+crate-type = ["dylib", "rlib"]
+bench = false
+
+
+[[bench]]
+name = "shader"
+harness = false
 
 [features]
 emulate_constants = []
@@ -26,3 +34,5 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 
 [dev-dependencies]
 approx = { version = "0.5.1", default-features = false }
+divan = "0.1.21"
+strum = { version = "0.27.2", default-features = false }
