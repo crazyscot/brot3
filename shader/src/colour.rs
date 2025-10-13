@@ -20,6 +20,7 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
         CS::WhiteFade => white_fade(constants, &data),
         CS::BlackFade => black_fade(constants, &data),
         CS::OneLoneCoder => one_lone_coder(constants, &data),
+        CS::Monochrome => monochrome(constants, &data),
     }
 }
 
@@ -95,6 +96,16 @@ fn one_lone_coder(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb
         (0.1 * grad * iters + off + 2.094).sin() * 0.5 + 0.5,
         (0.1 * grad * iters + off + 4.188).sin() * 0.5 + 0.5,
     )
+}
+
+fn monochrome(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
+    // Compute an input from 0..1, relative to max_iter
+    let input = pixel.smooth_iters.ln() / (constants.max_iter as f32).ln();
+    // Scale the offset down to -2..2
+    let offset = constants.palette.offset / 5.;
+    // Gamma 2.4 seems to work well; might make this configurable some day
+    let shade: f32 = input.powf(1.5) * constants.palette.gradient + offset;
+    Vec3Rgb::splat(shade)
 }
 
 #[cfg(all(test, not(target_arch = "spirv")))]

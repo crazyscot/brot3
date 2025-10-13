@@ -132,4 +132,5 @@ pub enum Colourer {
     WhiteFade,
     BlackFade,
     OneLoneCoder,
+    Monochrome,
 }
