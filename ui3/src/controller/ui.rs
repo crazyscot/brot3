@@ -4,7 +4,7 @@ use super::{DVec2, Instant};
 use crate::controller::egui::Separator;
 use shader_common::{Algorithm, Colourer};
 
-const DEFAULT_WIDTH: f32 = 130.;
+pub(crate) const DEFAULT_WIDTH: f32 = 130.;
 
 const EXPONENT_MIN: f32 = 0.;
 const EXPONENT_MIN_INT: u32 = 0;
@@ -29,6 +29,9 @@ impl super::Controller {
             }
             if self.show_fps {
                 self.fps_window(ctx, ui_state);
+            }
+            if self.keyboard_help {
+                self.keyboard_help_window(ctx);
             }
         }
     }
@@ -192,6 +195,7 @@ impl super::Controller {
                 ui.separator();
 
                 ui.checkbox(&mut self.show_coords_window, "Show co-ordinates");
+                ui.checkbox(&mut self.keyboard_help, "Keyboard help");
                 ui.checkbox(&mut self.show_fps, "Show FPS");
                 ui.checkbox(&mut self.vsync, "vsync");
             })
@@ -237,7 +241,7 @@ impl super::Controller {
             .title_bar(false)
             .resizable(false)
             .interactable(false)
-            .anchor(egui::Align2::RIGHT_BOTTOM, egui::Vec2::splat(-10.0))
+            .anchor(egui::Align2::LEFT_BOTTOM, egui::Vec2::splat(-10.0))
             .show(ctx, |ui| {
                 ui.label(format!("FPS: {}", ui_state.fps()));
             });

@@ -1,3 +1,4 @@
+use easy_shader_runner::egui;
 use easy_shader_runner::winit::{
     event::KeyEvent,
     keyboard::{Key, NamedKey},
@@ -23,6 +24,43 @@ macro_rules! field_fn {
 }
 
 impl super::Controller {
+    pub(super) fn keyboard_help_window(&mut self, ctx: &egui::Context) {
+        egui::Window::new("keyboard")
+            //.default_width(crate::controller::ui::DEFAULT_WIDTH)
+            //.auto_sized()
+            .default_width(100.)
+            .title_bar(false)
+            .resizable(false)
+            .interactable(false)
+            .anchor(egui::Align2::RIGHT_BOTTOM, egui::Vec2::splat(-10.))
+            .show(ctx, |ui| {
+                ui.label(egui::RichText::new("Keyboard").size(15.0));
+                ui.separator();
+                egui::Grid::new("keyboard grid")
+                    .striped(true)
+                    .show(ui, |ui| {
+                        macro_rules! row {
+                            ($key:literal, $lbl:literal) => {
+                                ui.label($key);
+                                ui.label($lbl);
+                                ui.end_row();
+                            };
+                        }
+                        row!("⬆⬇⬅➡", "Move");
+                        row!("Z X", "Zoom");
+                        row!("E R", "Exponent");
+                        row!("[ ]", "Palette");
+                        row!("Y U", "Gradient");
+                        row!("H J", "Offset");
+                        row!("N M", "Gamma");
+                        row!("I O", "Saturation");
+                        row!("K L", "Lightness");
+                        row!("T", "Toggle UI");
+                        row!("^Q | Esc", "Quit");
+                    });
+            });
+    }
+
     pub(super) fn keyboard_input_impl(&mut self, key: KeyEvent) {
         let pressed = key.state.is_pressed();
         match key.logical_key {
@@ -79,6 +117,7 @@ impl super::Controller {
                     'k' | 'l' => self.lightness(c == 'l', pressed),
                     _ => {}
                 }
+                // Remember to add new keys to keyboard_help_window !
             }
             _ => (),
         }
