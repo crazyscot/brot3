@@ -27,6 +27,7 @@ pub(crate) struct Controller {
     fractional_iters: bool,
     // User-facing options
     show_coords_window: bool,
+    show_scale_bar: bool,
     show_fps: bool,
     vsync: bool,
     show_ui: bool,
@@ -37,6 +38,7 @@ pub(crate) struct Controller {
     reiterate: bool,
     dragging: bool,
     ctrl_pressed: bool,
+    resized: bool,
 }
 
 impl Controller {
@@ -55,6 +57,7 @@ impl Controller {
             fractional_iters: true,
 
             show_coords_window: true,
+            show_scale_bar: true,
             show_fps: false,
             vsync: true,
             show_ui: true,
@@ -65,6 +68,7 @@ impl Controller {
             reiterate: true,
             dragging: false,
             ctrl_pressed: false,
+            resized: true,
         }
     }
 }
@@ -138,6 +142,7 @@ impl ControllerTrait for Controller {
     fn resize(&mut self, size: UVec2) {
         self.size = size;
         self.reiterate = true;
+        self.resized = true;
     }
 
     fn prepare_render(
@@ -243,5 +248,17 @@ impl ControllerTrait for Controller {
         let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / *zoom / size.y;
         self.viewport_translate += mouse_pos0 - mouse_pos1;
         self.reiterate = true;
+    }
+}
+
+impl Controller {
+    #[allow(dead_code)]
+    pub(crate) fn viewport_complex_size(&self) -> DVec2 {
+        // CAUTION: This must align with what shader is doing.
+        self.size.as_dvec2() / (self.size.y as f64 * self.viewport_zoom)
+    }
+    pub(crate) fn pixel_complex_size(&self) -> f64 {
+        // self.viewport_complex_size().y / self.size.y as f64
+        1. / (self.viewport_zoom * self.size.y as f64)
     }
 }
