@@ -1,7 +1,6 @@
 use easy_shader_runner::{UiState, egui};
 
 use super::{DVec2, Instant};
-use crate::controller::egui::Separator;
 use shader_common::{Algorithm, Colourer};
 
 pub(crate) const DEFAULT_WIDTH: f32 = 130.;
@@ -94,66 +93,64 @@ impl super::Controller {
                 if self.algorithm != algorithm_before {
                     self.reiterate = true;
                 }
-                ui.add(Separator::default().shrink(10.));
 
-                ui.label(egui::RichText::new("Exponent").size(15.0));
-                egui::Grid::new("exponent_grid").show(ui, |ui| {
-                    let previous_int = self.exponent.is_integer;
-                    ui.radio_value(&mut self.exponent.is_integer, true, "Integer");
-                    ui.radio_value(&mut self.exponent.is_integer, false, "Float");
-                    ui.end_row();
-                    if self.exponent.is_integer != previous_int {
-                        if previous_int {
-                            // was integer, now float
-                            self.exponent.value = self.exponent.value_i as f32;
-                        } else {
-                            // was float, now integer
-                            self.exponent.value_i = self.exponent.value.round() as u32;
-                            self.exponent.value = self.exponent.value_i as f32;
+                egui::CollapsingHeader::new("Exponent").show(ui, |ui| {
+                    egui::Grid::new("exponent_grid").show(ui, |ui| {
+                        let previous_int = self.exponent.is_integer;
+                        ui.radio_value(&mut self.exponent.is_integer, true, "Integer");
+                        ui.radio_value(&mut self.exponent.is_integer, false, "Float");
+                        ui.end_row();
+                        if self.exponent.is_integer != previous_int {
+                            if previous_int {
+                                // was integer, now float
+                                self.exponent.value = self.exponent.value_i as f32;
+                            } else {
+                                // was float, now integer
+                                self.exponent.value_i = self.exponent.value.round() as u32;
+                                self.exponent.value = self.exponent.value_i as f32;
+                            }
+                            self.reiterate = true;
                         }
+                    });
+                    match self.exponent.variant() {
+                        NumericType::Integer => {
+                            if ui
+                                .add(egui::Slider::new(
+                                    &mut self.exponent.value_i,
+                                    EXPONENT_MIN_INT..=EXPONENT_MAX_INT,
+                                ))
+                                .changed()
+                            {
+                                self.exponent.value = self.exponent.value_i as f32;
+                                self.reiterate = true;
+                            }
+                        }
+                        NumericType::Float => {
+                            if ui
+                                .add(
+                                    egui::Slider::new(
+                                        &mut self.exponent.value,
+                                        EXPONENT_MIN..=EXPONENT_MAX,
+                                    )
+                                    .step_by(0.1),
+                                )
+                                .changed()
+                            {
+                                self.reiterate = true;
+                            }
+                        }
+                    }
+
+                    if ui
+                        .add(egui::Checkbox::new(
+                            &mut self.exponent.is_negative,
+                            "Negative",
+                        ))
+                        .changed()
+                    {
                         self.reiterate = true;
                     }
                 });
-                match self.exponent.variant() {
-                    NumericType::Integer => {
-                        if ui
-                            .add(egui::Slider::new(
-                                &mut self.exponent.value_i,
-                                EXPONENT_MIN_INT..=EXPONENT_MAX_INT,
-                            ))
-                            .changed()
-                        {
-                            self.exponent.value = self.exponent.value_i as f32;
-                            self.reiterate = true;
-                        }
-                    }
-                    NumericType::Float => {
-                        if ui
-                            .add(
-                                egui::Slider::new(
-                                    &mut self.exponent.value,
-                                    EXPONENT_MIN..=EXPONENT_MAX,
-                                )
-                                .step_by(0.1),
-                            )
-                            .changed()
-                        {
-                            self.reiterate = true;
-                        }
-                    }
-                }
-
-                if ui
-                    .add(egui::Checkbox::new(
-                        &mut self.exponent.is_negative,
-                        "Negative",
-                    ))
-                    .changed()
-                {
-                    self.reiterate = true;
-                }
-
-                ui.add(Separator::default().shrink(10.));
 
                 ui.label(egui::RichText::new("Iterations"));
                 if ui
@@ -173,25 +170,30 @@ impl super::Controller {
                             ui.selectable_value(&mut self.palette.colourer, it, label);
                         }
                     });
-                // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
-                ui.label(egui::RichText::new("Gradient"));
-                ui.add(egui::Slider::new(&mut self.palette.gradient, 0.1..=10.));
-                ui.label(egui::RichText::new("Offset"));
-                ui.add(egui::Slider::new(&mut self.palette.offset, -10.0..=10.));
-                // Hide parameters when they don't apply
-                match self.palette.colourer {
-                    Colourer::LogRainbow | Colourer::SqrtRainbow => {
-                        ui.label(egui::RichText::new("Saturation"));
-                        ui.add(egui::Slider::new(&mut self.palette.saturation, 0. ..=100.));
-                        ui.label(egui::RichText::new("Lightness"));
-                        ui.add(egui::Slider::new(&mut self.palette.lightness, 0. ..=100.));
-                    }
-                    Colourer::Monochrome => {
-                        ui.label(egui::RichText::new("Gamma"));
-                        ui.add(egui::Slider::new(&mut self.palette.gamma, 0.0..=4.0));
-                    }
-                    _ => (),
-                }
+                egui::CollapsingHeader::new("Palette controls")
+                    .id_salt("palette-detail")
+                    .show(ui, |ui| {
+                        // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
+                        ui.label(egui::RichText::new("Gradient"));
+                        ui.add(egui::Slider::new(&mut self.palette.gradient, 0.1..=10.));
+                        ui.label(egui::RichText::new("Offset"));
+                        ui.add(egui::Slider::new(&mut self.palette.offset, -10.0..=10.));
+                        // Hide parameters when they don't apply
+                        match self.palette.colourer {
+                            Colourer::LogRainbow | Colourer::SqrtRainbow => {
+                                ui.label(egui::RichText::new("Saturation"));
+                                ui.add(egui::Slider::new(&mut self.palette.saturation, 0. ..=100.));
+                                ui.label(egui::RichText::new("Lightness"));
+                                ui.add(egui::Slider::new(&mut self.palette.lightness, 0. ..=100.));
+                            }
+                            Colourer::Monochrome => {
+                                ui.label(egui::RichText::new("Gamma"));
+                                ui.add(egui::Slider::new(&mut self.palette.gamma, 0.0..=4.0));
+                            }
+                            _ => (),
+                        }
+                    });
+
                 ui.separator();
 
                 ui.checkbox(&mut self.show_coords_window, "Show co-ordinates");
