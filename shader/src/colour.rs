@@ -27,7 +27,9 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
 fn log_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
     let offset = constants.palette.offset * 36.;
-    let angle: f32 = pixel.smooth_iters.ln() * constants.palette.gradient * 100. + offset; // DEGREES
+    let angle: f32 =
+        pixel.value(constants.fractional_iters.into()).ln() * constants.palette.gradient * 100.
+            + offset; // DEGREES
     Hsl::new(
         angle,
         constants.palette.saturation,
@@ -39,7 +41,9 @@ fn log_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 fn sqrt_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
     let offset = constants.palette.offset * 36.;
-    let angle: f32 = pixel.smooth_iters.sqrt() * constants.palette.gradient * 100. + offset; // DEGREES
+    let angle: f32 =
+        pixel.value(constants.fractional_iters.into()).sqrt() * constants.palette.gradient * 100.
+            + offset; // DEGREES
     Hsl::new(
         angle,
         constants.palette.saturation,
@@ -51,7 +55,7 @@ fn sqrt_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 /// Based on Tony Finch's "White Fade" colourer
 /// <https://dotat.at/prog/mandelbrot/>
 fn white_fade(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
-    let iters = pixel.smooth_iters.ln();
+    let iters = pixel.value(constants.fractional_iters.into()).ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
@@ -69,7 +73,7 @@ fn white_fade(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 /// Based on Tony Finch's "Black Fade" colourer
 /// <https://dotat.at/prog/mandelbrot/>
 fn black_fade(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
-    let iters = pixel.smooth_iters.ln();
+    let iters = pixel.value(constants.fractional_iters.into()).ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
@@ -87,7 +91,7 @@ fn black_fade(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 /// Colouring algorithm by `OneLoneCoder.com`
 /// <https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_Mandelbrot.cpp>
 fn one_lone_coder(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
-    let iters = pixel.smooth_iters;
+    let iters = pixel.value(constants.fractional_iters.into());
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
@@ -100,7 +104,8 @@ fn one_lone_coder(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb
 
 fn monochrome(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     // Compute an input from 0..1, relative to max_iter
-    let input = pixel.smooth_iters.ln() / (constants.max_iter as f32).ln();
+    let input =
+        pixel.value(constants.fractional_iters.into()).ln() / (constants.max_iter as f32).ln();
     // Scale the offset down to -2..2
     let offset = constants.palette.offset / 5.;
     // This palette has a gamma transfer function
@@ -118,7 +123,7 @@ mod tests {
         let consts = FragmentConstants::default();
         let data = PointResult {
             iters: 100,
-            smooth_iters: 100.0,
+            fractional_iters: 100.0,
         };
         let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
         assert_eq!(expected, super::colour_data(data, &consts));

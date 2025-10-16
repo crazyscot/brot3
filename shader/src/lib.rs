@@ -99,6 +99,7 @@ mod tests {
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
             palette: Palette::default(),
+            fractional_iters: true.into(),
         }
     }
 

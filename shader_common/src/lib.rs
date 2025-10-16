@@ -23,6 +23,7 @@ pub struct FragmentConstants {
     pub needs_reiterate: Bool,
     pub exponent: PushExponent,
     pub palette: Palette,
+    pub fractional_iters: Bool,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -56,22 +57,29 @@ impl Default for Palette {
 pub struct PointResult {
     /// iteration count
     pub iters: u32,
-    /// smoothed iteration count (where available)
-    pub smooth_iters: f32,
+    /// fractional iteration count (where available)
+    pub fractional_iters: f32,
 }
 
 impl PointResult {
-    pub fn new(inside: bool, iters: u32, smooth_iters: f32) -> Self {
+    pub fn new(inside: bool, iters: u32, fractional_iters: f32) -> Self {
         if inside {
             Self {
                 iters: u32::MAX,
-                smooth_iters: u32::MAX as f32,
+                fractional_iters: u32::MAX as f32,
             }
         } else {
             Self {
                 iters,
-                smooth_iters,
+                fractional_iters,
             }
+        }
+    }
+    pub fn value(&self, fractional: bool) -> f32 {
+        if fractional {
+            self.fractional_iters
+        } else {
+            self.iters as f32
         }
     }
 }

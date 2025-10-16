@@ -159,6 +159,9 @@ impl super::Controller {
                 {
                     self.reiterate = true;
                 }
+
+                ui.checkbox(&mut self.fractional_iters, "Fractional iterations");
+
                 ui.separator();
 
                 egui::ComboBox::from_label("Palette")

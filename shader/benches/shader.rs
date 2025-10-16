@@ -29,6 +29,7 @@ fn fractal(alg: Algorithm) -> PointResult {
         algorithm: alg,
         exponent: PushExponent::from(2),
         palette: Palette::default(),
+        fractional_iters: true.into(),
     };
     shader::fractal::render(&consts, black_box(vec2(0.5, 0.5)))
 }
@@ -47,6 +48,7 @@ fn colour(col: Colourer) -> Vec3 {
             colourer: col,
             ..Default::default()
         },
+        fractional_iters: true.into(),
     };
     let data = PointResult::new(false, 3, 5.423);
     shader::colour::colour_data(black_box(data), &consts)

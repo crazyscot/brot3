@@ -24,6 +24,7 @@ pub(crate) struct Controller {
     max_iter: u32,
     palette: Palette,
     exponent: Exponent,
+    fractional_iters: bool,
     // User-facing options
     show_coords_window: bool,
     show_fps: bool,
@@ -51,6 +52,7 @@ impl Controller {
             max_iter: 100,
             palette: Palette::default(),
             exponent: Exponent::default(),
+            fractional_iters: true,
 
             show_coords_window: true,
             show_fps: false,
@@ -154,6 +156,7 @@ impl ControllerTrait for Controller {
             needs_reiterate: reiterate.into(),
             exponent: self.exponent.into(),
             palette: self.palette,
+            fractional_iters: self.fractional_iters.into(),
         }
     }
 
