@@ -27,7 +27,7 @@ runtime-compilation = ["easy-shader-runner/runtime-compilation"]
 hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 
 [dependencies]
-cfg-if = "1.0.3"
+cfg-if = "1.0.4"
 bytemuck = { workspace = true }
 glam = { workspace = true }
 shader_common = { path = "../shader_common" }
