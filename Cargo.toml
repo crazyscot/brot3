@@ -7,6 +7,9 @@ edition = "2024"
 authors = ["Ross Younger <crazyscot@gmail.com>"]
 version = "3.0.0-wip"
 license = "MIT"
+repository = "https://github.com/crazyscot/brot3/"
+keywords = ["fractal", "mandelbrot"]
+categories = ["graphics", "mathematics"]
 
 # note: rust-cache turns off incremental builds, so we don't need a profile mod for CI.
 

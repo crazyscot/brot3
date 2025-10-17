@@ -5,6 +5,11 @@ use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
 mod controller;
 
+/// Build-time info (from `built`)
+pub mod build_info {
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
+
 #[derive(Clone, Copy, Default)]
 pub(crate) struct Options {}
 

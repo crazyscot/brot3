@@ -32,6 +32,9 @@ pub(crate) struct Controller {
     vsync: bool,
     show_ui: bool,
     keyboard_help: bool,
+    show_about: bool,
+    show_license: bool,
+
     // UI operational data
     last_instant: Instant,
     mouse_position: DVec2,
@@ -62,6 +65,8 @@ impl Controller {
             vsync: true,
             show_ui: true,
             keyboard_help: false,
+            show_about: false,
+            show_license: false,
 
             last_instant: Instant::now(),
             mouse_position: DVec2::default(),

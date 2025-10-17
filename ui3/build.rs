@@ -2,6 +2,8 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
+    built::write_built_file().expect("Failed to acquire build-time information");
+
     println!("cargo:rerun-if-changed=build.rs");
     // CAUTION: Hard-wired path !
     println!("cargo:rerun-if-changed=../shader_builder/");

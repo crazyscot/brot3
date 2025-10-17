@@ -18,6 +18,7 @@ impl super::Controller {
         ui_state: &mut UiState,
         _graphics_context: &easy_shader_runner::GraphicsContext,
     ) {
+        egui_extras::install_image_loaders(ctx);
         ui_state.vsync = self.vsync;
         self.apply_movement();
 
@@ -35,6 +36,12 @@ impl super::Controller {
             }
             if self.keyboard_help {
                 self.keyboard_help_window(ctx);
+            }
+            if self.show_about {
+                self.about_modal(ctx);
+            }
+            if self.show_license {
+                self.license_modal(ctx);
             }
         }
         self.resized = false;
@@ -209,6 +216,10 @@ impl super::Controller {
                 ui.checkbox(&mut self.keyboard_help, "Keyboard help");
                 ui.checkbox(&mut self.show_fps, "Show FPS");
                 ui.checkbox(&mut self.vsync, "vsync");
+
+                if ui.button("About").clicked() {
+                    self.show_about = true;
+                }
             })
             .unwrap();
     }
@@ -315,5 +326,63 @@ impl super::Controller {
             .show(ctx, |ui| {
                 ui.label(format!("FPS: {}", ui_state.fps()));
             });
+    }
+
+    fn about_modal(&mut self, ctx: &egui::Context) {
+        if egui::Modal::new("about".into())
+            .show(ctx, |ui| {
+                use crate::build_info;
+                ui.label(egui::RichText::new("About brot3").size(18.));
+                ui.label(
+                    egui::RichText::new(format!("Version: {}", build_info::PKG_VERSION)).italics(),
+                );
+                if let Some(ver) = build_info::GIT_VERSION {
+                    let dirty = if build_info::GIT_DIRTY.unwrap_or(false) {
+                        "-dirty"
+                    } else {
+                        ""
+                    };
+                    ui.label(egui::RichText::new(format!("git version: {ver}{dirty}")).italics());
+                }
+
+                ui.add_space(12.);
+                ui.image(egui::include_image!("../../../icons/original,origin=-1.259742+0.377104i,axes=0.01+0.01i,max=512,col=lch-gradient.png"));
+                ui.add_space(6.);
+
+                ui.label(
+                    egui::RichText::new("Dedicated to the memory of Benoît B. Mandelbrot.")
+                );
+                ui.add_space(12.);
+                if ui.button("License").clicked() {
+                    self.show_license = true;
+                }
+            })
+            .should_close()
+        {
+            self.show_about = false;
+        }
+    }
+
+    fn license_modal(&mut self, ctx: &egui::Context) {
+        if egui::Modal::new("license".into())
+            .show(ctx, |ui| {
+                ui.label(egui::RichText::new("brot3 terms of use").size(18.));
+                ui.label(egui::RichText::new("The MIT License").size(12.));
+                ui.label(
+                    r"
+Copyright (C) 2025 Ross Younger
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+            ",
+                );
+            })
+            .should_close()
+        {
+            self.show_license = false;
+        }
     }
 }
