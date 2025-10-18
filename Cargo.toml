@@ -38,8 +38,9 @@ git = "https://github.com/Rust-GPU/rust-gpu"
 rev = "df1628a032d22c864397417c2871b74d602af986"
 
 [workspace.dependencies.easy-shader-runner]
-git = "https://github.com/abel465/easy-shader-runner"
-rev = "8f323c451c3a05d592ba6b2eba4f40bf117c2991"
+git = "https://github.com/crazyscot/easy-shader-runner"
+rev = "b7ecdda62d803568f8964e19aaa971ea1c8ed09d"
+# path = "../easy-shader-runner/easy-shader-runner" # Used when working on e-s-r
 default-features = false
 
 [workspace.lints.rust]
