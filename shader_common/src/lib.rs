@@ -1,4 +1,6 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
+#![cfg_attr(coverage_nightly, feature(coverage_attribute))]
+
 pub use abels_complex as complex;
 
 use glam::{UVec2, Vec2, uvec2};
@@ -112,6 +114,16 @@ impl From<i32> for PushExponent {
     }
 }
 
+impl From<f32> for PushExponent {
+    fn from(f: f32) -> Self {
+        Self {
+            typ: NumericType::Float,
+            int: 0,
+            float: f,
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     not(target_arch = "spirv"),
@@ -173,5 +185,18 @@ impl core::ops::AddAssign<i32> for Colourer {
     fn add_assign(&mut self, delta: i32) {
         let t = *self + delta;
         *self = t;
+    }
+}
+
+#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg_attr(coverage_nightly, coverage(off))]
+mod tests {
+    use pretty_assertions::assert_eq;
+    #[test]
+    fn increment() {
+        use super::Colourer;
+        let mut c = Colourer::LogRainbow;
+        c += 1;
+        assert_eq!(c, Colourer::SqrtRainbow);
     }
 }

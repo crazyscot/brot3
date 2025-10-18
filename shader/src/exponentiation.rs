@@ -33,3 +33,44 @@ impl Exponentiator for ExpFloat {
         z.powf(self.0).to_rectangular()
     }
 }
+
+#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg_attr(coverage_nightly, coverage(off))]
+mod tests {
+    use super::{Complex, Exp2, ExpFloat, ExpIntN, Exponentiator};
+    use assert_float_eq::assert_float_absolute_eq;
+    use pretty_assertions::assert_eq;
+
+    macro_rules! assert_complex_ulps_eq {
+        ($a:expr, $b:expr) => {
+            assert_float_absolute_eq!($a.re, $b.re);
+            assert_float_absolute_eq!($a.im, $b.im);
+        };
+    }
+
+    #[test]
+    fn two() {
+        let e2 = Exp2;
+        let ei = ExpIntN(2);
+        let ef = ExpFloat(2.0);
+
+        // known answers, a basic sanity check that Complex and Exponentiator work
+        let input = Complex::new(10., 0.);
+        let expected = Complex::new(100., 0.);
+        assert_eq!(e2.apply_to(input), expected);
+        assert_eq!(ei.apply_to(input), expected);
+        assert_eq!(ef.apply_to(input), expected);
+
+        let input = Complex::new(2., 2.);
+        let expected = Complex::new(0., 8.);
+        assert_eq!(e2.apply_to(input), expected);
+        assert_complex_ulps_eq!(ei.apply_to(input), expected);
+        assert_complex_ulps_eq!(ef.apply_to(input), expected);
+
+        let input = Complex::new(0., 1.);
+        let expected = Complex::new(-1., 0.);
+        assert_eq!(e2.apply_to(input), expected);
+        assert_complex_ulps_eq!(ei.apply_to(input), expected);
+        assert_complex_ulps_eq!(ef.apply_to(input), expected);
+    }
+}

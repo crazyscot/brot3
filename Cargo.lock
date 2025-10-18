@@ -149,15 +149,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "approx"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
 name = "ar"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -209,6 +200,12 @@ checksum = "0bb44936d800fea8f016d7f2311c6a4f97aebd5dc86f09906139ec848cf3a46f"
 dependencies = [
  "libloading",
 ]
+
+[[package]]
+name = "assert_float_eq"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd9777fd8234cccd34019d9e26d70c8247f9baf24c8fdc0b56c548cf943af2ed"
 
 [[package]]
 name = "atomic-waker"
@@ -3054,7 +3051,7 @@ dependencies = [
 name = "shader"
 version = "3.0.0-wip"
 dependencies = [
- "approx",
+ "assert_float_eq",
  "divan",
  "pretty_assertions",
  "shader_common",
@@ -3079,6 +3076,7 @@ dependencies = [
  "glam",
  "num-derive",
  "num-traits",
+ "pretty_assertions",
  "shader_util",
  "spirv-std",
  "strum",

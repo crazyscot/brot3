@@ -33,7 +33,7 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 ] }
 
 [dev-dependencies]
-approx = { version = "0.5.1", default-features = false }
+assert_float_eq = "1.2.0"
 divan = "0.1.21"
-pretty_assertions = "1.4.1"
+pretty_assertions = { workspace = true }
 strum = { version = "0.27.2", default-features = false }
