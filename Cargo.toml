@@ -26,20 +26,20 @@ debug = true
 
 [workspace.dependencies]
 bytemuck = { version = "1.24.0", default-features = false }
-glam = { version = "=0.30.7", default-features = false }
+glam = { version = "=0.30.8", default-features = false }
 #png = "0.18.0"
 
 [workspace.dependencies.spirv-std]
 git = "https://github.com/Rust-GPU/rust-gpu"
-rev = "df1628a032d22c864397417c2871b74d602af986"
+rev = "2aa4d4f8a8ba73103501562cfca17b8163e5a887"
 
 [workspace.dependencies.spirv-builder]
 git = "https://github.com/Rust-GPU/rust-gpu"
-rev = "df1628a032d22c864397417c2871b74d602af986"
+rev = "2aa4d4f8a8ba73103501562cfca17b8163e5a887"
 
 [workspace.dependencies.easy-shader-runner]
 git = "https://github.com/crazyscot/easy-shader-runner"
-rev = "b7ecdda62d803568f8964e19aaa971ea1c8ed09d"
+rev = "282276f6ed8fb506d8431c734bbb53bbfa964b6c"
 # path = "../easy-shader-runner/easy-shader-runner" # Used when working on e-s-r
 default-features = false
 

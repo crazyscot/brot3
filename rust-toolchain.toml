@@ -2,6 +2,6 @@
 # We have added rust-analyzer
 
 [toolchain]
-channel = "nightly-2025-06-23"
+channel = "nightly-2025-06-30"
 components = ["rust-src", "rustc-dev", "llvm-tools", "rust-analyzer"]
 # commit_hash = be19eda0dc4c22c5cf5f1b48fd163acf9bd4b0a6
