@@ -24,6 +24,14 @@ fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
     }
 }
 
+#[allow(dead_code)]
+fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
+    match std::fs::metadata(path) {
+        Ok(m) => m.is_file(),
+        Err(_) => false,
+    }
+}
+
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub fn main() -> anyhow::Result<()> {
     easy_shader_runner::setup_logging();
@@ -77,8 +85,12 @@ pub fn main() -> anyhow::Result<()> {
                     }
                 }
             }
+            if let Some(ref tp) = args.spirv_tools
+                && !is_file(tp) {
+                    anyhow::bail!("SPIRV tools {tp:?} not found");
+                }
             if let Some(path) = shader_path {
-                easy_shader_runner::run_with_runtime_compilation_2(controller, path, TITLE, relative_to_manifest)?;
+                easy_shader_runner::run_with_runtime_compilation_2(controller, path, TITLE, relative_to_manifest, args.spirv_tools)?;
             } else {
                 log::info!("Shader source directory not found, running with prebuilt shader");
                 easy_shader_runner::run_with_prebuilt_shader_2(controller, include_bytes!(env!("shader.spv")), TITLE)?;

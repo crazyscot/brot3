@@ -39,7 +39,7 @@ rev = "2aa4d4f8a8ba73103501562cfca17b8163e5a887"
 
 [workspace.dependencies.easy-shader-runner]
 git = "https://github.com/crazyscot/easy-shader-runner"
-rev = "f0ff4abcd25a75ad65d01776212478c8e6195c92"
+rev = "6bf349e29b25bb8b20fdb4f4b4c32de1fe5387a4"
 # path = "../easy-shader-runner/easy-shader-runner" # Used when working on e-s-r
 default-features = false
 
