@@ -27,19 +27,20 @@ runtime-compilation = ["easy-shader-runner/runtime-compilation"]
 hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 
 [dependencies]
-cfg-if = "1.0.4"
+anyhow = "1.0.100"
 bytemuck = { workspace = true }
+cfg-if = "1.0.4"
+clap = { version = "4.5.49", features = ["derive"] }
+egui_extras = { version = "0.33", features = ["image"] }
+env_logger = "0.11.8"
 glam = { workspace = true }
+image = { version = "0.25.8", features = ["png"], default-features = false }
+log = "0.4.28"
+num-traits = { version = "0.2.19", default-features = false }
 shader_common = { path = "../shader_common" }
 shader_util = { path = "../shader_util" }
 strum = { version = "0.27.2", default-features = false, features = ["std"] }
 web-time = "1.1.0"
-num-traits = { version = "0.2.19", default-features = false }
-egui_extras = { version = "0.33", features = ["image"] }
-image = { version = "0.25.8", features = ["png"], default-features = false }
-clap = { version = "4.5.49", features = ["derive"] }
-log = "0.4.28"
-env_logger = "0.11.8"
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
 easy-shader-runner = { workspace = true, default-features = false }

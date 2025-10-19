@@ -149,6 +149,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.100"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
+
+[[package]]
 name = "ar"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -268,6 +274,7 @@ dependencies = [
 name = "brot3-ui"
 version = "3.0.0-wip"
 dependencies = [
+ "anyhow",
  "built",
  "bytemuck",
  "cfg-if",
@@ -843,7 +850,6 @@ checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 [[package]]
 name = "easy-shader-runner"
 version = "0.0.0"
-source = "git+https://github.com/crazyscot/easy-shader-runner?rev=be57cca42d3b3de426db3fb83f660526edc837ac#be57cca42d3b3de426db3fb83f660526edc837ac"
 dependencies = [
  "bytemuck",
  "cfg-if",
@@ -858,6 +864,7 @@ dependencies = [
  "js-sys",
  "log",
  "spirv-builder",
+ "thiserror 2.0.17",
  "wasm-bindgen-futures",
  "web-sys",
  "web-time",

@@ -3,10 +3,6 @@
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
-use clap::Parser;
-use std::path::PathBuf;
-use std::process::ExitCode;
-
 mod cli;
 mod controller;
 
@@ -20,12 +16,6 @@ pub(crate) struct Options {}
 
 const TITLE: &str = "brot3";
 
-// CAUTION: Hard-wired paths
-/// The relative path to the shader crate, from the ui3 crate
-const SHADER_RELATIVE_PATH: &str = "../shader";
-/// Where to look for the shader at runtime, if we're not running under cargo and no path was given
-const CANDIDATE_SHADER_PATHS: &[&str] = &["../shader", "./shader"];
-
 #[allow(dead_code)]
 fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
     match std::fs::metadata(path) {
@@ -35,8 +25,7 @@ fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-#[must_use]
-pub fn main() -> ExitCode {
+pub fn main() -> anyhow::Result<()> {
     easy_shader_runner::setup_logging();
 
     let controller = controller::Controller::new(&Options {});
@@ -45,6 +34,15 @@ pub fn main() -> ExitCode {
             any(feature = "hot-reload-shader", feature = "runtime-compilation"),
             not(target_arch = "wasm32")
         ))] {
+            use clap::Parser;
+            use std::path::PathBuf;
+
+            // CAUTION: Hard-wired paths
+            /// The relative path to the shader crate, from the ui3 crate
+            const SHADER_RELATIVE_PATH: &str = "../shader";
+            /// Where to look for the shader at runtime, if we're not running under cargo and no path was given
+            const CANDIDATE_SHADER_PATHS: &[&str] = &["../shader", "./shader"];
+
             let args = cli::Args::parse();
             let manifest = std::env::var("CARGO_MANIFEST_DIR");
             let relative_to_manifest = manifest.is_ok();
@@ -54,14 +52,12 @@ pub fn main() -> ExitCode {
             if let Ok(mp) = manifest {
                 // We're running under cargo
                 if args.shader.is_some() {
-                    log::error!("Shader directory cannot be specified when CARGO_MANIFEST_DIR is set");
-                    return ExitCode::FAILURE;
+                    anyhow::bail!("Shader directory cannot be specified when CARGO_MANIFEST_DIR is set");
                 }
                 let mut pb = PathBuf::from(&mp);
                 pb.push(SHADER_RELATIVE_PATH);
                 if !is_directory(&pb) {
-                    log::error!("Missing shader directory in CARGO_MANIFEST_DIR mode (manifest={mp}, shader={SHADER_RELATIVE_PATH})");
-                    return ExitCode::FAILURE;
+                    anyhow::bail!("Missing shader directory in CARGO_MANIFEST_DIR mode (manifest={mp}, shader={SHADER_RELATIVE_PATH})");
                 }
                 shader_path = Some(SHADER_RELATIVE_PATH.to_owned());
             } else {
@@ -69,8 +65,7 @@ pub fn main() -> ExitCode {
                 if let Some(path) = args.shader.as_ref() {
                     if !is_directory(path) {
                         // If given, an explicit shader directory must be present
-                        log::error!("Shader directory {path:?} not found");
-                        return ExitCode::FAILURE;
+                        anyhow::bail!("Shader directory {path:?} not found");
                     }
                     shader_path = args.shader;
                 } else {
@@ -83,15 +78,15 @@ pub fn main() -> ExitCode {
                 }
             }
             if let Some(path) = shader_path {
-                easy_shader_runner::run_with_runtime_compilation_2(controller, path, TITLE, relative_to_manifest);
+                easy_shader_runner::run_with_runtime_compilation_2(controller, path, TITLE, relative_to_manifest)?;
             } else {
                 log::info!("Shader source directory not found, running with prebuilt shader");
-                easy_shader_runner::run_with_prebuilt_shader(controller, include_bytes!(env!("shader.spv")), TITLE);
+                easy_shader_runner::run_with_prebuilt_shader_2(controller, include_bytes!(env!("shader.spv")), TITLE)?;
             }
         } else {
             // Runtime compilation disabled by feature flag
-            easy_shader_runner::run_with_prebuilt_shader(controller, include_bytes!(env!("shader.spv")), TITLE);
+            easy_shader_runner::run_with_prebuilt_shader_2(controller, include_bytes!(env!("shader.spv")), TITLE)?;
         }
     }
-    ExitCode::SUCCESS
+    Ok(())
 }
