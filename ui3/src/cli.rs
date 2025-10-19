@@ -30,4 +30,12 @@ pub(crate) struct Args {
     /// This is only required when the tools library is not on your shared library/DLL search path.
     /// It works best with absolute paths.
     pub spirv_tools: Option<PathBuf>,
+
+    #[cfg(all(
+        any(feature = "hot-reload-shader", feature = "runtime-compilation"),
+        not(target_arch = "wasm32")
+    ))]
+    #[arg(long)]
+    /// Disables runtime shader compilation and uses the built-in shader.
+    pub static_shader: bool,
 }

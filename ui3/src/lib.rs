@@ -49,7 +49,7 @@ pub fn main() -> anyhow::Result<()> {
             /// The relative path to the shader crate, from the ui3 crate
             const SHADER_RELATIVE_PATH: &str = "../shader";
             /// Where to look for the shader at runtime, if we're not running under cargo and no path was given
-            const CANDIDATE_SHADER_PATHS: &[&str] = &["../shader", "./shader"];
+            const CANDIDATE_SHADER_PATHS: &[&str] = &["./shader", "../shader"];
 
             let args = cli::Args::parse();
             let manifest = std::env::var("CARGO_MANIFEST_DIR");
@@ -76,12 +76,15 @@ pub fn main() -> anyhow::Result<()> {
                         anyhow::bail!("Shader directory {path:?} not found");
                     }
                     shader_path = args.shader;
-                } else {
+                } else if !args.static_shader {
                     for p in CANDIDATE_SHADER_PATHS {
                         if is_directory(p) {
                             shader_path = Some(p.to_string());
                             break;
                         }
+                    }
+                    if shader_path.is_none() {
+                        log::info!("Shader source directory not found, running with prebuilt shader");
                     }
                 }
             }
@@ -89,10 +92,18 @@ pub fn main() -> anyhow::Result<()> {
                 && !is_file(tp) {
                     anyhow::bail!("SPIRV tools {tp:?} not found");
                 }
-            if let Some(path) = shader_path {
+            if let Some(path) = shader_path && !args.static_shader {
+                let hook = std::panic::take_hook();
+                std::panic::set_hook(Box::new(move |e| {
+                    let msg = e.to_string();
+                    if msg.contains("Could not find") && msg.contains("in library path") {
+                        eprintln!("Error: {e}\nEither set your library path appropriately, or specify the path to the library with --spirv-tools <PATH>, or use --static-shader");
+                    } else {
+                        hook(e);
+                    }
+                }));
                 easy_shader_runner::run_with_runtime_compilation_2(controller, path, TITLE, relative_to_manifest, args.spirv_tools)?;
             } else {
-                log::info!("Shader source directory not found, running with prebuilt shader");
                 easy_shader_runner::run_with_prebuilt_shader_2(controller, include_bytes!(env!("shader.spv")), TITLE)?;
             }
         } else {
