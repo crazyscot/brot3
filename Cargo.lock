@@ -271,10 +271,13 @@ dependencies = [
  "built",
  "bytemuck",
  "cfg-if",
+ "clap",
  "easy-shader-runner",
  "egui_extras",
+ "env_logger",
  "glam",
  "image",
+ "log",
  "num-traits",
  "shader_common",
  "shader_util",
@@ -442,6 +445,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4512b90fa68d3a9932cea5184017c5d200f5921df706d45e853537dea51508f"
 dependencies = [
  "clap_builder",
+ "clap_derive",
 ]
 
 [[package]]
@@ -450,9 +454,23 @@ version = "4.5.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0025e98baa12e766c67ba13ff4695a887a1eba19569aad00a472546795bd6730"
 dependencies = [
+ "anstream",
  "anstyle",
  "clap_lex",
+ "strsim",
  "terminal_size",
+]
+
+[[package]]
+name = "clap_derive"
+version = "4.5.49"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a0b5487afeab2deb2ff4e03a807ad1a03ac532ff5a2cee5d86884440c7f7671"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -825,7 +843,7 @@ checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 [[package]]
 name = "easy-shader-runner"
 version = "0.0.0"
-source = "git+https://github.com/crazyscot/easy-shader-runner?rev=282276f6ed8fb506d8431c734bbb53bbfa964b6c#282276f6ed8fb506d8431c734bbb53bbfa964b6c"
+source = "git+https://github.com/crazyscot/easy-shader-runner?rev=be57cca42d3b3de426db3fb83f660526edc837ac#be57cca42d3b3de426db3fb83f660526edc837ac"
 dependencies = [
  "bytemuck",
  "cfg-if",
@@ -3306,6 +3324,12 @@ name = "strict-num"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6637bab7722d379c8b41ba849228d680cc12d0a45ba1fa2b48f2a30577a06731"
+
+[[package]]
+name = "strsim"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "strum"

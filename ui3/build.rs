@@ -10,14 +10,8 @@ fn main() {
     // CAUTION: Hard-wired path !
     println!("cargo:rerun-if-changed=../shader/");
     println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
-    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-    if cfg!(any(
-        feature = "runtime-compilation",
-        feature = "hot-reload-shader"
-    )) && target_arch != "wasm32"
-    {
-        return;
-    }
+    // Unconditionally build the shader so we have it around as a fallback.
+
     // While OUT_DIR is set for both build.rs and compiling the crate, PROFILE is only set in
     // build.rs. So, export it to crate compilation as well.
     let profile = env::var("PROFILE").unwrap();
