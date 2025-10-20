@@ -4,7 +4,7 @@
 #[cfg(we_compile)]
 use std::path::PathBuf;
 
-use shader_common::Colourer;
+use shader_common::{Algorithm, Colourer};
 
 #[derive(Debug, clap::Parser, Clone, Default)]
 pub(crate) struct Args {
@@ -36,6 +36,16 @@ pub(crate) struct Args {
     /// Starts up with the UI hidden (press F2 to show it)
     #[arg(long)]
     pub no_ui: bool,
+
+    /// Selects the initial fractal algorithm to use
+    #[arg(
+        short = 'F',
+        long,
+        alias = "fractal",
+        value_name = "NAME",
+        default_value = "mandelbrot"
+    )]
+    pub fractal: Algorithm,
 
     /// Selects the initial colouring algorithm to use
     #[arg(

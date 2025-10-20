@@ -54,7 +54,7 @@ impl Controller {
             viewport_zoom: 0.25,
             movement: Movement::default(),
 
-            algorithm: Algorithm::default(),
+            algorithm: options.fractal,
             max_iter: 100,
             palette: Palette::default_with(options.colourer),
             exponent: Exponent::default(),

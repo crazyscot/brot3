@@ -56,6 +56,7 @@ impl super::Controller {
                         row!("K L", "Lightness");
                         row!("F1", "Keyboard help");
                         row!("F2", "Show/hide UI");
+                        row!("F3 F4", "Fractal");
                         row!("F5 F6", "Palette");
                         row!("F11", "Fullscreen");
                         // F12 will be Save As PNG
@@ -103,6 +104,12 @@ impl super::Controller {
             }
             Key::Named(NamedKey::F2) if pressed => {
                 self.show_ui = !self.show_ui;
+            }
+            Key::Named(NamedKey::F3) if pressed => {
+                self.fractal(false);
+            }
+            Key::Named(NamedKey::F4) if pressed => {
+                self.fractal(true);
             }
             Key::Named(NamedKey::F5) if pressed => {
                 self.palette(false);
@@ -166,6 +173,12 @@ impl super::Controller {
         } else {
             minimax(&mut self.movement.exponent, 0., 0., increase);
         }
+    }
+
+    fn fractal(&mut self, increment: bool) {
+        let delta = if increment { 1 } else { -1 };
+        self.algorithm += delta;
+        self.reiterate = true;
     }
 
     fn palette(&mut self, increment: bool) {

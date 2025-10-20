@@ -137,6 +137,7 @@ impl From<f32> for PushExponent {
     not(target_arch = "spirv"),
     derive(
         NoUninit,
+        clap::ValueEnum,
         strum::EnumIter,
         strum::IntoStaticStr,
         strum::VariantArray,
