@@ -30,4 +30,8 @@ pub(crate) struct Args {
     /// Causes the UI window to start up in fullscreen
     #[arg(long)]
     pub fullscreen: bool,
+
+    /// Starts up with the UI hidden (press F2 to show it)
+    #[arg(long)]
+    pub no_ui: bool,
 }

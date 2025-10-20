@@ -64,7 +64,7 @@ impl Controller {
             show_scale_bar: true,
             show_fps: false,
             vsync: true,
-            show_ui: true,
+            show_ui: !options.no_ui,
             keyboard_help: false,
             show_about: false,
             show_license: false,

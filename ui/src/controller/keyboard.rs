@@ -55,9 +55,10 @@ impl super::Controller {
                         row!("N M", "Gamma");
                         row!("I O", "Saturation");
                         row!("K L", "Lightness");
-                        row!("T", "Toggle UI");
                         row!("F1", "Keyboard help");
+                        row!("F2", "Show/hide UI");
                         row!("F11", "Fullscreen");
+                        // F12 will be Save As PNG
                         row!("^Q | Esc", "Quit");
                     });
             });
@@ -102,6 +103,11 @@ impl super::Controller {
                     self.keyboard_help = !self.keyboard_help;
                 }
             }
+            Key::Named(NamedKey::F2) => {
+                if pressed {
+                    self.show_ui = !self.show_ui;
+                }
+            }
             Key::Named(NamedKey::F11) => {
                 if pressed {
                     self.fullscreen_requested = !self.fullscreen_requested;
@@ -120,7 +126,6 @@ impl super::Controller {
                     // SOMEDAY: It would be tidier to call event_loop.exit().
                     // Expose this in easy-shader-runner, or add a new CustomEvent
                     // and expose an EventLoopProxy.
-                    't' if pressed => self.show_ui = !self.show_ui,
                     '[' | ']' if pressed => self.palette(c == ']'),
                     'y' | 'u' => self.gradient(c == 'u', pressed),
                     'h' | 'j' => self.offset(c == 'j', pressed),
