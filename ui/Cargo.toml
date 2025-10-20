@@ -54,3 +54,39 @@ easy-shader-runner = { workspace = true, default-features = false, features = [
 [build-dependencies]
 built = { version = "0.8", features = ["git2"] }
 cfg_aliases = "0.2.1"
+
+[package.metadata.deb]
+name = "brot3"
+default-features = false # no runtime compilation
+section = "mathematics"
+extended-description = """\
+An interactive fractal explorer that uses the GPU.
+"""
+assets = [
+  [
+    "target/release/brot3",
+    "usr/bin/",
+    "755",
+  ],
+
+  [
+    "../README.md",
+    "usr/share/doc/brot3/",
+    "644",
+  ],
+  [
+    "../LICENSE",
+    "usr/share/doc/brot3/",
+    "644",
+  ],
+  [
+    "../icons/128x128@2x.png",
+    "usr/share/icons/brot3.png",
+    "644",
+  ],
+  [
+    "misc/brot3.desktop",
+    "usr/share/applications/",
+    "644",
+  ],
+]

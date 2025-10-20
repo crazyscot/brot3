@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=brot3
+Comment=Interactive fractal explorer
+Exec=/usr/bin/brot3
+Icon=brot3
+Terminal=false
+Type=Application
+Encoding=UTF-8
+Categories=Mathematics;Application;
