@@ -3101,6 +3101,7 @@ version = "3.0.0-wip"
 dependencies = [
  "abels-complex",
  "bytemuck",
+ "clap",
  "glam",
  "num-derive",
  "num-traits",

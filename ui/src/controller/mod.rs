@@ -56,7 +56,7 @@ impl Controller {
 
             algorithm: Algorithm::default(),
             max_iter: 100,
-            palette: Palette::default(),
+            palette: Palette::default_with(options.colourer),
             exponent: Exponent::default(),
             fractional_iters: true,
 

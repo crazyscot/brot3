@@ -20,6 +20,7 @@ abels-complex = { version = "0.2.0", default-features = false, features = ["libm
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 abels-complex = { version = "0.2.0", default-features = false, features = ["std", "glam"] }
 bytemuck = { workspace = true, features = ["derive"] }
+clap = { workspace = true, features = ["derive"] }
 glam = { workspace = true, features = ["bytemuck"] }
 num-derive = "0.4.2"
 num-traits = { version = "0.2.19", default-features = false }

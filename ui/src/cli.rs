@@ -4,6 +4,8 @@
 #[cfg(we_compile)]
 use std::path::PathBuf;
 
+use shader_common::Colourer;
+
 #[derive(Debug, clap::Parser, Clone, Default)]
 pub(crate) struct Args {
     #[cfg(we_compile)]
@@ -34,4 +36,14 @@ pub(crate) struct Args {
     /// Starts up with the UI hidden (press F2 to show it)
     #[arg(long)]
     pub no_ui: bool,
+
+    /// Selects the initial colouring algorithm to use
+    #[arg(
+        short = 'C',
+        long,
+        alias = "colorer",
+        value_name = "NAME",
+        default_value = "log-rainbow"
+    )]
+    pub colourer: Colourer,
 }

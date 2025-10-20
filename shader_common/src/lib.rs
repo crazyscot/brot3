@@ -52,6 +52,14 @@ impl Default for Palette {
         }
     }
 }
+impl Palette {
+    pub fn default_with(colourer: Colourer) -> Self {
+        Self {
+            colourer,
+            ..Default::default()
+        }
+    }
+}
 
 #[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
@@ -153,6 +161,7 @@ pub enum Algorithm {
     not(target_arch = "spirv"),
     derive(
         NoUninit,
+        clap::ValueEnum,
         strum::EnumIter,
         strum::IntoStaticStr,
         strum::VariantArray,
