@@ -49,7 +49,6 @@ impl super::Controller {
                         row!("⬆⬇⬅➡", "Move");
                         row!("Z X", "Zoom");
                         row!("E R", "Exponent");
-                        row!("[ ]", "Palette");
                         row!("Y U", "Gradient");
                         row!("H J", "Offset");
                         row!("N M", "Gamma");
@@ -57,6 +56,7 @@ impl super::Controller {
                         row!("K L", "Lightness");
                         row!("F1", "Keyboard help");
                         row!("F2", "Show/hide UI");
+                        row!("F5 F6", "Palette");
                         row!("F11", "Fullscreen");
                         // F12 will be Save As PNG
                         row!("^Q | Esc", "Quit");
@@ -98,21 +98,22 @@ impl super::Controller {
                     self.movement.translate.y = self.movement.translate.y.min(0.0);
                 }
             }
-            Key::Named(NamedKey::F1) => {
-                if pressed {
-                    self.keyboard_help = !self.keyboard_help;
-                }
+            Key::Named(NamedKey::F1) if pressed => {
+                self.keyboard_help = !self.keyboard_help;
             }
-            Key::Named(NamedKey::F2) => {
-                if pressed {
-                    self.show_ui = !self.show_ui;
-                }
+            Key::Named(NamedKey::F2) if pressed => {
+                self.show_ui = !self.show_ui;
             }
-            Key::Named(NamedKey::F11) => {
-                if pressed {
-                    self.fullscreen_requested = !self.fullscreen_requested;
-                }
+            Key::Named(NamedKey::F5) if pressed => {
+                self.palette(false);
             }
+            Key::Named(NamedKey::F6) if pressed => {
+                self.palette(true);
+            }
+            Key::Named(NamedKey::F11) if pressed => {
+                self.fullscreen_requested = !self.fullscreen_requested;
+            }
+
             Key::Character(c) => {
                 let c = match c.chars().next() {
                     Some(ch) => ch,
@@ -126,7 +127,6 @@ impl super::Controller {
                     // SOMEDAY: It would be tidier to call event_loop.exit().
                     // Expose this in easy-shader-runner, or add a new CustomEvent
                     // and expose an EventLoopProxy.
-                    '[' | ']' if pressed => self.palette(c == ']'),
                     'y' | 'u' => self.gradient(c == 'u', pressed),
                     'h' | 'j' => self.offset(c == 'j', pressed),
                     'n' | 'm' => self.gamma(c == 'm', pressed),
