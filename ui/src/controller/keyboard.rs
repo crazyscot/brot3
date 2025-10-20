@@ -56,6 +56,7 @@ impl super::Controller {
                         row!("I O", "Saturation");
                         row!("K L", "Lightness");
                         row!("T", "Toggle UI");
+                        row!("F1", "Keyboard help");
                         row!("F11", "Fullscreen");
                         row!("^Q | Esc", "Quit");
                     });
@@ -94,6 +95,11 @@ impl super::Controller {
                     self.movement.translate.y = MOVE_SPEED;
                 } else {
                     self.movement.translate.y = self.movement.translate.y.min(0.0);
+                }
+            }
+            Key::Named(NamedKey::F1) => {
+                if pressed {
+                    self.keyboard_help = !self.keyboard_help;
                 }
             }
             Key::Named(NamedKey::F11) => {
