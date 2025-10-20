@@ -11,7 +11,7 @@ pub(crate) struct Args {
     /// Specifies the path to the shader directory.
     ///
     /// This is only allowed when run standalone (not via `cargo run`).
-    pub shader: Option<String>,
+    pub shader: Option<PathBuf>,
 
     #[cfg(we_compile)]
     #[arg(long)]

@@ -44,7 +44,7 @@ pub fn main() -> anyhow::Result<()> {
 
             // CAUTION: Hard-wired paths
             /// The relative path to the shader crate, from the ui3 crate
-            const SHADER_RELATIVE_PATH: &str = "../shader";
+            const CARGO_SHADER_RELATIVE_PATH: &str = "../shader";
             /// Where to look for the shader at runtime, if we're not running under cargo and no path was given
             const CANDIDATE_SHADER_PATHS: &[&str] = &["./shader", "../shader"];
 
@@ -60,11 +60,11 @@ pub fn main() -> anyhow::Result<()> {
                     anyhow::bail!("Shader directory cannot be specified when CARGO_MANIFEST_DIR is set");
                 }
                 let mut pb = PathBuf::from(&mp);
-                pb.push(SHADER_RELATIVE_PATH);
+                pb.push(CARGO_SHADER_RELATIVE_PATH);
                 if !is_directory(&pb) {
-                    anyhow::bail!("Missing shader directory in CARGO_MANIFEST_DIR mode (manifest={mp}, shader={SHADER_RELATIVE_PATH})");
+                    anyhow::bail!("Missing shader directory in CARGO_MANIFEST_DIR mode (manifest={mp}, shader={CARGO_SHADER_RELATIVE_PATH})");
                 }
-                shader_path = Some(SHADER_RELATIVE_PATH.to_owned());
+                shader_path = Some(PathBuf::from(CARGO_SHADER_RELATIVE_PATH));
             } else {
                 // We're not running under cargo
                 if let Some(path) = args.shader.as_ref() {
@@ -76,7 +76,7 @@ pub fn main() -> anyhow::Result<()> {
                 } else if !args.static_shader {
                     for p in CANDIDATE_SHADER_PATHS {
                         if is_directory(p) {
-                            shader_path = Some(p.to_string());
+                            shader_path = Some(PathBuf::from(p));
                             break;
                         }
                     }
