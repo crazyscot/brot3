@@ -272,7 +272,7 @@ dependencies = [
 
 [[package]]
 name = "brot3-ui"
-version = "3.0.0-wip"
+version = "3.0.0"
 dependencies = [
  "anyhow",
  "built",
@@ -3136,7 +3136,7 @@ dependencies = [
 
 [[package]]
 name = "shader"
-version = "3.0.0-wip"
+version = "3.0.0"
 dependencies = [
  "assert_float_eq",
  "divan",
@@ -3149,7 +3149,7 @@ dependencies = [
 
 [[package]]
 name = "shader_builder"
-version = "3.0.0-wip"
+version = "3.0.0"
 dependencies = [
  "anyhow",
  "spirv-builder",
@@ -3157,7 +3157,7 @@ dependencies = [
 
 [[package]]
 name = "shader_common"
-version = "3.0.0-wip"
+version = "3.0.0"
 dependencies = [
  "abels-complex",
  "bytemuck",

@@ -5,7 +5,7 @@ resolver = "2"
 [workspace.package]
 edition = "2024"
 authors = ["Ross Younger <crazyscot@gmail.com>"]
-version = "3.0.0-wip"
+version = "3.0.0"
 license = "MIT"
 repository = "https://github.com/crazyscot/brot3/"
 keywords = ["fractal", "mandelbrot"]
