@@ -43,7 +43,7 @@ pub fn main() -> anyhow::Result<()> {
             use std::path::PathBuf;
 
             // CAUTION: Hard-wired paths
-            /// The relative path to the shader crate, from the ui3 crate
+            /// The relative path to the shader crate, from the point of view of the ui crate
             const CARGO_SHADER_RELATIVE_PATH: &str = "../shader";
             /// Where to look for the shader at runtime, if we're not running under cargo and no path was given
             const CANDIDATE_SHADER_PATHS: &[&str] = &["./shader", "../shader"];
