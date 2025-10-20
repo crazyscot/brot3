@@ -278,6 +278,7 @@ dependencies = [
  "built",
  "bytemuck",
  "cfg-if",
+ "cfg_aliases",
  "clap",
  "easy-shader-runner",
  "egui_extras",

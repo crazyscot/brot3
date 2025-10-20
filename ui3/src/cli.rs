@@ -1,28 +1,19 @@
 //! Command line argument definitions
 // (c) 2025 Ross Younger
 
-#[cfg(all(
-    any(feature = "hot-reload-shader", feature = "runtime-compilation"),
-    not(target_arch = "wasm32")
-))]
+#[cfg(we_compile)]
 use std::path::PathBuf;
 
 #[derive(Debug, clap::Parser, Clone, Default)]
 pub(crate) struct Args {
-    #[cfg(all(
-        any(feature = "hot-reload-shader", feature = "runtime-compilation"),
-        not(target_arch = "wasm32")
-    ))]
+    #[cfg(we_compile)]
     #[arg(long)]
     /// Specifies the path to the shader directory.
     ///
     /// This is only allowed when run standalone (not via `cargo run`).
     pub shader: Option<String>,
 
-    #[cfg(all(
-        any(feature = "hot-reload-shader", feature = "runtime-compilation"),
-        not(target_arch = "wasm32")
-    ))]
+    #[cfg(we_compile)]
     #[arg(long)]
     /// Specifies the path to the the SPIRV tools library, if needed
     /// (librustc_codegen_spirv.so, librustc_codegen_spirv.dylib, rustc_codegen_spirv.dll)
@@ -31,10 +22,7 @@ pub(crate) struct Args {
     /// It works best with absolute paths.
     pub spirv_tools: Option<PathBuf>,
 
-    #[cfg(all(
-        any(feature = "hot-reload-shader", feature = "runtime-compilation"),
-        not(target_arch = "wasm32")
-    ))]
+    #[cfg(we_compile)]
     #[arg(long)]
     /// Disables runtime shader compilation and uses the built-in shader.
     pub static_shader: bool,

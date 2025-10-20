@@ -1,8 +1,18 @@
 use std::env;
 use std::path::PathBuf;
 
+use cfg_aliases::cfg_aliases;
+
 fn main() {
     built::write_built_file().expect("Failed to acquire build-time information");
+
+    cfg_aliases! {
+        wasm: { target_arch = "wasm32" },
+        we_compile: { all(
+            any(feature = "hot-reload-shader", feature = "runtime-compilation"),
+            not(wasm)
+        )},
+    }
 
     println!("cargo:rerun-if-changed=build.rs");
     // CAUTION: Hard-wired path !

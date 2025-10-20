@@ -1,6 +1,6 @@
 #![allow(clippy::single_match)]
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(wasm)]
 use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
 mod cli;
@@ -16,7 +16,7 @@ pub(crate) struct Options {}
 
 const TITLE: &str = "brot3";
 
-#[allow(dead_code)]
+#[cfg(we_compile)]
 fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
     match std::fs::metadata(path) {
         Ok(m) => m.is_dir(),
@@ -24,7 +24,7 @@ fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
     }
 }
 
-#[allow(dead_code)]
+#[cfg(we_compile)]
 fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
     match std::fs::metadata(path) {
         Ok(m) => m.is_file(),
@@ -32,16 +32,13 @@ fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
+#[cfg_attr(wasm, wasm_bindgen(start))]
 pub fn main() -> anyhow::Result<()> {
     easy_shader_runner::setup_logging();
 
     let controller = controller::Controller::new(&Options {});
     cfg_if::cfg_if! {
-        if #[cfg(all(
-            any(feature = "hot-reload-shader", feature = "runtime-compilation"),
-            not(target_arch = "wasm32")
-        ))] {
+        if #[cfg(we_compile)] {
             use clap::Parser;
             use std::path::PathBuf;
 
