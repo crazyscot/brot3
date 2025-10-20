@@ -20,6 +20,7 @@ impl super::Controller {
     ) {
         egui_extras::install_image_loaders(ctx);
         ui_state.vsync = self.vsync;
+        ui_state.fullscreen = self.fullscreen_requested;
         self.apply_movement();
 
         if self.show_ui {
@@ -216,6 +217,7 @@ impl super::Controller {
                 ui.checkbox(&mut self.keyboard_help, "Keyboard help");
                 ui.checkbox(&mut self.show_fps, "Show FPS");
                 ui.checkbox(&mut self.vsync, "vsync");
+                ui.checkbox(&mut self.fullscreen_requested, "Fullscreen");
 
                 if ui.button("About").clicked() {
                     self.show_about = true;

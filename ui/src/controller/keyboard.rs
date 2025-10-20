@@ -56,6 +56,7 @@ impl super::Controller {
                         row!("I O", "Saturation");
                         row!("K L", "Lightness");
                         row!("T", "Toggle UI");
+                        row!("F11", "Fullscreen");
                         row!("^Q | Esc", "Quit");
                     });
             });
@@ -93,6 +94,11 @@ impl super::Controller {
                     self.movement.translate.y = MOVE_SPEED;
                 } else {
                     self.movement.translate.y = self.movement.translate.y.min(0.0);
+                }
+            }
+            Key::Named(NamedKey::F11) => {
+                if pressed {
+                    self.fullscreen_requested = !self.fullscreen_requested;
                 }
             }
             Key::Character(c) => {

@@ -6,13 +6,12 @@ use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 mod cli;
 mod controller;
 
+use clap::Parser;
+
 /// Build-time info (from `built`)
 pub mod build_info {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }
-
-#[derive(Clone, Copy, Default)]
-pub(crate) struct Options {}
 
 const TITLE: &str = "brot3";
 
@@ -35,11 +34,10 @@ fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
 #[cfg_attr(wasm, wasm_bindgen(start))]
 pub fn main() -> anyhow::Result<()> {
     easy_shader_runner::setup_logging();
-
-    let controller = controller::Controller::new(&Options {});
+    let args = cli::Args::parse();
+    let controller = controller::Controller::new(&args);
     cfg_if::cfg_if! {
         if #[cfg(we_compile)] {
-            use clap::Parser;
             use std::path::PathBuf;
 
             // CAUTION: Hard-wired paths
@@ -48,7 +46,6 @@ pub fn main() -> anyhow::Result<()> {
             /// Where to look for the shader at runtime, if we're not running under cargo and no path was given
             const CANDIDATE_SHADER_PATHS: &[&str] = &["./shader", "../shader"];
 
-            let args = cli::Args::parse();
             let manifest = std::env::var("CARGO_MANIFEST_DIR");
             let relative_to_manifest = manifest.is_ok();
 

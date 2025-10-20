@@ -26,4 +26,8 @@ pub(crate) struct Args {
     #[arg(long)]
     /// Disables runtime shader compilation and uses the built-in shader.
     pub static_shader: bool,
+
+    /// Causes the UI window to start up in fullscreen
+    #[arg(long)]
+    pub fullscreen: bool,
 }

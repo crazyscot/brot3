@@ -1,4 +1,4 @@
-use crate::Options;
+use crate::cli::Args;
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::*;
 use shader_common::*;
@@ -42,10 +42,11 @@ pub(crate) struct Controller {
     dragging: bool,
     ctrl_pressed: bool,
     resized: bool,
+    fullscreen_requested: bool,
 }
 
 impl Controller {
-    pub fn new(_options: &Options) -> Self {
+    pub fn new(options: &Args) -> Self {
         Self {
             size: UVec2::ZERO,
             // TODO figure out what precision is best
@@ -74,6 +75,7 @@ impl Controller {
             dragging: false,
             ctrl_pressed: false,
             resized: true,
+            fullscreen_requested: options.fullscreen,
         }
     }
 }
