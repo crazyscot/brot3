@@ -3091,6 +3091,7 @@ dependencies = [
 name = "shader_builder"
 version = "3.0.0-wip"
 dependencies = [
+ "anyhow",
  "spirv-builder",
 ]
 
