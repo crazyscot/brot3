@@ -59,6 +59,22 @@ impl Palette {
             ..Default::default()
         }
     }
+    pub const MINIMA: Palette = Palette {
+        colourer: Colourer::LogRainbow,
+        gradient: 0.1,
+        offset: -10.0,
+        saturation: 0.,
+        lightness: 0.,
+        gamma: 0.,
+    };
+    pub const MAXIMA: Palette = Palette {
+        colourer: Colourer::LogRainbow,
+        gradient: 10.,
+        offset: 10.,
+        saturation: 100.,
+        lightness: 100.,
+        gamma: 4.0,
+    };
 }
 
 #[derive(Copy, Clone, Debug, Default)]

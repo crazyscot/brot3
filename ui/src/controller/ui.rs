@@ -77,7 +77,7 @@ impl super::Controller {
             ($($id:ident), * ) => {
                 $(
                     if movement.$id != 0. {
-                        self.palette.$id += movement.$id;
+                        self.palette.$id = (self.palette.$id + movement.$id).clamp(shader_common::Palette::MINIMA.$id, shader_common::Palette::MAXIMA.$id);
                         movement.$id = 0.;
                     }
                 )*
@@ -189,22 +189,29 @@ impl super::Controller {
                 egui::CollapsingHeader::new("Palette controls")
                     .id_salt("palette-detail")
                     .show(ui, |ui| {
+                        macro_rules! palette_slider {
+                            ($($id:ident), * ) => {
+                                $(
+                                    ui.add(egui::Slider::new(&mut self.palette.$id, shader_common::Palette::MINIMA.$id ..= shader_common::Palette::MAXIMA.$id));
+                                )*
+                            };
+                        }
                         // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
                         ui.label(egui::RichText::new("Gradient"));
-                        ui.add(egui::Slider::new(&mut self.palette.gradient, 0.1..=10.));
+                        palette_slider!(gradient);
                         ui.label(egui::RichText::new("Offset"));
-                        ui.add(egui::Slider::new(&mut self.palette.offset, -10.0..=10.));
+                        palette_slider!(offset);
                         // Hide parameters when they don't apply
                         match self.palette.colourer {
                             Colourer::LogRainbow | Colourer::SqrtRainbow => {
                                 ui.label(egui::RichText::new("Saturation"));
-                                ui.add(egui::Slider::new(&mut self.palette.saturation, 0. ..=100.));
+                                palette_slider!(saturation);
                                 ui.label(egui::RichText::new("Lightness"));
-                                ui.add(egui::Slider::new(&mut self.palette.lightness, 0. ..=100.));
+                                palette_slider!(lightness);
                             }
                             Colourer::Monochrome => {
                                 ui.label(egui::RichText::new("Gamma"));
-                                ui.add(egui::Slider::new(&mut self.palette.gamma, 0.0..=4.0));
+                                palette_slider!(gamma);
                             }
                             _ => (),
                         }
