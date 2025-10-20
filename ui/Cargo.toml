@@ -80,6 +80,16 @@ assets = [
     "644",
   ],
   [
+    "../target/misc/changelog.md.gz",
+    "usr/share/doc/brot3/",
+    "644",
+  ],
+  [
+    "../target/misc/changelog.Debian.gz",
+    "usr/share/doc/brot3/",
+    "644",
+  ],
+  [
     "../icons/128x128@2x.png",
     "usr/share/icons/brot3.png",
     "644",

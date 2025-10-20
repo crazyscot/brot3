@@ -1,5 +1,5 @@
 [workspace]
-members = ["shader_common", "shader", "shader_builder", "shader_util", "ui"]
+members = ["shader_common", "shader", "shader_builder", "shader_util", "ui", "xtask"]
 resolver = "2"
 
 [workspace.package]

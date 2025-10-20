@@ -1,4 +1,23 @@
+[future-incompat-report]
+frequency = 'always'
+
+#[target.'cfg(target_os="linux")']
+# Caution! Unconditionally specifying mold breaks cargo cross on musl.
+#    (the base docker image cross uses is based on focal, which does not have a mold package)
+# So for now, we use defaults to not break CI.
+# To speed up local builds, set up your own ~/.cargo/config.toml something like this:
+#
+#   [target.'cfg(target_os="linux")']
+#   linker = "clang"
+#   rustflags = ["-C", "link-arg=--ld-path=mold"]
+#
+# You might also try wild (Linux only at the time of writing). `cargo install --locked wild-linker`
+# On Windows, lld might be worthwhile.
+
 # On Windows MSVC, statically link the C runtime so that the resulting EXE does
 # not depend on the vcruntime DLL.
-[target.'cfg(all(windows, target_env = "msvc"))']
+[target.'cfg(target_env = "msvc")']
 rustflags = ["-C", "target-feature=+crt-static"]
+
+[alias]
+xtask = "run --package xtask --"
