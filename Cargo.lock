@@ -872,7 +872,7 @@ checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 [[package]]
 name = "easy-shader-runner"
 version = "0.0.0"
-source = "git+https://github.com/crazyscot/easy-shader-runner?rev=5f85f2d6727940b857015ff5b7098cb084a017ba#5f85f2d6727940b857015ff5b7098cb084a017ba"
+source = "git+https://github.com/crazyscot/easy-shader-runner?rev=db8904d1f96fd375c14e866d1f8eedb10fc57339#db8904d1f96fd375c14e866d1f8eedb10fc57339"
 dependencies = [
  "bytemuck",
  "cfg-if",

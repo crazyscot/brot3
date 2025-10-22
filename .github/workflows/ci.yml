@@ -12,6 +12,7 @@ env:
   RUST_BACKTRACE: 1
   CARGO_INCREMENTAL: 0
   BROT3_RUST_VERSION: nightly-2025-06-30
+  # BROT3_RUST_VERSION should match in package.yml and ci.yml
 
 jobs:
   # Build the app on all supported platforms

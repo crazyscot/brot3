@@ -100,3 +100,10 @@ assets = [
     "644",
   ],
 ]
+
+[package.metadata.bundle.bin.brot3]
+name = "brot3"
+identifier = "com.crazyscot.brot3"
+icon = ["icons/*"]
+resources = ["README.md", "CHANGELOG.md", "LICENSE"]
+category = "GraphicsAndDesign"

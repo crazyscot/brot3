@@ -34,6 +34,7 @@ pub fn debian(mut cli_args: Arguments, args: &DebPackageMeta) -> Result<()> {
     } else {
         crate::util::git_short_hash()?
     };
+    let no_build = cli_args.contains("--no-build");
     let target: Option<String> = cli_args.opt_value_from_str("--target")?;
     ensure_all_args_used(cli_args)?;
     let toplevel: PathBuf = top_level()?;
@@ -63,10 +64,15 @@ pub fn debian(mut cli_args: Arguments, args: &DebPackageMeta) -> Result<()> {
             "-p",
             args.package_crate,
             "--locked",
+            "--profile",
+            "release",
             "--deb-revision",
             &revision,
         ])
         .stderr(Stdio::inherit());
+    if no_build {
+        let _ = cargo_deb.args(["--no-build"]);
+    }
     if let Some(tgt) = target {
         let _ = cargo_deb.args(["--target", &tgt]);
     }

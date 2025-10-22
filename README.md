@@ -59,3 +59,16 @@ Steps:
 - Update `release` branch to the desired release point, push it to github.
 - ✨✨ automation happens ✨✨
 - Edit and publish the draft release in Github. You may find it useful to press the button to autogenerate the release notes; `git cliff` might also yield insights.
+
+### Manual build types
+
+Debian package:
+
+- `cargo xtask debian --release`
+- _or equivalently:_
+  - `cargo build --locked --release --no-default-features`
+  - `cargo xtask debian --release --no-build`
+
+AppImage, osx, alternative Debian:
+
+- `cargo bundle -b brot3 -p brot3-ui -f <TYPE> -r --no-default-features`
