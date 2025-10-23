@@ -13,11 +13,6 @@ use pico_args::Arguments;
 
 use crate::util::{ensure_all_args_used, gzip, top_level};
 
-static DEBEMAIL: &str = "ross@crazyscot.com";
-static DEBFULLNAME: &str = "Ross Younger";
-static DISTRO: &str = "generic";
-
-#[derive(derive_more::Constructor)]
 pub struct DebPackageMeta {
     pub deb_name: &'static str,
     pub package_crate: &'static str,
@@ -114,14 +109,17 @@ fn create_dch(args: &DebPackageMeta, destdir: &Path) -> Result<()> {
     let date = chrono::Local::now().to_rfc2822();
     write!(
         outfile,
-        r"{package} ({version}) {DISTRO}; urgency=medium
+        r"{package} ({version}) {distro}; urgency=medium
 
   * New upstream release.
     See /usr/share/doc/{package}/changelog.gz for full details.
 
- -- {DEBFULLNAME} <{DEBEMAIL}>  {date}
+ -- {deb_fullname} <{deb_email}>  {date}
 ",
         package = args.deb_name,
+        deb_fullname = args.deb_fullname,
+        deb_email = args.deb_email,
+        distro = args.distro,
     )?;
     outfile.flush()?;
     println!("Wrote changelog to {}", outpath.display());

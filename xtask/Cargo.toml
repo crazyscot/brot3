@@ -9,8 +9,7 @@ publish = false
 
 [dependencies]
 anyhow = { workspace = true }
-cargo_toml = "0.22.3"
-chrono = { version = "0.4.42", default-features = false, features = ["now", "clock"] }
+chrono = { version = "0.4.42", default-features = false, features = ["clock"] }
 derive_more = { version = "2.0.1", features = ["constructor"] }
 flate2 = "1.1.2"
 pico-args = "0.5.0"

@@ -11,23 +11,20 @@ pub mod debian;
 pub mod util;
 
 use debian::DebPackageMeta;
-use std::sync::LazyLock;
+
+static DEBIAN_ARGS: DebPackageMeta = DebPackageMeta {
+    deb_name: "brot3",
+    package_crate: "brot3-ui",
+    package_dir: "ui",
+    deb_fullname: "Ross Younger",
+    deb_email: "ross@crazyscot.com",
+    distro: "generic",
+};
 
 // ---------------------------------------------------------------------------------------------
 // Task definition
 //
 // Syntax: (Command-line verb, implementing function, description for help message)
-
-static DEBIAN_ARGS: LazyLock<DebPackageMeta> = LazyLock::new(|| {
-    DebPackageMeta::new(
-        "brot3",
-        "brot3-ui",
-        "ui",
-        "Ross Younger",
-        "ross@crazyscot.com",
-        "generic",
-    )
-});
 
 #[allow(clippy::type_complexity)]
 const TASKS: util::Tasks<'_> = &[(
