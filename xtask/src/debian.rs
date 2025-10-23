@@ -9,7 +9,6 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use cargo_toml::Manifest;
 use pico_args::Arguments;
 
 use crate::util::{ensure_all_args_used, gzip, top_level};
@@ -104,9 +103,9 @@ pub fn debian(mut cli_args: Arguments, args: &DebPackageMeta) -> Result<()> {
 /// Create dummy Debian changelog in destdir/changelog.Debian
 fn create_dch(args: &DebPackageMeta, destdir: &Path) -> Result<()> {
     // Get package cargo version
-    let path = PathBuf::from(&args.package_dir).join("Cargo.toml");
-    let m: Manifest = Manifest::from_path(path)?;
-    let version = m.package().version();
+    // Caution! CARGO_PKG_VERSION only tells us the version for the xtask crate, so the versions must align.
+    // (alternative: parse Cargo.toml using `cargo_toml::Manifest`)
+    let version = env!("CARGO_PKG_VERSION");
 
     // Traditionally the developer would invoke the `dch' script (in devscripts).
     // But we know exactly what this file has to contain, so we'll cut to the chase.
