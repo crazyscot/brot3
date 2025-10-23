@@ -29,7 +29,7 @@ impl Clamp01 for f32 {
     }
 }
 
-#[derive(Clone, Copy, Debug, derive_more::Constructor)]
+#[derive(Clone, Copy, Debug)]
 /// HSL colour space
 pub struct Hsl {
     /// Hue in degrees (range 0-360)
@@ -38,6 +38,13 @@ pub struct Hsl {
     s: f32,
     /// Lightness (range 0-100; 0=black, 50=fully saturated, 100=white)
     l: f32,
+}
+impl Hsl {
+    #[must_use]
+    #[allow(missing_docs)]
+    pub fn new(h: f32, s: f32, l: f32) -> Self {
+        Self { h, s, l }
+    }
 }
 impl From<Hsl> for Vec3Rgb {
     fn from(value: Hsl) -> Self {
@@ -56,7 +63,7 @@ impl From<Hsl> for Vec3Rgb {
     }
 }
 
-#[derive(Clone, Copy, Debug, derive_more::Constructor)]
+#[derive(Clone, Copy, Debug)]
 /// LCH colour space
 pub struct Lch {
     /// Lightness
@@ -66,8 +73,15 @@ pub struct Lch {
     /// Hue (degrees)
     h: f32,
 }
+impl Lch {
+    #[must_use]
+    #[allow(missing_docs)]
+    pub fn new(l: f32, c: f32, h: f32) -> Self {
+        Self { l, c, h }
+    }
+}
 
-#[derive(Clone, Copy, Debug, derive_more::Constructor)]
+#[derive(Clone, Copy, Debug)]
 /// CIE L*a*b* colour space
 pub struct Lab {
     /// Lightness
@@ -76,6 +90,14 @@ pub struct Lab {
     a: f32,
     /// Yellow-blue
     b: f32,
+}
+
+impl Lab {
+    #[must_use]
+    #[allow(missing_docs)]
+    pub fn new(l: f32, a: f32, b: f32) -> Self {
+        Self { l, a, b }
+    }
 }
 
 impl From<Lch> for Lab {

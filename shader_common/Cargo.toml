@@ -11,11 +11,11 @@ edition.workspace = true
 
 [dependencies]
 shader_util = { path = "../shader_util" }
-spirv-std = { workspace = true }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
 glam = { workspace = true }
 abels-complex = { version = "0.2.0", default-features = false, features = ["libm", "glam"] }
+spirv-std = { workspace = true }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 abels-complex = { version = "0.2.0", default-features = false, features = ["std", "glam"] }
