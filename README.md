@@ -56,9 +56,9 @@ Steps:
   - `git cliff --tag v<intended new tag> > CHANGELOG.md`
   - commit with prefix `chore(release)`
 - Merge changeset to main as usual
-- Update `release` branch to the desired release point, push it to github.
-- ✨✨ automation happens ✨✨
-- Edit and publish the draft release in Github. You may find it useful to press the button to autogenerate the release notes; `git cliff` might also yield insights.
+- Create and push the new tag
+- Run the `package` workflow on that tag
+- Create the release in Github. Sometimes it's useful to press the button to autogenerate the release notes; sometimes less so.
 
 ### Manual build types
 

@@ -1,4 +1,4 @@
-## [3.0.0] - 2025-10-20
+## [3.0.0] - 2025-10-24
 
 ### 🚀 Features
 
@@ -60,6 +60,7 @@
 - Set up cargo-deb metadata & desktop application entry
 - Include changelogs in debian packaging
 - Regenerate build info when the git commit HEAD changes
+- Initial on-demand packaging workflow
 
 ### 🚜 Refactor
 
@@ -108,6 +109,10 @@
 - Rename ui3 to ui
 - Make enum increment in shader_util a macro
 - Revise CHANGELOG autogeneration config
+- Update easy-shader-runner to be cross-platform
+- Align xtask and workspace versions
+- Simplify debian xtask
+- Simplify deps & features: shader_util, shader_common, ui
 ## [2.0.0-pre] - 2025-09-16
 
 ### 🚀 Features
