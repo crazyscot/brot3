@@ -16,10 +16,11 @@ fn main() {
     }
 
     println!("cargo:rerun-if-changed=build.rs");
-    // CAUTION: Hard-wired path !
+    // CAUTION: Hard-wired paths !
     println!("cargo:rerun-if-changed=../shader_builder/");
-    // CAUTION: Hard-wired path !
     println!("cargo:rerun-if-changed=../shader/");
+    println!("cargo:rerun-if-changed=../shader_common/");
+    println!("cargo:rerun-if-changed=../shader_util/");
     println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
     // Unconditionally build the shader so we have it around as a fallback.
 
