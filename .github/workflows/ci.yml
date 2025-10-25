@@ -6,78 +6,8 @@ on:
 
 permissions: {}
 
-env:
-  CARGO_TERM_COLOR: always
-  CLICOLOR_FORCE: 1
-  RUST_BACKTRACE: 1
-  CARGO_INCREMENTAL: 0
-  BROT3_RUST_VERSION: nightly-2025-06-30
-  # BROT3_RUST_VERSION should match in package.yml and ci.yml
-
 jobs:
-  ui:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.BROT3_RUST_VERSION }}
-      #- name: Set minimal profile (Windows only)
-      #  if: matrix.platform == 'windows-latest'
-      #  run: rustup set profile minimal
-      - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
-      - name: build
-        run: cargo build --locked --release
-        # For a packaged release, consider building without hot-reload and runtime-config. To evolve!
-
-  # We only need to run the checks on a single platform
-  checks:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.BROT3_RUST_VERSION }}
-          components: rustfmt,clippy,rust-src
-      - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
-      - run: cargo fmt --all -- --check
-      - run: cargo clippy --all-targets --locked --workspace
-
-  coverage:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.BROT3_RUST_VERSION }}
-          components: llvm-tools-preview,rust-src,rustc-dev
-      - uses: taiki-e/install-action@33734a118689b0b418824fb78ea2bf18e970b43b # v2.50.4
-        with:
-          tool: cargo-llvm-cov
-          checksum: true
-      - run: mkdir -p target/coverage
-      - name: Run coverage tests
-        run:
-          # See note in scripts/coverage for why --no-cfg-coverage is necessary.
-          # Note that we do NOT run +nightly here, as we installed an explicit nightly version above.
-          # (We currently prefer cacheability over tracking nightly features.)
-          cargo llvm-cov --all-features --workspace --doctests --lcov --output-path lcov.info --no-cfg-coverage
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: lcov.info
-          path: lcov.info
-      - name: Send result to codecov
-        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5.5.0
-        with:
-          #files: lcov.info # not needed, it autodetects
-          #verbose: true # not needed
-          name: lcov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      release: false

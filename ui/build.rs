@@ -38,6 +38,7 @@ fn main() {
     let this_crate_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is required");
     // CAUTION: Hard wired path
     println!("cargo:rerun-if-changed={this_crate_dir}/../.git/HEAD");
+    println!("cargo:rerun-if-changed=build.rs");
     conditionally_write_built_file(&this_crate_dir);
 
     cfg_aliases! {
@@ -48,14 +49,24 @@ fn main() {
         )},
     }
 
-    println!("cargo:rerun-if-changed=build.rs");
+    // We need a pre-compiled shader to use as a fallback.
+    // Have we been provided with one? (CI artifact)
+    if let Ok(shader_path) = env::var("BROT3_PREBUILT_SHADER") {
+        // CAUTION: This must match what shader_builder main.rs outputs.
+        println!("cargo::rustc-env=shader.spv={shader_path}");
+    } else {
+        // If not, go build it.
+        build_shader();
+    }
+}
+
+fn build_shader() {
     // CAUTION: Hard-wired paths !
     println!("cargo:rerun-if-changed=../shader_builder/");
     println!("cargo:rerun-if-changed=../shader/");
     println!("cargo:rerun-if-changed=../shader_common/");
     println!("cargo:rerun-if-changed=../shader_util/");
     println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
-    // Unconditionally build the shader so we have it around as a fallback.
 
     // While OUT_DIR is set for both build.rs and compiling the crate, PROFILE is only set in
     // build.rs. So, export it to crate compilation as well.
@@ -85,6 +96,8 @@ fn main() {
         .stdout(std::process::Stdio::inherit())
         .status()
         .unwrap();
+    // N.B. shader_builder outputs something like:
+    // cargo::rustc-env=shader.spv=/home/builder/brot3/target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/shader.spv
     if !status.success() {
         if let Some(code) = status.code() {
             std::process::exit(code);

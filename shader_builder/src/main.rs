@@ -12,6 +12,8 @@ fn build_shader(path_to_crate: &str) -> anyhow::Result<()> {
     let compile_result = builder.build()?;
     let shader_path = std::fs::canonicalize(compile_result.module.unwrap_single()).unwrap();
     let file_name = shader_path.file_name().unwrap().to_str().unwrap();
+    // sample output: cargo::rustc-env=shader.spv=/home/builder/brot3/target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/shader.spv
+    // CAUTION: This must match what ui/build.rs expects.
     println!("cargo::rustc-env={}={}", file_name, shader_path.display());
     Ok(())
 }

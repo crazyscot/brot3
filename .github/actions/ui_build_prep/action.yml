@@ -1,0 +1,40 @@
+name: Common packaging prep
+inputs:
+  rust-components:
+    required: false
+    type: string
+    default:
+    description: Any additional Rust components required (on top of the minimal profile)
+  tools:
+    required: false
+    type: string
+    description: Any tools to be installed by install-action
+runs:
+  using: composite
+  steps:
+    - name: Set profile
+      if: ${{ inputs.profile }}
+      run: rustup set profile ${{ inputs.profile }}
+      shell: bash
+    - name: Install toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ env.BROT3_RUST_VERSION }}
+        components: ${{ inputs.rust-components }}
+    - name: install tools
+      if: ${{ inputs.tools }}
+      uses:
+        taiki-e/install-action@33734a118689b0b418824fb78ea2bf18e970b43b # v2.50.4
+        # this action is used in multiple places
+      with:
+        tool: ${{ inputs.tools }}
+        checksum: true
+    - name: Download shader
+      uses: actions/download-artifact@v5
+      with:
+        name: shader.spv
+        path: ${{ github.workspace }}/prebuilt-shader
+# Notably, this action does NOT:
+# - use rust-cache
+# - actually build anything
+# These are left to the caller.

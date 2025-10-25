@@ -104,5 +104,6 @@ assets = [
 name = "brot3"
 identifier = "com.crazyscot.brot3"
 icon = ["icons/*"]
-resources = ["README.md", "CHANGELOG.md", "LICENSE"]
 category = "GraphicsAndDesign"
+# Don't forget to run cargo bundle --no-default-features ...
+# N.B. README, etc, do not live in the bundle; they travel outboard as nobody ever looks inside the .app
