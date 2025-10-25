@@ -7,7 +7,7 @@
 use spirv_std::glam::*;
 use spirv_std::spirv;
 
-use shader_common::{FragmentConstants, GRID_SIZE, PointResult, complex::Complex};
+use shader_common::{complex::Complex, FragmentConstants, PointResult, GRID_SIZE};
 use shader_util::grid::{GridRef, GridRefMut};
 
 pub mod colour;
@@ -66,11 +66,11 @@ pub fn main_vs(
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{FragmentConstants, GRID_SIZE, PointResult};
+    use super::{FragmentConstants, PointResult, GRID_SIZE};
 
     use shader_common::{Algorithm, Palette, PushExponent};
     use shader_util::Size;
-    use spirv_std::glam::{Vec4, vec2, vec4};
+    use spirv_std::glam::{vec2, vec4, Vec4};
 
     #[test]
     fn vertex() {

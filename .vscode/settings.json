@@ -13,5 +13,9 @@
     ],
     "rust-analyzer.showUnlinkedFileNotification": false,
     // "rust-analyzer.cargo.features": ["unstable-test-helpers"],
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "[rust]": {
+        "editor.inlayHints.enabled": "offUnlessPressed",
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    }
 }

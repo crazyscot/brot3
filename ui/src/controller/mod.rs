@@ -1,5 +1,5 @@
 use crate::cli::Args;
-use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
+use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
 use glam::*;
 use shader_common::*;
 use shader_util::big_vec2::BigVec2;
@@ -112,7 +112,11 @@ impl Exponent {
         self.value * if self.is_negative { -1. } else { 1. }
     }
     fn step(&self) -> f32 {
-        if self.is_integer { 1. } else { 0.1 }
+        if self.is_integer {
+            1.
+        } else {
+            0.1
+        }
     }
 }
 impl From<Exponent> for PushExponent {

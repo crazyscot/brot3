@@ -200,7 +200,7 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use crate::{FragmentConstants, fractal, vec2};
+    use crate::{fractal, vec2, FragmentConstants};
     use shader_common::{Algorithm, Palette, PushExponent};
     use shader_util::Size;
 

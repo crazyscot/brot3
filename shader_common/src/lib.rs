@@ -3,7 +3,7 @@
 
 pub use abels_complex as complex;
 
-use glam::{UVec2, Vec2, uvec2};
+use glam::{uvec2, UVec2, Vec2};
 
 pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
 

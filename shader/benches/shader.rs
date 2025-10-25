@@ -6,9 +6,9 @@ fn main() {
 use divan::black_box;
 use shader::exponentiation::{Exp2, ExpFloat, ExpIntN, Exponentiator as _};
 use shader_common::{
-    Algorithm, Colourer, FragmentConstants, Palette, PointResult, PushExponent, complex::Complex,
+    complex::Complex, Algorithm, Colourer, FragmentConstants, Palette, PointResult, PushExponent,
 };
-use shader_util::{Size, Vec3, vec2};
+use shader_util::{vec2, Size, Vec3};
 use strum::VariantArray as _;
 
 #[divan::bench]

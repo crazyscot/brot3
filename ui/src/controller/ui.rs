@@ -1,4 +1,4 @@
-use easy_shader_runner::{UiState, egui};
+use easy_shader_runner::{egui, UiState};
 use egui::epaint;
 
 use super::{DVec2, Instant};

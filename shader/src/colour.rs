@@ -7,7 +7,7 @@ use core::f32::consts::TAU;
 use shader_common::Colourer as ColourerSelection;
 use shader_util::colourspace::{Hsl, Lch, Vec3Rgb};
 
-use super::{FragmentConstants, PointResult, f32::vec3};
+use super::{f32::vec3, FragmentConstants, PointResult};
 
 pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb {
     use ColourerSelection as CS;
