@@ -2,7 +2,7 @@
 
 #![allow(missing_debug_implementations)]
 
-use glam::UVec2;
+use super::UVec2;
 
 #[derive(Clone, Copy)]
 /// A read-only view of a two-dimensional array, that uses a borrowed slice (one-dimensional) as storage.

@@ -3,7 +3,11 @@
 
 pub use abels_complex as complex;
 
+#[cfg(not(target_arch = "spirv"))]
 use glam::{uvec2, UVec2, Vec2};
+
+#[cfg(target_arch = "spirv")]
+use spirv_std::glam::{uvec2, UVec2, Vec2};
 
 pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
 

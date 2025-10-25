@@ -9,7 +9,6 @@ edition.workspace = true
 [dependencies]
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
-glam = { workspace = true, default-features = false }
 spirv-std = { workspace = true }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
