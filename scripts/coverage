@@ -6,7 +6,7 @@
 #   cargo install cargo-llvm-cov
 
 COVERAGE_DIR=target/coverage
-NIGHTLY="+nightly-2025-06-23"
+NIGHTLY="+nightly-2025-06-30"
 
 # CAUTION: llvm-cov sets cfg(nightly) by default.
 # At the time of writing, one (tiny-xlib) has an older MSRV and uses config options
