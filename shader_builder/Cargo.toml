@@ -1,6 +1,6 @@
 [package]
 name = "shader_builder"
-description = "Builds the brot3 shader crate (optionally, at runtime with hot reload)"
+description = "Builds the brot3 shader crate"
 publish = false
 version.workspace = true
 authors.workspace = true

@@ -1,7 +1,9 @@
 use crate::cli::Args;
 use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
-use glam::*;
-use shader_common::*;
+use glam::{DVec2, UVec2, Vec2};
+use shader_common::{
+    Algorithm, FragmentConstants, NumericType, Palette, PointResult, PushExponent, GRID_SIZE,
+};
 use shader_util::big_vec2::BigVec2;
 use web_time::Instant;
 use winit::event::{ElementState, MouseButton};
