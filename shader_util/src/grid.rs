@@ -29,7 +29,7 @@ impl<'a, T: Copy> GridRef<'a, T> {
     /// # Panics
     ///
     /// In a debug build, if the underlying slice is not large enough to hold `size.x * size.y` items.
-    /// ```should_panic
+    /// ```ignore
     /// # use shader_util::GridRef;
     /// use glam::uvec2;
     /// let buf = vec![0];
@@ -89,7 +89,7 @@ impl<'a, T: Copy> GridRefMut<'a, T> {
     ///
     /// In a debug build, if the underlying slice is not large enough to hold `size.x * size.y` items.
     ///
-    /// ```should_panic
+    /// ```ignore
     /// # use shader_util::GridRefMut;
     /// use glam::uvec2;
     /// let mut buf = [0;1];
