@@ -1,3 +1,11 @@
+## Structure
+
+![workspace-structure.png](workspace-structure.png)
+
+<!--
+  dot -Tpng workspace-structure.dot > workspace-structure.png
+-->
+
 ## Releasing
 
 Prerequisites:

@@ -1,0 +1,56 @@
+digraph {
+    compound = true;
+    node [shape = box;];
+    
+    
+    ui;
+    shader;
+    shader_builder;
+    // xtask;
+    shader_common;
+    shader_util;
+    shader_spv [shape = cylinder;label = "shader.spv";];
+    node [shape = box3d; style = filled;];
+    edge [fontname = "arial"; fontsize = 7;];
+    spirv_builder;
+    easy_shader_runner;
+    spirv_std [label = "spirv_std\n(spirv only)";];
+    # egui;
+    shader_spv;
+    subgraph cluster_shader_ {
+        style = dashed;
+        shader;
+        shader_common;
+        shader_util;
+        spirv_std;
+    }
+    
+    
+    ui -> shader_common;
+    ui -> shader_util;
+    # ui -> egui;
+    ui -> easy_shader_runner;
+    
+    
+    shader_spv -> shader [style = dotted; label = "artefact of"; lhead = cluster_shader_;];
+    
+    shader -> spirv_std;
+    shader -> shader_common;
+    shader -> shader_util;
+    
+    shader_builder -> spirv_builder;
+    
+    shader_common -> shader_util;
+    
+    shader_util -> spirv_std;
+    
+    # easy_shader_runner -> egui;
+    easy_shader_runner -> spirv_builder [style = dotted; label = "optional\n   (feature)";];
+    
+    ui -> shader_builder [style = dashed; label = "invoked on build.rs\n& cargo run";];
+    
+    # ui -> shader_spv [style = dotted; label = "runtime refs";];
+    # spirv_builder -> shader [style = dotted; label = "compiles\n(maybe at runtime)"; lhead = cluster_shader_;];
+    spirv_builder -> shader_spv [style = dashed; label = "    builds";];
+    easy_shader_runner -> shader_spv [style = dashed; label = "loads\nat runtime";];
+}
