@@ -1,11 +1,44 @@
 use std::env;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use cfg_aliases::cfg_aliases;
 
+use std::fs::read_to_string;
+
+/// Do we need to copy over a file?
+///
+/// Only if the destination file does not exist, or if its contents differ from the new version.
+fn should_copy<P: AsRef<Path> + std::fmt::Debug, Q: AsRef<Path> + std::fmt::Debug>(
+    new_file: P,
+    destination: Q,
+) -> std::io::Result<bool> {
+    if !std::fs::exists(&destination)? {
+        return Ok(true);
+    }
+    let data1 = read_to_string(new_file)?;
+    let data2 = read_to_string(destination)?;
+    Ok(data1 != data2)
+}
+
+/// Write a built file, but only put it into place if it differs from what's already there.
+/// This prevents needless rebuilds based on timestamp comparison alone.
+fn conditionally_write_built_file<P: AsRef<Path>>(cargo_manifest_dir: P) {
+    let out_dir = env::var("OUT_DIR").expect("OUT_DIR is required");
+    let dst = Path::new(&out_dir).join("built.rs");
+    let temp = Path::new(&out_dir).join("built.rs.new");
+    built::write_built_file_with_opts(Some(cargo_manifest_dir.as_ref()), &temp)
+        .expect("Failed to acquire build-time information");
+    // Compare and move only if different
+    if should_copy(&temp, &dst).unwrap() {
+        std::fs::copy(temp, dst).unwrap();
+    }
+}
+
 fn main() {
-    println!("cargo:rerun-if-changed=.git/HEAD");
-    built::write_built_file().expect("Failed to acquire build-time information");
+    let this_crate_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is required");
+    // CAUTION: Hard wired path
+    println!("cargo:rerun-if-changed={this_crate_dir}/../.git/HEAD");
+    conditionally_write_built_file(&this_crate_dir);
 
     cfg_aliases! {
         wasm: { target_arch = "wasm32" },
