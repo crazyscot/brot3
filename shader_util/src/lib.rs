@@ -3,6 +3,9 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
+//! ## Feature flags
+#![doc = document_features::document_features!()]
+
 pub mod grid;
 pub use grid::*;
 
@@ -14,17 +17,28 @@ pub use glam::{uvec2, vec2, UVec2, Vec2, Vec3};
 /// Re-exported from [`glam`].
 pub use spirv_std::glam::{uvec2, vec2, UVec2, Vec2, Vec3};
 
-#[cfg(not(target_arch = "spirv"))]
-pub mod big_complex;
-#[cfg(not(target_arch = "spirv"))]
-pub mod big_vec2;
+#[cfg(all(feature = "big", not(target_arch = "spirv")))]
+mod big_complex;
+
+#[cfg(all(feature = "big", not(target_arch = "spirv")))]
+mod big_vec2;
+
+/// Arbitrary precision versions of `Complex` and `Vec2`.
+/// **Only available on non-GPU builds** and gated by the `big` feature flag.
+#[cfg(all(feature = "big", not(target_arch = "spirv")))]
+pub mod big {
+    pub use super::big_complex::BigComplex;
+    pub use super::big_vec2::BigVec2;
+}
 
 pub mod colourspace;
 
 #[cfg(not(target_arch = "spirv"))]
 use bytemuck::NoUninit;
 
-/// Representation of a two-dimensional size
+/// GPU-friendly representation of a two-dimensional `u32` vector
+///
+/// *On non-GPU builds* this struct derives `bytemuck::NoUninit`.
 #[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
@@ -99,7 +113,9 @@ impl From<UVec2> for Size {
     }
 }
 
-/// GPU-friendly representation of a boolean
+/// GPU-friendly representation of a bool as a u32
+///
+/// *On non-GPU builds* this struct derives `bytemuck::NoUninit`.
 #[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]

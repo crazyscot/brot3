@@ -1,9 +1,12 @@
-//! GPU-friendly colour space conversions
+//! GPU-friendly colour space representations and conversions
 
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
-/// RGB pixel format data. Each component is in the range (0.0, 1.0)
+/// RGB colour space.
+///
+/// Each component is in the range (0.0, 1.0).
+///
 pub use super::Vec3 as Vec3Rgb;
 
 /// Clamps values to the range (0.0, 1.0)
@@ -32,12 +35,12 @@ impl Clamp01 for f32 {
 #[derive(Clone, Copy, Debug)]
 /// HSL colour space
 pub struct Hsl {
-    /// Hue in degrees (range 0-360)
-    h: f32,
-    /// Saturation (range 0-100)
-    s: f32,
-    /// Lightness (range 0-100; 0=black, 50=fully saturated, 100=white)
-    l: f32,
+    /// Hue in degrees (range 0..360)
+    pub h: f32,
+    /// Saturation (range 0..100)
+    pub s: f32,
+    /// Lightness (range 0..100; 0=black, 50=fully saturated, 100=white)
+    pub l: f32,
 }
 impl Hsl {
     #[must_use]
@@ -66,12 +69,12 @@ impl From<Hsl> for Vec3Rgb {
 #[derive(Clone, Copy, Debug)]
 /// LCH colour space
 pub struct Lch {
-    /// Lightness
-    l: f32,
-    /// Chroma
-    c: f32,
+    /// Lightness (range 0..100)
+    pub l: f32,
+    /// Chroma (range 0..100)
+    pub c: f32,
     /// Hue (degrees)
-    h: f32,
+    pub h: f32,
 }
 impl Lch {
     #[must_use]
@@ -84,12 +87,12 @@ impl Lch {
 #[derive(Clone, Copy, Debug)]
 /// CIE L*a*b* colour space
 pub struct Lab {
-    /// Lightness
-    l: f32,
-    /// Red-green
-    a: f32,
-    /// Yellow-blue
-    b: f32,
+    /// Lightness (range 0..100)
+    pub l: f32,
+    /// Red-green axis (range -100..100)
+    pub a: f32,
+    /// Yellow-blue axis (range -100..100)
+    pub b: f32,
 }
 
 impl Lab {

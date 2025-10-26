@@ -1,13 +1,17 @@
 //! Arbitrary precision complex numbers, powered by `dashu::float::FBig`
 
+#![cfg(all(feature = "big", not(target_arch = "spirv")))]
+
 use crate::big_vec2::BigVec2;
 use dashu_float::FBig;
 use std::ops::{Add, Deref, DerefMut, Sub};
 
-/// Complex number using [`dashu::float::FBig`] as the underlying data type
+/// Arbitrary precision complex number using `dashu_float::FBig` as the underlying data type
+///
+/// **Note: This struct is only available on host builds** (non-GPU i.e. `#[cfg(not(target_arch = "spirv"))]`)
 ///
 /// ```
-/// # use shader_util::big_complex::BigComplex;
+/// # use shader_util::big::BigComplex;
 /// # use shader_util::make_complex;
 /// let x = make_complex!(1.0, 2.0);
 /// let y = make_complex!(3.0, 4.0);
@@ -17,10 +21,11 @@ use std::ops::{Add, Deref, DerefMut, Sub};
 /// let b = a.clone() - a; // these are bignums, they do not support Copy
 /// assert_eq!(b, BigComplex::ZERO);
 /// ```
+#[cfg(not(target_arch = "spirv"))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct BigComplex(BigVec2);
+pub struct BigComplex(pub BigVec2);
 
-/// Roughly creates a [`BigComplex`] from a pair of inputs
+/// Roughly creates a [`BigComplex`] from a pair of inputs.
 /// Intended for testing.
 ///
 /// # Panics
@@ -28,7 +33,7 @@ pub struct BigComplex(BigVec2);
 #[macro_export]
 macro_rules! make_complex {
     ($x: expr, $y: expr) => {
-        shader_util::big_complex::BigComplex::try_new($x, $y).unwrap()
+        shader_util::big::BigComplex::try_new($x, $y).unwrap()
     };
 }
 
@@ -45,7 +50,7 @@ impl BigComplex {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use shader_util::big_complex::BigComplex;
+    /// # use shader_util::big::BigComplex;
     /// let z = BigComplex::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -92,7 +97,7 @@ impl BigComplex {
 
     /// Sets the precision of both parts of the underlying data storage
     /// ```
-    /// # use shader_util::big_complex::BigComplex;
+    /// # use shader_util::big::BigComplex;
     /// let z = BigComplex::ZERO.with_precision(123);
     /// let prec = z.precision();
     /// assert_eq!(prec.x, 123);

@@ -1,10 +1,14 @@
 //! Arbitrary precision version of [`Vec2`], powered by `dashu::float::FBig`
 
+#![cfg(all(feature = "big", not(target_arch = "spirv")))]
+
 use dashu::float::FBig;
 use glam::{DVec2, UVec2, Vec2};
 use std::ops::{Add, AddAssign, Div, DivAssign, Sub, SubAssign};
 
 /// Arbitrary precision version of [`glam::Vec2`]
+///
+/// **Note: This struct is only available on host builds** (non-GPU i.e. `#[cfg(not(target_arch = "spirv"))]`)
 #[derive(Clone, Debug, PartialEq)]
 #[allow(missing_docs)]
 pub struct BigVec2 {
@@ -12,7 +16,7 @@ pub struct BigVec2 {
     pub y: FBig,
 }
 
-/// Roughly creates a [`BigVec2`] from a pair of inputs
+/// Roughly creates a [`BigVec2`] from a pair of inputs.
 /// Intended for testing.
 ///
 /// # Panics
@@ -36,7 +40,7 @@ impl BigVec2 {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use shader_util::big_vec2::BigVec2;
+    /// # use shader_util::big::BigVec2;
     /// let z = BigVec2::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -167,7 +171,7 @@ impl Div<f64> for BigVec2 {
 impl std::fmt::Display for BigVec2 {
     /// Converts to a string representation (binary)
     /// ```
-    /// # use shader_util::big_vec2::BigVec2;
+    /// # use shader_util::big::BigVec2;
     /// # use shader_util::make_bigvec2;
     /// let v = make_bigvec2!(15., 2.);
     /// assert_eq!(v.to_string(), "BigVec2(1111, 10)");
