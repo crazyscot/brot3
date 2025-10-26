@@ -15,9 +15,9 @@ categories = ["graphics", "mathematics"]
 
 [profile.release]
 # See https://nnethercote.github.io/perf-book/build-configuration.html
-codegen-units = 1
-lto = "thin"
-strip = "debuginfo"
+#codegen-units = 1
+#lto = "thin"
+#strip = "debuginfo"
 #incremental = false # implicit by rust-cache
 
 [profile.bench]
