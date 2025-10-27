@@ -31,7 +31,7 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 ] }
 
 [dev-dependencies]
-assert_float_eq = "1.2.0"
+float_eq = "1.0.1"
 divan = "0.1.21"
 pretty_assertions = { workspace = true }
 strum = { version = "0.27.2", default-features = false }

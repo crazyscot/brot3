@@ -208,12 +208,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "assert_float_eq"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd9777fd8234cccd34019d9e26d70c8247f9baf24c8fdc0b56c548cf943af2ed"
-
-[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1145,6 +1139,12 @@ dependencies = [
  "crc32fast",
  "miniz_oxide",
 ]
+
+[[package]]
+name = "float_eq"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28a80e3145d8ad11ba0995949bbcf48b9df2be62772b3d351ef017dff6ecb853"
 
 [[package]]
 name = "foldhash"
@@ -3107,8 +3107,8 @@ dependencies = [
 name = "shader"
 version = "3.0.0"
 dependencies = [
- "assert_float_eq",
  "divan",
+ "float_eq",
  "pretty_assertions",
  "shader_common",
  "shader_util",
