@@ -33,7 +33,6 @@ jobs:
         if: ${{ !inputs.release }}
         with:
           cache-workspace-crates: true
-      - run: cargo fmt --all -- --check
       - name: build shader
         run: cargo run -p shader_builder --locked --release
         # Continue on error as far as possible, to provide maximum useful information

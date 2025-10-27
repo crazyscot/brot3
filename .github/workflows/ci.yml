@@ -11,3 +11,29 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       release: false
+
+  cargo-deny:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        checks:
+          - advisories
+          - bans licenses sources
+    # Prevent sudden announcement of a new advisory from failing ci:
+    continue-on-error: ${{ matrix.checks == 'advisories' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: cargo deny
+        uses: EmbarkStudios/cargo-deny-action@f2ba7abc2abebaf185c833c3961145a3c275caad # 2.0.13
+        with:
+          command: check ${{ matrix.checks }}
+          rust-version: "1.85.0" # this is the version in the cargo-deny-action container image
+
+  cargo-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: cargo fmt (stable toolchain)
+        run: cargo +stable fmt --all -- --check
