@@ -11,8 +11,6 @@ license.workspace = true
 # This is not currently supported by cargo; https://github.com/rust-lang/cargo/issues/12260 refers.
 [lib]
 crate-type = ["dylib", "rlib"]
-bench = false
-
 
 [[bench]]
 name = "shader"

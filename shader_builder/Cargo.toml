@@ -11,6 +11,7 @@ license = "MIT"
 name = "shader_builder"
 test = false
 bench = false
+doc = false
 
 [dependencies]
 anyhow = { workspace = true }

@@ -6,6 +6,9 @@ license = "MIT"
 version = "0.2.0"
 edition.workspace = true
 
+[lib]
+bench = false
+
 [dependencies]
 document-features = "0.2.12"
 

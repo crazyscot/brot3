@@ -13,6 +13,7 @@ crate-type = ["cdylib", "rlib"]
 test = false
 doctest = false
 bench = false
+doc = false
 
 [[bin]]
 name = "brot3"
