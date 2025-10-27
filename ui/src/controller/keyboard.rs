@@ -60,7 +60,7 @@ impl super::Controller {
                         row!("F5 F6", "Palette");
                         row!("F11", "Fullscreen");
                         // F12 will be Save As PNG
-                        row!("^Q | Esc", "Quit");
+                        row!("^Q", "Quit");
                     });
             });
     }
@@ -130,7 +130,6 @@ impl super::Controller {
                     'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
                     'e' | 'r' => self.expo(c == 'r', pressed),
                     'q' if pressed && self.ctrl_pressed => std::process::exit(0),
-                    // N.B. Escape also instructs easy-shader-runner to quit.
                     // SOMEDAY: It would be tidier to call event_loop.exit().
                     // Expose this in easy-shader-runner, or add a new CustomEvent
                     // and expose an EventLoopProxy.

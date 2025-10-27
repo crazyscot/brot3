@@ -36,6 +36,7 @@ pub fn main() -> anyhow::Result<()> {
     easy_shader_runner::setup_logging();
     let args = cli::Args::parse();
     let controller = controller::Controller::new(&args);
+    let params = easy_shader_runner::Parameters::new(controller, TITLE).esc_key_exits(false);
     cfg_if::cfg_if! {
         if #[cfg(we_compile)] {
             use std::path::PathBuf;
@@ -96,13 +97,13 @@ pub fn main() -> anyhow::Result<()> {
                         hook(e);
                     }
                 }));
-                easy_shader_runner::run_with_runtime_compilation_2(controller, path, TITLE, relative_to_manifest, args.spirv_tools)?;
+                easy_shader_runner::run_with_runtime_compilation_2(params, path, relative_to_manifest, args.spirv_tools)?;
             } else {
-                easy_shader_runner::run_with_prebuilt_shader_2(controller, include_bytes!(env!("shader.spv")), TITLE)?;
+                easy_shader_runner::run_with_prebuilt_shader_2(params, include_bytes!(env!("shader.spv")))?;
             }
         } else {
             // Runtime compilation disabled by feature flag
-            easy_shader_runner::run_with_prebuilt_shader_2(controller, include_bytes!(env!("shader.spv")), TITLE)?;
+            easy_shader_runner::run_with_prebuilt_shader_2(params, include_bytes!(env!("shader.spv")))?;
         }
     }
     Ok(())
