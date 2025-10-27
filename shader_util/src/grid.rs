@@ -29,11 +29,11 @@ impl<'a, T: Copy> GridRef<'a, T> {
     /// # Panics
     ///
     /// In a debug build, if the underlying slice is not large enough to hold `size.x * size.y` items.
-    /// ```ignore
+    /// ```should_panic
     /// # use shader_util::GridRef;
     /// use glam::uvec2;
     /// let buf = vec![0];
-    /// let _gr = GridRef::new(uvec2(2,2), &buf);
+    /// let _gr = GridRef::new(uvec2(2,2), &buf); // PANIC: storage not large enough
     /// ```
     pub fn new(size: UVec2, buffer: &'a [T]) -> Self {
         debug_assert!(
@@ -56,7 +56,7 @@ impl<'a, T: Copy> GridRef<'a, T> {
     /// use glam::uvec2;
     /// let buf = vec![0,0,0,42];
     /// let gr = GridRef::new(uvec2(2, 2), &buf);
-    /// assert_eq!(gr.get(uvec2(3, 3)), 42);
+    /// assert_eq!(gr.get(uvec2(3, 3)), 42); // PANIC: index out of bounds
     /// ```
     pub fn get(&self, p: UVec2) -> T {
         self.buffer[(p.y * self.size.x + p.x) as usize]
@@ -89,11 +89,11 @@ impl<'a, T: Copy> GridRefMut<'a, T> {
     ///
     /// In a debug build, if the underlying slice is not large enough to hold `size.x * size.y` items.
     ///
-    /// ```ignore
+    /// ```should_panic
     /// # use shader_util::GridRefMut;
     /// use glam::uvec2;
     /// let mut buf = [0;1];
-    /// let _gr = GridRefMut::new(uvec2(2,2), &mut buf);
+    /// let _gr = GridRefMut::new(uvec2(2,2), &mut buf); // PANIC: storage not large enough
     /// ```
     pub fn new(size: UVec2, buffer: &'a mut [T]) -> Self {
         debug_assert!(

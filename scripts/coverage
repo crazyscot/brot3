@@ -21,6 +21,6 @@ PREFIX=$(pwd)
 
 mkdir -p $COVERAGE_DIR
 # shellcheck disable=SC2086
-cargo ${NIGHTLY} llvm-cov --locked --frozen --all-features --workspace --doctests --lcov --output-path $COVERAGE_DIR/lcov.info --no-cfg-coverage --show-instantiations --release
+cargo ${NIGHTLY} llvm-cov --locked --frozen --all-features --workspace --doctests --lcov --output-path $COVERAGE_DIR/lcov.info --no-cfg-coverage --show-instantiations
 genhtml $COVERAGE_DIR/lcov.info -o $COVERAGE_DIR/html --prefix ${PREFIX}
 echo Coverage written to $COVERAGE_DIR/html
