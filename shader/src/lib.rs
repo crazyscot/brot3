@@ -7,8 +7,10 @@
 use spirv_std::glam::{f32, vec2, Vec2, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
-use shader_common::{complex::Complex, FragmentConstants, PointResult, GRID_SIZE};
+use shader_common::{FragmentConstants, PointResult, GRID_SIZE};
 use shader_util::grid::{GridRef, GridRefMut};
+
+type Complex = shader_common::complex::Complex<f32>;
 
 pub mod colour;
 pub mod exponentiation;

@@ -15,11 +15,11 @@ shader_util = { path = "../shader_util" }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
 glam = { workspace = true }
-abels-complex = { version = "0.2.0", default-features = false, features = ["libm", "glam"] }
+abels-complex = { workspace = true, features = ["libm", "glam"] }
 spirv-std = { workspace = true }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
-abels-complex = { version = "0.2.0", default-features = false, features = ["std", "glam"] }
+abels-complex = { workspace = true, features = ["std", "glam"] }
 bytemuck = { workspace = true, features = ["derive"] }
 clap = { workspace = true, features = ["derive"] }
 glam = { workspace = true, features = ["bytemuck"] }

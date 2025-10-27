@@ -5,11 +5,11 @@ fn main() {
 
 use divan::black_box;
 use shader::exponentiation::{Exp2, ExpFloat, ExpIntN, Exponentiator as _};
-use shader_common::{
-    complex::Complex, Algorithm, Colourer, FragmentConstants, Palette, PointResult, PushExponent,
-};
+use shader_common::{Algorithm, Colourer, FragmentConstants, Palette, PointResult, PushExponent};
 use shader_util::{vec2, Size, Vec3};
 use strum::VariantArray as _;
+
+type Complex = shader_common::complex::Complex<f32>;
 
 #[divan::bench]
 fn ___warm_up() {

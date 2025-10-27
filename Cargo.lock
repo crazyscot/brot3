@@ -20,9 +20,9 @@ checksum = "366ffbaa4442f4684d91e2cd7c5ea7c4ed8add41959a31447066e279e432b618"
 
 [[package]]
 name = "abels-complex"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df4cf440a6c0b79df6ff8c26cc0b82eb0006e8c96f4a0df84826f37df124f379"
+checksum = "838c60af2680e978edffd3cb8b6d34ed115bcac398fd1293d6bf0403dedab8fa"
 dependencies = [
  "glam",
  "num-traits",
