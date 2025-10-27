@@ -1,11 +1,14 @@
+# brot3
+
 An interactive fractal explorer.
 
 This is my third Mandelbrotter.
-[brot2](https://github.com/crazyscot/brot2) was the previous incarnation.
+[`brot2`](https://github.com/crazyscot/brot2) was the previous incarnation, an interactive GTK+ application.
+The original `brot` was written in C, output only to the terminal, and has long since been lost to the mists of time.
 
 ![A screenshot of the brot3 window showing a zoom into the Mandelbrot set.](brot3c.jpg)
 
-This time it's in Rust and has itself something of a chequered history...
+This time around it's in Rust and has quite the history.
 
 - brot3 1.0 started out using Tauri and OpenSeadragon for its UI.
 - Version 2.0 (never released) was an attempt to rework the GUI using slint.
@@ -13,7 +16,20 @@ This time it's in Rust and has itself something of a chequered history...
 
 More notes to come here when things are in less of a state of flux...
 
-## Getting started
+## Supported systems
+
+Primary:
+
+- Debian (I develop on 13/trixie; releases are built on Ubuntu 22.04)
+
+Secondary:
+
+- OSX (minimum Rust supported versions apply; currently 10.12 on x86_64 and 11.0 on aarch64)
+- Windows 11
+
+Binary releases can be found in [github releases](https://github.com/crazyscot/brot3/releases/).
+
+## Experimenting
 
 ### Prerequisites
 
@@ -21,19 +37,19 @@ You only really need a recent version of the `cargo` tool.
 
 We use a [toolchain file](rust-toolchain.toml) to select the rust-gpu recommended toolchain, which is currently a specific nightly build that you're unlikely to have to hand. This is required as rust-gpu makes significant use of compiler internals.
 
-### Building / running
+### Building
 
 **Cargo will automatically install the required nightly toolchain if you don't already have it.**
 
-`cargo run --locked` will launch the GUI in interactive mode. By default this runs with the `hot-reload-shader` feature.
+`cargo run --locked` will launch the GUI in interactive mode. By default this runs with the `hot-reload-shader` feature. As you might imagine, this rebuilds and reloads the shader on save.
 
-If you want to build a useful standalone application binary, start with `cargo build --locked --no-default-features` to disable runtime shader compilation.
+For a standalone application binary, `cargo build --locked --no-default-features` disables runtime shader compilation.
 
-There are limited unit tests and benchmarks.
+There are limited unit tests and benchmarks. More may be added later.
 
 ### Speeding up build times
 
-You may care to use an alternative linker to speed up build times.
+You may care to use an alternative linker to improve build times.
 
 For example, if you want to use the [wild linker](https://github.com/davidlattimore/wild) (`cargo binstall wild-linker`) this is what you might put in your `~/.cargo/config.toml`:
 
@@ -43,32 +59,6 @@ linker = "clang"
 rustflags = ["-C", "link-arg=--ld-path=wild"]
 ```
 
-## Releasing (notes to myself)
+## Maintainer notes
 
-Prerequisites:
-
-- `cargo install git-cliff` and ensure that `~/.cargo/bin` is on your PATH.
-
-Steps:
-
-- Create release changeset
-  - Update project version in `cargo.toml`
-  - `cargo xtask changelog --bump major|minor|patch`
-  - commit with prefix `chore(release)`
-- Merge changeset to main as usual
-- Create and push the new tag
-- Run the `package` workflow on that tag
-- Create the release in Github. Sometimes it's useful to press the button to autogenerate the release notes; sometimes less so.
-
-### Manual build types
-
-Debian package:
-
-- `cargo xtask debian --release`
-- _or equivalently:_
-  - `cargo build --locked --release --no-default-features`
-  - `cargo xtask debian --release --no-build`
-
-AppImage, osx, alternative Debian:
-
-- `cargo bundle -b brot3 -p brot3-ui -f <TYPE> -r --no-default-features`
+See [MAINTENANCE.md](MAINTENANCE.md).
