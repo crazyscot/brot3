@@ -84,59 +84,61 @@ impl Controller {
 
 #[derive(Copy, Clone, Debug)]
 struct Exponent {
-    pub(crate) value: f32,
-    pub(crate) value_i: u32,
-    pub(crate) is_integer: bool,
-    pub(crate) is_negative: bool,
+    pub(crate) int: u32,
+    pub(crate) real: f32,
+    pub(crate) imag: f32,
+    pub(crate) typ: NumericType,
+    pub(crate) real_is_negative: bool,
+    pub(crate) imag_is_negative: bool,
 }
 impl Default for Exponent {
     fn default() -> Self {
         Self {
-            value: 2.0,
-            value_i: 2,
-            is_integer: true,
-            is_negative: false,
+            int: 2,
+            real: 2.0,
+            imag: 0.0,
+            typ: NumericType::Integer,
+            real_is_negative: false,
+            imag_is_negative: false,
         }
     }
 }
 impl Exponent {
     fn variant(&self) -> NumericType {
-        if self.is_integer {
-            NumericType::Integer
-        } else {
-            NumericType::Float
-        }
-    }
-    fn as_int(&self) -> i32 {
-        self.value as i32 * if self.is_negative { -1 } else { 1 }
-    }
-    fn as_float(&self) -> f32 {
-        self.value * if self.is_negative { -1. } else { 1. }
+        self.typ
     }
     fn step(&self) -> f32 {
-        if self.is_integer {
+        if self.typ == NumericType::Integer {
             1.
         } else {
             0.1
         }
     }
+    fn is_integer(&self) -> bool {
+        self.typ == NumericType::Integer
+    }
 }
 impl From<Exponent> for PushExponent {
+    // TODO: Can we merge Exponent and PushExponent?
     fn from(exp: Exponent) -> Self {
-        if exp.is_integer {
-            PushExponent {
+        match exp.typ {
+            NumericType::Integer => PushExponent {
                 typ: NumericType::Integer,
-                int: exp.as_int(),
+                int: exp.real as i32 * if exp.real_is_negative { -1 } else { 1 },
                 ..Default::default()
-            }
-        } else {
-            PushExponent {
+            },
+            NumericType::Float => PushExponent {
                 typ: NumericType::Float,
-                real: exp.as_float(),
+                real: exp.real * if exp.real_is_negative { -1. } else { 1. },
                 ..Default::default()
-            }
+            },
+            NumericType::Complex => PushExponent {
+                typ: NumericType::Complex,
+                real: exp.real * if exp.real_is_negative { -1. } else { 1. },
+                imag: exp.imag * if exp.imag_is_negative { 1. } else { -1. },
+                ..Default::default()
+            },
         }
-        // TODO: complex
     }
 }
 
@@ -145,6 +147,7 @@ struct Movement {
     translate: DVec2,
     zoom: f64,
     exponent: f32,
+    exponent_im: f32,
     gradient: f32,
     offset: f32,
     gamma: f32,

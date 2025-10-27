@@ -60,7 +60,8 @@ impl super::Controller {
                         row!("⬅➡", "Real");
                         row!("⬆⬇", "Complex");
                         row!("Z X", "Zoom");
-                        row!("E R", "Exponent");
+                        row!("E R", "Exponent Re");
+                        row!("D F", "Exponent Im");
                         row!("Y U", "Gradient");
                         row!("H J", "Offset");
                         row!("N M", "Gamma");
@@ -133,7 +134,8 @@ impl super::Controller {
                 };
                 match c {
                     'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
-                    'e' | 'r' => self.expo(c == 'r', pressed),
+                    'e' | 'r' => self.expo_re(c == 'r', pressed),
+                    'd' | 'f' => self.expo_im(c == 'f', pressed),
                     'q' if pressed && self.ctrl_pressed => std::process::exit(0),
                     // SOMEDAY: It would be tidier to call event_loop.exit().
                     // Expose this in easy-shader-runner, or add a new CustomEvent
@@ -169,13 +171,22 @@ impl super::Controller {
         }
     }
 
-    fn expo(&mut self, increase: bool, active: bool) {
+    fn expo_re(&mut self, increase: bool, active: bool) {
         if active {
             let magnitude = self.exponent.step();
             let sign = if increase { 1. } else { -1. };
             self.movement.exponent = sign * magnitude;
         } else {
             minimax(&mut self.movement.exponent, 0., 0., increase);
+        }
+    }
+    fn expo_im(&mut self, increase: bool, active: bool) {
+        if active {
+            let magnitude = self.exponent.step();
+            let sign = if increase { 1. } else { -1. };
+            self.movement.exponent_im = sign * magnitude;
+        } else {
+            minimax(&mut self.movement.exponent_im, 0., 0., increase);
         }
     }
 

@@ -62,19 +62,28 @@ impl super::Controller {
         }
         if movement.exponent != 0. {
             let new_exp =
-                (self.exponent.value + movement.exponent).clamp(EXPONENT_MIN, EXPONENT_MAX);
-            if self.exponent.value != new_exp {
+                (self.exponent.real + movement.exponent).clamp(EXPONENT_MIN, EXPONENT_MAX);
+            if self.exponent.real != new_exp {
                 self.reiterate = true;
-                self.exponent.value = new_exp;
-                if self.exponent.is_integer {
-                    self.exponent.value_i = self.exponent.value.round() as u32;
+                self.exponent.real = new_exp;
+                if self.exponent.is_integer() {
+                    self.exponent.int = self.exponent.real.round() as u32;
                 }
             }
             movement.exponent = 0.;
         }
+        if movement.exponent_im != 0. {
+            let new_exp =
+                (self.exponent.imag + movement.exponent_im).clamp(EXPONENT_MIN, EXPONENT_MAX);
+            if self.exponent.imag != new_exp && !self.exponent.is_integer() {
+                self.reiterate = true;
+                self.exponent.imag = new_exp;
+            }
+            movement.exponent_im = 0.;
+        }
 
         macro_rules! palette_fields {
-            ($($id:ident), * ) => {
+            ($($id:ident), *) => {
                 $(
                     if movement.$id != 0. {
                         self.palette.$id = (self.palette.$id + movement.$id).clamp(shader_common::Palette::MINIMA.$id, shader_common::Palette::MAXIMA.$id);
@@ -109,40 +118,52 @@ impl super::Controller {
 
                 egui::CollapsingHeader::new("Exponent").show(ui, |ui| {
                     egui::Grid::new("exponent_grid").show(ui, |ui| {
-                        let previous_int = self.exponent.is_integer;
-                        ui.radio_value(&mut self.exponent.is_integer, true, "Integer");
-                        ui.radio_value(&mut self.exponent.is_integer, false, "Float");
+                        let previous_typ = self.exponent.typ;
+                        ui.radio_value(&mut self.exponent.typ, NumericType::Integer, "Integer");
+                        ui.radio_value(&mut self.exponent.typ, NumericType::Float, "Float");
+                        ui.radio_value(&mut self.exponent.typ, NumericType::Complex, "Complex");
                         ui.end_row();
-                        if self.exponent.is_integer != previous_int {
-                            if previous_int {
-                                // was integer, now float
-                                self.exponent.value = self.exponent.value_i as f32;
+                        match (previous_typ, self.exponent.typ) {
+                            (NumericType::Integer, _) => {
+                                self.exponent.real = self.exponent.int as f32;
+                                self.exponent.imag = 0.0;
+                            }
+                            (_, NumericType::Integer) => {
+                                self.exponent.int = self.exponent.real.round() as u32;
+                                self.exponent.real = self.exponent.int as f32;
+                                self.exponent.imag = 0.0;
+                            }
+                            (NumericType::Complex, NumericType::Float)  | (NumericType::Float, NumericType::Complex) => {
+                                self.exponent.imag = 0.0;
+                            }
+                            (NumericType::Float, NumericType::Float) |  (NumericType::Complex, NumericType::Complex)=> ()
+                        }
+                        if self.exponent.typ != previous_typ {
+                            if previous_typ == NumericType::Integer {
                             } else {
                                 // was float, now integer
-                                self.exponent.value_i = self.exponent.value.round() as u32;
-                                self.exponent.value = self.exponent.value_i as f32;
+                                self.exponent.int = self.exponent.real.round() as u32;
+                                self.exponent.real = self.exponent.int as f32;
                             }
                             self.reiterate = true;
                         }
                     });
                     match self.exponent.variant() {
                         NumericType::Integer => {
-                            if ui
-                                .add(egui::Slider::new(
-                                    &mut self.exponent.value_i,
+                            if ui.add(egui::Slider::new(
+                                    &mut self.exponent.int,
                                     EXPONENT_MIN_INT..=EXPONENT_MAX_INT,
                                 ))
                                 .changed()
                             {
-                                self.exponent.value = self.exponent.value_i as f32;
+                                self.exponent.real = self.exponent.int as f32;
                                 self.reiterate = true;
                             }
                         }
                         NumericType::Float => {
-                            if ui
-                                .add(
+                            if ui.add(
                                     egui::Slider::new(
-                                        &mut self.exponent.value,
+                                        &mut self.exponent.real,
                                         EXPONENT_MIN..=EXPONENT_MAX,
                                     )
                                     .step_by(0.1),
@@ -153,19 +174,54 @@ impl super::Controller {
                             }
                         }
                         NumericType::Complex => {
-                            todo!()
+                            ui.label("Real");
+                            if ui.add(
+                                    egui::Slider::new(
+                                        &mut self.exponent.real,
+                                        EXPONENT_MIN..=EXPONENT_MAX,
+                                    )
+                                    .step_by(0.1),
+                                )
+                                .changed()
+                            {
+                                self.reiterate = true;
+                            }
                         }
                     }
 
-                    if ui
-                        .add(egui::Checkbox::new(
-                            &mut self.exponent.is_negative,
+                    if ui.add(egui::Checkbox::new(
+                            &mut  self.exponent.real_is_negative,
                             "Negative",
                         ))
                         .changed()
                     {
                         self.reiterate = true;
                     }
+
+                    if self.exponent.variant() == NumericType::Complex {
+                        ui.label("Imaginary");
+                            if ui.add(
+                                    egui::Slider::new(
+                                        &mut self.exponent.imag,
+                                        EXPONENT_MIN..=EXPONENT_MAX,
+                                    )
+                                    .step_by(0.1),
+                                )
+                                .changed()
+                            {
+                                self.reiterate = true;
+                            }
+                            if ui.add(egui::Checkbox::new(
+                                &mut self.exponent.imag_is_negative,
+                                "Negative",
+                            ))
+                            .changed()
+                        {
+                            self.reiterate = true;
+                        }
+                    }
+
+                    // COMPLEX CONDITIONAL
                 });
 
                 ui.label(egui::RichText::new("Iterations"));
