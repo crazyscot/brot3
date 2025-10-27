@@ -3,10 +3,14 @@ name: build
 on:
   workflow_call:
     inputs:
-      release:
+      release_workflow:
         type: boolean
         default: false
         description: Build for all supported platforms. (If false, builds only the CI subset.)
+      tagged_release:
+        type: boolean
+        default: false
+        description: If true, does not attempt to save caches.
 
 permissions: {}
 
@@ -30,9 +34,9 @@ jobs:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
           components: rustfmt,clippy
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
-        if: ${{ !inputs.release }}
         with:
           cache-workspace-crates: true
+          save-if: ${{ !inputs.tagged_release }}
       - name: build shader
         run: cargo run -p shader_builder --locked --release
         # Continue on error as far as possible, to provide maximum useful information
@@ -45,46 +49,6 @@ jobs:
           name: shader.spv
           path: target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/shader.spv
         if: ${{ !cancelled() }}
-
-  coverage:
-    name: coverage (shader)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Set minimal profile # no fmt or clippy
-        run: rustup set profile minimal
-      - uses: actions/checkout@v5
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@6d653acede28d24f02e3cd41383119e8b1b35921 # 2025-09-17
-        with:
-          toolchain: ${{ env.BROT3_RUST_VERSION }}
-          components: llvm-tools-preview
-      - uses: taiki-e/install-action@33734a118689b0b418824fb78ea2bf18e970b43b # v2.50.4
-        with:
-          tool: cargo-llvm-cov
-          checksum: true
-      # 2025-10-26: a hot cache saves only around 15 seconds, this is not worthwhile at present
-      #- uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
-      #  if: ${{ !inputs.release }}
-      - run: mkdir -p target/coverage
-      - name: Run shader tests with coverage analysis
-        run:
-          # See note in scripts/coverage for why --no-cfg-coverage is necessary.
-          # Note that we do NOT run +nightly here, as we installed an explicit nightly version above.
-          cargo llvm-cov -p shader -p shader_common -p shader_util --all-features --doctests --lcov --output-path lcov.info --no-cfg-coverage --locked
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: lcov.info
-          path: lcov.info
-      - name: Send result to codecov
-        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5.5.0
-        with:
-          #files: lcov.info # not needed, it autodetects
-          #verbose: true # not needed
-          name: lcov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   deb: # THIS BUILD INCLUDES CLIPPY
     needs: shader
@@ -99,7 +63,8 @@ jobs:
           rust-components: clippy
           tools: cargo-deb
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
-        if: ${{ !inputs.release }}
+        with:
+          save-if: ${{ !inputs.tagged_release }}
       - name: build
         run: cargo build --locked --release --no-default-features -p brot3-ui
       - name: upload binary
@@ -127,7 +92,7 @@ jobs:
       matrix:
         host: [macos-15, macos-15-intel]
     runs-on: ${{ matrix.host }}
-    if: inputs.release
+    if: inputs.release_workflow
     env: # Downloaded artifact from an earlier job
       BROT3_PREBUILT_SHADER: ${{ github.workspace }}/prebuilt-shader/shader.spv
     timeout-minutes: 30
@@ -137,7 +102,8 @@ jobs:
         with:
           tools: cargo-bundle
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
-        if: ${{ !inputs.release }}
+        with:
+          save-if: ${{ !inputs.tagged_release }}
       - name: build
         uses: mathiasvr/command-output@6309e0ee6ed594fd7f382bd826e138e0ba04dd63 # v2.0.0
         with:
@@ -169,7 +135,7 @@ jobs:
   win:
     needs: shader
     runs-on: windows-2025
-    if: inputs.release
+    if: inputs.release_workflow
     env: # Downloaded artifact from an earlier job
       BROT3_PREBUILT_SHADER: ${{ github.workspace }}/prebuilt-shader/shader.spv
     timeout-minutes: 30
@@ -177,7 +143,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/ui_build_prep
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
-        if: ${{ !inputs.release }}
+        with:
+          save-if: ${{ !inputs.tagged_release }}
       - name: build binary package
         uses: taiki-e/upload-rust-binary-action@3962470d6e7f1993108411bc3f75a135ec67fc8c # v1.27.0
         id: build-binary

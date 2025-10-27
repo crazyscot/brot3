@@ -14,10 +14,12 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
     with:
-      release: true
+      release_workflow: true
+      tagged_release: ${{ github.event == 'release' }}
   publish:
     needs: build
     runs-on: ubuntu-latest
+    if: ${{ github.event == 'release' }}
     timeout-minutes: 3
     permissions:
       contents: write # necessary to publish to releases
