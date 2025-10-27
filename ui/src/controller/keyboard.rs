@@ -46,7 +46,19 @@ impl super::Controller {
                                 ui.end_row();
                             };
                         }
-                        row!("⬆⬇⬅➡", "Move");
+                        row!("F1", "Help");
+                        row!("F2", "Show UI");
+                        row!("F3 F4", "Fractal");
+                        row!("F5 F6", "Palette");
+                        row!("F11", "Fullscreen");
+                        // F12 will be Save As PNG
+                        row!("^Q", "Quit");
+
+                        // blank line
+                        ui.end_row();
+
+                        row!("⬅➡", "Real");
+                        row!("⬆⬇", "Complex");
                         row!("Z X", "Zoom");
                         row!("E R", "Exponent");
                         row!("Y U", "Gradient");
@@ -54,13 +66,6 @@ impl super::Controller {
                         row!("N M", "Gamma");
                         row!("I O", "Saturation");
                         row!("K L", "Lightness");
-                        row!("F1", "Keyboard help");
-                        row!("F2", "Show/hide UI");
-                        row!("F3 F4", "Fractal");
-                        row!("F5 F6", "Palette");
-                        row!("F11", "Fullscreen");
-                        // F12 will be Save As PNG
-                        row!("^Q", "Quit");
                     });
             });
     }
