@@ -1,4 +1,4 @@
-## [3.0.0] - 2025-10-24
+## [3.0.0](https://github.com/crazyscot/brot3/releases/tag/v3.0.0) - 2025-10-24
 
 ### 🚀 Features
 

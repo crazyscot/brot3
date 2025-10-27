@@ -53,7 +53,7 @@ Steps:
 
 - Create release changeset
   - Update project version in `cargo.toml`
-  - `git cliff --tag v<intended new tag> > CHANGELOG.md`
+  - `cargo xtask changelog --bump major|minor|patch`
   - commit with prefix `chore(release)`
 - Merge changeset to main as usual
 - Create and push the new tag

@@ -1,11 +1,12 @@
 //! xtask to create debian package files
 // (c) 2025 Ross Younger
 
-#[allow(
+#![allow(
     missing_docs,
     missing_debug_implementations,
     missing_copy_implementations
 )]
+pub mod changelog;
 pub mod debian;
 
 pub mod util;
@@ -27,11 +28,18 @@ static DEBIAN_ARGS: DebPackageMeta = DebPackageMeta {
 // Syntax: (Command-line verb, implementing function, description for help message)
 
 #[allow(clippy::type_complexity)]
-const TASKS: util::Tasks<'_> = &[(
-    "debian",
-    |args| debian::debian(args, &DEBIAN_ARGS),
-    "Prepare the debian files",
-)];
+const TASKS: util::Tasks<'_> = &[
+    (
+        "debian",
+        |args| debian::debian(args, &DEBIAN_ARGS),
+        "Prepare the debian packaging files",
+    ),
+    (
+        "changelog",
+        |args| changelog::changelog(args),
+        "[--bump major|minor|patch] Update changelog",
+    ),
+];
 
 fn main() -> anyhow::Result<()> {
     util::dispatch(TASKS)
