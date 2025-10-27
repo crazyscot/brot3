@@ -32,7 +32,14 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
                 NumericType::Float => Runner {
                     constants,
                     algo: PhantomData::<$fractal>,
-                    expo: crate::exponentiation::ExpFloat(constants.exponent.float),
+                    expo: crate::exponentiation::ExpFloat(constants.exponent.real),
+                    c: $c_value,
+                }
+                .run(),
+                NumericType::Complex => Runner {
+                    constants,
+                    algo: PhantomData::<$fractal>,
+                    expo: crate::exponentiation::ExpComplex::from(constants.exponent),
                     c: $c_value,
                 }
                 .run(),
@@ -88,31 +95,29 @@ where
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
 
-        let (exponent, ln_exponent) = match self.constants.exponent.typ {
-            NumericType::Integer if self.constants.exponent.int == 2 => {
-                (2., core::f32::consts::LN_2)
+        let exp_ln = match self.constants.exponent.typ {
+            NumericType::Integer if self.constants.exponent.int == 2 => core::f32::consts::LN_2,
+            NumericType::Integer => {
+                let i = self.constants.exponent.int as f32;
+                i.abs().ln()
             }
-            NumericType::Integer => (
-                self.constants.exponent.int as f32,
-                (self.constants.exponent.int as f32).abs().ln(),
-            ),
-            NumericType::Float => (
-                self.constants.exponent.float,
-                self.constants.exponent.float.abs().ln(),
-            ),
+            NumericType::Float => {
+                let f = self.constants.exponent.real;
+                f.abs().ln()
+            }
+            NumericType::Complex => {
+                let c = crate::exponentiation::ExpComplex::from(self.constants.exponent);
+                // for now, we'll take abs(z) so we can take a log in |R.
+                // c.0.abs().ln() === (c.0.abs_sq() ^ 0.5).ln() === 0.5 * c.0.abs_sq().ln()
+                0.5 * c.0.abs_sq().ln()
+            }
         };
 
-        if exponent.abs() < 4. {
-            // A couple of extra iterations helps decrease the size of the error term
-            // This does not work above about exp=3, as the repeated iterations quickly cause overflow
-            z = F::iterate_algorithm(self.expo, z, self.c, iters);
-            iters += 1;
-            z = F::iterate_algorithm(self.expo, z, self.c, iters);
-            iters += 1;
-        }
         // by the logarithm of a power law,
-        // z.norm().ln().ln() === (z.norm_sqr().ln() * 0.5).ln())
-        let smoothed_iters = (iters) as f32 + 1. - (z.abs_sq().ln() * 0.5).ln() / ln_exponent;
+        // z.norm().ln().ln() === (z.norm_sqr().ln() * 0.5).ln()
+        let log_zn = z.abs_sq().ln() * 0.5;
+        let nu = (log_zn / exp_ln).ln() / exp_ln;
+        let smoothed_iters = (iters) as f32 + 1. - nu;
 
         PointResult::new(inside, iters, smoothed_iters)
     }
@@ -201,7 +206,7 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use crate::{fractal, vec2, FragmentConstants};
-    use shader_common::{Algorithm, Palette, PushExponent};
+    use shader_common::{Algorithm, NumericType, Palette, PushExponent};
     use shader_util::Size;
 
     use pretty_assertions::assert_eq;
@@ -223,9 +228,23 @@ mod tests {
     #[test]
     fn mandelbrot_known_answer() {
         let point = crate::vec2(-0.75, 0.75);
+        eprintln!("{:#?}", test_frag_consts());
         let result = fractal::render(&test_frag_consts(), point);
         eprintln!("{result:?}");
         // expected result created by previous brot3 engine (adapted to this incarnation's maths)
-        assert_eq!(result.fractional_iters, 5.31876);
+        assert_eq!(result.fractional_iters, 4.6856737);
+    }
+    #[test]
+    fn mandelbrot_known_answer_cpow() {
+        let point = crate::vec2(-0.75, 0.75);
+        let mut consts = test_frag_consts();
+        consts.exponent.typ = NumericType::Complex;
+        consts.exponent.real = 2.0;
+        consts.exponent.imag = 0.0;
+        eprintln!("{consts:#?}");
+        let result = fractal::render(&consts, point);
+        eprintln!("{result:?}");
+        // expected result created by previous brot3 engine (adapted to this incarnation's maths)
+        assert_eq!(result.fractional_iters, 4.685674);
     }
 }

@@ -127,15 +127,16 @@ impl From<Exponent> for PushExponent {
             PushExponent {
                 typ: NumericType::Integer,
                 int: exp.as_int(),
-                float: 0.,
+                ..Default::default()
             }
         } else {
             PushExponent {
                 typ: NumericType::Float,
-                int: 0,
-                float: exp.as_float(),
+                real: exp.as_float(),
+                ..Default::default()
             }
         }
+        // TODO: complex
     }
 }
 

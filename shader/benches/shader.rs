@@ -9,7 +9,7 @@ use shader_common::{Algorithm, Colourer, FragmentConstants, Palette, PointResult
 use shader_util::{vec2, Size, Vec3};
 use strum::VariantArray as _;
 
-type Complex = shader_common::complex::Complex<f32>;
+use shader_common::Complex;
 
 #[divan::bench]
 fn ___warm_up() {

@@ -10,7 +10,7 @@ use spirv_std::spirv;
 use shader_common::{FragmentConstants, PointResult, GRID_SIZE};
 use shader_util::grid::{GridRef, GridRefMut};
 
-type Complex = shader_common::complex::Complex<f32>;
+pub use shader_common::Complex;
 
 pub mod colour;
 pub mod exponentiation;
@@ -111,7 +111,7 @@ mod tests {
         let consts = test_frag_consts();
         let mut grid = vec![PointResult::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
         super::main_fs(vec4(0., 0., 0., 0.), &consts, &mut grid, &mut res);
-        let expected = vec4(0.5333053, 1., 0., 1.);
+        let expected = vec4(1., 0.8776951, 0., 1.);
         assert!(
             res.abs_diff_eq(expected, 0.000_000_1),
             "mismatch: {res} vs {expected}"

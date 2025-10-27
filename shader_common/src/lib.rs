@@ -1,7 +1,7 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
-pub use abels_complex as complex;
+pub type Complex = abels_complex::Complex<f32>;
 
 #[cfg(not(target_arch = "spirv"))]
 use glam::{uvec2, UVec2, Vec2};
@@ -121,15 +121,20 @@ pub enum NumericType {
     #[default]
     Integer,
     Float,
+    Complex,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit, Default))]
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
 pub struct PushExponent {
     pub typ: NumericType,
+    /// Only used when `typ` is Integer
     pub int: i32,
-    pub float: f32,
+    /// Used when `typ` is Float or Complex
+    pub real: f32,
+    /// Only used when `typ` is Complex
+    pub imag: f32,
 }
 
 impl From<i32> for PushExponent {
@@ -137,7 +142,7 @@ impl From<i32> for PushExponent {
         Self {
             typ: NumericType::Integer,
             int: i,
-            float: 0.,
+            ..Default::default()
         }
     }
 }
@@ -146,8 +151,19 @@ impl From<f32> for PushExponent {
     fn from(f: f32) -> Self {
         Self {
             typ: NumericType::Float,
-            int: 0,
-            float: f,
+            real: f,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<Complex> for PushExponent {
+    fn from(z: Complex) -> Self {
+        Self {
+            typ: NumericType::Float,
+            real: z.re,
+            imag: z.im,
+            ..Default::default()
         }
     }
 }

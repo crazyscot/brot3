@@ -1,6 +1,7 @@
 //! Exponentation strategies for fractals, as a trait to allow monomorphisation and inlining
 
 use super::Complex;
+use shader_common::PushExponent;
 
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;
@@ -58,6 +59,15 @@ impl Exponentiator for ExpComplex {
         }
         // function: z^p = e^(p ln(z))
         (power * z.ln()).exp().to_rectangular()
+    }
+}
+
+impl From<PushExponent> for ExpComplex {
+    fn from(value: PushExponent) -> Self {
+        Self(Complex {
+            re: value.real,
+            im: value.imag,
+        })
     }
 }
 

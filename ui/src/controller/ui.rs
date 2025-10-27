@@ -152,6 +152,9 @@ impl super::Controller {
                                 self.reiterate = true;
                             }
                         }
+                        NumericType::Complex => {
+                            todo!()
+                        }
                     }
 
                     if ui
