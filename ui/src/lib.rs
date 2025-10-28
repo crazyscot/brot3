@@ -55,7 +55,9 @@ pub fn main() -> anyhow::Result<()> {
             if let Ok(mp) = manifest {
                 // We're running under cargo
                 if args.shader.is_some() {
-                    anyhow::bail!("Shader directory cannot be specified when CARGO_MANIFEST_DIR is set");
+                    anyhow::bail!(
+                        "Shader directory cannot be specified when CARGO_MANIFEST_DIR is set"
+                    );
                 }
                 let mut pb = PathBuf::from(&mp);
                 pb.push(CARGO_SHADER_RELATIVE_PATH);
@@ -79,15 +81,20 @@ pub fn main() -> anyhow::Result<()> {
                         }
                     }
                     if shader_path.is_none() {
-                        log::info!("Shader source directory not found, running with prebuilt shader");
+                        log::info!(
+                            "Shader source directory not found, running with prebuilt shader"
+                        );
                     }
                 }
             }
             if let Some(ref tp) = args.spirv_tools
-                && !is_file(tp) {
-                    anyhow::bail!("SPIRV tools {tp:?} not found");
-                }
-            if let Some(path) = shader_path && !args.static_shader {
+                && !is_file(tp)
+            {
+                anyhow::bail!("SPIRV tools {tp:?} not found");
+            }
+            if let Some(path) = shader_path
+                && !args.static_shader
+            {
                 let hook = std::panic::take_hook();
                 std::panic::set_hook(Box::new(move |e| {
                     let msg = e.to_string();
@@ -97,13 +104,24 @@ pub fn main() -> anyhow::Result<()> {
                         hook(e);
                     }
                 }));
-                easy_shader_runner::run_with_runtime_compilation_2(params, path, relative_to_manifest, args.spirv_tools)?;
+                easy_shader_runner::run_with_runtime_compilation_2(
+                    params,
+                    path,
+                    relative_to_manifest,
+                    args.spirv_tools,
+                )?;
             } else {
-                easy_shader_runner::run_with_prebuilt_shader_2(params, include_bytes!(env!("shader.spv")))?;
+                easy_shader_runner::run_with_prebuilt_shader_2(
+                    params,
+                    include_bytes!(env!("shader.spv")),
+                )?;
             }
         } else {
             // Runtime compilation disabled by feature flag
-            easy_shader_runner::run_with_prebuilt_shader_2(params, include_bytes!(env!("shader.spv")))?;
+            easy_shader_runner::run_with_prebuilt_shader_2(
+                params,
+                include_bytes!(env!("shader.spv")),
+            )?;
         }
     }
     Ok(())
