@@ -8,19 +8,11 @@ authors.workspace = true
 edition.workspace = true
 license.workspace = true
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-test = false
-doctest = false
-bench = false
-doc = false
-
 [[bin]]
 name = "brot3"
 test = false
 doc = false
 bench = false
-
 
 [features]
 default = ["hot-reload-shader"]
