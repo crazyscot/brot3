@@ -3,7 +3,7 @@ name = "shader_util"
 description = "Helper types for GPU shader crates"
 authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
 license = "MIT"
-version = "0.2.0"
+version = "0.3.0"
 edition.workspace = true
 
 [lib]
@@ -17,13 +17,7 @@ spirv-std = { workspace = true }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 bytemuck = { workspace = true, default-features = false, features = ["derive"] }
-dashu = { version = "0.4.2", default-features = false, optional = true }
-dashu-float = { version = "0.4.3", default-features = false, optional = true }
 glam = { workspace = true, default-features = false, features = ["bytemuck"] }
-
-[features]
-## Enables BigComplex and BigVec2. **These are only available on non-GPU builds.**
-big = ["dashu", "dashu-float"]
 
 [lints]
 workspace = true

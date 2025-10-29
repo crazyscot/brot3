@@ -1,14 +1,10 @@
 //! Arbitrary precision version of [`Vec2`], powered by `dashu::float::FBig`
 
-#![cfg(all(feature = "big", not(target_arch = "spirv")))]
-
 use dashu::float::FBig;
 use glam::{DVec2, UVec2, Vec2};
 use std::ops::{Add, AddAssign, Div, DivAssign, Sub, SubAssign};
 
 /// Arbitrary precision version of [`glam::Vec2`]
-///
-/// **Note: This struct is only available on host builds** (non-GPU i.e. `#[cfg(not(target_arch = "spirv"))]`)
 #[derive(Clone, Debug, PartialEq)]
 #[allow(missing_docs)]
 pub struct BigVec2 {
@@ -40,7 +36,7 @@ impl BigVec2 {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use shader_util::big::BigVec2;
+    /// # use big_complex::BigVec2;
     /// let z = BigVec2::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -171,8 +167,8 @@ impl Div<f64> for BigVec2 {
 impl std::fmt::Display for BigVec2 {
     /// Converts to a string representation (binary)
     /// ```
-    /// # use shader_util::big::BigVec2;
-    /// # use shader_util::make_bigvec2;
+    /// # use big_complex::BigVec2;
+    /// # use big_complex::make_bigvec2;
     /// let v = make_bigvec2!(15., 2.);
     /// assert_eq!(v.to_string(), "BigVec2(1111, 10)");
     /// ```
@@ -212,9 +208,13 @@ mod tests {
 
         let mut a1 = make_bigvec2!(20., 12.);
         let dv1 = dvec2(4., 4.);
+        let a2 = a1.clone() - dv1.try_into().unwrap();
         a1 -= dv1;
+        assert_eq!(a1, a2);
         a1 /= 2.0;
         assert_eq!(a1, make_bigvec2!(8., 4.));
+
+        assert_eq!(a1.precision(), glam::uvec2(53, 53));
 
         let dv2 = dvec2(0., 6.);
         a1 += dv2;

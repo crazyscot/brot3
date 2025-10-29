@@ -1,0 +1,25 @@
+[package]
+name = "big_complex"
+description = "Temporary holding crate for arbitrary precision floats"
+authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
+license = "MIT"
+version = "0.0.0"
+edition.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[lib]
+bench = false
+
+[dependencies]
+dashu = { version = "0.4.2", default-features = false }
+dashu-float = { version = "0.4.3", default-features = false }
+glam = { workspace = true, default-features = false }
+
+[dev-dependencies]
+glam = { workspace = true, default-features = false, features = ["std"] }
+
+[lints]
+workspace = true

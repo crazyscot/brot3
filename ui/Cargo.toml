@@ -14,6 +14,11 @@ test = false
 doc = false
 bench = false
 
+[lib]
+test = false
+doc = false
+bench = false
+
 [features]
 default = ["hot-reload-shader"]
 runtime-compilation = ["easy-shader-runner/runtime-compilation"]
@@ -21,6 +26,7 @@ hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 
 [dependencies]
 anyhow = { workspace = true }
+big_complex = { path = "../big_complex" }
 bytemuck = { workspace = true }
 cfg-if = "1.0.4"
 clap = { workspace = true, features = ["derive"] }
@@ -30,7 +36,6 @@ image = { version = "0.25.8", features = ["png"], default-features = false }
 log = "0.4.28"
 num-traits = { version = "0.2.19", default-features = false }
 shader_common = { path = "../shader_common" }
-shader_util = { path = "../shader_util", features = ["big"] }
 strum = { version = "0.27.2", default-features = false, features = ["std"] }
 web-time = "1.1.0"
 

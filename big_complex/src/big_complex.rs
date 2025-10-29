@@ -1,18 +1,15 @@
 //! Arbitrary precision complex numbers, powered by `dashu::float::FBig`
 
-#![cfg(all(feature = "big", not(target_arch = "spirv")))]
-
 use crate::big_vec2::BigVec2;
 use dashu_float::FBig;
 use std::ops::{Add, Deref, DerefMut, Sub};
 
 /// Arbitrary precision complex number using `dashu_float::FBig` as the underlying data type
 ///
-/// **Note: This struct is only available on host builds** (non-GPU i.e. `#[cfg(not(target_arch = "spirv"))]`)
 ///
 /// ```
-/// # use shader_util::big::BigComplex;
-/// # use shader_util::make_complex;
+/// # use big_complex::BigComplex;
+/// # use big_complex::make_complex;
 /// let x = make_complex!(1.0, 2.0);
 /// let y = make_complex!(3.0, 4.0);
 /// let z = x + y;
@@ -21,7 +18,6 @@ use std::ops::{Add, Deref, DerefMut, Sub};
 /// let b = a.clone() - a; // these are bignums, they do not support Copy
 /// assert_eq!(b, BigComplex::ZERO);
 /// ```
-#[cfg(not(target_arch = "spirv"))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct BigComplex(pub BigVec2);
 
@@ -33,7 +29,7 @@ pub struct BigComplex(pub BigVec2);
 #[macro_export]
 macro_rules! make_complex {
     ($x: expr, $y: expr) => {
-        shader_util::big::BigComplex::try_new($x, $y).unwrap()
+        big_complex::BigComplex::try_new($x, $y).unwrap()
     };
 }
 
@@ -50,7 +46,7 @@ impl BigComplex {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use shader_util::big::BigComplex;
+    /// # use big_complex::BigComplex;
     /// let z = BigComplex::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -65,7 +61,7 @@ impl BigComplex {
 
     /// Computes the square efficiently, consuming the original number.
     /// ```
-    /// # use shader_util::make_complex;
+    /// # use big_complex::make_complex;
     /// let x = make_complex!(0.0, 1.0);
     /// // i^2 = -1
     /// assert_eq!(x.square(), make_complex!(-1.0, 0.0));
@@ -79,7 +75,7 @@ impl BigComplex {
     /// Computes the square of the modulus of the complex.
     ///
     /// ```
-    /// # use shader_util::make_complex;
+    /// # use big_complex::make_complex;
     /// # use dashu::fbig;
     /// let x = make_complex!(0.0, 1.0);
     /// assert_eq!(x.norm_squared(), fbig!(1.0));
@@ -97,7 +93,7 @@ impl BigComplex {
 
     /// Sets the precision of both parts of the underlying data storage
     /// ```
-    /// # use shader_util::big::BigComplex;
+    /// # use big_complex::BigComplex;
     /// let z = BigComplex::ZERO.with_precision(123);
     /// let prec = z.precision();
     /// assert_eq!(prec.x, 123);

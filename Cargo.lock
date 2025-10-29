@@ -220,6 +220,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
+name = "big_complex"
+version = "0.0.0"
+dependencies = [
+ "dashu",
+ "dashu-float",
+ "glam",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -269,6 +278,7 @@ name = "brot3-ui"
 version = "3.0.0"
 dependencies = [
  "anyhow",
+ "big_complex",
  "built",
  "bytemuck",
  "cfg-if",
@@ -281,7 +291,6 @@ dependencies = [
  "log",
  "num-traits",
  "shader_common",
- "shader_util",
  "strum",
  "wasm-bindgen-futures",
  "web-time",
@@ -3142,11 +3151,9 @@ dependencies = [
 
 [[package]]
 name = "shader_util"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bytemuck",
- "dashu",
- "dashu-float",
  "document-features",
  "glam",
  "spirv-std",
