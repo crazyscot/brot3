@@ -376,6 +376,10 @@ impl super::Controller {
                             ui.monospace(dynfmt!(self.inspector.data.fractional_iters));
                         }
                         ui.end_row();
+                        let distance = self.inspector.data.distance;
+                        ui.label("Distance");
+                        ui.monospace(dynfmt!(distance));
+                        ui.end_row();
                     });
                     if ui.button("Close").clicked() {
                         self.inspector.active = false;

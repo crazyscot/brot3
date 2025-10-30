@@ -58,7 +58,7 @@ fn colour(col: Colourer) -> Vec3 {
         inspector_point_pixel_address: Vec2::default(),
         render_style: RenderStyle::default(),
     };
-    let data = PointResult::new(false, 3, 5.423);
+    let data = PointResult::new(false, 3, 5.423, 0.123);
     shader::colour::colour_data(black_box(data), &consts)
 }
 

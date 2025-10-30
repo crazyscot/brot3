@@ -148,6 +148,7 @@ mod tests {
             inside: false.into(),
             iters: 100,
             fractional_iters: 100.0,
+            distance: 1.,
         };
         let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
         assert_eq!(expected, super::colour_data(data, &consts));
@@ -169,6 +170,7 @@ mod tests {
             inside: false.into(),
             iters: 5,
             fractional_iters: 4.31876,
+            distance: 1.0,
         };
         let expected = Vec3Rgb::from([0.901042, 0.3573773, 0.]);
         let result = super::colour_data(data, &consts);

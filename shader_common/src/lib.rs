@@ -97,21 +97,25 @@ pub struct PointResult {
     pub iters: u32,
     /// fractional iteration count (where available)
     pub fractional_iters: f32,
+    /// distance estimate
+    pub distance: f32,
 }
 
 impl PointResult {
-    pub fn new(inside: bool, iters: u32, fractional_iters: f32) -> Self {
+    pub fn new(inside: bool, iters: u32, fractional_iters: f32, distance: f32) -> Self {
         if inside {
             Self {
                 inside: true.into(),
                 iters: u32::MAX,
                 fractional_iters: u32::MAX as f32, // we're not allowed to use INFINITY in gpu-land
+                distance,
             }
         } else {
             Self {
                 inside: false.into(),
                 iters,
                 fractional_iters,
+                distance,
             }
         }
     }

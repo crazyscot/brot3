@@ -83,13 +83,14 @@ where
 
         let mut iters = 0;
         let mut z = Complex::ZERO;
+        let mut dz = Complex::ZERO;
         let mut norm_sqr = z.abs_sq();
         let max_iter = self.constants.max_iter;
         // TODO: Cardoid and period-2 bulb checks in original?
 
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
             F::pre_modify_point(&mut z);
-            z = F::iterate_algorithm(self.expo, z, self.c, iters);
+            (z, dz) = F::iterate_algorithm(z, dz, self.expo, self.c, iters);
             iters += 1;
             norm_sqr = z.abs_sq();
         }
@@ -122,7 +123,11 @@ where
         let nu = (log_zn / exp_ln).ln() / exp_ln;
         let smoothed_iters = (iters) as f32 + 2. - nu;
 
-        PointResult::new(inside, iters, smoothed_iters)
+        // distance estimate
+        let za = z.abs();
+        let distance = (za * za).ln() * za / dz.abs();
+
+        PointResult::new(inside, iters, smoothed_iters, distance)
     }
 }
 
@@ -138,8 +143,16 @@ pub(crate) trait AlgorithmDetail<E: Exponentiator> {
     /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
     /// suit all algorithms. Override as necessary.
     #[inline(always)]
-    fn iterate_algorithm(e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
-        e.apply_to(z) + c
+    fn iterate_algorithm(
+        z: Complex,
+        dz: Complex,
+        e: E,
+        c: Complex,
+        _iters: u32,
+    ) -> (Complex /*z*/, Complex /*dz*/) {
+        let dz = 2.0 * z * dz + 1.0; // TODO: Does this change when exp != 2?
+        let z = e.apply_to(z) + c;
+        (z, dz)
     }
 }
 
@@ -168,15 +181,22 @@ impl<E: Exponentiator> AlgorithmDetail<E> for BurningShip {
 struct Celtic {}
 impl<E: Exponentiator> AlgorithmDetail<E> for Celtic {
     #[inline(always)]
-    fn iterate_algorithm(e: E, z: Complex, c: Complex, _iters: u32) -> Complex {
+    fn iterate_algorithm(
+        z: Complex,
+        dz: Complex,
+        e: E,
+        c: Complex,
+        _iters: u32,
+    ) -> (Complex, Complex) {
         // Based on mandelbrot, but using the formula:
         //   z := abs(re(z^2)) + i.im(z^2) + c
+        let dz = 2.0 * z * dz + 1.0; // TODO: correct for non-2 exponents?
         let zz = e.apply_to(z);
         let z2 = Complex {
             re: zz.re.abs(),
             im: zz.im,
         };
-        z2 + c
+        (z2 + c, dz)
     }
 }
 
@@ -192,16 +212,24 @@ impl<E: Exponentiator> AlgorithmDetail<E> for BirdOfPrey {
 struct Variant {}
 impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
     #[inline(always)]
-    fn iterate_algorithm(e: E, z: Complex, c: Complex, iters: u32) -> Complex {
+    fn iterate_algorithm(
+        z: Complex,
+        dz: Complex,
+        e: E,
+        c: Complex,
+        iters: u32,
+    ) -> (Complex, Complex) {
+        let dz = 2.0 * z * dz + 1.0; // TODO: correct for non-2 exponents?
         let zz = e.apply_to(z);
-        if (iters % 2) == 1 {
+        let z = if (iters % 2) == 1 {
             Complex {
                 re: zz.re.abs() + c.re,
                 im: zz.im + c.im,
             }
         } else {
             zz + c
-        }
+        };
+        (z, dz)
     }
 }
 
