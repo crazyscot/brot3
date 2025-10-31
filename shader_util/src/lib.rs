@@ -11,11 +11,11 @@ pub use grid::*;
 
 #[cfg(not(target_arch = "spirv"))]
 /// Re-exported from [`glam`].
-pub use glam::{uvec2, vec2, UVec2, Vec2, Vec3};
+pub use glam::{uvec2, vec2, DVec2, UVec2, Vec2, Vec3};
 
 #[cfg(target_arch = "spirv")]
 /// Re-exported from [`glam`].
-pub use spirv_std::glam::{uvec2, vec2, UVec2, Vec2, Vec3};
+pub use spirv_std::glam::{uvec2, vec2, DVec2, UVec2, Vec2, Vec3};
 
 /// Arbitrary precision versions of `Complex` and `Vec2`.
 /// **Only available on non-GPU builds** and gated by the `big` feature flag.

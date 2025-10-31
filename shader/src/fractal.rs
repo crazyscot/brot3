@@ -205,7 +205,7 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use crate::{fractal, vec2, FragmentConstants};
+    use crate::{fractal, vec2, FragmentConstants, Vec2};
     use shader_common::{Algorithm, NumericType, Palette, PushExponent};
     use shader_util::Size;
 
@@ -222,6 +222,8 @@ mod tests {
             exponent: PushExponent::from(2),
             palette: Palette::default(),
             fractional_iters: true.into(),
+            inspector_active: false.into(),
+            inspector_point_pixel_address: Vec2::default(),
         }
     }
 

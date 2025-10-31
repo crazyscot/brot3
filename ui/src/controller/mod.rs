@@ -2,7 +2,7 @@ use crate::cli::Args;
 
 use big_complex::BigVec2;
 use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
-use glam::{DVec2, UVec2, Vec2};
+use glam::{dvec2, DVec2, UVec2, Vec2};
 use shader_common::{
     Algorithm, FragmentConstants, NumericType, Palette, PointResult, PushExponent, GRID_SIZE,
 };
@@ -46,6 +46,17 @@ pub(crate) struct Controller {
     ctrl_pressed: bool,
     resized: bool,
     fullscreen_requested: bool,
+    context_menu: Option<DVec2>,
+    inspector: Inspector,
+}
+
+#[derive(Default)]
+struct Inspector {
+    active: bool,
+    dragging: bool,
+    position: BigVec2,
+    stale: bool, // N.B. Controller.reiterate implies the inspector data is stale. The converse is not true.
+    data: PointResult,
 }
 
 impl Controller {
@@ -79,6 +90,25 @@ impl Controller {
             ctrl_pressed: false,
             resized: true,
             fullscreen_requested: options.fullscreen,
+            context_menu: None,
+            inspector: Inspector::default(),
+        }
+    }
+    fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
+        FragmentConstants {
+            viewport_translate: self.viewport_translate.as_vec2(),
+            viewport_zoom: self.viewport_zoom as f32,
+            size: self.size.into(),
+            algorithm: self.algorithm,
+            max_iter: self.max_iter,
+            needs_reiterate: reiterate.into(),
+            exponent: self.exponent.into(),
+            palette: self.palette,
+            fractional_iters: self.fractional_iters.into(),
+            inspector_active: self.inspector.active.into(),
+            inspector_point_pixel_address: self
+                .complex_point_to_pixel(&self.inspector.position)
+                .as_vec2(),
         }
     }
 }
@@ -169,18 +199,11 @@ impl ControllerTrait for Controller {
         _offset: Vec2,
     ) -> impl bytemuck::NoUninit {
         let reiterate = self.reiterate;
-        self.reiterate = false;
-        FragmentConstants {
-            viewport_translate: self.viewport_translate.as_vec2(),
-            viewport_zoom: self.viewport_zoom as f32,
-            size: self.size.into(),
-            algorithm: self.algorithm,
-            max_iter: self.max_iter,
-            needs_reiterate: reiterate.into(),
-            exponent: self.exponent.into(),
-            palette: self.palette,
-            fractional_iters: self.fractional_iters.into(),
+        if reiterate {
+            self.inspector.stale = true;
         }
+        self.reiterate = false;
+        self.fragment_constants(reiterate)
     }
 
     fn describe_bind_groups(
@@ -236,14 +259,29 @@ impl ControllerTrait for Controller {
     }
 
     fn mouse_input(&mut self, state: ElementState, button: MouseButton) {
-        if button == MouseButton::Left {
-            self.dragging = state == ElementState::Pressed;
+        let pressed = state == ElementState::Pressed;
+        match button {
+            MouseButton::Left => {
+                self.dragging = pressed;
+                self.inspector.dragging = pressed && self.mouse_on_marker();
+            }
+            MouseButton::Right => {
+                if state == ElementState::Pressed {
+                    // hack: offset the menu from the clicked point, so it doesn't immediately disappear
+                    self.context_menu = Some(self.mouse_position - DVec2::splat(5.0));
+                }
+            }
+            _ => (),
         }
     }
     fn mouse_move(&mut self, position: DVec2) {
         let prev_position = self.mouse_position;
         self.mouse_position = position;
-        if self.dragging {
+        if self.inspector.dragging {
+            self.inspector.position += self.pixel_address_to_complex(self.mouse_position)
+                - self.pixel_address_to_complex(prev_position);
+            self.inspector.stale = true;
+        } else if self.dragging {
             let delta =
                 BigVec2::try_from((prev_position - self.mouse_position) / self.size.y as f64)
                     .unwrap()
@@ -278,5 +316,22 @@ impl Controller {
     pub(crate) fn pixel_complex_size(&self) -> f64 {
         // self.viewport_complex_size().y / self.size.y as f64
         1. / (self.viewport_zoom * self.size.y as f64)
+    }
+
+    fn pixel_address_to_complex(&self, p: DVec2) -> BigVec2 {
+        let size = self.size.as_dvec2();
+        self.viewport_translate.clone()
+            + BigVec2::try_from(
+                (p - 0.5 * size) * dvec2(size.x / size.y, 1.0) / self.viewport_zoom / size,
+            )
+            .unwrap()
+    }
+
+    fn complex_point_to_pixel(&self, p: &BigVec2) -> DVec2 {
+        let size = self.size.as_dvec2();
+        (p.clone() - self.viewport_translate.clone()).as_dvec2() / dvec2(size.x / size.y, 1.0)
+            * self.viewport_zoom
+            * size
+            + 0.5 * size
     }
 }

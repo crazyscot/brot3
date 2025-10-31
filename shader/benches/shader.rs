@@ -6,7 +6,7 @@ fn main() {
 use divan::black_box;
 use shader::exponentiation::{Exp2, ExpFloat, ExpIntN, Exponentiator as _};
 use shader_common::{Algorithm, Colourer, FragmentConstants, Palette, PointResult, PushExponent};
-use shader_util::{vec2, Size, Vec3};
+use shader_util::{vec2, Size, Vec2, Vec3};
 use strum::VariantArray as _;
 
 use shader_common::Complex;
@@ -30,6 +30,8 @@ fn fractal(alg: Algorithm) -> PointResult {
         exponent: PushExponent::from(2),
         palette: Palette::default(),
         fractional_iters: true.into(),
+        inspector_active: false.into(),
+        inspector_point_pixel_address: Vec2::default(),
     };
     shader::fractal::render(&consts, black_box(vec2(0.5, 0.5)))
 }
@@ -49,6 +51,8 @@ fn colour(col: Colourer) -> Vec3 {
             ..Default::default()
         },
         fractional_iters: true.into(),
+        inspector_active: false.into(),
+        inspector_point_pixel_address: Vec2::default(),
     };
     let data = PointResult::new(false, 3, 5.423);
     shader::colour::colour_data(black_box(data), &consts)

@@ -18,7 +18,7 @@ use std::ops::{Add, Deref, DerefMut, Sub};
 /// let b = a.clone() - a; // these are bignums, they do not support Copy
 /// assert_eq!(b, BigComplex::ZERO);
 /// ```
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct BigComplex(pub BigVec2);
 
 /// Roughly creates a [`BigComplex`] from a pair of inputs.

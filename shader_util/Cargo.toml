@@ -19,5 +19,8 @@ spirv-std = { workspace = true }
 bytemuck = { workspace = true, default-features = false, features = ["derive"] }
 glam = { workspace = true, default-features = false, features = ["bytemuck"] }
 
+[dev-dependencies]
+glam = { workspace = true, default-features = false, features = ["std"] }
+
 [lints]
 workspace = true

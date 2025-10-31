@@ -4,17 +4,21 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
-use spirv_std::glam::{f32, vec2, Vec2, Vec4, Vec4Swizzles as _};
+use spirv_std::glam::{f32, vec2, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
 use shader_common::{FragmentConstants, PointResult, GRID_SIZE};
 use shader_util::grid::{GridRef, GridRefMut};
 
-pub use shader_common::Complex;
+pub use shader_common::{Complex, INSPECTOR_MARKER_SIZE};
 
 pub mod colour;
 pub mod exponentiation;
 pub mod fractal;
+
+fn new_york_distance(a: Vec2, b: Vec2) -> f32 {
+    (a.x - b.x).abs() + (a.y - b.y).abs()
+}
 
 /// SPIRV `fragment` entrypoint.
 /// This does the iteration and rendering work.
@@ -47,7 +51,19 @@ pub fn main_fs(
         cache.get(coord.as_uvec2())
     };
 
-    let colour = colour::colour_data(render_data, constants);
+    let mut colour = colour::colour_data(render_data, constants);
+
+    // Draw the inspector marker
+    if constants.inspector_active.into() {
+        // New York distance from the reference point draws a diamond shape
+        let dist = new_york_distance(constants.inspector_point_pixel_address, coord);
+        if dist < INSPECTOR_MARKER_SIZE * 0.667 {
+            colour = Vec3::splat(0.0); // TODO Do something better here? Change pixels underneath?
+        } else if dist < INSPECTOR_MARKER_SIZE {
+            colour = Vec3::splat(1.0);
+        }
+    }
+
     *output = colour.extend(1.0);
 }
 
@@ -72,7 +88,7 @@ mod tests {
 
     use shader_common::{Algorithm, Palette, PushExponent};
     use shader_util::Size;
-    use spirv_std::glam::{vec2, vec4, Vec4};
+    use spirv_std::glam::{vec2, vec4, Vec2, Vec4};
 
     #[test]
     fn vertex() {
@@ -102,6 +118,8 @@ mod tests {
             exponent: PushExponent::from(2),
             palette: Palette::default(),
             fractional_iters: true.into(),
+            inspector_active: false.into(),
+            inspector_point_pixel_address: Vec2::default(),
         }
     }
 

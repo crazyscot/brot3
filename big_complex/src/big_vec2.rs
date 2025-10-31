@@ -5,7 +5,7 @@ use glam::{DVec2, UVec2, Vec2};
 use std::ops::{Add, AddAssign, Div, DivAssign, Sub, SubAssign};
 
 /// Arbitrary precision version of [`glam::Vec2`]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 #[allow(missing_docs)]
 pub struct BigVec2 {
     pub x: FBig,

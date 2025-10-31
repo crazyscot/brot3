@@ -290,6 +290,7 @@ dependencies = [
  "image",
  "log",
  "num-traits",
+ "shader",
  "shader_common",
  "strum",
  "wasm-bindgen-futures",

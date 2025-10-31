@@ -22,7 +22,13 @@ impl super::Controller {
         ui_state.vsync = self.vsync;
         ui_state.fullscreen = self.fullscreen_requested;
         self.apply_movement();
+        if self.inspector.stale {
+            self.update_inspector();
+        }
 
+        if let Some(pos) = self.context_menu {
+            self.context_menu_window(ctx, pos);
+        }
         if self.show_ui {
             self.controls_window(ctx);
         }
@@ -46,6 +52,7 @@ impl super::Controller {
         }
 
         self.resized = false;
+        self.set_mouse_pointer(ctx);
     }
 
     fn apply_movement(&mut self) {
@@ -220,11 +227,9 @@ impl super::Controller {
                             self.reiterate = true;
                         }
                     }
-
-                    // COMPLEX CONDITIONAL
                 });
 
-                ui.label(egui::RichText::new("Iterations"));
+                ui.label(egui::RichText::new("Max Iterations"));
                 if ui
                     .add(egui::Slider::new(&mut self.max_iter, 1..=100_000).logarithmic(true))
                     .changed()
@@ -298,6 +303,7 @@ impl super::Controller {
             .resizable(false)
             .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(-10., 10.))
             .show(ctx, |ui| {
+                ui.set_width(10.); // hack: ensures the separator doesn't inflate the window
                 egui::Grid::new("coords_position").show(ui, |ui| {
                     ui.label("Fractal X (Re)");
                     // TODO: What precision to show for deep zooms?
@@ -321,8 +327,32 @@ impl super::Controller {
                     } else {
                         ui.monospace(format!("{zoom:+.2e}"));
                     }
-                    // ...
                 });
+
+                if self.inspector.active {
+                    ui.separator();
+                    ui.label(egui::RichText::new("Marked position").italics());
+                    egui::Grid::new("inspect_position").show(ui, |ui| {
+                        let complex_pos = &self.inspector.position;
+                        ui.label("X (Re)");
+                        // TODO: What precision to show for deep zooms?
+                        // TODO: Dynamic formatting of floats
+                        ui.monospace(format!("{:+.6e}", complex_pos.x.to_f64().value()));
+                        ui.end_row();
+                        ui.label("Y (Im)");
+                        ui.monospace(format!("{:+.6e}", complex_pos.y.to_f64().value()));
+                        ui.end_row();
+                        ui.label("Iterations");
+                        ui.monospace(format!("{}", self.inspector.data.iters));
+                        ui.end_row();
+                        ui.label("Iterations f");
+                        ui.monospace(format!("{}", self.inspector.data.fractional_iters));
+                        ui.end_row();
+                    });
+                    if ui.button("Close").clicked() {
+                        self.inspector.active = false;
+                    }
+                }
             });
     }
 
@@ -453,5 +483,52 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         {
             self.show_license = false;
         }
+    }
+
+    fn context_menu_window(&mut self, ctx: &egui::Context, pos: DVec2) {
+        let scale = ctx.pixels_per_point();
+        let r = egui::Window::new("right_click_menu")
+            .frame(egui::Frame::NONE)
+            .title_bar(false)
+            .resizable(false)
+            .fixed_pos([pos.x as f32 / scale, pos.y as f32 / scale])
+            .show(ctx, |ui| {
+                if ui.button("Inspector...").clicked() {
+                    self.inspector.position = self.pixel_address_to_complex(pos);
+                    self.inspector.active = true;
+                    self.context_menu = None;
+                    self.inspector.stale = true;
+                }
+            });
+        if let Some(r) = r
+            && r.response.clicked_elsewhere()
+        {
+            eprintln!("{r:?}");
+            self.context_menu = None;
+        }
+    }
+
+    pub(crate) fn mouse_on_marker(&self) -> bool {
+        use shader_common::INSPECTOR_MARKER_SIZE;
+        self.inspector.active
+            && self
+                .mouse_position
+                .distance_squared(self.complex_point_to_pixel(&self.inspector.position))
+                < INSPECTOR_MARKER_SIZE as f64 * INSPECTOR_MARKER_SIZE as f64
+    }
+
+    fn set_mouse_pointer(&mut self, ctx: &egui::Context) {
+        if self.inspector.dragging {
+            ctx.set_cursor_icon(egui::CursorIcon::Grabbing);
+        } else if self.mouse_on_marker() {
+            ctx.set_cursor_icon(egui::CursorIcon::Grab);
+        } else {
+            ctx.set_cursor_icon(egui::CursorIcon::Default);
+        }
+    }
+    fn update_inspector(&mut self) {
+        self.inspector.stale = false;
+        let consts = self.fragment_constants(false);
+        self.inspector.data = shader::fractal::render(&consts, self.inspector.position.as_vec2());
     }
 }

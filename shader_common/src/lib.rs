@@ -10,11 +10,12 @@ use glam::{uvec2, UVec2, Vec2};
 use spirv_std::glam::{uvec2, UVec2, Vec2};
 
 pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
+pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 
 #[cfg(not(target_arch = "spirv"))]
 use bytemuck::NoUninit;
 
-use shader_util::{Bool, Size};
+pub use shader_util::{Bool, Size};
 
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit, Default))]
@@ -30,6 +31,8 @@ pub struct FragmentConstants {
     pub exponent: PushExponent,
     pub palette: Palette,
     pub fractional_iters: Bool,
+    pub inspector_active: Bool,
+    pub inspector_point_pixel_address: Vec2,
 }
 
 #[derive(Copy, Clone, Debug)]
