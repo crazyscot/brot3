@@ -25,26 +25,26 @@ impl super::Controller {
 
         if self.show_ui {
             self.controls_window(ctx);
-
-            if self.show_coords_window {
-                self.coords_window(ctx);
-            }
-            if self.show_scale_bar {
-                self.scale_bar(ctx);
-            }
-            if self.show_fps {
-                self.fps_window(ctx, ui_state);
-            }
-            if self.keyboard_help {
-                self.keyboard_help_window(ctx);
-            }
-            if self.show_about {
-                self.about_modal(ctx);
-            }
-            if self.show_license {
-                self.license_modal(ctx);
-            }
         }
+        if self.show_coords_window {
+            self.coords_window(ctx);
+        }
+        if self.show_scale_bar {
+            self.scale_bar(ctx);
+        }
+        if self.show_fps {
+            self.fps_window(ctx, ui_state);
+        }
+        if self.keyboard_help {
+            self.keyboard_help_window(ctx);
+        }
+        if self.show_about {
+            self.about_modal(ctx);
+        }
+        if self.show_license {
+            self.license_modal(ctx);
+        }
+
         self.resized = false;
     }
 
