@@ -11,6 +11,8 @@ const EXPONENT_MIN_INT: u32 = 0;
 const EXPONENT_MAX: f32 = 20.;
 const EXPONENT_MAX_INT: u32 = 20;
 
+use util::dynfmt;
+
 impl super::Controller {
     pub(super) fn ui_impl(
         &mut self,
@@ -283,7 +285,7 @@ impl super::Controller {
 
                 ui.separator();
 
-                ui.checkbox(&mut self.show_coords_window, "Show co-ordinates");
+                ui.checkbox(&mut self.show_coords_window, "Data read-out");
                 ui.checkbox(&mut self.show_scale_bar, "Scale bar");
                 ui.checkbox(&mut self.keyboard_help, "Keyboard help");
                 ui.checkbox(&mut self.show_fps, "Show FPS");
@@ -297,7 +299,18 @@ impl super::Controller {
             .unwrap();
     }
 
+    /// Calculates the decimal precision required to satisfactorily express a fractal part co-ordinate.
+    ///
+    /// We need two guard digits to correctly reconstruct to desired accuracy.
+    /// <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#693> refers.
+    fn precision_digits(&self) -> usize {
+        let pixel_size = self.pixel_complex_size();
+        ((0.0 - pixel_size.log10()).ceil() + 2.0) as usize
+    }
+
     fn coords_window(&mut self, ctx: &egui::Context) {
+        let precision = self.precision_digits();
+
         egui::Window::new("coords")
             .title_bar(false)
             .resizable(false)
@@ -306,16 +319,15 @@ impl super::Controller {
                 ui.set_width(10.); // hack: ensures the separator doesn't inflate the window
                 egui::Grid::new("coords_position").show(ui, |ui| {
                     ui.label("Fractal X (Re)");
-                    // TODO: What precision to show for deep zooms?
-                    ui.monospace(format!(
-                        "{:+.6e}",
-                        self.viewport_translate.x.to_f32().value()
+                    ui.monospace(dynfmt!(
+                        self.viewport_translate.x.to_f64().value(),
+                        precision
                     ));
                     ui.end_row();
                     ui.label("Fractal Y (Im)");
-                    ui.monospace(format!(
-                        "{:+.6e}",
-                        self.viewport_translate.y.to_f32().value()
+                    ui.monospace(dynfmt!(
+                        self.viewport_translate.y.to_f64().value(),
+                        precision
                     ));
                     ui.end_row();
                     ui.label("Zoom");
@@ -335,18 +347,22 @@ impl super::Controller {
                     egui::Grid::new("inspect_position").show(ui, |ui| {
                         let complex_pos = &self.inspector.position;
                         ui.label("X (Re)");
-                        // TODO: What precision to show for deep zooms?
-                        // TODO: Dynamic formatting of floats
-                        ui.monospace(format!("{:+.6e}", complex_pos.x.to_f64().value()));
+                        ui.monospace(dynfmt!(complex_pos.x.to_f64().value(), precision));
                         ui.end_row();
                         ui.label("Y (Im)");
-                        ui.monospace(format!("{:+.6e}", complex_pos.y.to_f64().value()));
+                        ui.monospace(dynfmt!(complex_pos.y.to_f64().value(), precision));
                         ui.end_row();
+                        let inside: bool = self.inspector.data.inside.into();
                         ui.label("Iterations");
-                        ui.monospace(format!("{}", self.inspector.data.iters));
-                        ui.end_row();
-                        ui.label("Iterations f");
-                        ui.monospace(format!("{}", self.inspector.data.fractional_iters));
+                        if inside {
+                            ui.monospace("∞");
+                        } else {
+                            // We only need to report in standard precision for iterations
+                            ui.monospace(dynfmt!(self.inspector.data.iters));
+                            ui.end_row();
+                            ui.label("");
+                            ui.monospace(dynfmt!(self.inspector.data.fractional_iters));
+                        }
                         ui.end_row();
                     });
                     if ui.button("Close").clicked() {

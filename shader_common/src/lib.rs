@@ -3,6 +3,8 @@
 
 pub type Complex = abels_complex::Complex<f32>;
 
+use core::f32;
+
 #[cfg(not(target_arch = "spirv"))]
 use glam::{uvec2, UVec2, Vec2};
 
@@ -88,6 +90,8 @@ impl Palette {
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
 pub struct PointResult {
+    /// if true, this point is inside the set (infinity iterations)
+    pub inside: Bool,
     /// iteration count
     pub iters: u32,
     /// fractional iteration count (where available)
@@ -98,11 +102,13 @@ impl PointResult {
     pub fn new(inside: bool, iters: u32, fractional_iters: f32) -> Self {
         if inside {
             Self {
+                inside: true.into(),
                 iters: u32::MAX,
-                fractional_iters: u32::MAX as f32,
+                fractional_iters: u32::MAX as f32, // we're not allowed to use INFINITY in gpu-land
             }
         } else {
             Self {
+                inside: false.into(),
                 iters,
                 fractional_iters,
             }
