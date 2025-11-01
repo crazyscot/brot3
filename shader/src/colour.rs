@@ -22,6 +22,7 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
         CS::OneLoneCoder => one_lone_coder(constants, &data),
         CS::LchGradient => lch_gradient(constants, &data),
         CS::Monochrome => monochrome(constants, &data),
+        _ => todo!(),
     }
 }
 

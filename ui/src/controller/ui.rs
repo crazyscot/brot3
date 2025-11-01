@@ -145,7 +145,8 @@ impl super::Controller {
                             (NumericType::Complex, NumericType::Float)  | (NumericType::Float, NumericType::Complex) => {
                                 self.exponent.imag = 0.0;
                             }
-                            (NumericType::Float, NumericType::Float) |  (NumericType::Complex, NumericType::Complex)=> ()
+                            (NumericType::Float, NumericType::Float) |  (NumericType::Complex, NumericType::Complex)=> (),
+                            _ => todo!(),
                         }
                         if self.exponent.typ != previous_typ {
                             if previous_typ == NumericType::Integer {
@@ -196,6 +197,7 @@ impl super::Controller {
                                 self.reiterate = true;
                             }
                         }
+                        _ => todo!(),
                     }
 
                     if ui.add(egui::Checkbox::new(

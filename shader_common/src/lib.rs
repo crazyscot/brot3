@@ -125,6 +125,7 @@ impl PointResult {
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[non_exhaustive]
 #[repr(u32)]
 pub enum NumericType {
     #[default]
@@ -191,6 +192,7 @@ impl From<Complex> for PushExponent {
     )
 )]
 #[repr(u32)]
+#[non_exhaustive]
 pub enum Algorithm {
     #[default]
     Mandelbrot,
@@ -216,6 +218,7 @@ pub enum Algorithm {
     )
 )]
 #[repr(u32)]
+#[non_exhaustive]
 pub enum Colourer {
     #[default]
     LogRainbow,

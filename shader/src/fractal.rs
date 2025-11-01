@@ -43,6 +43,7 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
                     c: $c_value,
                 }
                 .run(),
+                _ => todo!(),
             }
         }};
     }
@@ -55,6 +56,7 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
         Algorithm::Celtic => builder!(Celtic, c),
         Algorithm::Variant => builder!(Variant, c),
         Algorithm::BirdOfPrey => builder!(BirdOfPrey, c),
+        _ => todo!(),
     }
 }
 
@@ -111,6 +113,7 @@ where
                 // c.0.abs().ln() === (c.0.abs_sq() ^ 0.5).ln() === 0.5 * c.0.abs_sq().ln()
                 0.5 * c.0.abs_sq().ln()
             }
+            _ => todo!(),
         };
 
         // by the logarithm of a power law,
