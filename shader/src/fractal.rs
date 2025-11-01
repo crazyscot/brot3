@@ -117,7 +117,7 @@ where
         // z.norm().ln().ln() === (z.norm_sqr().ln() * 0.5).ln()
         let log_zn = z.abs_sq().ln() * 0.5;
         let nu = (log_zn / exp_ln).ln() / exp_ln;
-        let smoothed_iters = (iters) as f32 + 1. - nu;
+        let smoothed_iters = (iters) as f32 + 2. - nu;
 
         PointResult::new(inside, iters, smoothed_iters)
     }
@@ -234,7 +234,7 @@ mod tests {
         let result = fractal::render(&test_frag_consts(), point);
         eprintln!("{result:?}");
         // expected result created by previous brot3 engine (adapted to this incarnation's maths)
-        assert_eq!(result.fractional_iters, 4.6856737);
+        assert_eq!(result.fractional_iters, 5.6856737);
     }
     #[test]
     fn mandelbrot_known_answer_cpow() {
@@ -247,6 +247,6 @@ mod tests {
         let result = fractal::render(&consts, point);
         eprintln!("{result:?}");
         // expected result created by previous brot3 engine (adapted to this incarnation's maths)
-        assert_eq!(result.fractional_iters, 4.685674);
+        assert_eq!(result.fractional_iters, 5.685674);
     }
 }
