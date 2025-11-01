@@ -8,8 +8,8 @@ use std::ops::{Add, Deref, DerefMut, Sub};
 ///
 ///
 /// ```
-/// # use big_complex::BigComplex;
-/// # use big_complex::make_complex;
+/// # use util::BigComplex;
+/// # use util::make_complex;
 /// let x = make_complex!(1.0, 2.0);
 /// let y = make_complex!(3.0, 4.0);
 /// let z = x + y;
@@ -29,7 +29,7 @@ pub struct BigComplex(pub BigVec2);
 #[macro_export]
 macro_rules! make_complex {
     ($x: expr, $y: expr) => {
-        big_complex::BigComplex::try_new($x, $y).unwrap()
+        util::BigComplex::try_new($x, $y).unwrap()
     };
 }
 
@@ -46,7 +46,7 @@ impl BigComplex {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use big_complex::BigComplex;
+    /// # use util::BigComplex;
     /// let z = BigComplex::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -61,7 +61,7 @@ impl BigComplex {
 
     /// Computes the square efficiently, consuming the original number.
     /// ```
-    /// # use big_complex::make_complex;
+    /// # use util::make_complex;
     /// let x = make_complex!(0.0, 1.0);
     /// // i^2 = -1
     /// assert_eq!(x.square(), make_complex!(-1.0, 0.0));
@@ -75,7 +75,7 @@ impl BigComplex {
     /// Computes the square of the modulus of the complex.
     ///
     /// ```
-    /// # use big_complex::make_complex;
+    /// # use util::make_complex;
     /// # use dashu::fbig;
     /// let x = make_complex!(0.0, 1.0);
     /// assert_eq!(x.norm_squared(), fbig!(1.0));
@@ -93,7 +93,7 @@ impl BigComplex {
 
     /// Sets the precision of both parts of the underlying data storage
     /// ```
-    /// # use big_complex::BigComplex;
+    /// # use util::BigComplex;
     /// let z = BigComplex::ZERO.with_precision(123);
     /// let prec = z.precision();
     /// assert_eq!(prec.x, 123);

@@ -1,6 +1,6 @@
 [package]
-name = "big_complex"
-description = "Temporary holding crate for arbitrary precision floats"
+name = "util"
+description = "Utilities used by the brot3 ui (separate crate for efficient testing)"
 authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
 license = "MIT"
 version = "0.0.0"

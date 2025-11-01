@@ -17,6 +17,7 @@ bench = false
 [lib]
 test = false
 doc = false
+doctest = false
 bench = false
 
 [features]
@@ -26,7 +27,6 @@ hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 
 [dependencies]
 anyhow = { workspace = true }
-big_complex = { path = "../big_complex" }
 bytemuck = { workspace = true }
 cfg-if = "1.0.4"
 clap = { workspace = true, features = ["derive"] }
@@ -38,6 +38,7 @@ num-traits = { version = "0.2.19", default-features = false }
 shader = { path = "../shader" }
 shader_common = { path = "../shader_common" }
 strum = { version = "0.27.2", default-features = false, features = ["std"] }
+util = { path = "../util" }
 web-time = "1.1.0"
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]

@@ -36,7 +36,7 @@ impl BigVec2 {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use big_complex::BigVec2;
+    /// # use util::BigVec2;
     /// let z = BigVec2::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -167,8 +167,7 @@ impl Div<f64> for BigVec2 {
 impl std::fmt::Display for BigVec2 {
     /// Converts to a string representation (binary)
     /// ```
-    /// # use big_complex::BigVec2;
-    /// # use big_complex::make_bigvec2;
+    /// # use util::{BigVec2, make_bigvec2};
     /// let v = make_bigvec2!(15., 2.);
     /// assert_eq!(v.to_string(), "BigVec2(1111, 10)");
     /// ```
