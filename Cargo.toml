@@ -28,8 +28,8 @@ debug = true
 abels-complex = { version = "0.3.0", default-features = false }
 anyhow = "1.0.100"
 bytemuck = { version = "1.24.0", default-features = false }
-clap = { version = "4.5.49", features = ["derive"] }
-glam = { version = "=0.30.8", default-features = false }
+clap = { version = "4.5.51", features = ["derive"] }
+glam = { version = "=0.30.9", default-features = false }
 pretty_assertions = "1.4.1"
 
 [workspace.dependencies.spirv-std]
