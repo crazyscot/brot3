@@ -3789,6 +3789,7 @@ dependencies = [
  "dashu",
  "dashu-float",
  "glam",
+ "pretty_assertions",
 ]
 
 [[package]]
