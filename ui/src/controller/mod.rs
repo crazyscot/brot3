@@ -3,7 +3,8 @@ use crate::cli::Args;
 use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
 use glam::{dvec2, DVec2, UVec2, Vec2};
 use shader_common::{
-    Algorithm, FragmentConstants, NumericType, Palette, PointResult, PushExponent, GRID_SIZE,
+    Algorithm, FragmentConstants, NumericType, Palette, PointResult, PushExponent, RenderStyle,
+    GRID_SIZE,
 };
 use util::BigVec2;
 use web_time::Instant;
@@ -27,7 +28,7 @@ pub(crate) struct Controller {
     max_iter: u32,
     palette: Palette,
     exponent: Exponent,
-    fractional_iters: bool,
+    render_style: RenderStyle,
     // User-facing options
     show_coords_window: bool,
     show_scale_bar: bool,
@@ -72,7 +73,7 @@ impl Controller {
             max_iter: 100,
             palette: Palette::default_with(options.colourer),
             exponent: Exponent::default(),
-            fractional_iters: true,
+            render_style: RenderStyle::default(),
 
             show_coords_window: true,
             show_scale_bar: true,
@@ -104,11 +105,12 @@ impl Controller {
             needs_reiterate: reiterate.into(),
             exponent: self.exponent.into(),
             palette: self.palette,
-            fractional_iters: self.fractional_iters.into(),
+            fractional_iters: (self.render_style == RenderStyle::ContinuousDwell).into(),
             inspector_active: self.inspector.active.into(),
             inspector_point_pixel_address: self
                 .complex_point_to_pixel(&self.inspector.position)
                 .as_vec2(),
+            render_style: self.render_style,
         }
     }
 }
@@ -200,9 +202,7 @@ impl ControllerTrait for Controller {
         _offset: Vec2,
     ) -> impl bytemuck::NoUninit {
         let reiterate = self.reiterate;
-        if reiterate {
-            self.inspector.stale = true;
-        }
+        self.inspector.stale = reiterate;
         self.reiterate = false;
         self.fragment_constants(reiterate)
     }

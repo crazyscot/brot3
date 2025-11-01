@@ -2,7 +2,7 @@ use easy_shader_runner::{egui, UiState};
 use egui::epaint;
 
 use super::{DVec2, Instant};
-use shader_common::{Algorithm, Colourer};
+use shader_common::{Algorithm, Colourer, RenderStyle};
 
 pub(crate) const DEFAULT_WIDTH: f32 = 130.;
 
@@ -241,7 +241,17 @@ impl super::Controller {
                     self.reiterate = true;
                 }
 
-                ui.checkbox(&mut self.fractional_iters, "Fractional iterations");
+                ui.separator();
+
+                egui::ComboBox::from_label("Render Style")
+                    .selected_text(format!("{:?}", self.render_style))
+                    .show_ui(ui, |ui| {
+                        use strum::IntoEnumIterator as _;
+                        for it in RenderStyle::iter() {
+                            let label: &'static str = it.into();
+                            ui.selectable_value(&mut self.render_style, it, label);
+                        }
+                    });
 
                 ui.separator();
 

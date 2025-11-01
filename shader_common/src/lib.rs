@@ -35,6 +35,7 @@ pub struct FragmentConstants {
     pub fractional_iters: Bool,
     pub inspector_active: Bool,
     pub inspector_point_pixel_address: Vec2,
+    pub render_style: RenderStyle,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -112,13 +113,6 @@ impl PointResult {
                 iters,
                 fractional_iters,
             }
-        }
-    }
-    pub fn value(&self, fractional: bool) -> f32 {
-        if fractional {
-            self.fractional_iters
-        } else {
-            self.iters as f32
         }
     }
 }
@@ -257,6 +251,26 @@ macro_rules! incrementable {
 }
 incrementable!(Colourer);
 incrementable!(Algorithm);
+
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    not(target_arch = "spirv"),
+    derive(
+        NoUninit,
+        clap::ValueEnum,
+        strum::EnumIter,
+        strum::IntoStaticStr,
+        strum::VariantArray,
+        num_derive::FromPrimitive,
+        num_derive::ToPrimitive,
+    )
+)]
+#[repr(u32)]
+pub enum RenderStyle {
+    #[default]
+    ContinuousDwell,
+    EscapeTime,
+}
 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]

@@ -7,7 +7,7 @@ use core::f32::consts::TAU;
 use shader_common::Colourer as ColourerSelection;
 use shader_util::colourspace::{Hsl, Lch, Vec3Rgb};
 
-use super::{f32::vec3, FragmentConstants, PointResult};
+use super::{f32::vec3, FragmentConstants, PointResult, RenderStyle};
 
 pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb {
     use ColourerSelection as CS;
@@ -26,12 +26,18 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
     }
 }
 
+fn point_iters(constants: &FragmentConstants, point: &PointResult) -> f32 {
+    match constants.render_style {
+        RenderStyle::ContinuousDwell => point.fractional_iters,
+        RenderStyle::EscapeTime => point.iters as f32,
+    }
+}
+
 fn log_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
     let offset = constants.palette.offset * 36.;
     let angle: f32 =
-        pixel.value(constants.fractional_iters.into()).ln() * constants.palette.gradient * 100.
-            + offset; // DEGREES
+        point_iters(constants, pixel).ln() * constants.palette.gradient * 100. + offset; // DEGREES
     Hsl::new(
         angle,
         constants.palette.saturation,
@@ -44,8 +50,7 @@ fn sqrt_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
     let offset = constants.palette.offset * 36.;
     let angle: f32 =
-        pixel.value(constants.fractional_iters.into()).sqrt() * constants.palette.gradient * 100.
-            + offset; // DEGREES
+        point_iters(constants, pixel).sqrt() * constants.palette.gradient * 100. + offset; // DEGREES
     Hsl::new(
         angle,
         constants.palette.saturation,
@@ -57,7 +62,7 @@ fn sqrt_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 /// Based on Tony Finch's "White Fade" colourer
 /// <https://dotat.at/prog/mandelbrot/>
 fn white_fade(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
-    let iters = pixel.value(constants.fractional_iters.into()).ln();
+    let iters = point_iters(constants, pixel).ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
@@ -75,7 +80,7 @@ fn white_fade(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 /// Based on Tony Finch's "Black Fade" colourer
 /// <https://dotat.at/prog/mandelbrot/>
 fn black_fade(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
-    let iters = pixel.value(constants.fractional_iters.into()).ln();
+    let iters = point_iters(constants, pixel).ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
@@ -93,7 +98,7 @@ fn black_fade(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 /// Colouring algorithm by `OneLoneCoder.com`
 /// <https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_Mandelbrot.cpp>
 fn one_lone_coder(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
-    let iters = pixel.value(constants.fractional_iters.into());
+    let iters = point_iters(constants, pixel);
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
@@ -106,8 +111,7 @@ fn one_lone_coder(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb
 
 fn monochrome(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     // Compute an input from 0..1, relative to max_iter
-    let input =
-        pixel.value(constants.fractional_iters.into()).ln() / (constants.max_iter as f32).ln();
+    let input = point_iters(constants, pixel).ln() / (constants.max_iter as f32).ln();
     // Scale the offset down to -2..2
     let offset = constants.palette.offset / 5.;
     // This palette has a gamma transfer function
@@ -123,7 +127,7 @@ fn lch_gradient(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
     // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
     let offset = constants.palette.offset * 36.;
 
-    let s: f32 = pixel.value(constants.fractional_iters.into()) / constants.max_iter as f32;
+    let s: f32 = point_iters(constants, pixel) / constants.max_iter as f32;
     let v1 = (core::f32::consts::PI * s).cos();
     let v2 = 1.0 - v1 * v1;
     let lightness = 75.0 - (75.0 * v2);
@@ -136,7 +140,7 @@ fn lch_gradient(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::{PointResult, Vec3Rgb};
-    use shader_common::{Colourer, FragmentConstants, Palette};
+    use shader_common::{Colourer, FragmentConstants, Palette, RenderStyle};
     #[test]
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
@@ -157,6 +161,7 @@ mod tests {
                 colourer: Colourer::LchGradient,
                 ..Default::default()
             },
+            render_style: RenderStyle::EscapeTime,
             ..Default::default()
         };
         assert_eq!(consts.algorithm, shader_common::Algorithm::Mandelbrot);
