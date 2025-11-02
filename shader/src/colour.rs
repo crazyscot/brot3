@@ -28,7 +28,7 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
 
 fn point_iters(constants: &FragmentConstants, point: &PointResult) -> f32 {
     match constants.render_style {
-        RenderStyle::ContinuousDwell => point.fractional_iters,
+        RenderStyle::ContinuousDwell => point.iters as f32 + point.iters_fraction,
         RenderStyle::EscapeTime => point.iters as f32,
     }
 }
@@ -146,7 +146,7 @@ mod tests {
         let consts = FragmentConstants::default();
         let data = PointResult {
             iters: 100,
-            fractional_iters: 100.0,
+            iters_fraction: 0.0,
             distance: 1.,
         };
         let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
@@ -167,7 +167,7 @@ mod tests {
         assert_eq!(consts.algorithm, shader_common::Algorithm::Mandelbrot);
         let data = PointResult {
             iters: 5,
-            fractional_iters: 4.31876,
+            iters_fraction: 0.31876,
             distance: 1.0,
         };
         let expected = Vec3Rgb::from([0.901042, 0.3573773, 0.]);

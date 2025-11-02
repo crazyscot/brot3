@@ -372,8 +372,8 @@ impl super::Controller {
                             // We only need to report in standard precision for iterations
                             ui.monospace(dynfmt!(self.inspector.data.iters));
                             ui.end_row();
-                            ui.label("");
-                            ui.monospace(dynfmt!(self.inspector.data.fractional_iters));
+                            ui.label("fraction");
+                            ui.monospace(dynfmt!(self.inspector.data.iters_fraction));
                         }
                         ui.end_row();
                         let distance = self.inspector.data.distance;

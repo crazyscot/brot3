@@ -130,7 +130,7 @@ mod tests {
         let consts = test_frag_consts();
         let mut grid = vec![PointResult::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
         super::main_fs(vec4(0., 0., 0., 0.), &consts, &mut grid, &mut res);
-        let expected = vec4(0.34878647, 1., 0., 1.);
+        let expected = vec4(0.49196184, 1., 0., 1.);
         assert!(
             res.abs_diff_eq(expected, 0.000_000_1),
             "mismatch: {res} vs {expected}"

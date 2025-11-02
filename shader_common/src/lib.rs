@@ -93,24 +93,24 @@ impl Palette {
 pub struct PointResult {
     /// iteration count
     pub iters: u32,
-    /// fractional iteration count (where available)
-    pub fractional_iters: f32,
+    /// fractional part of iteration count (range 0..1)
+    pub iters_fraction: f32,
     /// distance estimate
     pub distance: f32,
 }
 
 impl PointResult {
-    pub fn new(inside: bool, iters: u32, fractional_iters: f32, distance: f32) -> Self {
+    pub fn new(inside: bool, iters: u32, iters_fraction: f32, distance: f32) -> Self {
         if inside {
             Self {
                 iters: u32::MAX,
-                fractional_iters: u32::MAX as f32, // we're not allowed to use INFINITY in gpu-land
+                iters_fraction: 0.,
                 distance,
             }
         } else {
             Self {
                 iters,
-                fractional_iters,
+                iters_fraction,
                 distance,
             }
         }

@@ -79,7 +79,8 @@ where
     fn run(self) -> PointResult {
         use shader_common::NumericType;
 
-        const ESCAPE_THRESHOLD_SQ: f32 = 4.0;
+        const ESCAPE_THRESHOLD: f32 = 4.0;
+        const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
 
         let mut iters = 0;
         let mut z = Complex::ZERO;
@@ -97,7 +98,6 @@ where
         let inside = iters == max_iter && (norm_sqr < ESCAPE_THRESHOLD_SQ);
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-
         let exp_ln = match self.constants.exponent.typ {
             NumericType::Integer if self.constants.exponent.int == 2 => core::f32::consts::LN_2,
             NumericType::Integer => {
@@ -118,10 +118,9 @@ where
         };
 
         // by the logarithm of a power law,
-        // z.norm().ln().ln() === (z.norm_sqr().ln() * 0.5).ln()
+        // z.norm().log() === z.norm_sqr().log() * 0.5
         let log_zn = z.abs_sq().ln() * 0.5;
-        let nu = (log_zn / exp_ln).ln() / exp_ln;
-        let smoothed_iters = (iters) as f32 + 2. - nu;
+        let smoothed_iters = 1. - log_zn.ln() / exp_ln;
 
         // distance estimate
         let za = z.abs();
@@ -265,8 +264,7 @@ mod tests {
         eprintln!("{:#?}", test_frag_consts());
         let result = fractal::render(&test_frag_consts(), point);
         eprintln!("{result:?}");
-        // expected result created by previous brot3 engine (adapted to this incarnation's maths)
-        assert_eq!(result.fractional_iters, 5.6856737);
+        assert_eq!(result.iters_fraction, 0.31405067);
     }
     #[test]
     fn mandelbrot_known_answer_cpow() {
@@ -278,7 +276,6 @@ mod tests {
         eprintln!("{consts:#?}");
         let result = fractal::render(&consts, point);
         eprintln!("{result:?}");
-        // expected result created by previous brot3 engine (adapted to this incarnation's maths)
-        assert_eq!(result.fractional_iters, 5.685674);
+        assert_eq!(result.iters_fraction, 0.3140511);
     }
 }
