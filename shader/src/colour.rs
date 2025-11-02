@@ -145,7 +145,6 @@ mod tests {
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
         let data = PointResult {
-            inside: false.into(),
             iters: 100,
             fractional_iters: 100.0,
             distance: 1.,
@@ -167,7 +166,6 @@ mod tests {
         };
         assert_eq!(consts.algorithm, shader_common::Algorithm::Mandelbrot);
         let data = PointResult {
-            inside: false.into(),
             iters: 5,
             fractional_iters: 4.31876,
             distance: 1.0,
