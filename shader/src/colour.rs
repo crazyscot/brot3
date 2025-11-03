@@ -11,7 +11,7 @@ use super::{f32::vec3, FragmentConstants, PointResult, RenderStyle};
 
 pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb {
     use ColourerSelection as CS;
-    if data.iters == u32::MAX {
+    if data.inside() {
         return Vec3Rgb::ZERO;
     }
     match constants.palette.colourer {
@@ -28,8 +28,8 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
 
 fn point_iters(constants: &FragmentConstants, point: &PointResult) -> f32 {
     match constants.render_style {
-        RenderStyle::ContinuousDwell => point.iters as f32 + point.iters_fraction,
-        RenderStyle::EscapeTime => point.iters as f32,
+        RenderStyle::ContinuousDwell => point.iters() as f32 + point.iters_fraction(),
+        RenderStyle::EscapeTime => point.iters() as f32,
     }
 }
 
@@ -121,7 +121,7 @@ fn monochrome(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 
 /// LCH Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#LCH_coloring>
 fn lch_gradient(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
-    if pixel.iters == u32::MAX {
+    if pixel.inside() {
         return vec3(0., 0., 0.);
     }
     // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
@@ -144,11 +144,7 @@ mod tests {
     #[test]
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
-        let data = PointResult {
-            iters: 100,
-            iters_fraction: 0.0,
-            distance: 1.,
-        };
+        let data = PointResult::new_outside(100, 0.0, 1.0);
         let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
         assert_eq!(expected, super::colour_data(data, &consts));
     }
@@ -165,11 +161,7 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(consts.algorithm, shader_common::Algorithm::Mandelbrot);
-        let data = PointResult {
-            iters: 5,
-            iters_fraction: 0.31876,
-            distance: 1.0,
-        };
+        let data = PointResult::new_outside(5, 0.31876, 1.0);
         let expected = Vec3Rgb::from([0.901042, 0.3573773, 0.]);
         let result = super::colour_data(data, &consts);
         assert_eq!(result, expected);

@@ -7,7 +7,9 @@
 use spirv_std::glam::{f32, vec2, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
-use shader_common::{FragmentConstants, PointResult, RenderStyle, GRID_SIZE};
+use shader_common::{
+    FragmentConstants, PointResult, PointResultA, PointResultB, RenderStyle, GRID_SIZE,
+};
 use shader_util::grid::{GridRef, GridRefMut};
 
 pub use shader_common::{Complex, INSPECTOR_MARKER_SIZE};
@@ -31,7 +33,8 @@ pub fn main_fs(
     #[cfg(feature = "emulate_constants")]
     #[spirv(storage_buffer, descriptor_set = 1, binding = 0)]
     constants: &FragmentConstants,
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [PointResult],
+    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid_a: &mut [PointResultA],
+    #[spirv(storage_buffer, descriptor_set = 0, binding = 1)] grid_b: &mut [PointResultB],
     output: &mut Vec4,
 ) {
     // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we ignore depth & 1/w
@@ -43,12 +46,17 @@ pub fn main_fs(
         // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
         let cplx = (coord - 0.5 * size) / size.y / constants.viewport_zoom;
         let render_data = fractal::render(constants, cplx + constants.viewport_translate);
-        let mut cache = GridRefMut::new(GRID_SIZE, grid);
-        cache.set(coord.as_uvec2(), render_data);
+        let mut cache_a = GridRefMut::new(GRID_SIZE, grid_a);
+        cache_a.set(coord.as_uvec2(), render_data.a());
+        let mut cache_b = GridRefMut::new(GRID_SIZE, grid_b);
+        cache_b.set(coord.as_uvec2(), render_data.b());
         render_data
     } else {
-        let cache = GridRef::new(GRID_SIZE, grid);
-        cache.get(coord.as_uvec2())
+        let cache_a = GridRef::new(GRID_SIZE, grid_a);
+        let a = cache_a.get(coord.as_uvec2());
+        let cache_b = GridRef::new(GRID_SIZE, grid_b);
+        let b = cache_b.get(coord.as_uvec2());
+        PointResult::join(a, b)
     };
 
     let mut colour = colour::colour_data(render_data, constants);
@@ -84,7 +92,7 @@ pub fn main_vs(
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{FragmentConstants, PointResult, GRID_SIZE};
+    use super::{FragmentConstants, PointResultA, PointResultB, GRID_SIZE};
 
     use shader_common::{Algorithm, Palette, PushExponent, RenderStyle};
     use shader_util::Size;
@@ -128,8 +136,15 @@ mod tests {
     fn fragment() {
         let mut res = Vec4::default();
         let consts = test_frag_consts();
-        let mut grid = vec![PointResult::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
-        super::main_fs(vec4(0., 0., 0., 0.), &consts, &mut grid, &mut res);
+        let mut grid_a = vec![PointResultA::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+        let mut grid_b = vec![PointResultB::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+        super::main_fs(
+            vec4(0., 0., 0., 0.),
+            &consts,
+            &mut grid_a,
+            &mut grid_b,
+            &mut res,
+        );
         let expected = vec4(0.49196184, 1., 0., 1.);
         assert!(
             res.abs_diff_eq(expected, 0.000_000_1),

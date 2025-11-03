@@ -126,7 +126,11 @@ where
         let za = z.abs();
         let distance = (za * za).ln() * za / dz.abs();
 
-        PointResult::new(inside, iters, smoothed_iters, distance)
+        if inside {
+            PointResult::new_inside(distance)
+        } else {
+            PointResult::new_outside(iters, smoothed_iters, distance)
+        }
     }
 }
 
@@ -264,7 +268,7 @@ mod tests {
         eprintln!("{:#?}", test_frag_consts());
         let result = fractal::render(&test_frag_consts(), point);
         eprintln!("{result:?}");
-        assert_eq!(result.iters_fraction, 0.31405067);
+        assert_eq!(result.iters_fraction(), 0.31405067);
     }
     #[test]
     fn mandelbrot_known_answer_cpow() {
@@ -276,6 +280,6 @@ mod tests {
         eprintln!("{consts:#?}");
         let result = fractal::render(&consts, point);
         eprintln!("{result:?}");
-        assert_eq!(result.iters_fraction, 0.3140511);
+        assert_eq!(result.iters_fraction(), 0.3140511);
     }
 }

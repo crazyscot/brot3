@@ -20,6 +20,7 @@ use bytemuck::NoUninit;
 pub use shader_util::{Bool, Size};
 
 #[derive(Copy, Clone, Debug)]
+// We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninint on spirv builds.
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit, Default))]
 #[repr(C)]
 pub struct FragmentConstants {
@@ -87,37 +88,88 @@ impl Palette {
     };
 }
 
+/// Raw data from a fractal invocation
+///
+/// This structure is split into two sub-structs because of the 128MB default limit on data sizes.
+/// With a GRID_SIZE of 3840x2160, the default limit allows us 16.18 bytes per grid pixel.
+/// Therefore, split our data into shards, each of which is up to 16 bytes in size.
+/// If somehow we need to make GRID_SIZE larger, might need to refactor this to split it differently.
+///
+/// (Yes, we could check the operational capabilities and request more... but that would involve
+/// making things dynamic. Not for today.)
 #[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
 pub struct PointResult {
+    a: PointResultA,
+    b: PointResultB,
+}
+
+#[derive(Copy, Clone, Debug, Default)]
+#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[repr(C)]
+pub struct PointResultA {
     /// iteration count
-    pub iters: u32,
+    iters: u32,
     /// fractional part of iteration count (range 0..1)
-    pub iters_fraction: f32,
+    iters_fraction: f32,
     /// distance estimate
-    pub distance: f32,
+    distance: f32,
+}
+
+#[derive(Copy, Clone, Debug, Default)]
+#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[repr(C)]
+pub struct PointResultB {
+    _placeholder: u32,
 }
 
 impl PointResult {
-    pub fn new(inside: bool, iters: u32, iters_fraction: f32, distance: f32) -> Self {
-        if inside {
-            Self {
+    // CONSTRUCTORS //////////////////////////////////////////////////////////
+    pub fn new_inside(distance: f32) -> Self {
+        Self {
+            a: PointResultA {
                 iters: u32::MAX,
                 iters_fraction: 0.,
                 distance,
-            }
-        } else {
-            Self {
+            },
+            b: PointResultB { _placeholder: 0 },
+        }
+    }
+    pub fn new_outside(iters: u32, iters_fraction: f32, distance: f32) -> Self {
+        Self {
+            a: PointResultA {
                 iters,
                 iters_fraction,
                 distance,
-            }
+            },
+            b: PointResultB { _placeholder: 0 },
         }
     }
-    /// if true, this point is inside the set (iterations count is effectively infinite)
+    /// Reconstitutes a `PointResult` from its storage shards
+    pub fn join(a: PointResultA, b: PointResultB) -> Self {
+        Self { a, b }
+    }
+    // ACCESSORS ////////////////////////////////////////////////////////////
+    pub fn a(&self) -> PointResultA {
+        self.a
+    }
+    pub fn b(&self) -> PointResultB {
+        self.b
+    }
+    pub fn iters(&self) -> u32 {
+        self.a.iters
+    }
+    pub fn iters_fraction(&self) -> f32 {
+        self.a.iters_fraction
+    }
+    pub fn distance(&self) -> f32 {
+        self.a.distance
+    }
+    // COMPUTED ACCESSORS ///////////////////////////////////////////////////
+    /// Is this point inside the set? If so, the iterations count is effectively infinite.
     pub fn inside(&self) -> bool {
-        self.iters == u32::MAX
+        self.a.iters == u32::MAX
     }
 }
 

@@ -370,15 +370,14 @@ impl super::Controller {
                             ui.monospace("∞");
                         } else {
                             // We only need to report in standard precision for iterations
-                            ui.monospace(dynfmt!(self.inspector.data.iters));
+                            ui.monospace(dynfmt!(self.inspector.data.iters()));
                             ui.end_row();
                             ui.label("fraction");
-                            ui.monospace(dynfmt!(self.inspector.data.iters_fraction));
+                            ui.monospace(dynfmt!(self.inspector.data.iters_fraction()));
                         }
                         ui.end_row();
-                        let distance = self.inspector.data.distance;
                         ui.label("Distance");
-                        ui.monospace(dynfmt!(distance));
+                        ui.monospace(dynfmt!(self.inspector.data.distance()));
                         ui.end_row();
                     });
                     if ui.button("Close").clicked() {

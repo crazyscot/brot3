@@ -3,8 +3,8 @@ use crate::cli::Args;
 use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
 use glam::{dvec2, DVec2, UVec2, Vec2};
 use shader_common::{
-    Algorithm, FragmentConstants, NumericType, Palette, PointResult, PushExponent, RenderStyle,
-    GRID_SIZE,
+    Algorithm, FragmentConstants, NumericType, Palette, PointResult, PointResultA, PointResultB,
+    PushExponent, RenderStyle, GRID_SIZE,
 };
 use util::BigVec2;
 use web_time::Instant;
@@ -213,34 +213,59 @@ impl ControllerTrait for Controller {
     ) -> (Vec<wgpu::BindGroupLayout>, Vec<wgpu::BindGroup>) {
         let device = &gfx_ctx.device;
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Storage { read_only: false },
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: false },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
                 },
-                count: None,
-            }],
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: false },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+            ],
             label: Some("bind_group_layout"),
         });
 
         use wgpu::util::DeviceExt;
-        let render_data_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("render_data_buffer"),
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            contents: &[0; std::mem::size_of::<PointResult>()
+        let render_data_buffer_a = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("render_data_buffer_a"),
+            usage: wgpu::BufferUsages::STORAGE,
+            contents: &[0; std::mem::size_of::<PointResultA>()
+                * GRID_SIZE.x as usize
+                * GRID_SIZE.y as usize],
+        });
+        let render_data_buffer_b = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("render_data_buffer_b"),
+            usage: wgpu::BufferUsages::STORAGE,
+            contents: &[0; std::mem::size_of::<PointResultB>()
                 * GRID_SIZE.x as usize
                 * GRID_SIZE.y as usize],
         });
 
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: render_data_buffer.as_entire_binding(),
-            }],
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: render_data_buffer_a.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: render_data_buffer_b.as_entire_binding(),
+                },
+            ],
             label: Some("fractal_bind_group"),
         });
         (vec![layout], vec![bind_group])
