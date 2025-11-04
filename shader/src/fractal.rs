@@ -97,6 +97,11 @@ where
         }
         let inside = iters == max_iter && (norm_sqr < ESCAPE_THRESHOLD_SQ);
 
+        // distance estimate, angle
+        let za = z.abs();
+        let distance = (za * za).ln() * za / dz.abs();
+        let angle = z.arg();
+
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         let exp_ln = match self.constants.exponent.typ {
             NumericType::Integer if self.constants.exponent.int == 2 => core::f32::consts::LN_2,
@@ -116,20 +121,15 @@ where
             }
             _ => todo!(),
         };
-
         // by the logarithm of a power law,
         // z.norm().log() === z.norm_sqr().log() * 0.5
         let log_zn = z.abs_sq().ln() * 0.5;
         let smoothed_iters = 1. - log_zn.ln() / exp_ln;
 
-        // distance estimate
-        let za = z.abs();
-        let distance = (za * za).ln() * za / dz.abs();
-
         if inside {
-            PointResult::new_inside(distance)
+            PointResult::new_inside(distance, angle, norm_sqr)
         } else {
-            PointResult::new_outside(iters, smoothed_iters, distance)
+            PointResult::new_outside(iters, smoothed_iters, distance, angle, norm_sqr)
         }
     }
 }

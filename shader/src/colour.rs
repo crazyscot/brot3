@@ -144,7 +144,7 @@ mod tests {
     #[test]
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
-        let data = PointResult::new_outside(100, 0.0, 1.0);
+        let data = PointResult::new_outside(100, 0.0, 1.0, 0., 0.);
         let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
         assert_eq!(expected, super::colour_data(data, &consts));
     }
@@ -161,7 +161,7 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(consts.algorithm, shader_common::Algorithm::Mandelbrot);
-        let data = PointResult::new_outside(5, 0.31876, 1.0);
+        let data = PointResult::new_outside(5, 0.31876, 1.0, 0., 0.);
         let expected = Vec3Rgb::from([0.901042, 0.3573773, 0.]);
         let result = super::colour_data(data, &consts);
         assert_eq!(result, expected);

@@ -371,13 +371,19 @@ impl super::Controller {
                         } else {
                             // We only need to report in standard precision for iterations
                             ui.monospace(dynfmt!(self.inspector.data.iters()));
-                            ui.end_row();
-                            ui.label("fraction");
-                            ui.monospace(dynfmt!(self.inspector.data.iters_fraction()));
                         }
+                        ui.end_row();
+                        ui.label("...fraction");
+                        ui.monospace(dynfmt!(self.inspector.data.iters_fraction()));
                         ui.end_row();
                         ui.label("Distance");
                         ui.monospace(dynfmt!(self.inspector.data.distance()));
+                        ui.end_row();
+                        ui.label("Final angle");
+                        ui.monospace(dynfmt!(self.inspector.data.angle()));
+                        ui.end_row();
+                        ui.label("Final radius");
+                        ui.monospace(dynfmt!(self.inspector.data.radius_sqr().sqrt()));
                         ui.end_row();
                     });
                     if ui.button("Close").clicked() {

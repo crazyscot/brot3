@@ -113,37 +113,56 @@ pub struct PointResultA {
     iters: u32,
     /// fractional part of iteration count (range 0..1)
     iters_fraction: f32,
-    /// distance estimate
+    /// distance estimate from fractal
     distance: f32,
+    /// final angle (argument)
+    pub angle: f32,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
 pub struct PointResultB {
-    _placeholder: u32,
+    /// final complex distance, squared
+    pub radius_sqr: f32,
 }
+
+// compile time assertion: confirm that neither buffer will runtime fail in wgpu
+const _: () = {
+    const N_POINTS: usize = (GRID_SIZE.x * GRID_SIZE.y) as usize;
+    const LIMIT: usize = 128 * 1024 * 1024; // == wgpu::Limits::max_storage_buffer_binding_size
+    assert!(core::mem::size_of::<PointResultA>() * N_POINTS < LIMIT);
+    assert!(core::mem::size_of::<PointResultB>() * N_POINTS < LIMIT);
+};
 
 impl PointResult {
     // CONSTRUCTORS //////////////////////////////////////////////////////////
-    pub fn new_inside(distance: f32) -> Self {
+    pub fn new_inside(distance: f32, angle: f32, radius_sqr: f32) -> Self {
         Self {
             a: PointResultA {
                 iters: u32::MAX,
                 iters_fraction: 0.,
                 distance,
+                angle,
             },
-            b: PointResultB { _placeholder: 0 },
+            b: PointResultB { radius_sqr },
         }
     }
-    pub fn new_outside(iters: u32, iters_fraction: f32, distance: f32) -> Self {
+    pub fn new_outside(
+        iters: u32,
+        iters_fraction: f32,
+        distance: f32,
+        angle: f32,
+        radius_sqr: f32,
+    ) -> Self {
         Self {
             a: PointResultA {
                 iters,
                 iters_fraction,
                 distance,
+                angle,
             },
-            b: PointResultB { _placeholder: 0 },
+            b: PointResultB { radius_sqr },
         }
     }
     /// Reconstitutes a `PointResult` from its storage shards
@@ -157,14 +176,25 @@ impl PointResult {
     pub fn b(&self) -> PointResultB {
         self.b
     }
+    /// Iterations
     pub fn iters(&self) -> u32 {
         self.a.iters
     }
+    /// Fractional part of iterations (0..1)
     pub fn iters_fraction(&self) -> f32 {
         self.a.iters_fraction
     }
+    /// Distance from fractal
     pub fn distance(&self) -> f32 {
         self.a.distance
+    }
+    /// Final angle
+    pub fn angle(&self) -> f32 {
+        self.a.angle
+    }
+    /// Final distance from origin (aka radius or absolute value), squared
+    pub fn radius_sqr(&self) -> f32 {
+        self.b.radius_sqr
     }
     // COMPUTED ACCESSORS ///////////////////////////////////////////////////
     /// Is this point inside the set? If so, the iterations count is effectively infinite.
