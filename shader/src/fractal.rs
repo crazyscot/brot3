@@ -79,8 +79,9 @@ where
     fn run(self) -> PointResult {
         use shader_common::NumericType;
 
-        const ESCAPE_THRESHOLD: f32 = 4.0;
+        const ESCAPE_THRESHOLD: f32 = 10.0;
         const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
+        let loglog2_escape_threshold: f32 = ESCAPE_THRESHOLD.log2().log2();
 
         let mut iters = 0;
         let mut z = Complex::ZERO;
@@ -103,28 +104,29 @@ where
         let angle = z.arg();
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-        let exp_ln = match self.constants.exponent.typ {
-            NumericType::Integer if self.constants.exponent.int == 2 => core::f32::consts::LN_2,
+        // The log(exponent) term is necessary for powers other than 2
+        let log2_exponent = match self.constants.exponent.typ {
+            NumericType::Integer if self.constants.exponent.int == 2 => 1.0,
             NumericType::Integer => {
                 let i = self.constants.exponent.int as f32;
-                i.abs().ln()
+                i.abs().log2()
             }
             NumericType::Float => {
                 let f = self.constants.exponent.real;
-                f.abs().ln()
+                f.abs().log2()
             }
             NumericType::Complex => {
                 let c = crate::exponentiation::ExpComplex::from(self.constants.exponent);
                 // for now, we'll take abs(z) so we can take a log in |R.
-                // c.0.abs().ln() === (c.0.abs_sq() ^ 0.5).ln() === 0.5 * c.0.abs_sq().ln()
-                0.5 * c.0.abs_sq().ln()
+                // c.0.abs().log() === (c.0.abs_sq() ^ 0.5).log() === 0.5 * c.0.abs_sq().log()
+                0.5 * c.0.abs_sq().log2()
             }
             _ => todo!(),
         };
         // by the logarithm of a power law,
         // z.norm().log() === z.norm_sqr().log() * 0.5
-        let log_zn = z.abs_sq().ln() * 0.5;
-        let smoothed_iters = 1. - log_zn.ln() / exp_ln;
+        let log_zn = z.abs_sq().log2() * 0.5;
+        let smoothed_iters = 1. + loglog2_escape_threshold - log_zn.log2() / log2_exponent;
 
         if inside {
             PointResult::new_inside(distance, angle, norm_sqr)
@@ -268,7 +270,7 @@ mod tests {
         eprintln!("{:#?}", test_frag_consts());
         let result = fractal::render(&test_frag_consts(), point);
         eprintln!("{result:?}");
-        assert_eq!(result.iters_fraction(), 0.31405067);
+        assert_eq!(result.iters_fraction(), 0.52201414);
     }
     #[test]
     fn mandelbrot_known_answer_cpow() {
@@ -280,6 +282,6 @@ mod tests {
         eprintln!("{consts:#?}");
         let result = fractal::render(&consts, point);
         eprintln!("{result:?}");
-        assert_eq!(result.iters_fraction(), 0.3140511);
+        assert_eq!(result.iters_fraction(), 0.5220146);
     }
 }

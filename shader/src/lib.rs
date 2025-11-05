@@ -145,7 +145,7 @@ mod tests {
             &mut grid_b,
             &mut res,
         );
-        let expected = vec4(0.49196184, 1., 0., 1.);
+        let expected = vec4(0.0, 1.0, 0.1414485, 1.0);
         assert!(
             res.abs_diff_eq(expected, 0.000_000_1),
             "mismatch: {res} vs {expected}"
