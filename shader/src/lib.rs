@@ -8,7 +8,7 @@ use spirv_std::glam::{f32, vec2, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
 use shader_common::{
-    Flags, FragmentConstants, PointResult, PointResultA, PointResultB, RenderStyle, GRID_SIZE,
+    ColourStyle, Flags, FragmentConstants, PointResult, PointResultA, PointResultB, GRID_SIZE,
 };
 use shader_util::grid::{GridRef, GridRefMut};
 
@@ -94,7 +94,7 @@ pub fn main_vs(
 mod tests {
     use super::{FragmentConstants, PointResultA, PointResultB, GRID_SIZE};
 
-    use shader_common::{Algorithm, Flags, Palette, PushExponent, RenderStyle};
+    use shader_common::{Algorithm, ColourStyle, Flags, Palette, PushExponent};
     use shader_util::Size;
     use spirv_std::glam::{vec2, vec4, Vec2, Vec4};
 
@@ -126,7 +126,7 @@ mod tests {
             exponent: PushExponent::from(2),
             palette: Palette::default(),
             inspector_point_pixel_address: Vec2::default(),
-            render_style: RenderStyle::default(),
+            render_style: ColourStyle::default(),
         }
     }
 

@@ -2,7 +2,7 @@ use easy_shader_runner::{egui, UiState};
 use egui::epaint;
 
 use super::{DVec2, Instant};
-use shader_common::{Algorithm, Colourer, RenderStyle};
+use shader_common::{Algorithm, ColourStyle, Colourer};
 
 pub(crate) const DEFAULT_WIDTH: f32 = 130.;
 
@@ -247,7 +247,7 @@ impl super::Controller {
                     .selected_text(format!("{:?}", self.render_style))
                     .show_ui(ui, |ui| {
                         use strum::IntoEnumIterator as _;
-                        for it in RenderStyle::iter() {
+                        for it in ColourStyle::iter() {
                             let label: &'static str = it.into();
                             ui.selectable_value(&mut self.render_style, it, label);
                         }

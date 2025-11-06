@@ -3,8 +3,8 @@ use crate::cli::Args;
 use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
 use glam::{dvec2, DVec2, UVec2, Vec2};
 use shader_common::{
-    Algorithm, Flags, FragmentConstants, NumericType, Palette, PointResult, PointResultA,
-    PointResultB, PushExponent, RenderStyle, GRID_SIZE,
+    Algorithm, ColourStyle, Flags, FragmentConstants, NumericType, Palette, PointResult,
+    PointResultA, PointResultB, PushExponent, GRID_SIZE,
 };
 use util::BigVec2;
 use web_time::Instant;
@@ -28,7 +28,7 @@ pub(crate) struct Controller {
     max_iter: u32,
     palette: Palette,
     exponent: Exponent,
-    render_style: RenderStyle,
+    render_style: ColourStyle,
     // User-facing options
     show_coords_window: bool,
     show_scale_bar: bool,
@@ -73,7 +73,7 @@ impl Controller {
             max_iter: 100,
             palette: Palette::default_with(options.colourer),
             exponent: Exponent::default(),
-            render_style: RenderStyle::default(),
+            render_style: ColourStyle::default(),
 
             show_coords_window: true,
             show_scale_bar: true,
@@ -100,7 +100,7 @@ impl Controller {
             Flags::NEEDS_REITERATE
         } else {
             Flags::empty()
-        } | if self.render_style == RenderStyle::ContinuousDwell {
+        } | if self.render_style == ColourStyle::ContinuousDwell {
             Flags::FRACTIONAL_ITERS
         } else {
             Flags::empty()

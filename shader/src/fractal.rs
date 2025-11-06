@@ -242,7 +242,7 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use crate::{fractal, vec2, FragmentConstants, Vec2};
-    use shader_common::{Algorithm, Flags, NumericType, Palette, PushExponent, RenderStyle};
+    use shader_common::{Algorithm, ColourStyle, Flags, NumericType, Palette, PushExponent};
     use shader_util::Size;
 
     use pretty_assertions::assert_eq;
@@ -258,7 +258,7 @@ mod tests {
             exponent: PushExponent::from(2),
             palette: Palette::default(),
             inspector_point_pixel_address: Vec2::default(),
-            render_style: RenderStyle::default(),
+            render_style: ColourStyle::default(),
         }
     }
 

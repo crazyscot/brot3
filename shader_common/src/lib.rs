@@ -33,7 +33,7 @@ pub struct FragmentConstants {
     pub exponent: PushExponent,
     pub palette: Palette,
     pub inspector_point_pixel_address: Vec2,
-    pub render_style: RenderStyle,
+    pub render_style: ColourStyle,
 }
 
 bitflags::bitflags! {
@@ -352,7 +352,7 @@ incrementable!(Algorithm);
     )
 )]
 #[repr(u32)]
-pub enum RenderStyle {
+pub enum ColourStyle {
     #[default]
     ContinuousDwell,
     EscapeTime,

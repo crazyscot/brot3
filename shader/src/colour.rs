@@ -7,7 +7,7 @@ use core::f32::consts::TAU;
 use shader_common::Colourer as ColourerSelection;
 use shader_util::colourspace::{Hsl, Lch, Vec3Rgb};
 
-use super::{f32::vec3, FragmentConstants, PointResult, RenderStyle};
+use super::{f32::vec3, ColourStyle, FragmentConstants, PointResult};
 
 pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb {
     use ColourerSelection as CS;
@@ -25,8 +25,8 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
 
 fn point_iters(constants: &FragmentConstants, point: &PointResult) -> f32 {
     match constants.render_style {
-        RenderStyle::ContinuousDwell => point.iters() as f32 + point.iters_fraction(),
-        RenderStyle::EscapeTime => point.iters() as f32,
+        ColourStyle::ContinuousDwell => point.iters() as f32 + point.iters_fraction(),
+        ColourStyle::EscapeTime => point.iters() as f32,
     }
 }
 
@@ -155,7 +155,7 @@ fn lch_gradient(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::{PointResult, Vec3Rgb};
-    use shader_common::{Colourer, FragmentConstants, Palette, RenderStyle};
+    use shader_common::{ColourStyle, Colourer, FragmentConstants, Palette};
     #[test]
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
@@ -172,7 +172,7 @@ mod tests {
                 colourer: Colourer::LchGradient,
                 ..Default::default()
             },
-            render_style: RenderStyle::EscapeTime,
+            render_style: ColourStyle::EscapeTime,
             ..Default::default()
         };
         assert_eq!(consts.algorithm, shader_common::Algorithm::Mandelbrot);
