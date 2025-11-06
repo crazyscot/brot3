@@ -8,7 +8,7 @@ use spirv_std::glam::{f32, vec2, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
 use shader_common::{
-    FragmentConstants, PointResult, PointResultA, PointResultB, RenderStyle, GRID_SIZE,
+    Flags, FragmentConstants, PointResult, PointResultA, PointResultB, RenderStyle, GRID_SIZE,
 };
 use shader_util::grid::{GridRef, GridRefMut};
 
@@ -42,7 +42,7 @@ pub fn main_fs(
     // viewport pixel size e.g. 1920x1080
     let size = constants.size.as_vec2();
 
-    let render_data = if constants.needs_reiterate.into() {
+    let render_data = if constants.flags.contains(Flags::NEEDS_REITERATE) {
         // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
         let cplx = (coord - 0.5 * size) / size.y / constants.viewport_zoom;
         let render_data = fractal::render(constants, cplx + constants.viewport_translate);
@@ -62,7 +62,7 @@ pub fn main_fs(
     let mut colour = colour::colour_data(render_data, constants);
 
     // Draw the inspector marker
-    if constants.inspector_active.into() {
+    if constants.flags.contains(Flags::INSPECTOR_ACTIVE) {
         // New York distance from the reference point draws a diamond shape
         let dist = new_york_distance(constants.inspector_point_pixel_address, coord);
         if dist < INSPECTOR_MARKER_SIZE * 0.667 {
@@ -94,7 +94,7 @@ pub fn main_vs(
 mod tests {
     use super::{FragmentConstants, PointResultA, PointResultB, GRID_SIZE};
 
-    use shader_common::{Algorithm, Palette, PushExponent, RenderStyle};
+    use shader_common::{Algorithm, Flags, Palette, PushExponent, RenderStyle};
     use shader_util::Size;
     use spirv_std::glam::{vec2, vec4, Vec2, Vec4};
 
@@ -117,16 +117,14 @@ mod tests {
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {
+            flags: Flags::NEEDS_REITERATE | Flags::FRACTIONAL_ITERS,
             viewport_translate: vec2(0., 0.),
             viewport_zoom: 0.3,
             size: Size::new(1024, 1024),
             max_iter: 10,
-            needs_reiterate: true.into(),
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
             palette: Palette::default(),
-            fractional_iters: true.into(),
-            inspector_active: false.into(),
             inspector_point_pixel_address: Vec2::default(),
             render_style: RenderStyle::default(),
         }

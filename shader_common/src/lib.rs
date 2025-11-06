@@ -14,7 +14,7 @@ use spirv_std::glam::{uvec2, UVec2, Vec2};
 pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 
-use bytemuck::NoUninit;
+use bytemuck::{NoUninit, Pod, Zeroable};
 
 pub use shader_util::{Bool, Size};
 
@@ -23,19 +23,29 @@ pub use shader_util::{Bool, Size};
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit, Default))]
 #[repr(C)]
 pub struct FragmentConstants {
+    pub flags: Flags,
     pub viewport_translate: Vec2,
     pub viewport_zoom: f32,
     /// window pixel size
     pub size: Size,
     pub algorithm: Algorithm,
     pub max_iter: u32,
-    pub needs_reiterate: Bool,
     pub exponent: PushExponent,
     pub palette: Palette,
-    pub fractional_iters: Bool,
-    pub inspector_active: Bool,
     pub inspector_point_pixel_address: Vec2,
     pub render_style: RenderStyle,
+}
+
+bitflags::bitflags! {
+#[derive(Copy, Clone, Debug, Default, Zeroable, Pod)]
+#[repr(transparent)]
+pub struct Flags : u32 {
+    const NEEDS_REITERATE = 1 << 0;
+    const INSPECTOR_ACTIVE = 1 << 1;
+    const FRACTIONAL_ITERS = 1 << 2;
+
+    const _ = !0;
+}
 }
 
 #[derive(Copy, Clone, Debug, NoUninit)]

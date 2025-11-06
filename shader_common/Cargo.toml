@@ -11,6 +11,7 @@ edition.workspace = true
 bench = false
 
 [dependencies]
+bitflags = { version = "2.10.0", features = ["bytemuck"] }
 bytemuck = { workspace = true, features = ["derive"] }
 shader_util = { path = "../shader_util" }
 

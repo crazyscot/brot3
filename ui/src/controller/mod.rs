@@ -3,8 +3,8 @@ use crate::cli::Args;
 use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
 use glam::{dvec2, DVec2, UVec2, Vec2};
 use shader_common::{
-    Algorithm, FragmentConstants, NumericType, Palette, PointResult, PointResultA, PointResultB,
-    PushExponent, RenderStyle, GRID_SIZE,
+    Algorithm, Flags, FragmentConstants, NumericType, Palette, PointResult, PointResultA,
+    PointResultB, PushExponent, RenderStyle, GRID_SIZE,
 };
 use util::BigVec2;
 use web_time::Instant;
@@ -96,17 +96,28 @@ impl Controller {
         }
     }
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
+        let flags = if reiterate {
+            Flags::NEEDS_REITERATE
+        } else {
+            Flags::empty()
+        } | if self.render_style == RenderStyle::ContinuousDwell {
+            Flags::FRACTIONAL_ITERS
+        } else {
+            Flags::empty()
+        } | if self.inspector.active {
+            Flags::INSPECTOR_ACTIVE
+        } else {
+            Flags::empty()
+        };
         FragmentConstants {
+            flags,
             viewport_translate: self.viewport_translate.as_vec2(),
             viewport_zoom: self.viewport_zoom as f32,
             size: self.size.into(),
             algorithm: self.algorithm,
             max_iter: self.max_iter,
-            needs_reiterate: reiterate.into(),
             exponent: self.exponent.into(),
             palette: self.palette,
-            fractional_iters: (self.render_style == RenderStyle::ContinuousDwell).into(),
-            inspector_active: self.inspector.active.into(),
             inspector_point_pixel_address: self
                 .complex_point_to_pixel(&self.inspector.position)
                 .as_vec2(),
