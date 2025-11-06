@@ -14,7 +14,6 @@ use spirv_std::glam::{uvec2, UVec2, Vec2};
 pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 
-#[cfg(not(target_arch = "spirv"))]
 use bytemuck::NoUninit;
 
 pub use shader_util::{Bool, Size};
@@ -39,8 +38,7 @@ pub struct FragmentConstants {
     pub render_style: RenderStyle,
 }
 
-#[derive(Copy, Clone, Debug)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[derive(Copy, Clone, Debug, NoUninit)]
 #[repr(C)]
 pub struct Palette {
     pub colourer: Colourer,
@@ -97,16 +95,14 @@ impl Palette {
 ///
 /// (Yes, we could check the operational capabilities and request more... but that would involve
 /// making things dynamic. Not for today.)
-#[derive(Copy, Clone, Debug, Default)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[derive(Copy, Clone, Debug, Default, NoUninit)]
 #[repr(C)]
 pub struct PointResult {
     a: PointResultA,
     b: PointResultB,
 }
 
-#[derive(Copy, Clone, Debug, Default)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[derive(Copy, Clone, Debug, Default, NoUninit)]
 #[repr(C)]
 pub struct PointResultA {
     /// iteration count
@@ -119,8 +115,7 @@ pub struct PointResultA {
     pub angle: f32,
 }
 
-#[derive(Copy, Clone, Debug, Default)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[derive(Copy, Clone, Debug, Default, NoUninit)]
 #[repr(C)]
 pub struct PointResultB {
     /// final complex distance, squared
@@ -203,8 +198,7 @@ impl PointResult {
     }
 }
 
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
 #[non_exhaustive]
 #[repr(u32)]
 pub enum NumericType {
@@ -214,8 +208,7 @@ pub enum NumericType {
     Complex,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[derive(Copy, Clone, Debug, PartialEq, Default, NoUninit)]
 #[repr(C)]
 pub struct PushExponent {
     pub typ: NumericType,
@@ -258,11 +251,10 @@ impl From<Complex> for PushExponent {
     }
 }
 
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
 #[cfg_attr(
     not(target_arch = "spirv"),
     derive(
-        NoUninit,
         clap::ValueEnum,
         strum::EnumIter,
         strum::IntoStaticStr,
@@ -284,11 +276,10 @@ pub enum Algorithm {
     BirdOfPrey,
 }
 
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
 #[cfg_attr(
     not(target_arch = "spirv"),
     derive(
-        NoUninit,
         clap::ValueEnum,
         strum::EnumIter,
         strum::IntoStaticStr,
@@ -338,11 +329,10 @@ macro_rules! incrementable {
 incrementable!(Colourer);
 incrementable!(Algorithm);
 
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
 #[cfg_attr(
     not(target_arch = "spirv"),
     derive(
-        NoUninit,
         clap::ValueEnum,
         strum::EnumIter,
         strum::IntoStaticStr,

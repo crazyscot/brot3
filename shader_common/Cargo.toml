@@ -11,6 +11,7 @@ edition.workspace = true
 bench = false
 
 [dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
 shader_util = { path = "../shader_util" }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
@@ -20,7 +21,6 @@ spirv-std = { workspace = true }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 abels-complex = { workspace = true, features = ["std", "glam"] }
-bytemuck = { workspace = true, features = ["derive"] }
 clap = { workspace = true, features = ["derive"] }
 glam = { workspace = true, features = ["bytemuck"] }
 num-derive = "0.4.2"

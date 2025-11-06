@@ -27,14 +27,11 @@ pub mod big {
 
 pub mod colourspace;
 
-#[cfg(not(target_arch = "spirv"))]
 use bytemuck::NoUninit;
 
 /// GPU-friendly representation of a two-dimensional `u32` vector
 ///
-/// *On non-GPU builds* this struct derives `bytemuck::NoUninit`.
-#[derive(Copy, Clone, Debug, Default)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[derive(Copy, Clone, Debug, Default, NoUninit)]
 #[repr(C)]
 #[allow(missing_docs)] // self-explanatory !
 pub struct Size {
@@ -108,10 +105,7 @@ impl From<UVec2> for Size {
 }
 
 /// GPU-friendly representation of a bool as a u32
-///
-/// *On non-GPU builds* this struct derives `bytemuck::NoUninit`.
-#[derive(Copy, Clone, Debug, Default)]
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[derive(Copy, Clone, Debug, Default, NoUninit)]
 #[repr(C)]
 pub struct Bool(pub u32);
 
