@@ -15,6 +15,7 @@ pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 
 use bytemuck::{NoUninit, Pod, Zeroable};
+use const_default::ConstDefault;
 
 pub use shader_util::{Bool, Size};
 
@@ -33,7 +34,6 @@ pub struct FragmentConstants {
     pub exponent: PushExponent,
     pub palette: Palette,
     pub inspector_point_pixel_address: Vec2,
-    pub render_style: ColourStyle,
 }
 
 bitflags::bitflags! {
@@ -42,7 +42,6 @@ bitflags::bitflags! {
 pub struct Flags : u32 {
     const NEEDS_REITERATE = 1 << 0;
     const INSPECTOR_ACTIVE = 1 << 1;
-    const FRACTIONAL_ITERS = 1 << 2;
 
     const _ = !0;
 }
@@ -52,47 +51,58 @@ pub struct Flags : u32 {
 #[repr(C)]
 pub struct Palette {
     pub colourer: Colourer,
+    pub style: ColourStyle,
     pub gradient: f32,
     pub offset: f32,
     pub saturation: f32,
     pub lightness: f32,
     pub gamma: f32,
+    pub _pad: u32,
+}
+impl ConstDefault for Palette {
+    const DEFAULT: Self = Self {
+        colourer: Colourer::DEFAULT,
+        style: ColourStyle::DEFAULT,
+        // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
+        gradient: 1.,
+        offset: 0.,
+        saturation: 100., // Not available on all palette algorithms
+        lightness: 50.,   // Not available on all palette algorithms
+        gamma: 1.9,
+        _pad: 0,
+    };
 }
 impl Default for Palette {
     fn default() -> Self {
-        Self {
-            colourer: Default::default(),
-            // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
-            gradient: 1.,
-            offset: 0.,
-            saturation: 100., // Not available on all palette algorithms
-            lightness: 50.,   // Not available on all palette algorithms
-            gamma: 1.9,
-        }
+        Self::DEFAULT
     }
 }
 impl Palette {
     pub fn default_with(colourer: Colourer) -> Self {
         Self {
             colourer,
-            ..Default::default()
+            ..Self::DEFAULT
         }
     }
     pub const MINIMA: Palette = Palette {
-        colourer: Colourer::LogRainbow,
+        colourer: Colourer::DEFAULT,
+        style: ColourStyle::DEFAULT,
         gradient: 0.1,
         offset: -10.0,
         saturation: 0.,
         lightness: 0.,
         gamma: 0.,
+        _pad: 0,
     };
     pub const MAXIMA: Palette = Palette {
-        colourer: Colourer::LogRainbow,
+        colourer: Colourer::DEFAULT,
+        style: ColourStyle::DEFAULT,
         gradient: 10.,
         offset: 10.,
         saturation: 100.,
         lightness: 100.,
         gamma: 4.0,
+        _pad: 0,
     };
 }
 
@@ -311,6 +321,10 @@ pub enum Colourer {
     Monochrome,
 }
 
+impl ConstDefault for Colourer {
+    const DEFAULT: Self = Self::LogRainbow;
+}
+
 macro_rules! incrementable {
     ($enum:ty) => {
         #[cfg(not(target_arch = "spirv"))]
@@ -352,10 +366,15 @@ incrementable!(Algorithm);
     )
 )]
 #[repr(u32)]
+#[non_exhaustive]
 pub enum ColourStyle {
     #[default]
     ContinuousDwell,
     EscapeTime,
+}
+
+impl ConstDefault for ColourStyle {
+    const DEFAULT: Self = Self::ContinuousDwell;
 }
 
 #[cfg(all(test, not(target_arch = "spirv")))]

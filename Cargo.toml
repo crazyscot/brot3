@@ -29,6 +29,7 @@ abels-complex = { version = "0.3.0", default-features = false }
 anyhow = "1.0.100"
 bytemuck = { version = "1.24.0", default-features = false }
 clap = { version = "4.5.51", features = ["derive"] }
+const-default = { version = "1.0.0", features = ["derive"], default-features = false }
 glam = { version = "=0.30.9", default-features = false }
 pretty_assertions = "1.4.1"
 

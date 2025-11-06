@@ -24,9 +24,10 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb 
 }
 
 fn point_iters(constants: &FragmentConstants, point: &PointResult) -> f32 {
-    match constants.render_style {
+    match constants.palette.style {
         ColourStyle::ContinuousDwell => point.iters() as f32 + point.iters_fraction(),
         ColourStyle::EscapeTime => point.iters() as f32,
+        _ => unimplemented!(),
     }
 }
 
@@ -170,9 +171,9 @@ mod tests {
             max_iter: 100,
             palette: Palette {
                 colourer: Colourer::LchGradient,
+                style: ColourStyle::EscapeTime,
                 ..Default::default()
             },
-            render_style: ColourStyle::EscapeTime,
             ..Default::default()
         };
         assert_eq!(consts.algorithm, shader_common::Algorithm::Mandelbrot);

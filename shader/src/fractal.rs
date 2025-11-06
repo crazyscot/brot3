@@ -242,23 +242,23 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use crate::{fractal, vec2, FragmentConstants, Vec2};
-    use shader_common::{Algorithm, ColourStyle, Flags, NumericType, Palette, PushExponent};
+    use const_default::ConstDefault as _;
+    use shader_common::{Algorithm, Flags, NumericType, Palette, PushExponent};
     use shader_util::Size;
 
     use pretty_assertions::assert_eq;
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {
-            flags: Flags::NEEDS_REITERATE | Flags::FRACTIONAL_ITERS,
+            flags: Flags::NEEDS_REITERATE,
             viewport_translate: vec2(0., 0.),
             viewport_zoom: 0.3,
             size: Size::new(1, 1),
             max_iter: 10,
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
-            palette: Palette::default(),
+            palette: Palette::DEFAULT,
             inspector_point_pixel_address: Vec2::default(),
-            render_style: ColourStyle::default(),
         }
     }
 

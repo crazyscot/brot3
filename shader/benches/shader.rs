@@ -6,7 +6,7 @@ fn main() {
 use divan::black_box;
 use shader::exponentiation::{Exp2, ExpFloat, ExpIntN, Exponentiator as _};
 use shader_common::{
-    Algorithm, ColourStyle, Colourer, Flags, FragmentConstants, Palette, PointResult, PushExponent,
+    Algorithm, Colourer, Flags, FragmentConstants, Palette, PointResult, PushExponent,
 };
 use shader_util::{vec2, Size, Vec2, Vec3};
 use strum::VariantArray as _;
@@ -23,7 +23,7 @@ fn ___warm_up() {
 #[divan::bench(args = Algorithm::VARIANTS)]
 fn fractal(alg: Algorithm) -> PointResult {
     let consts = FragmentConstants {
-        flags: Flags::NEEDS_REITERATE | Flags::FRACTIONAL_ITERS,
+        flags: Flags::NEEDS_REITERATE,
         viewport_translate: vec2(0., 0.),
         viewport_zoom: 0.3,
         size: Size::new(1024, 1024),
@@ -32,7 +32,6 @@ fn fractal(alg: Algorithm) -> PointResult {
         exponent: PushExponent::from(2),
         palette: Palette::default(),
         inspector_point_pixel_address: Vec2::default(),
-        render_style: ColourStyle::default(),
     };
     shader::fractal::render(&consts, black_box(vec2(0.5, 0.5)))
 }
@@ -40,7 +39,7 @@ fn fractal(alg: Algorithm) -> PointResult {
 #[divan::bench(args = Colourer::VARIANTS)]
 fn colour(col: Colourer) -> Vec3 {
     let consts = FragmentConstants {
-        flags: Flags::NEEDS_REITERATE | Flags::FRACTIONAL_ITERS,
+        flags: Flags::NEEDS_REITERATE,
         viewport_translate: vec2(0., 0.),
         viewport_zoom: 0.3,
         size: Size::new(1024, 1024),
@@ -52,7 +51,6 @@ fn colour(col: Colourer) -> Vec3 {
             ..Default::default()
         },
         inspector_point_pixel_address: Vec2::default(),
-        render_style: ColourStyle::default(),
     };
     let data = PointResult::new_outside(3, 5.423, 0.123, 1., 2.);
     shader::colour::colour_data(black_box(data), &consts)

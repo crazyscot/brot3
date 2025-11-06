@@ -244,12 +244,12 @@ impl super::Controller {
                 ui.separator();
 
                 egui::ComboBox::from_label("Render Style")
-                    .selected_text(format!("{:?}", self.render_style))
+                    .selected_text(format!("{:?}", self.palette.style))
                     .show_ui(ui, |ui| {
                         use strum::IntoEnumIterator as _;
                         for it in ColourStyle::iter() {
                             let label: &'static str = it.into();
-                            ui.selectable_value(&mut self.render_style, it, label);
+                            ui.selectable_value(&mut self.palette.style, it, label);
                         }
                     });
 

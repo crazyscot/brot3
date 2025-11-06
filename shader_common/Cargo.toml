@@ -13,6 +13,7 @@ bench = false
 [dependencies]
 bitflags = { version = "2.10.0", features = ["bytemuck"] }
 bytemuck = { workspace = true, features = ["derive"] }
+const-default = { workspace = true }
 shader_util = { path = "../shader_util" }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]

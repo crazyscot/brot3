@@ -94,7 +94,8 @@ pub fn main_vs(
 mod tests {
     use super::{FragmentConstants, PointResultA, PointResultB, GRID_SIZE};
 
-    use shader_common::{Algorithm, ColourStyle, Flags, Palette, PushExponent};
+    use const_default::ConstDefault as _;
+    use shader_common::{Algorithm, Flags, Palette, PushExponent};
     use shader_util::Size;
     use spirv_std::glam::{vec2, vec4, Vec2, Vec4};
 
@@ -117,16 +118,15 @@ mod tests {
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {
-            flags: Flags::NEEDS_REITERATE | Flags::FRACTIONAL_ITERS,
+            flags: Flags::NEEDS_REITERATE,
             viewport_translate: vec2(0., 0.),
             viewport_zoom: 0.3,
             size: Size::new(1024, 1024),
             max_iter: 10,
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
-            palette: Palette::default(),
+            palette: Palette::DEFAULT,
             inspector_point_pixel_address: Vec2::default(),
-            render_style: ColourStyle::default(),
         }
     }
 

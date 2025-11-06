@@ -20,6 +20,7 @@ harness = false
 emulate_constants = []
 
 [dependencies]
+const-default = { workspace = true }
 spirv-std = { workspace = true }
 shader_common = { path = "../shader_common" }
 shader_util = { path = "../shader_util" }
