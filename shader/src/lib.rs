@@ -4,7 +4,7 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
-use spirv_std::glam::{f32, vec2, Vec2, Vec3, Vec4, Vec4Swizzles as _};
+use spirv_std::glam::{f32, vec2, vec3, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
 use shader_common::{
