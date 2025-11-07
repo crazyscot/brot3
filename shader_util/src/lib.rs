@@ -103,36 +103,3 @@ impl From<UVec2> for Size {
         }
     }
 }
-
-/// GPU-friendly representation of a bool as a u32
-#[derive(Copy, Clone, Debug, Default, NoUninit)]
-#[repr(C)]
-pub struct Bool(pub u32);
-
-impl From<bool> for Bool {
-    fn from(b: bool) -> Self {
-        Self(b.into())
-    }
-}
-
-impl From<Bool> for bool {
-    fn from(b: Bool) -> bool {
-        b.0 != 0
-    }
-}
-
-#[cfg(test)]
-#[cfg_attr(coverage_nightly, coverage(off))]
-mod tests {
-    #[test]
-    fn conversion() {
-        use super::Bool;
-        let little_b = true;
-        let big_b: Bool = little_b.into();
-        assert!(bool::from(big_b));
-
-        let little_b = false;
-        let big_b: Bool = little_b.into();
-        assert!(!bool::from(big_b));
-    }
-}
