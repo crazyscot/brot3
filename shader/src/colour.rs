@@ -4,7 +4,7 @@
 use spirv_std::num_traits::real::Real;
 
 use core::f32::consts::TAU;
-use shader_common::Colourer as ColourerSelection;
+use shader_common::enums::Colourer as ColourerSelection;
 use shader_util::colourspace::{Hsl, Lch, Vec3Rgb};
 
 use super::{f32::vec3, ColourStyle, FragmentConstants, PointResult};
@@ -156,7 +156,8 @@ fn lch_gradient(constants: &FragmentConstants, pixel: &PointResult) -> Vec3Rgb {
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::{PointResult, Vec3Rgb};
-    use shader_common::{ColourStyle, Colourer, FragmentConstants, Palette};
+    use shader_common::enums::{Algorithm, ColourStyle, Colourer};
+    use shader_common::{FragmentConstants, Palette};
     #[test]
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
@@ -176,7 +177,7 @@ mod tests {
             },
             ..Default::default()
         };
-        assert_eq!(consts.algorithm, shader_common::Algorithm::Mandelbrot);
+        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
         let data = PointResult::new_outside(5, 0.31876, 1.0, 0., 0.);
         let expected = Vec3Rgb::from([0.901042, 0.3573773, 0.]);
         let result = super::colour_data(data, &consts);

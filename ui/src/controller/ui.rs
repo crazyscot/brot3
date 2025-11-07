@@ -2,7 +2,7 @@ use easy_shader_runner::{egui, UiState};
 use egui::epaint;
 
 use super::{DVec2, Instant};
-use shader_common::{Algorithm, ColourStyle, Colourer};
+use shader_common::enums::{Algorithm, ColourStyle, Colourer};
 
 pub(crate) const DEFAULT_WIDTH: f32 = 130.;
 

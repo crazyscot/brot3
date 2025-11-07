@@ -4,7 +4,7 @@
 #[cfg(we_compile)]
 use std::path::PathBuf;
 
-use shader_common::{Algorithm, Colourer};
+use shader_common::enums::{Algorithm, Colourer};
 
 #[derive(Debug, clap::Parser, Clone, Default)]
 pub(crate) struct Args {

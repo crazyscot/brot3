@@ -10,7 +10,7 @@ use crate::exponentiation::Exponentiator;
 use core::marker::PhantomData;
 
 pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
-    use shader_common::{Algorithm, NumericType};
+    use shader_common::{enums::Algorithm, NumericType};
     let c = Complex::from(point);
     macro_rules! builder {
         ($fractal:ident, $c_value:expr) => {{
@@ -243,7 +243,7 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
 mod tests {
     use crate::{fractal, vec2, FragmentConstants, Vec2};
     use const_default::ConstDefault as _;
-    use shader_common::{Algorithm, Flags, NumericType, Palette, PushExponent};
+    use shader_common::{enums::Algorithm, Flags, NumericType, Palette, PushExponent};
     use shader_util::Size;
 
     use pretty_assertions::assert_eq;
