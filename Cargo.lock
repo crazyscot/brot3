@@ -3182,6 +3182,7 @@ version = "0.3.0"
 dependencies = [
  "bytemuck",
  "document-features",
+ "float_eq",
  "glam",
  "spirv-std",
 ]

@@ -12,6 +12,7 @@ bench = false
 [dependencies]
 bytemuck = { workspace = true, default-features = false, features = ["derive"] }
 document-features = "0.2.12"
+float_eq = { version = "1.0.1", default-features = false }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
 spirv-std = { workspace = true }

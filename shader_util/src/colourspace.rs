@@ -3,6 +3,8 @@
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
+use float_eq::float_eq;
+
 /// RGB colour space.
 ///
 /// Each component is in the range (0.0, 1.0).
@@ -32,6 +34,43 @@ impl Clamp01 for f32 {
     }
 }
 
+/// RGB colour space representation
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Rgb {
+    /// Red component (range 0..255)
+    pub r: f32,
+    /// Green component (range 0..255)
+    pub g: f32,
+    /// Blue component (range 0..255)
+    pub b: f32,
+}
+impl Rgb {
+    #[must_use]
+    #[allow(missing_docs)]
+    pub fn new(r: f32, g: f32, b: f32) -> Self {
+        Self { r, g, b }
+    }
+}
+
+impl From<Rgb> for Vec3Rgb {
+    fn from(value: Rgb) -> Self {
+        Self {
+            x: value.r / 255.0,
+            y: value.g / 255.0,
+            z: value.b / 255.0,
+        }
+    }
+}
+impl From<Vec3Rgb> for Rgb {
+    fn from(value: Vec3Rgb) -> Self {
+        Self {
+            r: value.x * 255.0,
+            g: value.y * 255.0,
+            b: value.z * 255.0,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 /// HSL colour space
 pub struct Hsl {
@@ -42,13 +81,31 @@ pub struct Hsl {
     /// Lightness (range 0..100; 0=black, 50=fully saturated, 100=white)
     pub l: f32,
 }
+#[allow(missing_docs)]
 impl Hsl {
     #[must_use]
-    #[allow(missing_docs)]
     pub fn new(h: f32, s: f32, l: f32) -> Self {
         Self { h, s, l }
     }
+    pub const BLACK: Self = Self {
+        h: 0.,
+        s: 0.,
+        l: 0.,
+    };
+    pub const WHITE: Self = Self {
+        h: 0.,
+        s: 0.,
+        l: 100.,
+    };
 }
+impl PartialEq for Hsl {
+    fn eq(&self, other: &Self) -> bool {
+        float_eq!(self.h, other.h, abs <= 0.000_04)
+            && float_eq!(self.s, other.s, abs <= 0.000_04)
+            && float_eq!(self.l, other.l, abs <= 0.000_04)
+    }
+}
+
 impl From<Hsl> for Vec3Rgb {
     fn from(value: Hsl) -> Self {
         // this algorithm is based on CSS Color 4 section 7.1 and cribbed from the color crate
@@ -63,6 +120,64 @@ impl From<Hsl> for Vec3Rgb {
         };
         let [x, y, z] = [hue_component(0.), hue_component(8.), hue_component(4.)];
         Self { x, y, z }
+    }
+}
+
+impl From<Hsl> for Rgb {
+    fn from(value: Hsl) -> Self {
+        // this algorithm is based on CSS Color 4 section 7.1 and cribbed from the color crate
+        // (sadly, the color crate does not currently function in the rust-gpu environment)
+        let sat = value.s * 0.01;
+        let light = value.l * 0.01;
+        let a = sat * light.min(1.0 - light);
+        let hue_component = |n: f32| {
+            let x = n + value.h * (1.0 / 30.0);
+            let k = x - 12.0 * (x * (1.0 / 12.0)).floor();
+            light - a * (k - 3.0).min(9.0 - k).clamp(-1.0, 1.0)
+        };
+        Self {
+            r: 255.0 * hue_component(0.),
+            g: 255.0 * hue_component(8.),
+            b: 255.0 * hue_component(4.),
+        }
+    }
+}
+
+impl From<Rgb> for Hsl {
+    fn from(value: Rgb) -> Self {
+        #![allow(clippy::many_single_char_names)]
+        let r = value.r / 255.0;
+        let g = value.g / 255.0;
+        let b = value.b / 255.0;
+        let max = r.max(g.max(b));
+        let min = r.min(g.min(b));
+        let l = (max + min) * 0.5;
+        if float_eq!(max, min, abs <= 0.000_001) {
+            Self {
+                h: 0.,
+                s: 0.,
+                l: l * 100.,
+            }
+        } else {
+            let d = max - min;
+            let s = if l > 0.5 {
+                d / (2.0 - max - min)
+            } else {
+                d / (max + min)
+            };
+            let h = if float_eq!(max, r, abs <= 0.000_001) {
+                (g - b) / d + if g < b { 6.0 } else { 0.0 }
+            } else if float_eq!(max, g, abs <= 0.000_001) {
+                (b - r) / d + 2.0
+            } else {
+                (r - g) / d + 4.0
+            } * 60.0;
+            Self {
+                h,
+                s: s * 100.,
+                l: l * 100.,
+            }
+        }
     }
 }
 
@@ -156,5 +271,40 @@ impl From<Lch> for Vec3Rgb {
         let lab: Lab = value.into();
         let unclamped: Vec3Rgb = lab.into();
         unclamped.clamp01()
+    }
+}
+
+impl From<Lch> for Hsl {
+    fn from(lch: Lch) -> Self {
+        let vrgb: Vec3Rgb = lch.into();
+        let rgb: Rgb = vrgb.into();
+        rgb.into()
+    }
+}
+
+#[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
+mod tests {
+    use super::{Hsl, Rgb};
+
+    fn hsl_rgb_case(hsl: Hsl) {
+        let rgb: Rgb = hsl.into();
+        assert!(rgb.r >= 0.0 && rgb.r <= 255.0);
+        assert!(rgb.g >= 0.0 && rgb.g <= 255.0);
+        assert!(rgb.b >= 0.0 && rgb.b <= 255.0);
+        let hsl2: Hsl = rgb.into();
+        assert_eq!(hsl, hsl2);
+    }
+    #[test]
+    fn hsl_rgb_tests() {
+        hsl_rgb_case(Hsl::new(0., 100., 50.));
+        hsl_rgb_case(Hsl::new(60., 100., 50.));
+        hsl_rgb_case(Hsl::new(120., 100., 50.));
+        hsl_rgb_case(Hsl::new(180., 100., 50.));
+        hsl_rgb_case(Hsl::new(240., 100., 50.));
+        hsl_rgb_case(Hsl::new(300., 50., 25.));
+        hsl_rgb_case(Hsl::new(0., 0., 0.));
+        hsl_rgb_case(Hsl::new(0., 0., 50.));
+        hsl_rgb_case(Hsl::new(0., 0., 100.));
     }
 }
