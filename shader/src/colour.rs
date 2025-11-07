@@ -170,11 +170,9 @@ mod tests {
     fn lch_known_answer() {
         let consts = FragmentConstants {
             max_iter: 100,
-            palette: Palette {
-                colourer: Colourer::LchGradient,
-                style: ColourStyle::EscapeTime,
-                ..Default::default()
-            },
+            palette: Palette::default()
+                .with_colourer(Colourer::LchGradient)
+                .with_style(ColourStyle::EscapeTime),
             ..Default::default()
         };
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);

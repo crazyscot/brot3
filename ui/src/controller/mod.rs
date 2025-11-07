@@ -71,7 +71,7 @@ impl Controller {
 
             algorithm: options.fractal,
             max_iter: 100,
-            palette: Palette::default_with(options.colourer), // TODO with render style too
+            palette: Palette::default().with_colourer(options.colourer), // TODO with render style too
             exponent: Exponent::default(),
 
             show_coords_window: true,

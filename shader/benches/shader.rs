@@ -45,10 +45,7 @@ fn colour(col: Colourer) -> Vec3 {
         max_iter: 10,
         algorithm: Algorithm::default(),
         exponent: PushExponent::from(2),
-        palette: Palette {
-            colourer: col,
-            ..Default::default()
-        },
+        palette: Palette::default().with_colourer(col),
         inspector_point_pixel_address: Vec2::default(),
     };
     let data = PointResult::new_outside(3, 5.423, 0.123, 1., 2.);

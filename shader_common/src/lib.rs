@@ -79,12 +79,15 @@ impl Default for Palette {
         Self::DEFAULT
     }
 }
+
 impl Palette {
-    pub fn default_with(colourer: Colourer) -> Self {
-        Self {
-            colourer,
-            ..Self::DEFAULT
-        }
+    pub fn with_colourer(mut self, colourer: Colourer) -> Self {
+        self.colourer = colourer;
+        self
+    }
+    pub fn with_style(mut self, style: ColourStyle) -> Self {
+        self.style = style;
+        self
     }
     pub const MINIMA: Palette = Palette {
         colourer: Colourer::DEFAULT,
