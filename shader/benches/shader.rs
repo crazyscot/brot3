@@ -6,7 +6,7 @@ fn main() {
 use divan::black_box;
 use shader::exponentiation::{Exp2, ExpFloat, ExpIntN, Exponentiator as _};
 use shader_common::enums::{Algorithm, Colourer};
-use shader_common::{Flags, FragmentConstants, Palette, PointResult, PushExponent};
+use shader_common::{data::PointResult, Flags, FragmentConstants, Palette, PushExponent};
 use shader_util::{vec2, Size, Vec2, Vec3};
 use strum::VariantArray as _;
 

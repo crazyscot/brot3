@@ -3,8 +3,9 @@ use crate::cli::Args;
 use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
 use glam::{dvec2, DVec2, UVec2, Vec2};
 use shader_common::{
-    enums::Algorithm, Flags, FragmentConstants, NumericType, Palette, PointResult, PointResultA,
-    PointResultB, PushExponent, GRID_SIZE,
+    data::{PointResult, PointResultA, PointResultB},
+    enums::Algorithm,
+    Flags, FragmentConstants, NumericType, Palette, PushExponent, GRID_SIZE,
 };
 use util::BigVec2;
 use web_time::Instant;

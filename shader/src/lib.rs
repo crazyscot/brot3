@@ -8,8 +8,9 @@ use spirv_std::glam::{f32, vec2, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
 use shader_common::{
-    enums::ColourStyle, Flags, FragmentConstants, PointResult, PointResultA, PointResultB,
-    GRID_SIZE,
+    data::{PointResult, PointResultA, PointResultB},
+    enums::ColourStyle,
+    Flags, FragmentConstants, GRID_SIZE,
 };
 use shader_util::grid::{GridRef, GridRefMut};
 
