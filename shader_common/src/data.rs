@@ -29,7 +29,7 @@ pub struct PointResultA {
     iters_fraction: f32,
     /// distance estimate from fractal
     distance: f32,
-    /// final angle (argument)
+    /// final angle (argument) (range -pi..pi)
     pub angle: f32,
 }
 

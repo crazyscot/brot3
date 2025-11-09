@@ -121,7 +121,7 @@ pub enum NumericType {
     Complex,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Default, NoUninit)]
+#[derive(Copy, Clone, Debug, PartialEq, NoUninit)]
 #[repr(C)]
 pub struct PushExponent {
     pub typ: NumericType,
@@ -131,6 +131,17 @@ pub struct PushExponent {
     pub real: f32,
     /// Only used when `typ` is Complex
     pub imag: f32,
+}
+
+impl Default for PushExponent {
+    fn default() -> Self {
+        Self {
+            typ: NumericType::Integer,
+            int: 2,
+            real: 0.,
+            imag: 0.,
+        }
+    }
 }
 
 impl From<i32> for PushExponent {
