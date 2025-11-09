@@ -5,6 +5,8 @@ use shader_common::PushExponent;
 
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;
+    /// For the function z := z^k + c, what is the derivative of the z^k term?
+    fn derivative(self) -> Complex;
 }
 /// Special case for raising to the power 2
 #[derive(Copy, Clone, Debug)]
@@ -12,6 +14,7 @@ pub struct Exp2;
 /// Integer power (`powi` function)
 #[derive(Copy, Clone, Debug)]
 pub struct ExpIntN(pub i32);
+
 /// Real number power (`powf` function)
 #[derive(Copy, Clone, Debug)]
 pub struct ExpFloat(pub f32);
@@ -29,12 +32,23 @@ impl Exponentiator for Exp2 {
     fn apply_to(self, z: Complex) -> Complex {
         z * z
     }
+    #[inline(always)]
+    fn derivative(self) -> Complex {
+        Complex { re: 2.0, im: 0.0 }
+    }
 }
 
 impl Exponentiator for ExpIntN {
     #[inline(always)]
     fn apply_to(self, z: Complex) -> Complex {
         z.powi(self.0).to_rectangular()
+    }
+    #[inline(always)]
+    fn derivative(self) -> Complex {
+        Complex {
+            re: self.0 as f32 - 1.0,
+            im: 0.0,
+        }
     }
 }
 
@@ -43,22 +57,35 @@ impl Exponentiator for ExpFloat {
     fn apply_to(self, z: Complex) -> Complex {
         z.powf(self.0).to_rectangular()
     }
+    #[inline(always)]
+    fn derivative(self) -> Complex {
+        Complex {
+            re: self.0 - 1.0,
+            im: 0.0,
+        }
+    }
 }
 
 impl Exponentiator for ExpComplex {
     #[inline(always)]
     fn apply_to(self, z: Complex) -> Complex {
-        let power = self.0;
         // special case as ln(0) is undefined
         // TODO: 0^0 = NaN
         if z == Complex::ZERO {
             return Complex::ZERO;
         }
-        if power == Complex::ZERO {
+        if self.0 == Complex::ZERO {
             return Complex::ONE;
         }
         // function: z^p = e^(p ln(z))
-        (power * z.ln()).exp().to_rectangular()
+        (self.0 * z.ln()).exp().to_rectangular()
+    }
+    #[inline(always)]
+    fn derivative(self) -> Complex {
+        Complex {
+            re: self.0.re - 1.0,
+            im: self.0.im,
+        }
     }
 }
 
