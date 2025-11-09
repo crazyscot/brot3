@@ -368,7 +368,10 @@ impl super::Controller {
                             ui.monospace("∞");
                         } else {
                             // We only need to report in standard precision for iterations
-                            ui.monospace(dynfmt!(self.inspector.data.iters()));
+                            ui.monospace(dynfmt!(
+                                self.inspector.data.iters(self.palette.colour_style),
+                                6
+                            ));
                         }
                         ui.end_row();
                         ui.label("...fraction");

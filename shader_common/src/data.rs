@@ -1,5 +1,7 @@
 //! Fractal data structures
 
+use crate::enums::ColourStyle;
+
 use super::GRID_SIZE;
 use bytemuck::NoUninit;
 
@@ -91,7 +93,16 @@ impl PointResult {
         self.b
     }
     /// Iterations
-    pub fn iters(&self) -> u32 {
+    pub fn iters(&self, style: ColourStyle) -> f32 {
+        match style {
+            ColourStyle::Discrete => self.iters_whole() as f32,
+            ColourStyle::Continuous => self.iters_whole() as f32 + self.iters_fraction(),
+            _ => unimplemented!(),
+        }
+    }
+
+    /// Whole part of iterations
+    pub fn iters_whole(&self) -> u32 {
         self.a.iters
     }
     /// Fractional part of iterations (0..1)

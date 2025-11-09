@@ -9,7 +9,6 @@ use spirv_std::spirv;
 
 use shader_common::{
     data::{PointResult, PointResultA, PointResultB},
-    enums::ColourStyle,
     Flags, FragmentConstants, GRID_SIZE,
 };
 use shader_util::grid::{GridRef, GridRefMut};

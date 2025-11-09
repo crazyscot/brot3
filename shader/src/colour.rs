@@ -7,7 +7,7 @@ use core::f32::consts::TAU;
 use shader_common::enums::Colourer as ColourerSelection;
 use shader_util::colourspace::{Hsl, Lch, Rgb, Vec3Rgb};
 
-use super::{vec3, ColourStyle, FragmentConstants, PointResult};
+use super::{vec3, FragmentConstants, PointResult};
 
 pub fn colour_data(
     data: PointResult,
@@ -15,35 +15,27 @@ pub fn colour_data(
     _pixel_spacing: f32,
 ) -> Vec3Rgb {
     use ColourerSelection as CS;
+    let iters = data.iters(constants.palette.colour_style);
     let hsl = match constants.palette.colourer {
-        CS::LogRainbow => log_rainbow(constants, &data),
-        CS::SqrtRainbow => sqrt_rainbow(constants, &data),
-        CS::WhiteFade => white_fade(constants, &data),
-        CS::BlackFade => black_fade(constants, &data),
-        CS::OneLoneCoder => one_lone_coder(constants, &data),
-        CS::LchGradient => lch_gradient(constants, &data),
-        CS::Monochrome => monochrome(constants, &data),
+        CS::LogRainbow => log_rainbow(constants, iters, &data),
+        CS::SqrtRainbow => sqrt_rainbow(constants, iters, &data),
+        CS::WhiteFade => white_fade(constants, iters, &data),
+        CS::BlackFade => black_fade(constants, iters, &data),
+        CS::OneLoneCoder => one_lone_coder(constants, iters, &data),
+        CS::LchGradient => lch_gradient(constants, iters, &data),
+        CS::Monochrome => monochrome(constants, iters, &data),
         _ => todo!(),
     };
     hsl.into()
 }
 
-fn point_iters(constants: &FragmentConstants, point: &PointResult) -> f32 {
-    match constants.palette.colour_style {
-        ColourStyle::Continuous => point.iters() as f32 + point.iters_fraction(),
-        ColourStyle::Discrete => point.iters() as f32,
-        _ => 0.0,
-    }
-}
-
-fn log_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
+fn log_rainbow(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
     if pixel.inside() {
         return Hsl::BLACK;
     }
     let offset = constants.palette.offset * 36.;
-    let angle: f32 =
-        point_iters(constants, pixel).ln() * constants.palette.gradient * 100. + offset; // DEGREES
+    let angle: f32 = iters.ln() * constants.palette.gradient * 100. + offset; // DEGREES
     Hsl::new(
         angle,
         constants.palette.saturation,
@@ -51,14 +43,13 @@ fn log_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
     )
 }
 
-fn sqrt_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
+fn sqrt_rainbow(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     if pixel.inside() {
         return Hsl::BLACK;
     }
     // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
     let offset = constants.palette.offset * 36.;
-    let angle: f32 =
-        point_iters(constants, pixel).sqrt() * constants.palette.gradient * 100. + offset; // DEGREES
+    let angle: f32 = iters.sqrt() * constants.palette.gradient * 100. + offset; // DEGREES
     Hsl::new(
         angle,
         constants.palette.saturation,
@@ -68,11 +59,11 @@ fn sqrt_rainbow(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
 
 /// Based on Tony Finch's "White Fade" colourer
 /// <https://dotat.at/prog/mandelbrot/>
-fn white_fade(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
+fn white_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     if pixel.inside() {
         return Hsl::BLACK;
     }
-    let iters = point_iters(constants, pixel).ln();
+    let iters = iters.ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
@@ -90,11 +81,11 @@ fn white_fade(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
 
 /// Based on Tony Finch's "Black Fade" colourer
 /// <https://dotat.at/prog/mandelbrot/>
-fn black_fade(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
+fn black_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     if pixel.inside() {
         return Hsl::BLACK;
     }
-    let iters = point_iters(constants, pixel).ln();
+    let iters = iters.ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
@@ -112,11 +103,10 @@ fn black_fade(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
 
 /// Colouring algorithm by `OneLoneCoder.com`
 /// <https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_Mandelbrot.cpp>
-fn one_lone_coder(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
+fn one_lone_coder(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     if pixel.inside() {
         return Hsl::BLACK;
     }
-    let iters = point_iters(constants, pixel);
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
@@ -128,12 +118,12 @@ fn one_lone_coder(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
     .into()
 }
 
-fn monochrome(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
+fn monochrome(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     if pixel.inside() {
         return Hsl::BLACK;
     }
     // Compute an input from 0..1, relative to max_iter
-    let input = point_iters(constants, pixel).ln() / (constants.max_iter as f32).ln();
+    let input = iters.ln() / (constants.max_iter as f32).ln();
     // Scale the offset down to -2..2
     let offset = constants.palette.offset / 5.;
     // This palette has a gamma transfer function
@@ -142,14 +132,14 @@ fn monochrome(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
 }
 
 /// LCH Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#LCH_coloring>
-fn lch_gradient(constants: &FragmentConstants, pixel: &PointResult) -> Hsl {
+fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     if pixel.inside() {
         return Hsl::BLACK;
     }
     // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
     let offset = constants.palette.offset * 36.;
 
-    let s: f32 = point_iters(constants, pixel) / constants.max_iter as f32;
+    let s: f32 = iters / constants.max_iter as f32;
     let v1 = (core::f32::consts::PI * s).cos();
     let v2 = 1.0 - v1 * v1;
     let lightness = 75.0 - (75.0 * v2);
