@@ -1,10 +1,22 @@
 //! Colouring algorithms
 
+#[cfg(not(target_arch = "spirv"))]
+const DEBUG_COLOUR: bool = false;
+
+macro_rules! deprintln {
+    ($($arg:tt)*) => {
+        #[cfg(not(target_arch = "spirv"))]
+        if DEBUG_COLOUR {
+            eprintln!($($arg)*);
+        }
+    };
+}
+
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
 use core::f32::consts::TAU;
-use shader_common::enums::Colourer as ColourerSelection;
+use shader_common::enums::{ColourStyle, Colourer as CS, Modifier};
 use shader_util::colourspace::{Hsl, Lch, Rgb, Vec3Rgb};
 
 use super::{vec3, FragmentConstants, PointResult};
@@ -12,21 +24,74 @@ use super::{vec3, FragmentConstants, PointResult};
 pub fn colour_data(
     data: PointResult,
     constants: &FragmentConstants,
-    _pixel_spacing: f32,
+    pixel_spacing: f32,
 ) -> Vec3Rgb {
-    use ColourerSelection as CS;
     let iters = data.iters(constants.palette.colour_style);
-    let hsl = match constants.palette.colourer {
-        CS::LogRainbow => log_rainbow(constants, iters, &data),
-        CS::SqrtRainbow => sqrt_rainbow(constants, iters, &data),
-        CS::WhiteFade => white_fade(constants, iters, &data),
-        CS::BlackFade => black_fade(constants, iters, &data),
-        CS::OneLoneCoder => one_lone_coder(constants, iters, &data),
-        CS::LchGradient => lch_gradient(constants, iters, &data),
-        CS::Monochrome => monochrome(constants, iters, &data),
-        _ => todo!(),
+    let mut hsl = if constants.palette.colour_style == ColourStyle::None {
+        Hsl::WHITE
+    } else {
+        match constants.palette.colourer {
+            CS::LogRainbow => log_rainbow(constants, iters, &data),
+            CS::SqrtRainbow => sqrt_rainbow(constants, iters, &data),
+            CS::WhiteFade => white_fade(constants, iters, &data),
+            CS::BlackFade => black_fade(constants, iters, &data),
+            CS::OneLoneCoder => one_lone_coder(constants, iters, &data),
+            CS::LchGradient => lch_gradient(constants, iters, &data),
+            CS::Monochrome => monochrome(constants, iters, &data),
+            _ => todo!(),
+        }
     };
+    deprintln!("interim hsl: {hsl:?}");
+
+    hsl.l = factor_for(
+        hsl.l,
+        constants.palette.brightness_style,
+        pixel_spacing,
+        &data,
+    );
+    hsl.s = factor_for(
+        hsl.s,
+        constants.palette.saturation_style,
+        pixel_spacing,
+        &data,
+    );
     hsl.into()
+}
+
+fn factor_for(input: f32, style: Modifier, pixel_spacing: f32, data: &PointResult) -> f32 {
+    let factor = match style {
+        shader_common::enums::Modifier::Filaments1 => {
+            if data.inside() {
+                return 100.0;
+            }
+            dist_value(data.distance(), pixel_spacing) /* 0..1 */
+        }
+        shader_common::enums::Modifier::Filaments2 => {
+            if data.inside() {
+                return 0.0;
+            }
+            dist_value(data.distance(), pixel_spacing) /* 0..1 */
+        }
+        shader_common::enums::Modifier::FinalAngle => data.angle() / TAU + 0.5,
+        shader_common::enums::Modifier::FinalRadius => {
+            let factor = data.radius_sqr() / crate::fractal::ESCAPE_THRESHOLD_SQ;
+            deprintln!("rsqr {}, factor {factor}", data.radius_sqr());
+            factor
+        }
+        _ => 1.0,
+    };
+    factor * input
+}
+
+fn dist_value(distance: f32, pixel_spacing: f32) -> f32 {
+    let dscale = (distance / pixel_spacing).log2();
+    if dscale > 0.0 {
+        1.0
+    } else if dscale > -8.0 {
+        (8.0 + dscale) / 8.0
+    } else {
+        0.0
+    }
 }
 
 fn log_rainbow(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
@@ -152,8 +217,9 @@ fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::{PointResult, Vec3Rgb};
+    use crate::Vec3;
     use float_eq::float_eq;
-    use shader_common::enums::{Algorithm, ColourStyle, Colourer};
+    use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
     use shader_common::{FragmentConstants, Palette};
 
     fn vec3_eq(a: Vec3Rgb, b: Vec3Rgb) -> bool {
@@ -198,5 +264,53 @@ mod tests {
         let expected = Vec3Rgb::from([0.47777647, 0.03193772, 0.1543931]);
         let result = super::colour_data(data, &consts, 0.0);
         assert!(vec3_eq(result, expected));
+    }
+
+    #[test]
+    fn filaments() {
+        use spirv_std::glam::{uvec2, vec2};
+        let mut consts = FragmentConstants {
+            max_iter: 200,
+            palette: Palette::default()
+                .with_style(ColourStyle::None)
+                .with_brightness(Modifier::Filaments1),
+            size: uvec2(500, 500).into(),
+            ..Default::default()
+        };
+        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
+
+        consts.viewport_zoom = 0.83;
+        let pixel_size = 1.0 / consts.size.height as f32 / consts.viewport_zoom;
+        let pt = vec2(-0.707752, -0.3530653);
+        consts.viewport_translate = pt;
+        let data = crate::fractal::render(&consts, pt);
+        eprintln!("data: {data:?}");
+        let result = super::colour_data(data, &consts, pixel_size);
+        eprintln!("result: {result:?}");
+        assert_eq!(result, Vec3Rgb::new(0.0, 0., 0.));
+    }
+
+    #[test]
+    fn radius() {
+        use spirv_std::glam::{uvec2, vec2};
+        let mut consts = FragmentConstants {
+            max_iter: 200,
+            palette: Palette::default()
+                .with_style(ColourStyle::None)
+                .with_brightness(Modifier::FinalRadius),
+            size: uvec2(500, 500).into(),
+            ..Default::default()
+        };
+        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
+
+        consts.viewport_zoom = 1.29;
+        let pixel_size = 1.0 / consts.size.height as f32 / consts.viewport_zoom;
+        let pt = vec2(0.17388, 0.80085);
+        consts.viewport_translate = pt;
+        let data = crate::fractal::render(&consts, pt);
+        eprintln!("data: {data:?}");
+        let result = super::colour_data(data, &consts, pixel_size);
+        eprintln!("result: {result:?}");
+        assert_eq!(result, Vec3::splat(0.3254935));
     }
 }

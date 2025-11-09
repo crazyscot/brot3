@@ -2,7 +2,7 @@ use easy_shader_runner::{egui, UiState};
 use egui::epaint;
 
 use super::{DVec2, Instant};
-use shader_common::enums::{Algorithm, ColourStyle, Colourer};
+use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
 
 pub(crate) const DEFAULT_WIDTH: f32 = 130.;
 
@@ -262,6 +262,24 @@ impl super::Controller {
                                 for it in ColourStyle::iter() {
                                     let label: &'static str = it.into();
                                     ui.selectable_value(&mut self.palette.colour_style, it, label);
+                                }
+                            });
+                        egui::ComboBox::from_label("Brightness Style")
+                            .selected_text(format!("{:?}", self.palette.brightness_style))
+                            .show_ui(ui, |ui| {
+                                use strum::IntoEnumIterator as _;
+                                for it in Modifier::iter() {
+                                    let label: &'static str = it.into();
+                                    ui.selectable_value(&mut self.palette.brightness_style, it, label);
+                                }
+                            });
+                        egui::ComboBox::from_label("Saturation Style")
+                            .selected_text(format!("{:?}", self.palette.saturation_style))
+                            .show_ui(ui, |ui| {
+                                use strum::IntoEnumIterator as _;
+                                for it in Modifier::iter() {
+                                    let label: &'static str = it.into();
+                                    ui.selectable_value(&mut self.palette.saturation_style, it, label);
                                 }
                             });
 

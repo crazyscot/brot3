@@ -4,6 +4,9 @@
 #[cfg(not(target_arch = "spirv"))]
 const DEBUG_FRACTAL: bool = false;
 
+pub(crate) const ESCAPE_THRESHOLD: f32 = 10.0;
+pub(crate) const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
+
 macro_rules! deprintln {
     ($($arg:tt)*) => {
         #[cfg(not(target_arch = "spirv"))]
@@ -91,14 +94,14 @@ where
     fn run(self) -> PointResult {
         use shader_common::NumericType;
 
-        const ESCAPE_THRESHOLD: f32 = 10.0;
-        const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
         let loglog2_escape_threshold: f32 = ESCAPE_THRESHOLD.log2().log2();
 
         let mut iters = 0;
         let mut z = Complex::ZERO;
         let mut dz = Complex::ZERO;
+        let mut prev_z = Complex::ZERO;
         let mut norm_sqr = z.abs_sq();
+        let mut prev_norm_sqr = 0.0;
         let max_iter = self.constants.max_iter;
 
         deprintln!("DBG: run for c={:?}", self.c);
@@ -106,6 +109,8 @@ where
 
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
             F::pre_modify_point(&mut z);
+            prev_z = z;
+            prev_norm_sqr = norm_sqr;
             (z, dz) = F::iterate_algorithm(z, dz, self.expo, self.c, iters);
             iters += 1;
             norm_sqr = z.abs_sq();
@@ -116,7 +121,8 @@ where
         // distance estimate, angle
         let za = z.abs();
         let distance = 2.0 * za.ln() * za / dz.abs();
-        let angle = z.arg();
+        let angle = prev_z.arg();
+        let radius_sqr = prev_norm_sqr;
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // The log(exponent) term is necessary for powers other than 2
@@ -144,9 +150,9 @@ where
         let smoothed_iters = 1. + loglog2_escape_threshold - log_zn.log2() / log2_exponent;
 
         if inside {
-            PointResult::new_inside(distance, angle, norm_sqr)
+            PointResult::new_inside(distance, angle, radius_sqr)
         } else {
-            PointResult::new_outside(iters, smoothed_iters, distance, angle, norm_sqr)
+            PointResult::new_outside(iters, smoothed_iters, distance, angle, radius_sqr)
         }
     }
 }

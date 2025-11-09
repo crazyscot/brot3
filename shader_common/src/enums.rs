@@ -63,6 +63,16 @@ enumdef!(
     None
 );
 
+enumdef!(
+    doc = "Style modifier",
+    Modifier,
+    Standard,
+    Filaments1,
+    Filaments2,
+    FinalAngle,
+    FinalRadius
+);
+
 macro_rules! incrementable {
     ($enum:ty) => {
         #[cfg(not(target_arch = "spirv"))]

@@ -96,8 +96,7 @@ impl PointResult {
     pub fn iters(&self, style: ColourStyle) -> f32 {
         match style {
             ColourStyle::Discrete => self.iters_whole() as f32,
-            ColourStyle::Continuous => self.iters_whole() as f32 + self.iters_fraction(),
-            _ => unimplemented!(),
+            ColourStyle::Continuous | _ => self.iters_whole() as f32 + self.iters_fraction(),
         }
     }
 
@@ -113,7 +112,7 @@ impl PointResult {
     pub fn distance(&self) -> f32 {
         self.a.distance
     }
-    /// Final angle
+    /// Final angle (-pi .. pi)
     pub fn angle(&self) -> f32 {
         self.a.angle
     }
