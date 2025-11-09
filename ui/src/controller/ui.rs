@@ -328,6 +328,8 @@ impl super::Controller {
             .show(ctx, |ui| {
                 ui.set_width(10.); // hack: ensures the separator doesn't inflate the window
                 egui::Grid::new("coords_position").show(ui, |ui| {
+                    ui.label(egui::RichText::new("Centre").italics());
+                    ui.end_row();
                     ui.label("Fractal X (Re)");
                     ui.monospace(dynfmt!(
                         self.viewport_translate.x.to_f64().value(),
@@ -374,9 +376,6 @@ impl super::Controller {
                             ));
                         }
                         ui.end_row();
-                        ui.label("...fraction");
-                        ui.monospace(dynfmt!(self.inspector.data.iters_fraction()));
-                        ui.end_row();
                         ui.label("Distance");
                         ui.monospace(dynfmt!(self.inspector.data.distance()));
                         ui.end_row();
@@ -387,7 +386,7 @@ impl super::Controller {
                         ui.monospace(dynfmt!(self.inspector.data.radius_sqr().sqrt()));
                         ui.end_row();
                     });
-                    if ui.button("Close").clicked() {
+                    if ui.button("Close inspector").clicked() {
                         self.inspector.active = false;
                     }
                 }
