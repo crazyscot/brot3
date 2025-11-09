@@ -29,7 +29,7 @@ pub fn colour_data(
 }
 
 fn point_iters(constants: &FragmentConstants, point: &PointResult) -> f32 {
-    match constants.palette.style {
+    match constants.palette.colour_style {
         ColourStyle::Continuous => point.iters() as f32 + point.iters_fraction(),
         ColourStyle::Discrete => point.iters() as f32,
         _ => 0.0,

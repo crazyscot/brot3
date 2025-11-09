@@ -53,7 +53,7 @@ pub struct Flags : u32 {
 #[repr(C)]
 pub struct Palette {
     pub colourer: Colourer,
-    pub style: ColourStyle,
+    pub colour_style: ColourStyle,
     pub gradient: f32,
     pub offset: f32,
     pub saturation: f32,
@@ -64,7 +64,7 @@ pub struct Palette {
 impl ConstDefault for Palette {
     const DEFAULT: Self = Self {
         colourer: Colourer::DEFAULT,
-        style: ColourStyle::DEFAULT,
+        colour_style: ColourStyle::DEFAULT,
         // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
         gradient: 1.,
         offset: 0.,
@@ -86,12 +86,12 @@ impl Palette {
         self
     }
     pub fn with_style(mut self, style: ColourStyle) -> Self {
-        self.style = style;
+        self.colour_style = style;
         self
     }
     pub const MINIMA: Palette = Palette {
         colourer: Colourer::DEFAULT,
-        style: ColourStyle::DEFAULT,
+        colour_style: ColourStyle::DEFAULT,
         gradient: 0.1,
         offset: -10.0,
         saturation: 0.,
@@ -101,7 +101,7 @@ impl Palette {
     };
     pub const MAXIMA: Palette = Palette {
         colourer: Colourer::DEFAULT,
-        style: ColourStyle::DEFAULT,
+        colour_style: ColourStyle::DEFAULT,
         gradient: 10.,
         offset: 10.,
         saturation: 100.,
