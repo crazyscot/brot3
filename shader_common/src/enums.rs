@@ -3,6 +3,66 @@
 use bytemuck::NoUninit;
 use const_default::ConstDefault;
 
+macro_rules! enumdef {
+    ($attr: meta, $name:ident, $first:ident, $($variant:ident), +) => {
+        #[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
+        #[cfg_attr(
+            not(target_arch = "spirv"),
+            derive(
+                clap::ValueEnum,
+                strum::EnumIter,
+                strum::IntoStaticStr,
+                strum::VariantArray,
+                num_derive::FromPrimitive,
+                num_derive::ToPrimitive,
+            )
+        )]
+        #[repr(u32)]
+        #[non_exhaustive]
+        #[$attr]
+        pub enum $name {
+            #[default]
+            $first,
+            $($variant,)*
+        }
+        impl ConstDefault for $name {
+            const DEFAULT: Self = Self::$first;
+        }
+    };
+}
+
+enumdef!(
+    doc = "Fractal algorithm selection",
+    Algorithm,
+    Mandelbrot,
+    Mandeldrop,
+    Mandelbar,
+    BurningShip,
+    Celtic,
+    Variant,
+    BirdOfPrey
+);
+
+enumdef!(
+    doc = "Colouring algorithm selection",
+    Colourer,
+    LogRainbow,
+    SqrtRainbow,
+    WhiteFade,
+    BlackFade,
+    OneLoneCoder,
+    LchGradient,
+    Monochrome
+);
+
+enumdef!(
+    doc = "Colouring style",
+    ColourStyle,
+    Continuous,
+    Discrete,
+    None
+);
+
 macro_rules! incrementable {
     ($enum:ty) => {
         #[cfg(not(target_arch = "spirv"))]
@@ -30,88 +90,6 @@ macro_rules! incrementable {
 }
 incrementable!(Colourer);
 incrementable!(Algorithm);
-
-/// Fractal algorithm selection
-#[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
-#[cfg_attr(
-    not(target_arch = "spirv"),
-    derive(
-        clap::ValueEnum,
-        strum::EnumIter,
-        strum::IntoStaticStr,
-        strum::VariantArray,
-        num_derive::FromPrimitive,
-        num_derive::ToPrimitive,
-    )
-)]
-#[repr(u32)]
-#[non_exhaustive]
-pub enum Algorithm {
-    #[default]
-    Mandelbrot,
-    Mandeldrop,
-    Mandelbar,
-    BurningShip,
-    Celtic,
-    Variant,
-    BirdOfPrey,
-}
-
-#[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
-#[cfg_attr(
-    not(target_arch = "spirv"),
-    derive(
-        clap::ValueEnum,
-        strum::EnumIter,
-        strum::IntoStaticStr,
-        strum::VariantArray,
-        num_derive::FromPrimitive,
-        num_derive::ToPrimitive,
-    )
-)]
-#[repr(u32)]
-#[non_exhaustive]
-/// Colouring algorithm selection
-pub enum Colourer {
-    #[default]
-    LogRainbow,
-    SqrtRainbow,
-    WhiteFade,
-    BlackFade,
-    OneLoneCoder,
-    LchGradient,
-    Monochrome,
-}
-
-impl ConstDefault for Colourer {
-    const DEFAULT: Self = Self::LogRainbow;
-}
-
-#[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
-#[cfg_attr(
-    not(target_arch = "spirv"),
-    derive(
-        clap::ValueEnum,
-        strum::EnumIter,
-        strum::IntoStaticStr,
-        strum::VariantArray,
-        num_derive::FromPrimitive,
-        num_derive::ToPrimitive,
-    )
-)]
-#[repr(u32)]
-#[non_exhaustive]
-/// Colour style selection
-pub enum ColourStyle {
-    #[default]
-    Continuous,
-    Discrete,
-    None,
-}
-
-impl ConstDefault for ColourStyle {
-    const DEFAULT: Self = Self::Continuous;
-}
 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
