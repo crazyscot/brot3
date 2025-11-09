@@ -1,6 +1,18 @@
 //! Fractal algorithms.
 //! Can also be called on the host.
 
+#[cfg(not(target_arch = "spirv"))]
+const DEBUG_FRACTAL: bool = false;
+
+macro_rules! deprintln {
+    ($($arg:tt)*) => {
+        #[cfg(not(target_arch = "spirv"))]
+        if DEBUG_FRACTAL {
+            eprintln!($($arg)*);
+        }
+    };
+}
+
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
@@ -88,6 +100,8 @@ where
         let mut dz = Complex::ZERO;
         let mut norm_sqr = z.abs_sq();
         let max_iter = self.constants.max_iter;
+
+        deprintln!("DBG: run for c={:?}", self.c);
         // TODO: Cardoid and period-2 bulb checks in original?
 
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
@@ -95,6 +109,7 @@ where
             (z, dz) = F::iterate_algorithm(z, dz, self.expo, self.c, iters);
             iters += 1;
             norm_sqr = z.abs_sq();
+            deprintln!("DBG: iters={iters}, z={z}, dz={dz}, |z|^2={norm_sqr}");
         }
         let inside = iters == max_iter && (norm_sqr < ESCAPE_THRESHOLD_SQ);
 
