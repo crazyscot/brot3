@@ -9,7 +9,11 @@ use shader_util::colourspace::{Hsl, Lch, Rgb, Vec3Rgb};
 
 use super::{vec3, ColourStyle, FragmentConstants, PointResult};
 
-pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> Vec3Rgb {
+pub fn colour_data(
+    data: PointResult,
+    constants: &FragmentConstants,
+    _pixel_spacing: f32,
+) -> Vec3Rgb {
     use ColourerSelection as CS;
     let hsl = match constants.palette.colourer {
         CS::LogRainbow => log_rainbow(constants, &data),
@@ -173,7 +177,7 @@ mod tests {
         let consts = FragmentConstants::default();
         let data = PointResult::new_outside(100, 0.0, 1.0, 0., 0.);
         let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
-        assert!(vec3_eq(expected, super::colour_data(data, &consts)));
+        assert!(vec3_eq(expected, super::colour_data(data, &consts, 0.0)));
     }
 
     #[test]
@@ -188,7 +192,7 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
         let data = PointResult::new_outside(5, 0.31876, 1.0, 0., 0.);
         let expected = Vec3Rgb::from([0.901042, 0.3573773, 0.]);
-        let result = super::colour_data(data, &consts);
+        let result = super::colour_data(data, &consts, 0.0);
         assert!(vec3_eq(result, expected));
     }
 
@@ -202,7 +206,7 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
         let data = PointResult::new_outside(10, 0.31876, 1.0, 0., 0.);
         let expected = Vec3Rgb::from([0.47777647, 0.03193772, 0.1543931]);
-        let result = super::colour_data(data, &consts);
+        let result = super::colour_data(data, &consts, 0.0);
         assert!(vec3_eq(result, expected));
     }
 }

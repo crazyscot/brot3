@@ -61,7 +61,8 @@ pub fn main_fs(
         PointResult::join(a, b)
     };
 
-    let mut colour = colour::colour_data(render_data, constants);
+    let pixel_spacing = 1.0 / size.y / constants.viewport_zoom;
+    let mut colour = colour::colour_data(render_data, constants, pixel_spacing);
 
     // Draw the inspector marker
     if constants.flags.contains(Flags::INSPECTOR_ACTIVE) {

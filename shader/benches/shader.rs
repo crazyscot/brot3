@@ -49,7 +49,7 @@ fn colour(col: Colourer) -> Vec3 {
         inspector_point_pixel_address: Vec2::default(),
     };
     let data = PointResult::new_outside(3, 5.423, 0.123, 1., 2.);
-    shader::colour::colour_data(black_box(data), &consts)
+    shader::colour::colour_data(black_box(data), &consts, 0.0)
 }
 
 #[divan::bench(args = [0, 1, 2])]
