@@ -243,18 +243,6 @@ impl super::Controller {
 
                 ui.separator();
 
-                egui::ComboBox::from_label("Render Style")
-                    .selected_text(format!("{:?}", self.palette.style))
-                    .show_ui(ui, |ui| {
-                        use strum::IntoEnumIterator as _;
-                        for it in ColourStyle::iter() {
-                            let label: &'static str = it.into();
-                            ui.selectable_value(&mut self.palette.style, it, label);
-                        }
-                    });
-
-                ui.separator();
-
                 egui::ComboBox::from_label("Palette")
                     .selected_text(format!("{:?}", self.palette.colourer))
                     .show_ui(ui, |ui| {
@@ -267,6 +255,16 @@ impl super::Controller {
                 egui::CollapsingHeader::new("Palette controls")
                     .id_salt("palette-detail")
                     .show(ui, |ui| {
+                        egui::ComboBox::from_label("Colour Style")
+                            .selected_text(format!("{:?}", self.palette.style))
+                            .show_ui(ui, |ui| {
+                                use strum::IntoEnumIterator as _;
+                                for it in ColourStyle::iter() {
+                                    let label: &'static str = it.into();
+                                    ui.selectable_value(&mut self.palette.style, it, label);
+                                }
+                            });
+
                         macro_rules! palette_slider {
                             ($($id:ident), * ) => {
                                 $(

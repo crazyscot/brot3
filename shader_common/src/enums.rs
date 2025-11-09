@@ -104,12 +104,13 @@ impl ConstDefault for Colourer {
 /// Colour style selection
 pub enum ColourStyle {
     #[default]
-    ContinuousDwell,
-    EscapeTime,
+    Continuous,
+    Discrete,
+    None,
 }
 
 impl ConstDefault for ColourStyle {
-    const DEFAULT: Self = Self::ContinuousDwell;
+    const DEFAULT: Self = Self::Continuous;
 }
 
 #[cfg(all(test, not(target_arch = "spirv")))]

@@ -30,9 +30,9 @@ pub fn colour_data(
 
 fn point_iters(constants: &FragmentConstants, point: &PointResult) -> f32 {
     match constants.palette.style {
-        ColourStyle::ContinuousDwell => point.iters() as f32 + point.iters_fraction(),
-        ColourStyle::EscapeTime => point.iters() as f32,
-        _ => unimplemented!(),
+        ColourStyle::Continuous => point.iters() as f32 + point.iters_fraction(),
+        ColourStyle::Discrete => point.iters() as f32,
+        _ => 0.0,
     }
 }
 
@@ -186,7 +186,7 @@ mod tests {
             max_iter: 100,
             palette: Palette::default()
                 .with_colourer(Colourer::LchGradient)
-                .with_style(ColourStyle::EscapeTime),
+                .with_style(ColourStyle::Discrete),
             ..Default::default()
         };
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
