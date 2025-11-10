@@ -70,7 +70,7 @@ impl Controller {
             movement: Movement::default(),
 
             algorithm: options.fractal,
-            max_iter: 100,
+            max_iter: 250,
             palette: Palette::default().with_colourer(options.colourer), // TODO with render style too
             exponent: Exponent::default(),
 

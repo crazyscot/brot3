@@ -206,10 +206,9 @@ fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
 
     let s: f32 = iters / constants.max_iter as f32;
     let v1 = (core::f32::consts::PI * s).cos();
-    let v2 = 1.0 - v1 * v1;
-    let lightness = 75.0 - (75.0 * v2);
+    let lightness = 75.0 * v1 * v1;
     let hue = (s * 360.0 * constants.palette.gradient).powf(1.5) + offset;
-    let lch = Lch::new(lightness, 28.0 + lightness, hue);
+    let lch = Lch::new(lightness + 25.0, lightness + 35.0, hue);
     lch.into()
 }
 
@@ -222,10 +221,17 @@ mod tests {
     use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
     use shader_common::{FragmentConstants, Palette};
 
-    fn vec3_eq(a: Vec3Rgb, b: Vec3Rgb) -> bool {
-        float_eq!(a.x, b.x, abs <= 0.000_04)
-            && float_eq!(a.y, b.y, abs <= 0.000_04)
-            && float_eq!(a.z, b.z, abs <= 0.000_04)
+    macro_rules! assert_vec3_eq {
+        ($a:expr, $b:expr) => {
+            assert!(
+                float_eq!($a.x, $b.x, abs <= 0.000_04)
+                    && float_eq!($a.y, $b.y, abs <= 0.000_04)
+                    && float_eq!($a.z, $b.z, abs <= 0.000_04),
+                "float mismatch: {} != {}",
+                $a,
+                $b
+            );
+        };
     }
 
     #[test]
@@ -233,7 +239,7 @@ mod tests {
         let consts = FragmentConstants::default();
         let data = PointResult::new_outside(100, 0.0, 1.0, 0., 0.);
         let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
-        assert!(vec3_eq(expected, super::colour_data(data, &consts, 0.0)));
+        assert_vec3_eq!(expected, super::colour_data(data, &consts, 0.0));
     }
 
     #[test]
@@ -247,9 +253,9 @@ mod tests {
         };
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
         let data = PointResult::new_outside(5, 0.31876, 1.0, 0., 0.);
-        let expected = Vec3Rgb::from([0.901042, 0.3573773, 0.]);
+        let expected = Vec3Rgb::from([1., 0.7824273, 0.]);
         let result = super::colour_data(data, &consts, 0.0);
-        assert!(vec3_eq(result, expected));
+        assert_vec3_eq!(result, expected);
     }
 
     #[test]
@@ -263,7 +269,7 @@ mod tests {
         let data = PointResult::new_outside(10, 0.31876, 1.0, 0., 0.);
         let expected = Vec3Rgb::from([0.47777647, 0.03193772, 0.1543931]);
         let result = super::colour_data(data, &consts, 0.0);
-        assert!(vec3_eq(result, expected));
+        assert_vec3_eq!(result, expected);
     }
 
     #[test]
