@@ -4,10 +4,10 @@
 pub type Complex = abels_complex::Complex<f32>;
 
 #[cfg(not(target_arch = "spirv"))]
-use glam::{uvec2, UVec2, Vec2};
+use glam::{uvec2, vec2, UVec2, Vec2};
 
 #[cfg(target_arch = "spirv")]
-use spirv_std::glam::{uvec2, UVec2, Vec2};
+use spirv_std::glam::{uvec2, vec2, UVec2, Vec2};
 
 pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
@@ -25,7 +25,7 @@ pub mod data;
 
 #[derive(Copy, Clone, Debug)]
 // We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninint on spirv builds.
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit, Default))]
+#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
 pub struct FragmentConstants {
     pub flags: Flags,
@@ -38,6 +38,22 @@ pub struct FragmentConstants {
     pub exponent: PushExponent,
     pub palette: Palette,
     pub inspector_point_pixel_address: Vec2,
+}
+
+impl Default for FragmentConstants {
+    fn default() -> Self {
+        Self {
+            flags: Flags::default(),
+            viewport_translate: vec2(0.0, 0.0),
+            viewport_zoom: 1.0,
+            size: uvec2(800, 600).into(),
+            max_iter: 100,
+            algorithm: Algorithm::default(),
+            exponent: PushExponent::default(),
+            palette: Palette::default(),
+            inspector_point_pixel_address: Default::default(),
+        }
+    }
 }
 
 bitflags::bitflags! {
