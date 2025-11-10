@@ -104,21 +104,21 @@ pub fn main() -> anyhow::Result<()> {
                         hook(e);
                     }
                 }));
-                easy_shader_runner::run_with_runtime_compilation_2(
+                easy_shader_runner::run_with_runtime_compilation(
                     params,
                     path,
                     relative_to_manifest,
                     args.spirv_tools,
                 )?;
             } else {
-                easy_shader_runner::run_with_prebuilt_shader_2(
+                easy_shader_runner::run_with_prebuilt_shader(
                     params,
                     include_bytes!(env!("shader.spv")),
                 )?;
             }
         } else {
             // Runtime compilation disabled by feature flag
-            easy_shader_runner::run_with_prebuilt_shader_2(
+            easy_shader_runner::run_with_prebuilt_shader(
                 params,
                 include_bytes!(env!("shader.spv")),
             )?;
