@@ -125,25 +125,29 @@ where
         let radius_sqr = prev_norm_sqr;
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
-        // The log(exponent) term is necessary for powers other than 2
-        let log2_exponent = match self.constants.exponent.typ {
-            NumericType::Integer if self.constants.exponent.int == 2 => 1.0,
-            NumericType::Integer => {
-                let i = self.constants.exponent.int as f32;
-                i.abs().log2()
-            }
-            NumericType::Float => {
-                let f = self.constants.exponent.real;
-                f.abs().log2()
-            }
+        // The log(exponent) term is necessary for powers other than 2.
+        // Note that log2_exponent is not allowed to be 0 or subnormal (we divide by
+        // it below), so we special case those regions.
+        let exp = &self.constants.exponent;
+        let log2_exponent = match exp.typ {
+            NumericType::Integer if exp.int <= 2 => 1.0,
+            NumericType::Integer => (exp.int as f32).abs().log2(),
+            NumericType::Float if exp.real <= 2.0 => 1.0,
+            NumericType::Float => exp.real.abs().log2(),
             NumericType::Complex => {
-                let c = crate::exponentiation::ExpComplex::from(self.constants.exponent);
-                // for now, we'll take abs(z) so we can take a log in |R.
-                // c.0.abs().log() === (c.0.abs_sq() ^ 0.5).log() === 0.5 * c.0.abs_sq().log()
-                0.5 * c.0.abs_sq().log2()
+                // For now, we'll take abs(z) so we can compute a log in ℝ.
+                // c.abs().log() === (c.abs_sq() ^ 0.5).log() === 0.5 * c.abs_sq().log()
+                let abssq = Complex::from(exp).abs_sq();
+                // For parity with Int and Floats, we'll special case where abs < 2 i.e. abs_sq < 4
+                if abssq <= 4.0 {
+                    1.0
+                } else {
+                    0.5 * abssq.log2()
+                }
             }
-            _ => todo!(),
+            _ => unimplemented!(),
         };
+
         // by the logarithm of a power law,
         // z.norm().log() === z.norm_sqr().log() * 0.5
         let log_zn = z.abs_sq().log2() * 0.5;

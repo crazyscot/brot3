@@ -584,6 +584,16 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     fn update_inspector(&mut self) {
         self.inspector.stale = false;
         let consts = self.fragment_constants(false);
+        //eprintln!("{consts:?}");
         self.inspector.data = shader::fractal::render(&consts, self.inspector.position.as_vec2());
+        /*
+        eprintln!("=> {:?}", self.inspector.data);
+        let col = shader::colour::colour_data(
+            self.inspector.data,
+            &consts,
+            self.pixel_complex_size() as f32,
+        );
+        eprintln!("==> colour {col:?}");
+        */
     }
 }

@@ -184,3 +184,22 @@ impl From<Complex> for PushExponent {
         }
     }
 }
+
+impl From<&PushExponent> for Complex {
+    fn from(e: &PushExponent) -> Self {
+        match e.typ {
+            NumericType::Complex => Self {
+                re: e.real,
+                im: e.imag,
+            },
+            NumericType::Float => Self {
+                re: e.real,
+                im: 0.0,
+            },
+            NumericType::Integer => Self {
+                re: e.int as f32,
+                im: 0.0,
+            },
+        }
+    }
+}
