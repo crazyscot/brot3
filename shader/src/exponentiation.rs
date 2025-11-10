@@ -55,6 +55,11 @@ impl Exponentiator for ExpIntN {
 impl Exponentiator for ExpFloat {
     #[inline(always)]
     fn apply_to(self, z: Complex) -> Complex {
+        // Special case as this seems to cause a shader abort on the GPU
+        // when z==0.0... This isn't surprising as 0^0 is strictly undefined.
+        if self.0 == 0.0 {
+            return Complex::ONE;
+        }
         z.powf(self.0).to_rectangular()
     }
     #[inline(always)]
@@ -70,10 +75,10 @@ impl Exponentiator for ExpComplex {
     #[inline(always)]
     fn apply_to(self, z: Complex) -> Complex {
         // special case as ln(0) is undefined
-        // TODO: 0^0 = NaN
         if z == Complex::ZERO {
             return Complex::ZERO;
         }
+        // special case to avoid breaking at 0^0 (undefined)
         if self.0 == Complex::ZERO {
             return Complex::ONE;
         }
