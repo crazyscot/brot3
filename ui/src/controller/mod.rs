@@ -173,7 +173,7 @@ impl From<Exponent> for PushExponent {
             NumericType::Complex => PushExponent {
                 typ: NumericType::Complex,
                 real: exp.real * if exp.real_is_negative { -1. } else { 1. },
-                imag: exp.imag * if exp.imag_is_negative { 1. } else { -1. },
+                imag: exp.imag * if exp.imag_is_negative { -1. } else { 1. },
                 ..Default::default()
             },
             _ => todo!(),
