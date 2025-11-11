@@ -67,6 +67,20 @@ pub struct Flags : u32 {
 }
 }
 
+impl FragmentConstants {
+    pub fn pixel_spacing_f32(height: u32, zoom: f32) -> f32 {
+        1.0 / (height as f32 * zoom)
+    }
+    #[cfg(not(target_arch = "spirv"))]
+    pub fn pixel_spacing_f64(height: u32, zoom: f64) -> f64 {
+        1.0 / (height as f64 * zoom)
+    }
+
+    pub fn pixel_spacing(&self) -> f32 {
+        Self::pixel_spacing_f32(self.size.height, self.viewport_zoom)
+    }
+}
+
 #[derive(Copy, Clone, Debug, NoUninit)]
 #[repr(C)]
 pub struct Palette {

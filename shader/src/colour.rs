@@ -286,7 +286,8 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 0.83;
-        let pixel_size = 1.0 / consts.size.height as f32 / consts.viewport_zoom;
+        let pixel_size =
+            FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
         let pt = vec2(-0.707752, -0.3530653);
         consts.viewport_translate = pt;
         let data = crate::fractal::render(&consts, pt);
@@ -310,7 +311,8 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 1.29;
-        let pixel_size = 1.0 / consts.size.height as f32 / consts.viewport_zoom;
+        let pixel_size =
+            FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
         let pt = vec2(0.17388, 0.80085);
         consts.viewport_translate = pt;
         let data = crate::fractal::render(&consts, pt);

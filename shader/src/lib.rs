@@ -42,10 +42,11 @@ pub fn main_fs(
     let coord = frag_coord.xy();
     // viewport pixel size e.g. 1920x1080
     let size = constants.size.as_vec2();
+    let pixel_spacing = constants.pixel_spacing();
 
     let render_data = if constants.flags.contains(Flags::NEEDS_REITERATE) {
         // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
-        let cplx = (coord - 0.5 * size) / size.y / constants.viewport_zoom;
+        let cplx = (coord - 0.5 * size) * pixel_spacing;
         let render_data = fractal::render(constants, cplx + constants.viewport_translate);
         let mut cache_a = GridRefMut::new(GRID_SIZE, grid_a);
         cache_a.set(coord.as_uvec2(), render_data.a());
@@ -60,7 +61,6 @@ pub fn main_fs(
         PointResult::join(a, b)
     };
 
-    let pixel_spacing = 1.0 / size.y / constants.viewport_zoom;
     let mut colour = colour::colour_data(render_data, constants, pixel_spacing);
 
     // Draw the inspector marker

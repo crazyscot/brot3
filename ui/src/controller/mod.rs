@@ -15,6 +15,7 @@ mod keyboard;
 mod ui;
 
 const PRECISION: usize = 128;
+const MIN_ZOOM: f64 = 0.05;
 const MAX_ZOOM: f64 = 13000.; // TODO: implement perturbed mbrot
 
 pub(crate) struct Controller {
@@ -331,7 +332,7 @@ impl ControllerTrait for Controller {
         let prev_zoom = self.viewport_zoom;
         let zoom = &mut self.viewport_zoom;
         let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / *zoom / size.y;
-        *zoom = (prev_zoom * (1.0 + motion)).clamp(0.05, MAX_ZOOM);
+        *zoom = (prev_zoom * (1.0 + motion)).clamp(MIN_ZOOM, MAX_ZOOM);
         let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / *zoom / size.y;
         self.viewport_translate += mouse_pos0 - mouse_pos1;
         self.reiterate = true;
@@ -339,14 +340,9 @@ impl ControllerTrait for Controller {
 }
 
 impl Controller {
-    #[allow(dead_code)]
-    pub(crate) fn viewport_complex_size(&self) -> DVec2 {
-        // CAUTION: This must align with what shader is doing.
-        self.size.as_dvec2() / (self.size.y as f64 * self.viewport_zoom)
-    }
     pub(crate) fn pixel_complex_size(&self) -> f64 {
-        // self.viewport_complex_size().y / self.size.y as f64
-        1. / (self.viewport_zoom * self.size.y as f64)
+        // This must be the same calculation that the shader uses.
+        FragmentConstants::pixel_spacing_f64(self.size.y, self.viewport_zoom)
     }
 
     fn pixel_address_to_complex(&self, p: DVec2) -> BigVec2 {
