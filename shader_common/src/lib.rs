@@ -40,14 +40,20 @@ pub struct FragmentConstants {
     pub inspector_point_pixel_address: Vec2,
 }
 
+impl FragmentConstants {
+    pub const DEFAULT_ZOOM: f32 = 0.25;
+    pub const DEFAULT_MAX_ITER: u32 = 250;
+    pub const DEFAULT_SIZE: UVec2 = uvec2(800, 600);
+}
+
 impl Default for FragmentConstants {
     fn default() -> Self {
         Self {
             flags: Flags::default(),
             viewport_translate: vec2(0.0, 0.0),
-            viewport_zoom: 1.0,
-            size: uvec2(800, 600).into(),
-            max_iter: 100,
+            viewport_zoom: Self::DEFAULT_ZOOM,
+            size: Self::DEFAULT_SIZE.into(),
+            max_iter: Self::DEFAULT_MAX_ITER,
             algorithm: Algorithm::default(),
             exponent: PushExponent::default(),
             palette: Palette::default(),

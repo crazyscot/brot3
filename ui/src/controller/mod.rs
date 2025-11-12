@@ -67,11 +67,11 @@ impl Controller {
             size: UVec2::ZERO,
             // TODO figure out what precision is best
             viewport_translate: BigVec2::try_new(-1., 0.).unwrap().with_precision(PRECISION),
-            viewport_zoom: 0.25,
+            viewport_zoom: FragmentConstants::DEFAULT_ZOOM.into(),
             movement: Movement::default(),
 
             algorithm: options.fractal,
-            max_iter: 250,
+            max_iter: FragmentConstants::DEFAULT_MAX_ITER,
             palette: Palette::default().with_colourer(options.colourer), // TODO with render style too
             exponent: Exponent::default(),
 
