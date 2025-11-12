@@ -3,6 +3,7 @@ use egui::epaint;
 
 use super::{DVec2, Instant};
 use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
+use shader_common::FragmentConstants;
 
 pub(crate) const DEFAULT_WIDTH: f32 = 130.;
 
@@ -361,7 +362,7 @@ impl super::Controller {
                     ));
                     ui.end_row();
                     ui.label("Zoom");
-                    let zoom = self.viewport_zoom;
+                    let zoom = self.viewport_zoom * f64::from(FragmentConstants::UI_ZOOM_FACTOR);
                     if zoom < 1000. {
                         ui.monospace(format!("{zoom:.2}"));
                     } else if zoom < 10_000_000. {

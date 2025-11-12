@@ -42,6 +42,8 @@ pub struct FragmentConstants {
 
 impl FragmentConstants {
     pub const DEFAULT_ZOOM: f32 = 0.25;
+    /// Conversion factor applied to viewport_zoom whenever it's presented to a human
+    pub const UI_ZOOM_FACTOR: f32 = 4.0;
     pub const DEFAULT_MAX_ITER: u32 = 250;
     pub const DEFAULT_SIZE: UVec2 = uvec2(800, 600);
 }
