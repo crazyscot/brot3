@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: download CI artifacts
         id: download1
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           merge-multiple: true
       - name: enumerate (debug)
@@ -36,7 +36,7 @@ jobs:
         env:
           STEPS_DOWNLOAD1_OUTPUTS_DOWNLOAD_PATH: ${{ steps.download1.outputs.download-path }}
       - name: remove non-release artifacts
-        run: rm shader.spv
+        run: rm -v shader.spv *-raw.tar.gz
       - name: upload artifacts to gh release
         # Without a checkout, one must explicitly specify the repo to upload to (-R option).
         if: ${{ github.event == 'release' }}

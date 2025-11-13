@@ -72,7 +72,7 @@ jobs:
           # Note that we do NOT run +nightly here, as we installed an explicit nightly version above.
           cargo llvm-cov -p shader -p shader_common -p shader_util --all-features --doctests --lcov --output-path lcov.info --no-cfg-coverage --locked
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4.6.2
         with:
           name: lcov.info
           path: lcov.info

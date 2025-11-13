@@ -44,107 +44,118 @@ jobs:
         run: cargo clippy -p shader -p shader_util -p shader_common --locked --release
         if: ${{ !cancelled() }}
       - name: Upload SPIRV artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4.6.2
         with:
           name: shader.spv
           path: target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/shader.spv
         if: ${{ !cancelled() }}
 
-  deb: # THIS BUILD INCLUDES CLIPPY
-    needs: shader
-    runs-on: ubuntu-24.04
-    env: # Downloaded artifact from an earlier job - set up by build_ui.yml
-      BROT3_PREBUILT_SHADER: ${{ github.workspace }}/prebuilt-shader/shader.spv
-    timeout-minutes: 30
+  define-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/ui_build_prep
-        with:
-          rust-components: clippy
-          tools: cargo-deb
-      - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
-        with:
-          save-if: ${{ !inputs.tagged_release }}
-      - name: build
-        run: cargo build --locked --release --no-default-features -p brot3-ui
-      - name: upload binary
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: brot3-bin-ubuntu-24.04
-          path: target/release/brot3
-      - name: deb
-        id: build_deb
-        run: cargo xtask debian --no-build
-        # this writes the output 'deb=<file>'
-      - name: upload deb
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: brot3-deb-ubuntu-24.04
-          path: ${{ steps.build_deb.outputs.deb }}
-      # - name: coverage (ui) # To do later, if we add any
-      - name: clippy (ui)
-        run: cargo clippy -p brot3-ui --locked --release --no-default-features
-        if: ${{ !cancelled() }}
+      # There's no easy way in yml to conditionally include matrix entries, so
+      # this Python generates the structure in JSON, which we parse below.
+      - name: Define matrix
+        id: define
+        shell: python
+        env:
+          RELEASE_WORKFLOW: ${{ inputs.release_workflow }}
+          TAGGED_RELEASE: ${{ inputs.tagged_release }}
+        run: |
+          #!/usr/bin/env/python3
+          import os
+          import json
 
-  mac:
-    needs: shader
+          GITHUB_OUTPUT = os.getenv('GITHUB_OUTPUT')
+          RELEASE_WORKFLOW = os.getenv('RELEASE_WORKFLOW')
+
+          PLATFORMS={
+            'linux': 'linux',
+            'apple-darwin': 'mac',
+            'windows': 'windows',
+          }
+
+          def combo(triple, runs_on, tools='', rust_components='', cache=False):
+            # triple is a Rust target triple
+            # platform is one of mac, windows, linux
+            (arch, rest) = triple.split('-', 1)
+            platform = next((v for k, v in PLATFORMS.items() if k in rest), None)
+            if platform is None:
+              raise RuntimeError(f'Unknown platform in target triple {triple}')
+            short_target = f'{platform}-{arch}'
+
+            return {
+              'target': triple, 'platform': platform, 'runs_on': runs_on,
+              'tools': tools, 'rust_components': rust_components, 'cache': cache,
+              'arch': arch, 'short_target': short_target,
+            }
+
+          print('::group::Building matrix')
+
+          # Combinations to always include in the matrix
+          matrix = [combo('x86_64-unknown-linux-gnu', 'ubuntu-22.04', 'cargo-deb', 'clippy', True)]
+
+          # Combinations to include only on release builds
+          if RELEASE_WORKFLOW == 'true':
+            matrix.extend([
+              combo('aarch64-apple-darwin', 'macos-15'),
+              combo('x86_64-apple-darwin', 'macos-15-intel'),
+              combo('x86_64-pc-windows-msvc', 'windows-2025'),
+          ])
+
+          print(f'{json.dumps(matrix, indent=2)}')
+          print('::endgroup::')
+
+          print('::group::Writing output')
+          try:
+              with open(GITHUB_OUTPUT, 'w') as file:
+                  file.write(f'matrix={json.dumps(matrix)}')
+          except Exception as e:
+              print(f'::error::Failed to write the GitHub output file: {e}')
+              exit(1)
+          print('::endgroup::')
+
+  ui:
+    needs:
+      - define-matrix
+      - shader
     strategy:
       matrix:
-        host: [macos-15, macos-15-intel]
-    runs-on: ${{ matrix.host }}
-    if: inputs.release_workflow
-    env: # Downloaded artifact from an earlier job
+        include: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
+    runs-on: ${{ matrix.runs_on }}
+    env:
+      ARCHIVE_SUFFIX: ${{ matrix.platform == 'windows' && 'zip' || 'tar.gz' }}
+      # Is the binary upload raw ? (Mac binaries need to be wrapped into the app package format.)
+      RAW_OR_BINARY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '-binary' }}
+      RAW_OR_EMPTY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '' }}
+      # Downloaded artifact from an earlier job - set up by ui_build_prep action
       BROT3_PREBUILT_SHADER: ${{ github.workspace }}/prebuilt-shader/shader.spv
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
-      - uses: ./.github/actions/ui_build_prep
-        with:
-          tools: cargo-bundle
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
         with:
           save-if: ${{ !inputs.tagged_release }}
+      - uses: ./.github/actions/ui_build_prep
+        # This may build stuff, so runs after rust-cache
+        with:
+          rust-components: ${{ matrix.rust_components }}
+          tools: ${{ matrix.tools }}
       - name: build
-        uses: mathiasvr/command-output@6309e0ee6ed594fd7f382bd826e138e0ba04dd63 # v2.0.0
-        with:
-          run: cargo bundle -b brot3 -p brot3-ui -f osx -r --no-default-features
-        env:
-          CARGO_TERM_PROGRESS_WHEN: never
-      # SOMEDAY: codesign could go here
-      #   e.g. codesign --timestamp --verify -vvv --deep --options=runtime --sign $IDENT $APPDIR
-      - name: prepare app
-        id: app
-        env:
-          BUNDLE_DIR: target/release/bundle/osx
-          ADIR: brot3-mac
-          ZIP: ${{ format('brot3-mac-{0}', runner.arch) }}.zip
+        id: pre-build
+        # We need to run this to get the version file, so we can feed that to build-binary...
+        # CAUTION: This cargo invocation must match that used by the build-binary step.
+        run: cargo build --release --bin brot3 --no-default-features --locked --package brot3-ui
+      - name: extract version
+        id: version
+        shell: python
         run: |
-          mkdir -p $ADIR
-          cp -r target/release/bundle/osx/brot3.app $ADIR/
-          cp README.md CHANGELOG.md LICENSE $ADIR/
-          zip -r $ZIP $ADIR
-          echo "zipfile=$ZIP" >> $GITHUB_OUTPUT
-      - name: upload result
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: ${{ format('brot3-mac-{0}', runner.arch) }}
-          path: ${{ steps.app.outputs.zipfile }}
-
-  # SOMEDAY: Linux AppImage build? (by cargo-bundle) (N.B. the result is not stripped by default)
-
-  win:
-    needs: shader
-    runs-on: windows-2025
-    if: inputs.release_workflow
-    env: # Downloaded artifact from an earlier job
-      BROT3_PREBUILT_SHADER: ${{ github.workspace }}/prebuilt-shader/shader.spv
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/ui_build_prep
-      - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
-        with:
-          save-if: ${{ !inputs.tagged_release }}
+          import os
+          with open('./target/release/brot3.build-version.txt', 'r') as f:
+            version = f.read().strip()
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f'version={version}')
       - name: build binary package
         uses: taiki-e/upload-rust-binary-action@3962470d6e7f1993108411bc3f75a135ec67fc8c # v1.27.0
         id: build-binary
@@ -152,18 +163,112 @@ jobs:
           bin: brot3
           dry-run: true
           dry-run-intended: true
-          ref: refs/tags/dry-run # silence a warning
+          # Fake up a ref to control the output directory/archive name
+          ref: refs/tags/${{ steps.version.outputs.version }}
           include: "\
             README.md,LICENSE,CHANGELOG.md\
             "
           leading-dir: true
           locked: true
+          package: brot3-ui
           no-default-features: true
-          archive: $bin-windows
-      - name: Upload binary package to CI result
+          # CAUTION: These options must lead to a cargo invocation that matches that of the build-binary step.
+          # If unsure, check this step's output log.
+          # For this INNER archive, we use -raw on Mac and otherwise no suffix.
+          archive: $bin_$tag-${{ matrix.short_target }}${{ env.RAW_OR_EMPTY_MARKER }}
+          # TODO, someday: include codesign options on mac
+      - name: Upload binary result
         if: ${{ success() || failure() }}
-        # always try to do this if packaging, it allows the package to be checked
+        # always try to do this, it allows the package to be checked
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: brot3-windows
-          path: ${{ steps.build-binary.outputs.archive }}.zip
+          # For this OUTER archive, we use -raw on Mac and -binary elsewhere.
+          # The inner and outer names must be different to avoid archive overwrites, confusion
+          # and derision.
+          # It is less important on mac, because the raw isn't the final stage; that's -app.
+          # (Note that while all the outers are .zip, the inners on non-Windows platforms are .tar.gz.)
+          name: brot3_${{ steps.version.outputs.version }}-${{ matrix.short_target }}${{ env.RAW_OR_BINARY_MARKER }}
+          path: ${{ steps.build-binary.outputs.archive }}.${{ env.ARCHIVE_SUFFIX }}
+
+      - name: debian packaging
+        if: ${{ matrix.platform == 'linux' }}
+        id: build_deb
+        run: cargo xtask debian --no-build
+        # this writes the output 'deb=<file>'
+      - name: upload deb
+        if: ${{ matrix.platform == 'linux' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: brot3_${{ steps.version.outputs.version }}-deb-${{ matrix.runs_on }}
+          path: ${{ steps.build_deb.outputs.deb }}
+
+      - name: clippy (ui)
+        # Run clippy only on the Linux build
+        # !cancelled() because we want this to run even if a previous step failed
+        if: ${{ matrix.platform == 'linux' && !cancelled() }}
+        run: cargo clippy -p brot3-ui --locked --release --no-default-features
+
+      - name: create mac Info.plist
+        if: ${{ matrix.platform == 'mac' }}
+        shell: python
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          import os
+          import re
+          from string import Template
+          from time import strftime, gmtime
+
+          with open('ui/misc/Info.plist.tmpl') as f:
+            template = Template(f.read())
+
+          # CFBundleVersion can only be Major.Minor.Patch and is limited to AAAA.BB.CC
+          build_date = strftime('%Y.%m.%d', gmtime())
+
+          # PACKAGE_VERSION is git describe output; e.g. v3.0.0-87-g99970eb-dirty
+          # CFBundleShortVersionString can only be Major.Minor.Patch
+          match = re.search(r'v?(\d+\.\d+\.\d+)', os.environ['PACKAGE_VERSION'])
+          semver = match.group(1)
+
+          result = template.substitute(
+            SEMVER=semver,
+            BUILD_DATE=build_date,
+          )
+          with open('target/Info.plist', 'w') as f:
+            f.write(result)
+
+      - name: prepare mac app bundle
+        id: bundle-mac
+        if: ${{ matrix.platform == 'mac' }}
+        run: |
+          STEM=${{ steps.build-binary.outputs.archive }}
+          WORKDIR=target/appbundle
+          # unpack the raw
+          mkdir -p ${WORKDIR}
+          tar -C ${WORKDIR} -zxf ${STEM}.tar.gz
+          # workdir is $STEM
+          # TEMP debug:
+          ls -l ${WORKDIR}
+          ls -l ${WORKDIR}/${STEM}
+
+          # rearrange
+          mkdir -p ${WORKDIR}/${STEM}/brot3.app/Contents/{MacOS,Resources}
+          mv ${WORKDIR}/${STEM}/brot3 ${WORKDIR}/${STEM}/brot3.app/Contents/MacOS/
+          # copy in additional files
+          cp target/Info.plist ${WORKDIR}/${STEM}/brot3.app/Contents/
+          cp icons/icon.icns ${WORKDIR}/${STEM}/brot3.app/Contents/Resources/
+          # rename the stem
+          NEWSTEM=${STEM/-raw/}
+          ( cd ${WORKDIR} && mv ${STEM} ${NEWSTEM} )
+          # zip it up
+          ( cd ${WORKDIR} && zip -r ${NEWSTEM}.zip ${NEWSTEM} )
+          echo "zipfile=${WORKDIR}/${NEWSTEM}.zip" >> $GITHUB_OUTPUT
+
+      - name: upload mac app bundle
+        # always try to do this, it allows the package to be checked
+        if: ${{ matrix.platform == 'mac' && ( success() || failure() ) }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: brot3_${{ steps.version.outputs.version }}-${{ matrix.short_target }}-app
+          path: ${{ steps.bundle-mac.outputs.zipfile }}
+      # TODO: Someday, make a DMG
