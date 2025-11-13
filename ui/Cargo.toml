@@ -51,8 +51,13 @@ easy-shader-runner = { workspace = true, default-features = false, features = [
 ] }
 
 [build-dependencies]
-built = { version = "0.8", features = ["git2"] }
 cfg_aliases = "0.2.1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+  'cfg(target_arch, values("spirv"))',
+  'cfg(coverage_nightly)',
+] }
 
 [package.metadata.deb]
 name = "brot3"

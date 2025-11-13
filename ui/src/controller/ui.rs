@@ -485,20 +485,9 @@ impl super::Controller {
     fn about_modal(&mut self, ctx: &egui::Context) {
         if egui::Modal::new("about".into())
             .show(ctx, |ui| {
-                use crate::build_info;
                 ui.label(egui::RichText::new("About brot3").size(18.));
 
-                // Use git version where possible; if not, use the crate version
-                let version = match build_info::GIT_VERSION {
-                    Some(v) => v.to_string(),
-                    None => format!("{} (crate)", build_info::PKG_VERSION),
-                };
-                let dirty = if build_info::GIT_DIRTY.unwrap_or(false) {
-                    "-dirty"
-                } else {
-                    ""
-                };
-                ui.label(egui::RichText::new(format!("Version: {version}{dirty}")).italics());
+                ui.label(egui::RichText::new(crate::version_string("Version: ")).italics());
 
                 ui.add_space(12.);
                 ui.image(egui::include_image!("../../../icons/original,origin=-1.259742+0.377104i,axes=0.01+0.01i,max=512,col=lch-gradient.png"));

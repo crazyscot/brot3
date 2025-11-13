@@ -8,12 +8,8 @@ mod controller;
 
 use clap::Parser;
 
-/// Build-time info (from `built`)
-pub mod build_info {
-    include!(concat!(env!("OUT_DIR"), "/built.rs"));
-}
-
-const TITLE: &str = "brot3";
+pub(crate) mod version;
+use version::version_string;
 
 #[cfg(we_compile)]
 fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
@@ -35,8 +31,13 @@ fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
 pub fn main() -> anyhow::Result<()> {
     easy_shader_runner::setup_logging();
     let args = cli::Args::parse();
+    if args.version {
+        println!("{}", version_string("brot3 "));
+        return Ok(());
+    }
     let controller = controller::Controller::new(&args);
-    let params = easy_shader_runner::Parameters::new(controller, TITLE).esc_key_exits(false);
+    let params = easy_shader_runner::Parameters::new(controller, version_string("brot3 "))
+        .esc_key_exits(false);
     cfg_if::cfg_if! {
         if #[cfg(we_compile)] {
             use std::path::PathBuf;

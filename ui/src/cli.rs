@@ -8,6 +8,9 @@ use shader_common::enums::{Algorithm, Colourer};
 
 #[derive(Debug, clap::Parser, Clone, Default)]
 pub(crate) struct Args {
+    #[arg(short = 'V', long, help = "Print version")]
+    pub version: bool,
+
     #[cfg(we_compile)]
     #[arg(long)]
     /// Specifies the path to the shader directory.

@@ -1,45 +1,15 @@
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use cfg_aliases::cfg_aliases;
-
-use std::fs::read_to_string;
-
-/// Do we need to copy over a file?
-///
-/// Only if the destination file does not exist, or if its contents differ from the new version.
-fn should_copy<P: AsRef<Path> + std::fmt::Debug, Q: AsRef<Path> + std::fmt::Debug>(
-    new_file: P,
-    destination: Q,
-) -> std::io::Result<bool> {
-    if !std::fs::exists(&destination)? {
-        return Ok(true);
-    }
-    let data1 = read_to_string(new_file)?;
-    let data2 = read_to_string(destination)?;
-    Ok(data1 != data2)
-}
-
-/// Write a built file, but only put it into place if it differs from what's already there.
-/// This prevents needless rebuilds based on timestamp comparison alone.
-fn conditionally_write_built_file<P: AsRef<Path>>(cargo_manifest_dir: P) {
-    let out_dir = env::var("OUT_DIR").expect("OUT_DIR is required");
-    let dst = Path::new(&out_dir).join("built.rs");
-    let temp = Path::new(&out_dir).join("built.rs.new");
-    built::write_built_file_with_opts(Some(cargo_manifest_dir.as_ref()), &temp)
-        .expect("Failed to acquire build-time information");
-    // Compare and move only if different
-    if should_copy(&temp, &dst).unwrap() {
-        std::fs::copy(temp, dst).unwrap();
-    }
-}
 
 fn main() {
     let this_crate_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is required");
     // CAUTION: Hard wired path
     println!("cargo:rerun-if-changed={this_crate_dir}/../.git/HEAD");
     println!("cargo:rerun-if-changed=build.rs");
-    conditionally_write_built_file(&this_crate_dir);
+
+    process_version_string();
 
     cfg_aliases! {
         wasm: { target_arch = "wasm32" },
@@ -105,4 +75,82 @@ fn build_shader() {
             std::process::exit(1);
         }
     }
+}
+
+fn process_version_string() {
+    /*
+       Version string cases:
+
+       Untagged CI build (SHORT_HASH present and == GIT_VERSION)
+           => "PKG_VERSION-SHORT_HASH"
+       Tagged CI build (GIT_VERSION present and != SHORT_HASH)
+           => GIT_VERSION
+       Non-CI build
+           => use git describe output aka GIT_VERSION
+       fallback (no git information) => PKG_VERSION-unknown
+
+       In all cases, check for a dirty build and include that marker.
+
+       In all cases, the version string must not contain any spaces (it's used by CI).
+    */
+
+    let pkgver = env!("CARGO_PKG_VERSION");
+    // trap: docs.rs builds don't get a git short hash
+    let short_hash = git_short_hash().unwrap_or("unknown".into());
+
+    let dirty = match git_is_dirty() {
+        Some(true) => "-dirty",
+        Some(false) | None => "",
+    };
+
+    let ver = if option_env!("CI").is_some() {
+        // CI builds generally have shallow clones, so git describe doesn't work as intended.
+        if let Some(tag) = github_tag() {
+            // This is a tagged CI build
+            format!("{tag}{dirty}")
+        } else {
+            // This is an untagged CI build
+            format!("{pkgver}-{short_hash}{dirty}")
+        }
+    } else if let Some(desc) = git_describe() {
+        // Normal desktop development case
+        format!("{desc}{dirty}")
+    } else {
+        // Fallback case (git didn't work?!)
+        format!("{pkgver}-unknown{dirty}")
+    };
+    assert!(
+        !ver.contains(' '),
+        "the computed version string was not supposed to contain spaces"
+    );
+
+    println!("cargo:rustc-env=BROT3_VERSION_STRING={ver}");
+    // access via env! or option_env!
+}
+
+fn github_tag() -> Option<String> {
+    std::env::var("GITHUB_REF_TYPE")
+        .is_ok_and(|v| v == "tag")
+        .then(|| std::env::var("GITHUB_REF_NAME").unwrap())
+}
+
+fn git_command(args: &[&str]) -> Option<String> {
+    use std::process::Command;
+    if let Ok(output) = Command::new("git").args(args).output() {
+        Some(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    } else {
+        None
+    }
+}
+
+fn git_short_hash() -> Option<String> {
+    git_command(&["rev-parse", "--short=8", "HEAD"]).filter(|r| !r.is_empty())
+}
+
+fn git_is_dirty() -> Option<bool> {
+    git_command(&["status", "--porcelain"]).map(|r| r.is_empty())
+}
+
+fn git_describe() -> Option<String> {
+    git_command(&["describe", "--always", "--dirty"])
 }

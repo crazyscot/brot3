@@ -30,7 +30,7 @@ jobs:
     # Prevent sudden announcement of a new advisory from failing ci:
     continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: cargo deny
@@ -42,7 +42,7 @@ jobs:
   cargo-fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: cargo fmt (stable toolchain)
         run: cargo +stable fmt --all -- --check
 
