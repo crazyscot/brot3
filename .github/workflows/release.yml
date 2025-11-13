@@ -19,7 +19,6 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ github.event == 'release' }}
     timeout-minutes: 3
     permissions:
       contents: write # necessary to publish to releases
@@ -30,15 +29,17 @@ jobs:
         with:
           merge-multiple: true
       - name: enumerate (debug)
-        run: tree "${STEPS_DOWNLOAD1_OUTPUTS_DOWNLOAD_PATH}"
+        run: |
+          ls -l "${STEPS_DOWNLOAD1_OUTPUTS_DOWNLOAD_PATH}"
+          tree "${STEPS_DOWNLOAD1_OUTPUTS_DOWNLOAD_PATH}"
         continue-on-error: true
         env:
           STEPS_DOWNLOAD1_OUTPUTS_DOWNLOAD_PATH: ${{ steps.download1.outputs.download-path }}
       - name: remove non-release artifacts
-        run: rm shader.spv lcov.info
+        run: rm shader.spv
       - name: upload artifacts to gh release
         # Without a checkout, one must explicitly specify the repo to upload to (-R option).
+        if: ${{ github.event == 'release' }}
         run: bash -xc 'gh release upload -R "${{ github.repository }}" "${GITHUB_REF_NAME}" ./*'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Is there really no canned action I can pass a shell glob or list of files to?!
