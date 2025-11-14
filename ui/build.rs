@@ -4,9 +4,6 @@ use std::path::PathBuf;
 use cfg_aliases::cfg_aliases;
 
 fn main() {
-    let this_crate_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is required");
-    // CAUTION: Hard wired path
-    println!("cargo:rerun-if-changed={this_crate_dir}/../.git/HEAD");
     println!("cargo:rerun-if-changed=build.rs");
 
     process_version_string();
@@ -103,7 +100,8 @@ fn process_version_string() {
         Some(false) | None => "",
     };
 
-    let ver = if option_env!("CI").is_some() {
+    let running_in_ci = option_env!("CI").is_some();
+    let ver = if running_in_ci {
         // CI builds generally have shallow clones, so git describe doesn't work as intended.
         if let Some(tag) = github_tag() {
             // This is a tagged CI build
@@ -125,7 +123,29 @@ fn process_version_string() {
     );
 
     println!("cargo:rustc-env=BROT3_VERSION_STRING={ver}");
-    // access via env! or option_env!
+    // access the result via env! or option_env!
+
+    // CAUTION: Hard wired path
+    let top_level = {
+        let mut temp =
+            PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is required"));
+        temp.pop();
+        temp
+    };
+    println!(
+        "cargo:rerun-if-changed={}/.git/HEAD",
+        top_level.to_string_lossy()
+    );
+
+    if running_in_ci {
+        // Put the string somewhere CI can read it.. CAUTION: Hard wired path
+        let outfile = top_level
+            .clone()
+            .join("target")
+            .join(std::env::var("PROFILE").expect("PROFILE is required"))
+            .join("brot3.build-version.txt");
+        std::fs::write(outfile, ver).unwrap();
+    }
 }
 
 fn github_tag() -> Option<String> {
