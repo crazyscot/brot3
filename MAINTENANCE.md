@@ -25,6 +25,7 @@ Steps:
 - ✨✨ automation happens ✨✨
 - Confirm that the release artefacts built successfully.
 - Update `main` branch
+- Tag easy-shader-runner (e.g. `brot3-v1.2.3`) and push that tag, so the version used is retained.
 
 ### Manual build types
 
