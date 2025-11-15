@@ -46,6 +46,13 @@ jobs:
       - name: cargo fmt (stable toolchain)
         run: cargo +stable fmt --all -- --check
 
+  cargo-machete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: machete
+        uses: bnjbvr/cargo-machete@04b9adbd8c1c00963289b5628510dd907b27dc60
+
   coverage:
     name: coverage (shader)
     runs-on: ubuntu-latest
