@@ -37,7 +37,8 @@ jobs:
         uses: EmbarkStudios/cargo-deny-action@f2ba7abc2abebaf185c833c3961145a3c275caad # 2.0.13
         with:
           command: check ${{ matrix.checks }}
-          rust-version: "1.85.0" # this is the version in the cargo-deny-action container image
+          rust-version: "nightly-2025-06-30"
+          # N.B. the cargo-deny-action container image installs 1.85.0 by default
 
   cargo-fmt:
     runs-on: ubuntu-latest
