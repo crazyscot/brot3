@@ -4,8 +4,6 @@ use std::path::PathBuf;
 use cfg_aliases::cfg_aliases;
 
 fn main() {
-    println!("cargo:rerun-if-changed=build.rs");
-
     process_version_string();
 
     cfg_aliases! {
@@ -18,6 +16,7 @@ fn main() {
 
     // We need a pre-compiled shader to use as a fallback.
     // Have we been provided with one? (CI artifact)
+    println!("cargo:rerun-if-env-changed=BROT3_PREBUILT_SHADER");
     if let Ok(shader_path) = env::var("BROT3_PREBUILT_SHADER") {
         // CAUTION: This must match what shader_builder main.rs outputs.
         println!("cargo::rustc-env=shader.spv={shader_path}");
@@ -28,7 +27,10 @@ fn main() {
 }
 
 fn build_shader() {
+    // Force a rebuild if any shader crate changed.
+    // We must also rebuild if src/ changed, to maintain standard rebuild behaviour.
     // CAUTION: Hard-wired paths !
+    println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=../shader_builder/");
     println!("cargo:rerun-if-changed=../shader/");
     println!("cargo:rerun-if-changed=../shader_common/");
@@ -125,17 +127,15 @@ fn process_version_string() {
     println!("cargo:rustc-env=BROT3_VERSION_STRING={ver}");
     // access the result via env! or option_env!
 
+    // Force a rerun on change of branch or on commit
     // CAUTION: Hard wired path
-    let top_level = {
-        let mut temp =
-            PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is required"));
-        temp.pop();
-        temp
-    };
-    println!(
-        "cargo:rerun-if-changed={}/.git/HEAD",
-        top_level.to_string_lossy()
-    );
+    // TRAP: You cannot use an absolute path with cargo:rerun-if-changed
+    // TRAP: Don't pretty-print a PathBuf here, you get quotes with it: cargo doesn't dequote, so it will be always-dirty.
+    let top_level = PathBuf::from("..");
+    let index = top_level.clone().join(".git").join("index");
+    println!("cargo:rerun-if-changed={}", index.display());
+    let head = top_level.clone().join(".git").join("HEAD");
+    println!("cargo:rerun-if-changed={}", head.display());
 
     if running_in_ci {
         // Put the string somewhere CI can read it.. CAUTION: Hard wired path
