@@ -126,6 +126,9 @@ fn process_version_string() {
 
     println!("cargo:rustc-env=BROT3_VERSION_STRING={ver}");
     // access the result via env! or option_env!
+    if running_in_ci {
+        println!("cargo:warning=This is version {ver}");
+    }
 
     // Force a rerun on change of branch or on commit
     // CAUTION: Hard wired path
@@ -168,9 +171,9 @@ fn git_short_hash() -> Option<String> {
 }
 
 fn git_is_dirty() -> Option<bool> {
-    git_command(&["status", "--porcelain"]).map(|r| r.is_empty())
+    git_command(&["status", "--porcelain"]).map(|r| !r.is_empty())
 }
 
 fn git_describe() -> Option<String> {
-    git_command(&["describe", "--always", "--dirty"])
+    git_command(&["describe", "--always"])
 }
