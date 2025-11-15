@@ -207,19 +207,19 @@ deny = [
 # this is set there is no point setting `deny`
 #exact = true
 
-# Certain crates/versions that will be skipped when doing duplicate detection.
 skip = [
-    #"ansi_term@0.11.0",
-    #{ crate = "ansi_term@0.11.0", reason = "you can specify a reason why it can't be updated/removed" },
+    "itertools@0.10.5",     # rustc-codegen-spirv
+    "rustc-hash@1.1.0",
+    "object@0.36.7",
+    "ordered-float@2.10.1",
+    "toml_edit@0.19.15",
 ]
+# Certain crates/versions that will be skipped when doing duplicate detection.
 # Similarly to `skip` allows you to skip certain crates during duplicate
 # detection. Unlike skip, it also includes the entire tree of transitive
 # dependencies starting at the specified crate, up to a certain depth, which is
 # by default infinite.
-skip-tree = [
-    #"ansi_term@0.11.0", # will be skipped along with _all_ of its direct and transitive dependencies
-    #{ crate = "ansi_term@0.11.0", depth = 20 },
-]
+skip-tree = ["egui-winit@0.33.2", "windows-core@0.58"]
 
 # This section is considered when running `cargo deny check sources`.
 # More documentation about the 'sources' section can be found here:
