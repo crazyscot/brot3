@@ -39,7 +39,7 @@ jobs:
         run: rm -vf shader.spv *-raw.tar.gz
       - name: upload artifacts to gh release
         # Without a checkout, one must explicitly specify the repo to upload to (-R option).
-        if: ${{ github.event == 'release' }}
+        if: ${{ github.event.action == 'published' }}
         run: bash -xc 'gh release upload -R "${{ github.repository }}" "${GITHUB_REF_NAME}" ./*'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
