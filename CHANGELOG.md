@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/crazyscot/brot3/releases/tag/v3.1.1) - 2025-11-15
+
+### 🐛 Bug Fixes
+
+- *(build)* Move prebuilt shader download into target/ - ([f97ab22](https://github.com/crazyscot/brot3/commit/f97ab225f5cd876aab62b77062aa521dbe0e4713))
+- *(ci)* Artifact removal failure is not a build failure - ([b88e019](https://github.com/crazyscot/brot3/commit/b88e019bda796d1a2b8935765e9c42bee894a452))
+
 ## [3.1.0](https://github.com/crazyscot/brot3/releases/tag/v3.1.0) - 2025-11-15
 
 ### 🚀 Features
