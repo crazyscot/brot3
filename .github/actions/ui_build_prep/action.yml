@@ -33,7 +33,7 @@ runs:
       uses: actions/download-artifact@v5
       with:
         name: shader.spv
-        path: ${{ github.workspace }}/prebuilt-shader
+        path: ${{ github.workspace }}/target/prebuilt-shader
 # Notably, this action does NOT:
 # - use rust-cache
 # - actually build anything

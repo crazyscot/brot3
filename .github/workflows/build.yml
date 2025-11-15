@@ -129,7 +129,7 @@ jobs:
       RAW_OR_BINARY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '-binary' }}
       RAW_OR_EMPTY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '' }}
       # Downloaded artifact from an earlier job - set up by ui_build_prep action
-      BROT3_PREBUILT_SHADER: ${{ github.workspace }}/prebuilt-shader/shader.spv
+      BROT3_PREBUILT_SHADER: ${{ github.workspace }}/target/prebuilt-shader/shader.spv
     steps:
       - uses: actions/checkout@v5
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
@@ -140,6 +140,8 @@ jobs:
         with:
           rust-components: ${{ matrix.rust_components }}
           tools: ${{ matrix.tools }}
+      - name: status check
+        run: git status --porcelain
       - name: build
         id: pre-build
         # We need to run this to get the version file, so we can feed that to build-binary...
