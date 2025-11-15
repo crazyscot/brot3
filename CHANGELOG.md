@@ -1,3 +1,9 @@
+## [3.1.2](https://github.com/crazyscot/brot3/releases/tag/v3.1.2) - 2025-11-15
+
+### 🏗️  Build, packaging & CI
+
+- Fix release auto-building - ([e149fc9](https://github.com/crazyscot/brot3/commit/e149fc9a76cd388374f6d09b4738d265829f1861))
+
 ## [3.1.1](https://github.com/crazyscot/brot3/releases/tag/v3.1.1) - 2025-11-15
 
 ### 🐛 Bug Fixes
