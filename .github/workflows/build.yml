@@ -98,8 +98,8 @@ jobs:
           # Combinations to include only on release builds
           if RELEASE_WORKFLOW == 'true':
             matrix.extend([
-              combo('aarch64-apple-darwin', 'macos-15'),
-              combo('x86_64-apple-darwin', 'macos-15-intel'),
+              #combo('aarch64-apple-darwin', 'macos-15'),
+              #combo('x86_64-apple-darwin', 'macos-15-intel'),
               combo('x86_64-pc-windows-msvc', 'windows-2025'),
           ])
 
