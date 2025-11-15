@@ -15,7 +15,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       release_workflow: true
-      tagged_release: ${{ github.event == 'release' }}
+      save_cache: ${{ github.event != 'release' }}
   publish:
     needs: build
     runs-on: ubuntu-latest
