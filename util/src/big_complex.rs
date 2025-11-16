@@ -29,7 +29,7 @@ pub struct BigComplex(pub BigVec2);
 #[macro_export]
 macro_rules! make_complex {
     ($x: expr, $y: expr) => {
-        util::BigComplex::try_new($x, $y).unwrap()
+        $crate::BigComplex::try_new($x, $y).unwrap()
     };
 }
 
@@ -142,9 +142,11 @@ impl Sub for BigComplex {
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{BigComplex, BigVec2, FBig};
-    use crate::make_bigvec2;
+    use super::{BigVec2, FBig};
+    use crate::{make_bigvec2, make_complex, BigComplex};
+    use dashu::fbig;
     use dashu_float::round::mode::Zero;
+
     #[test]
     fn conversions() {
         let v = make_bigvec2!(3, 4).with_precision(10);
@@ -154,5 +156,37 @@ mod tests {
         assert_eq!(r.length_squared(), FBig::<Zero>::from(25));
         let z = r.clone() + v2;
         assert_eq!(z, make_bigvec2!(4, 5));
+    }
+
+    #[test]
+    fn exercise() {
+        let c1 = make_complex!(1.0, 2.0);
+        let c2 = BigComplex::try_new(3.0, 4.0).unwrap();
+        let z = c1 + c2;
+        assert_eq!(z, make_complex!(4.0, 6.0));
+        let a = make_complex!(123, 456);
+        let b = a.clone() - a; // these are bignums, they do not support Copy
+        assert_eq!(b, BigComplex::ZERO);
+    }
+
+    #[test]
+    fn square() {
+        let x = make_complex!(0.0, 1.0);
+        // i^2 = -1
+        assert_eq!(x.square(), make_complex!(-1.0, 0.0));
+    }
+
+    #[test]
+    fn mod_squared() {
+        let x = make_complex!(0.0, 1.0);
+        assert_eq!(x.norm_squared(), fbig!(1.0));
+    }
+
+    #[test]
+    fn precision() {
+        let z = BigComplex::ZERO.with_precision(123);
+        let prec = z.precision();
+        assert_eq!(prec.x, 123);
+        assert_eq!(prec.y, 123);
     }
 }

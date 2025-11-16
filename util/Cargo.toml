@@ -19,6 +19,7 @@ dashu-float = { version = "0.4.3", default-features = false }
 glam = { workspace = true, default-features = false }
 
 [dev-dependencies]
+float_eq = { version = "1.0.1", default-features = false }
 glam = { workspace = true, default-features = false, features = ["std"] }
 pretty_assertions.workspace = true
 

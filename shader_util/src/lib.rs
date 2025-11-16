@@ -103,3 +103,28 @@ impl From<UVec2> for Size {
         }
     }
 }
+
+#[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
+mod tests {
+    use super::Size;
+    use float_eq::assert_float_eq;
+
+    #[test]
+    fn conversion() {
+        let sz = Size::new(100, 200);
+        let v = sz.as_uvec2();
+        assert_eq!(v.x, 100);
+        assert_eq!(v.y, 200);
+
+        let v = sz.as_vec2();
+        assert_float_eq!(v.x, 100.0, ulps <= 4);
+        assert_float_eq!(v.y, 200.0, ulps <= 4);
+    }
+
+    #[test]
+    fn aspect_ratio() {
+        let sz = Size::new(100, 200);
+        assert_float_eq!(sz.aspect_ratio(), 0.5, ulps <= 4);
+    }
+}

@@ -3826,6 +3826,7 @@ version = "0.0.0"
 dependencies = [
  "dashu",
  "dashu-float",
+ "float_eq",
  "glam",
  "pretty_assertions",
 ]
