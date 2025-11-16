@@ -41,6 +41,10 @@ impl Exponentiator for Exp2 {
 impl Exponentiator for ExpIntN {
     #[inline(always)]
     fn apply_to(self, z: Complex) -> Complex {
+        if self.0 == 0 && z == Complex::ZERO {
+            // special case to align with ExpFloat and ExpComplex behaviour
+            return Complex::ZERO;
+        }
         z.powi(self.0).to_rectangular()
     }
     #[inline(always)]
@@ -57,8 +61,8 @@ impl Exponentiator for ExpFloat {
     fn apply_to(self, z: Complex) -> Complex {
         // Special case as this seems to cause a shader abort on the GPU
         // when z==0.0... This isn't surprising as 0^0 is strictly undefined.
-        if self.0 == 0.0 {
-            return Complex::ONE;
+        if self.0 == 0.0 && z == Complex::ZERO {
+            return Complex::ZERO;
         }
         z.powf(self.0).to_rectangular()
     }
@@ -183,5 +187,49 @@ mod tests {
         let result = exp.apply_to(z);
         assert_complex_eq!(result, expected);
         println!("{z} ^ {} = {result}", exp.0);
+    }
+
+    #[test]
+    fn power_zero_special_cases() {
+        let expf = ExpFloat(0.0);
+        let two = Complex::ONE * 2.0;
+
+        // x^0 == 0
+        let f1 = expf.apply_to(two);
+        assert_eq!(f1, Complex::ONE);
+        // 0^0 is undefined, but in our world we've special cased it as zero to prevent a shader abort.
+        let z2 = expf.apply_to(Complex::ZERO);
+        assert_eq!(z2, Complex::ZERO);
+
+        // Consistency check with integer powers
+        let expi = ExpIntN(0);
+        let i1 = expi.apply_to(two);
+        assert_eq!(i1, Complex::ONE);
+        let i2 = expi.apply_to(Complex::ZERO);
+        assert_eq!(i2, Complex::ZERO);
+
+        // Now do it all again with complex powers
+        let expc = ExpComplex(Complex::ZERO);
+        let z1 = expc.apply_to(two);
+        assert_eq!(z1, Complex::ONE);
+        let z2 = expc.apply_to(Complex::ZERO);
+        assert_eq!(z2, Complex::ZERO);
+    }
+
+    #[test]
+    fn derivatives() {
+        assert_eq!(ExpIntN(2).derivative(), Complex::ONE);
+        assert_eq!(ExpIntN(1).derivative(), Complex::ZERO);
+        assert_eq!(ExpIntN(0).derivative(), -Complex::ONE);
+        assert_eq!(ExpFloat(3.0).derivative(), Complex::ONE * 2.0);
+        assert_eq!(ExpFloat(3.5).derivative(), Complex::ONE * 2.5);
+        assert_eq!(
+            ExpComplex(Complex::new(2.5, 0.0)).derivative(),
+            Complex::ONE * 1.5
+        );
+        assert_eq!(
+            ExpComplex(Complex::new(2.5, 3.0)).derivative(),
+            Complex::new(1.5, 3.0),
+        );
     }
 }
