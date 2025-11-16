@@ -3133,6 +3133,7 @@ name = "shader_util"
 version = "0.3.0"
 dependencies = [
  "bytemuck",
+ "divan",
  "document-features",
  "float_eq",
  "glam",
