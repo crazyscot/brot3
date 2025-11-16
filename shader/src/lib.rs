@@ -94,12 +94,13 @@ pub fn main_vs(
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{FragmentConstants, PointResultA, PointResultB, GRID_SIZE};
+    use super::{new_york_distance, FragmentConstants, PointResultA, PointResultB, GRID_SIZE};
 
     use const_default::ConstDefault as _;
+    use float_eq::assert_float_eq;
     use shader_common::{enums::Algorithm, Flags, Palette, PushExponent};
     use shader_util::Size;
-    use spirv_std::glam::{vec2, vec4, Vec2, Vec4};
+    use spirv_std::glam::{vec2, vec4, Vec2, Vec3, Vec4};
 
     #[test]
     fn vertex() {
@@ -133,14 +134,34 @@ mod tests {
     }
 
     #[test]
-    fn fragment() {
+    fn render_save_retrieve() {
+        use shader_common::Flags;
         let mut res = Vec4::default();
-        let consts = test_frag_consts();
         let mut grid_a = vec![PointResultA::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
         let mut grid_b = vec![PointResultB::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+
+        let no_iterate = FragmentConstants {
+            flags: Flags::empty(),
+            ..test_frag_consts()
+        };
+
+        // Cache starts out empty (you probably couldn't run this on an actual GPU, the NaN might trigger an abort)
         super::main_fs(
             vec4(0., 0., 0., 0.),
-            &consts,
+            &no_iterate,
+            &mut grid_a,
+            &mut grid_b,
+            &mut res,
+        );
+        assert!(res[0].is_nan());
+        assert!(res[1].is_nan());
+        assert!(res[2].is_nan());
+        assert_eq!(res[3], 1.0);
+
+        // Pass 1 populates cache
+        super::main_fs(
+            vec4(0., 0., 0., 0.),
+            &test_frag_consts(),
             &mut grid_a,
             &mut grid_b,
             &mut res,
@@ -150,5 +171,76 @@ mod tests {
             res.abs_diff_eq(expected, 0.000_000_1),
             "mismatch: {res} vs {expected}"
         );
+
+        // Pass 2: Retrieve from cache
+        super::main_fs(
+            vec4(0., 0., 0., 0.),
+            &no_iterate,
+            &mut grid_a,
+            &mut grid_b,
+            &mut res,
+        );
+        assert!(
+            res.abs_diff_eq(expected, 0.000_000_1),
+            "mismatch: {res} vs {expected}"
+        );
+    }
+
+    #[test]
+    fn an_inspector_calls() {
+        let cases = &[
+            // Centre of inspector is black, up to distance 6
+            ((0.0, 0.0), (0.0, 0.0, 0.0)),
+            ((5.0, 0.0), (0.0, 0.0, 0.0)),
+            ((0.0, 5.0), (0.0, 0.0, 0.0)),
+            ((5.0, 1.0), (0.0, 0.0, 0.0)),
+            // 7 to 8 pixels out is white
+            ((7.0, 0.0), (1.0, 1.0, 1.0)),
+            ((8.0, 0.0), (1.0, 1.0, 1.0)),
+            // 10 or more pixels out is unaltered
+            ((9.0, 0.0), (0.0, 1.0, 0.1414485)),
+        ];
+
+        for (point, expect_rgb) in cases {
+            let mut res = Vec4::default();
+            let mut grid_a = vec![PointResultA::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+            let mut grid_b = vec![PointResultB::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+
+            // Set up to inspect the pixel we're rendering
+            let inspector = FragmentConstants {
+                flags: Flags::INSPECTOR_ACTIVE | Flags::NEEDS_REITERATE,
+                inspector_point_pixel_address: Vec2::from(*point),
+                ..test_frag_consts()
+            };
+            super::main_fs(
+                vec4(0., 0., 0., 0.),
+                &inspector,
+                &mut grid_a,
+                &mut grid_b,
+                &mut res,
+            );
+            let expected = Vec3::from(*expect_rgb).extend(1.0);
+            assert!(
+                res.abs_diff_eq(expected, 0.000_000_1),
+                "mismatch for point {point:?}: {res} vs {expected}"
+            );
+        }
+    }
+
+    #[test]
+    fn big_apple() {
+        let cases = &[
+            ((0.0f32, 0.0f32), (0.0f32, 0.0f32), 0.0),
+            ((0.0, 0.0), (0.0, 1.0), 1.0),
+            ((0.0, 0.0), (1.0, 0.0), 1.0),
+            ((0.0, 0.0), (1.0, 1.0), 2.0),
+        ];
+        for (a, b, result) in cases {
+            assert_float_eq!(
+                new_york_distance(Vec2::from(*a), Vec2::from(*b)),
+                result,
+                ulps <= 4
+            );
+        }
     }
 }
