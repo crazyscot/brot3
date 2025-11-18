@@ -548,7 +548,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         if let Some(r) = r
             && r.response.clicked_elsewhere()
         {
-            eprintln!("{r:?}");
+            //eprintln!("{r:?}");
             self.context_menu = None;
         }
     }
