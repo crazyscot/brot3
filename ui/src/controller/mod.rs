@@ -46,6 +46,8 @@ pub(crate) struct Controller {
     reiterate: bool,
     dragging: bool,
     ctrl_pressed: bool,
+    shift_pressed: bool,
+    alt_pressed: bool,
     resized: bool,
     fullscreen_requested: bool,
     context_menu: Option<DVec2>,
@@ -89,6 +91,8 @@ impl Controller {
             reiterate: true,
             dragging: false,
             ctrl_pressed: false,
+            shift_pressed: false,
+            alt_pressed: false,
             resized: true,
             fullscreen_requested: options.fullscreen,
             context_menu: None,
@@ -318,7 +322,7 @@ impl ControllerTrait for Controller {
                 BigVec2::try_from((prev_position - self.mouse_position) / self.size.y as f64)
                     .unwrap()
                     .with_precision(PRECISION);
-            self.viewport_translate += delta / self.viewport_zoom;
+            self.viewport_translate += delta * self.modifier_key_factor() / self.viewport_zoom;
             self.reiterate = true;
         }
     }
@@ -326,7 +330,8 @@ impl ControllerTrait for Controller {
         if delta.y == 0. {
             return;
         }
-        let motion = delta.y * 0.1;
+
+        let motion = delta.y * 0.1 * self.modifier_key_factor();
         let position = self.mouse_position;
         let size = self.size.as_dvec2();
         let prev_zoom = self.viewport_zoom;

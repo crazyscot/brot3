@@ -61,18 +61,20 @@ impl super::Controller {
     fn apply_movement(&mut self) {
         let dt = self.last_instant.elapsed().as_secs_f64();
         self.last_instant = Instant::now();
+        let factor = self.modifier_key_factor();
+        let factor32 = factor as f32;
         let movement = &mut self.movement;
         if movement.zoom != 0.0 {
-            self.viewport_zoom *= (movement.zoom - 1.0) * dt + 1.0;
+            self.viewport_zoom *= (movement.zoom - 1.0) * factor * dt + 1.0;
             self.reiterate = true;
         }
         if movement.translate != DVec2::ZERO {
-            self.viewport_translate += movement.translate / self.viewport_zoom * dt;
+            self.viewport_translate += movement.translate * factor / self.viewport_zoom * dt;
             self.reiterate = true;
         }
         if movement.exponent != 0. {
-            let new_exp =
-                (self.exponent.real + movement.exponent).clamp(EXPONENT_MIN, EXPONENT_MAX);
+            let new_exp = (self.exponent.real + factor32 * movement.exponent)
+                .clamp(EXPONENT_MIN, EXPONENT_MAX);
             if self.exponent.real != new_exp {
                 self.reiterate = true;
                 self.exponent.real = new_exp;
@@ -83,8 +85,8 @@ impl super::Controller {
             movement.exponent = 0.;
         }
         if movement.exponent_im != 0. {
-            let new_exp =
-                (self.exponent.imag + movement.exponent_im).clamp(EXPONENT_MIN, EXPONENT_MAX);
+            let new_exp = (self.exponent.imag + factor32 * movement.exponent_im)
+                .clamp(EXPONENT_MIN, EXPONENT_MAX);
             if self.exponent.imag != new_exp && !self.exponent.is_integer() {
                 self.reiterate = true;
                 self.exponent.imag = new_exp;
@@ -96,7 +98,7 @@ impl super::Controller {
             ($($id:ident), *) => {
                 $(
                     if movement.$id != 0. {
-                        self.palette.$id = (self.palette.$id + movement.$id).clamp(shader_common::Palette::MINIMA.$id, shader_common::Palette::MAXIMA.$id);
+                        self.palette.$id = (self.palette.$id + factor32 * movement.$id).clamp(shader_common::Palette::MINIMA.$id, shader_common::Palette::MAXIMA.$id);
                         movement.$id = 0.;
                     }
                 )*
@@ -585,5 +587,19 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         );
         eprintln!("==> colour {col:?}");
         */
+    }
+
+    pub(crate) fn modifier_key_factor(&self) -> f64 {
+        const SHIFT_FACTOR: f64 = core::f64::consts::E;
+        const ALT_FACTOR: f64 = 1.0 / SHIFT_FACTOR;
+        const CTRL_SHIFT: f64 = SHIFT_FACTOR * SHIFT_FACTOR;
+        const CTRL_ALT: f64 = ALT_FACTOR * ALT_FACTOR;
+        match (self.shift_pressed, self.alt_pressed, self.ctrl_pressed) {
+            (true, false, false) => SHIFT_FACTOR,
+            (true, false, true) => CTRL_SHIFT,
+            (false, true, false) => ALT_FACTOR,
+            (false, true, true) => CTRL_ALT,
+            (_, _, _) => 1.0,
+        }
     }
 }

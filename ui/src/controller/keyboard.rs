@@ -54,8 +54,7 @@ impl super::Controller {
                         // F12 will be Save As PNG
                         row!("^Q", "Quit");
 
-                        // blank line
-                        ui.end_row();
+                        ui.end_row(); // blank line
 
                         row!("⬅➡", "Real");
                         row!("⬆⬇", "Complex");
@@ -67,15 +66,28 @@ impl super::Controller {
                         row!("N M", "Gamma");
                         row!("I O", "Saturation");
                         row!("K L", "Lightness");
+
+                        ui.end_row(); // blank line
+                        row!("Shift", "Speed up");
+                        row!("Alt", "Slow down");
+                        row!("Ctrl", "... more");
                     });
             });
     }
 
     pub(super) fn keyboard_input_impl(&mut self, key: KeyEvent) {
+        use easy_shader_runner::winit::platform::modifier_supplement::KeyEventExtModifierSupplement as _;
+
         let pressed = key.state.is_pressed();
         match key.logical_key {
             Key::Named(NamedKey::Control) => {
                 self.ctrl_pressed = pressed;
+            }
+            Key::Named(NamedKey::Shift) => {
+                self.shift_pressed = pressed;
+            }
+            Key::Named(NamedKey::Alt) => {
+                self.alt_pressed = pressed;
             }
             Key::Named(NamedKey::ArrowLeft) => {
                 if pressed {
@@ -126,31 +138,30 @@ impl super::Controller {
             Key::Named(NamedKey::F11) if pressed => {
                 self.fullscreen_requested = !self.fullscreen_requested;
             }
-
-            Key::Character(c) => {
-                let c = match c.chars().next() {
-                    Some(ch) => ch,
-                    None => return, // should never happen
-                };
-                match c {
-                    'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
-                    'e' | 'r' => self.expo_re(c == 'r', pressed),
-                    'd' | 'f' => self.expo_im(c == 'f', pressed),
-                    'q' if pressed && self.ctrl_pressed => std::process::exit(0),
-                    // SOMEDAY: It would be tidier to call event_loop.exit().
-                    // Expose this in easy-shader-runner, or add a new CustomEvent
-                    // and expose an EventLoopProxy.
-                    'y' | 'u' => self.gradient(c == 'u', pressed),
-                    'h' | 'j' => self.offset(c == 'j', pressed),
-                    'n' | 'm' => self.gamma(c == 'm', pressed),
-                    'i' | 'o' => self.saturation(c == 'o', pressed),
-                    'k' | 'l' => self.lightness(c == 'l', pressed),
-                    'a' => self.show_about = true,
-                    _ => {}
-                }
-                // Remember to add new keys to keyboard_help_window !
-            }
             _ => (),
+        }
+        if let Key::Character(c) = key.key_without_modifiers() {
+            let c = match c.chars().next() {
+                Some(ch) => ch,
+                None => return, // should never happen
+            };
+            match c {
+                'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
+                'e' | 'r' => self.expo_re(c == 'r', pressed),
+                'd' | 'f' => self.expo_im(c == 'f', pressed),
+                'q' if pressed && self.ctrl_pressed => std::process::exit(0),
+                // SOMEDAY: It would be tidier to call event_loop.exit().
+                // Expose this in easy-shader-runner, or add a new CustomEvent
+                // and expose an EventLoopProxy.
+                'y' | 'u' => self.gradient(c == 'u', pressed),
+                'h' | 'j' => self.offset(c == 'j', pressed),
+                'n' | 'm' => self.gamma(c == 'm', pressed),
+                'i' | 'o' => self.saturation(c == 'o', pressed),
+                'k' | 'l' => self.lightness(c == 'l', pressed),
+                'a' => self.show_about = true,
+                _ => {}
+            }
+            // Remember to add new keys to keyboard_help_window !
         }
     }
 
