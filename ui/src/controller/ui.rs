@@ -1,9 +1,11 @@
 use easy_shader_runner::{egui, UiState};
-use egui::epaint;
+use egui::vec2;
 
 use super::{DVec2, Instant};
 use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
 use shader_common::FragmentConstants;
+
+use crate::widgets::CheckableButton;
 
 pub(crate) const DEFAULT_WIDTH: f32 = 130.;
 
@@ -29,10 +31,12 @@ impl super::Controller {
             self.update_inspector();
         }
 
+        self.main_menu(ctx);
+
         if let Some(pos) = self.context_menu {
             self.context_menu_window(ctx, pos);
         }
-        if self.show_ui {
+        if self.show_controls {
             self.controls_window(ctx);
         }
         if self.show_coords_window {
@@ -56,6 +60,64 @@ impl super::Controller {
 
         self.resized = false;
         self.set_mouse_pointer(ctx);
+    }
+
+    fn main_menu(&mut self, ctx: &egui::Context) {
+        egui::Area::new(egui::Id::new("mainmenu"))
+            .anchor(egui::Align2::LEFT_TOP, egui::Vec2::new(10., 10.))
+            .show(ctx, |ui| {
+                let img = egui::Image::from(egui::include_image!("../../misc/hamburger_icon.png"))
+                    .fit_to_exact_size(vec2(20.0, 20.0));
+                ui.menu_image_button(img, |ui| {
+                    const ITEM_WIDTH: f32 = 120.0;
+                    use egui::Widget as _;
+
+                    macro_rules! checkbox {
+                        ($var:expr, $lbl:literal) => {
+                            CheckableButton::new(&mut $var, $lbl)
+                                .min_size(vec2(ITEM_WIDTH, 0.0))
+                                .ui(ui);
+                        };
+                        ($var:expr, $lbl:literal, $accel:literal) => {
+                            CheckableButton::new(&mut $var, $lbl)
+                                .shortcut_text($accel)
+                                .min_size(vec2(ITEM_WIDTH, 0.0))
+                                .ui(ui);
+                        };
+                    }
+                    macro_rules! item {
+                        ($label:expr, $accel:literal) => {
+                            egui::Button::new($label)
+                                .shortcut_text($accel)
+                                .min_size(vec2(ITEM_WIDTH, 0.0))
+                        };
+                    }
+                    checkbox!(self.show_controls, "Controls", "F2");
+                    checkbox!(self.show_coords_window, "Data read-out", "F3");
+                    checkbox!(self.show_scale_bar, "Scale bar", "F4");
+                    checkbox!(self.fullscreen_requested, "Fullscreen", "F11");
+
+                    ui.separator();
+
+                    checkbox!(self.show_fps, "Show FPS");
+                    checkbox!(self.vsync, "vsync");
+
+                    ui.separator();
+                    checkbox!(self.keyboard_help, "Show Help", "F1");
+
+                    if ui.add(item!("About", "")).clicked() {
+                        self.show_about = true;
+                    }
+                    ui.separator();
+
+                    if ui.add(item!("Quit", "Ctrl+Q")).clicked() {
+                        // SOMEDAY: It would be tidier to call event_loop.exit().
+                        std::process::exit(0);
+                    }
+
+                    // for sub menus, add a ui.menu_button(...)
+                });
+            });
     }
 
     fn apply_movement(&mut self) {
@@ -108,8 +170,16 @@ impl super::Controller {
     }
 
     fn controls_window(&mut self, ctx: &egui::Context) {
-        egui::Window::new("brot3")
+        // Don't render this on the first pass before we know the window size. That gives it a bad default position.
+        if self.size.y == 0 {
+            return;
+        }
+        // Centre left of window
+        let pos = (10.0, (self.size.y / 2) as f32);
+
+        egui::Window::new("Controls")
             .default_width(DEFAULT_WIDTH)
+            .default_pos(pos)
             .resizable(false)
             .show(ctx, |ui| {
                 use shader_common::NumericType;
@@ -313,19 +383,6 @@ impl super::Controller {
                             _ => (),
                         }
                     });
-
-                ui.separator();
-
-                ui.checkbox(&mut self.show_coords_window, "Data read-out");
-                ui.checkbox(&mut self.show_scale_bar, "Scale bar");
-                ui.checkbox(&mut self.keyboard_help, "Keyboard help");
-                ui.checkbox(&mut self.show_fps, "Show FPS");
-                ui.checkbox(&mut self.vsync, "vsync");
-                ui.checkbox(&mut self.fullscreen_requested, "Fullscreen");
-
-                if ui.button("About").clicked() {
-                    self.show_about = true;
-                }
             })
             .unwrap();
     }
@@ -341,11 +398,18 @@ impl super::Controller {
 
     fn coords_window(&mut self, ctx: &egui::Context) {
         let precision = self.precision_digits();
+        // Don't render this on the first pass before we know the window size. That gives it a bad default position.
+        if self.size.y == 0 {
+            return;
+        }
+        // Top right of window
+        let pos = ((self.size.x - 10) as f32, 10.0);
 
         egui::Window::new("coords")
             .title_bar(false)
             .resizable(false)
-            .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(-10., 10.))
+            .pivot(egui::Align2::RIGHT_TOP)
+            .default_pos(pos)
             .show(ctx, |ui| {
                 ui.set_width(10.); // hack: ensures the separator doesn't inflate the window
                 egui::Grid::new("coords_position").show(ui, |ui| {
@@ -415,12 +479,13 @@ impl super::Controller {
     }
 
     fn scale_bar(&mut self, ctx: &egui::Context) {
-        use epaint::Color32;
+        use egui::epaint::{self, Color32};
 
         // Don't render this on the first pass before we know the window size. That gives it a bad default position.
         if self.size.y == 0 {
             return;
         }
+        // Bottom centre of window
         let pos = ((self.size.x / 2) as f32, (self.size.y - 10) as f32);
 
         let mut bar = egui::Area::new(egui::Id::new("scalebar"))
@@ -545,6 +610,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
                     self.inspector.active = true;
                     self.context_menu = None;
                     self.inspector.stale = true;
+                    self.show_coords_window = true;
                 }
             });
         if let Some(r) = r

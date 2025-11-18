@@ -5,6 +5,7 @@ use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
 mod cli;
 mod controller;
+mod widgets;
 
 use clap::Parser;
 

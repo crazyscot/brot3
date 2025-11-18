@@ -46,14 +46,16 @@ impl super::Controller {
                                 ui.end_row();
                             };
                         }
-                        row!("F1", "Help");
-                        row!("F2", "Show UI");
-                        row!("F3 F4", "Fractal");
-                        row!("F5 F6", "Palette");
-                        row!("F11", "Fullscreen");
+                        //row!("F1", "Help");
+                        //row!("F2", "Controls");
+                        row!("F7 F8", "Fractal");
+                        row!("F9 F10", "Palette");
+                        //row!("F11", "Fullscreen");
                         // F12 will be Save As PNG
                         row!("^Q", "Quit");
 
+                        ui.separator();
+                        ui.separator();
                         ui.end_row(); // blank line
 
                         row!("⬅➡", "Real");
@@ -67,6 +69,8 @@ impl super::Controller {
                         row!("I O", "Saturation");
                         row!("K L", "Lightness");
 
+                        ui.separator();
+                        ui.separator();
                         ui.end_row(); // blank line
                         row!("Shift", "Speed up");
                         row!("Alt", "Slow down");
@@ -121,18 +125,24 @@ impl super::Controller {
                 self.keyboard_help = !self.keyboard_help;
             }
             Key::Named(NamedKey::F2) if pressed => {
-                self.show_ui = !self.show_ui;
+                self.show_controls = !self.show_controls;
             }
             Key::Named(NamedKey::F3) if pressed => {
-                self.fractal(false);
+                self.show_coords_window = !self.show_coords_window;
             }
             Key::Named(NamedKey::F4) if pressed => {
+                self.show_scale_bar = !self.show_scale_bar;
+            }
+            Key::Named(NamedKey::F7) if pressed => {
+                self.fractal(false);
+            }
+            Key::Named(NamedKey::F8) if pressed => {
                 self.fractal(true);
             }
-            Key::Named(NamedKey::F5) if pressed => {
+            Key::Named(NamedKey::F9) if pressed => {
                 self.palette(false);
             }
-            Key::Named(NamedKey::F6) if pressed => {
+            Key::Named(NamedKey::F10) if pressed => {
                 self.palette(true);
             }
             Key::Named(NamedKey::F11) if pressed => {
