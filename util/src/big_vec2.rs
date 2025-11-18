@@ -2,7 +2,7 @@
 
 use dashu::float::FBig;
 use glam::{DVec2, UVec2, Vec2};
-use std::ops::{Add, AddAssign, Div, DivAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 /// Arbitrary precision version of [`glam::Vec2`]
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -121,20 +121,6 @@ impl SubAssign for BigVec2 {
     }
 }
 
-// impl AddAssign<glam::Vec2> for Vec2Big {
-//     fn add_assign(&mut self, other: glam::Vec2) {
-//         self.x += FBig::try_from(other.x).unwrap();
-//         self.y += FBig::try_from(other.y).unwrap();
-//     }
-// }
-
-// impl SubAssign<glam::Vec2> for Vec2Big {
-//     fn sub_assign(&mut self, other: glam::Vec2) {
-//         self.x -= FBig::try_from(other.x).unwrap();
-//         self.y -= FBig::try_from(other.y).unwrap();
-//     }
-// }
-
 impl AddAssign<glam::DVec2> for BigVec2 {
     fn add_assign(&mut self, other: glam::DVec2) {
         self.x += FBig::try_from(other.x).unwrap();
@@ -150,9 +136,10 @@ impl SubAssign<glam::DVec2> for BigVec2 {
 }
 
 impl DivAssign<f64> for BigVec2 {
-    fn div_assign(&mut self, other: f64) {
-        self.x /= FBig::try_from(other).unwrap();
-        self.y /= FBig::try_from(other).unwrap();
+    fn div_assign(&mut self, rhs: f64) {
+        let factor = FBig::try_from(rhs).unwrap();
+        self.x /= &factor;
+        self.y /= factor;
     }
 }
 
@@ -161,6 +148,22 @@ impl Div<f64> for BigVec2 {
     fn div(mut self, other: f64) -> Self::Output {
         self /= other;
         self
+    }
+}
+
+impl Mul<f64> for BigVec2 {
+    type Output = Self;
+    fn mul(mut self, other: f64) -> Self::Output {
+        self *= other;
+        self
+    }
+}
+
+impl MulAssign<f64> for BigVec2 {
+    fn mul_assign(&mut self, rhs: f64) {
+        let factor = FBig::try_from(rhs).unwrap();
+        self.x *= &factor;
+        self.y *= factor;
     }
 }
 
@@ -218,7 +221,10 @@ mod tests {
         let dv2 = dvec2(0., 6.);
         a1 += dv2;
         assert_eq!(a1.to_string(), "BigVec2(1000, 1010)");
-        let a2 = a1 / 2.;
+        let mut a2 = a1 / 2.;
         assert_eq!(a2, make_bigvec2!(4., 5.));
+
+        a2 *= 3.0;
+        assert_eq!(a2, make_bigvec2!(12., 15.));
     }
 }
