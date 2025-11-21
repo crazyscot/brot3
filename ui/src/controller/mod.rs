@@ -11,7 +11,12 @@ use util::BigVec2;
 use web_time::Instant;
 use winit::event::{ElementState, MouseButton};
 
+mod about;
+mod controls;
+mod coords;
 mod keyboard;
+mod menu;
+mod small_windows;
 mod ui;
 
 const PRECISION: usize = 128;
