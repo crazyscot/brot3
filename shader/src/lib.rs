@@ -40,6 +40,29 @@ pub fn main_fs(
 ) {
     // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we ignore depth & 1/w
     let coord = frag_coord.xy();
+
+    let mut colour = render_pixel(constants, &coord, grid_a, grid_b);
+
+    // Draw the inspector marker
+    if constants.flags.contains(Flags::INSPECTOR_ACTIVE) {
+        // New York distance from the reference point draws a diamond shape
+        let dist = new_york_distance(constants.inspector_point_pixel_address, coord);
+        if dist < INSPECTOR_MARKER_SIZE * 0.667 {
+            colour = Vec3::splat(0.0); // TODO Do something better here? Change pixels underneath?
+        } else if dist < INSPECTOR_MARKER_SIZE {
+            colour = Vec3::splat(1.0);
+        }
+    }
+
+    *output = colour.extend(1.0);
+}
+
+fn render_pixel(
+    constants: &FragmentConstants,
+    coord: &Vec2,
+    grid_a: &mut [PointResultA],
+    grid_b: &mut [PointResultB],
+) -> Vec3 {
     // viewport pixel size e.g. 1920x1080
     let size = constants.size.as_vec2();
     let pixel_spacing = constants.pixel_spacing();
@@ -61,20 +84,7 @@ pub fn main_fs(
         PointResult::join(a, b)
     };
 
-    let mut colour = colour::colour_data(render_data, constants, pixel_spacing);
-
-    // Draw the inspector marker
-    if constants.flags.contains(Flags::INSPECTOR_ACTIVE) {
-        // New York distance from the reference point draws a diamond shape
-        let dist = new_york_distance(constants.inspector_point_pixel_address, coord);
-        if dist < INSPECTOR_MARKER_SIZE * 0.667 {
-            colour = Vec3::splat(0.0); // TODO Do something better here? Change pixels underneath?
-        } else if dist < INSPECTOR_MARKER_SIZE {
-            colour = Vec3::splat(1.0);
-        }
-    }
-
-    *output = colour.extend(1.0);
+    colour::colour_data(render_data, constants, pixel_spacing)
 }
 
 /// SPIRV `vertex` entrypoint.
