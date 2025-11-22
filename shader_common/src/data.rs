@@ -99,27 +99,33 @@ impl PointResult {
     }
 
     /// Whole part of iterations
+    #[inline(always)]
     pub fn iters_whole(&self) -> u32 {
         self.a.iters
     }
     /// Fractional part of iterations (0..1)
+    #[inline(always)]
     pub fn iters_fraction(&self) -> f32 {
         self.a.iters_fraction
     }
     /// Distance from fractal
+    #[inline(always)]
     pub fn distance(&self) -> f32 {
         self.a.distance
     }
     /// Final angle (-pi .. pi)
+    #[inline(always)]
     pub fn angle(&self) -> f32 {
         self.b.angle
     }
     /// Final distance from origin (aka radius or absolute value), squared
+    #[inline(always)]
     pub fn radius_sqr(&self) -> f32 {
         self.b.radius_sqr
     }
     // COMPUTED ACCESSORS ///////////////////////////////////////////////////
     /// Is this point inside the set? If so, the iterations count is effectively infinite.
+    #[inline(always)]
     pub fn inside(&self) -> bool {
         self.a.iters == u32::MAX
     }
