@@ -70,6 +70,7 @@ bitflags::bitflags! {
 pub struct Flags : u32 {
     const NEEDS_REITERATE = 1 << 0;
     const INSPECTOR_ACTIVE = 1 << 1;
+    const TESTING_ANTIALIAS = 1 << 31;
 
     const _ = !0;
 }

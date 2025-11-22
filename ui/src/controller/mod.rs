@@ -44,6 +44,7 @@ pub(crate) struct Controller {
     keyboard_help: bool,
     show_about: bool,
     show_license: bool,
+    anti_alias: bool,
 
     // UI operational data
     last_instant: Instant,
@@ -90,6 +91,7 @@ impl Controller {
             keyboard_help: false,
             show_about: false,
             show_license: false,
+            anti_alias: false,
 
             last_instant: Instant::now(),
             mouse_position: DVec2::default(),
@@ -107,7 +109,8 @@ impl Controller {
 
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
         let flags = flag_if(reiterate, Flags::NEEDS_REITERATE)
-            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE);
+            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
+            | flag_if(self.anti_alias, Flags::TESTING_ANTIALIAS);
         FragmentConstants {
             flags,
             viewport_translate: self.viewport_translate.as_vec2(),

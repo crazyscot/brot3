@@ -222,6 +222,18 @@ impl super::Controller {
                             _ => (),
                         }
                     });
+
+                ui.separator();
+
+                if ui.add(egui::Checkbox::new(
+                        &mut  self.anti_alias,
+                        "Super sample",
+                    ))
+                    .changed()
+                {
+                    self.reiterate = true;
+                }
+
             })
             .unwrap();
     }
