@@ -5,7 +5,7 @@ use glam::{dvec2, DVec2, UVec2, Vec2};
 use shader_common::{
     data::{PointResult, PointResultA, PointResultB},
     enums::Algorithm,
-    Flags, FragmentConstants, NumericType, Palette, PushExponent, GRID_SIZE,
+    flag_if, Flags, FragmentConstants, NumericType, Palette, PushExponent, GRID_SIZE,
 };
 use util::BigVec2;
 use web_time::Instant;
@@ -104,16 +104,10 @@ impl Controller {
             inspector: Inspector::default(),
         }
     }
+
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
-        let flags = if reiterate {
-            Flags::NEEDS_REITERATE
-        } else {
-            Flags::empty()
-        } | if self.inspector.active {
-            Flags::INSPECTOR_ACTIVE
-        } else {
-            Flags::empty()
-        };
+        let flags = flag_if(reiterate, Flags::NEEDS_REITERATE)
+            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE);
         FragmentConstants {
             flags,
             viewport_translate: self.viewport_translate.as_vec2(),

@@ -75,6 +75,15 @@ pub struct Flags : u32 {
 }
 }
 
+/// Conditionally returns a flag value
+pub fn flag_if(condition: bool, flag: Flags) -> Flags {
+    if condition {
+        flag
+    } else {
+        Flags::empty()
+    }
+}
+
 impl FragmentConstants {
     pub fn pixel_spacing_f32(height: u32, zoom: f32) -> f32 {
         1.0 / (height as f32 * zoom)
