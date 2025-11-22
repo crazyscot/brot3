@@ -24,6 +24,7 @@ use crate::exponentiation::Exponentiator;
 
 use core::marker::PhantomData;
 
+#[inline(never)]
 pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
     use shader_common::{enums::Algorithm, NumericType};
     let c = Complex::from(point);
@@ -58,7 +59,7 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
                     c: $c_value,
                 }
                 .run(),
-                _ => todo!(),
+                _ => PointResult::new_inside(0.0, 0.0, 0.0),
             }
         }};
     }
@@ -71,7 +72,7 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
         Algorithm::Celtic => builder!(Celtic, c),
         Algorithm::Variant => builder!(Variant, c),
         Algorithm::BirdOfPrey => builder!(BirdOfPrey, c),
-        _ => todo!(),
+        _ => PointResult::new_inside(0.0, 0.0, 0.0),
     }
 }
 

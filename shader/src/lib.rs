@@ -41,7 +41,11 @@ pub fn main_fs(
     // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we ignore depth & 1/w
     let coord = frag_coord.xy();
 
-    let mut colour = render_pixel(constants, &coord, grid_a, grid_b);
+    let mut colour = if constants.flags.contains(Flags::TESTING_ANTIALIAS) {
+        render_aa(constants, &coord)
+    } else {
+        render_single(constants, &coord, grid_a, grid_b)
+    };
 
     // Draw the inspector marker
     if constants.flags.contains(Flags::INSPECTOR_ACTIVE) {
@@ -57,7 +61,7 @@ pub fn main_fs(
     *output = colour.extend(1.0);
 }
 
-fn render_pixel(
+fn render_single(
     constants: &FragmentConstants,
     coord: &Vec2,
     grid_a: &mut [PointResultA],
@@ -85,6 +89,31 @@ fn render_pixel(
     };
 
     colour::colour_data(render_data, constants, pixel_spacing)
+}
+
+fn render_aa(constants: &FragmentConstants, coord: &Vec2) -> Vec3 {
+    // viewport pixel size e.g. 1920x1080
+    let size = constants.size.as_vec2();
+    let pixel_spacing = constants.pixel_spacing();
+    let step = constants.pixel_spacing() / 4.0;
+
+    // test simple 4-way for now
+    let step_re = vec2(step, 0.0);
+    let step_im = vec2(0.0, step);
+    let mut accumulator = Vec3::splat(0.0);
+    // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
+    let cplx = (coord - 0.5 * size) * pixel_spacing + constants.viewport_translate;
+
+    let render_data = fractal::render(constants, cplx);
+    accumulator += colour::colour_data(render_data, constants, pixel_spacing);
+    let render_data = fractal::render(constants, cplx + step_re);
+    accumulator += colour::colour_data(render_data, constants, pixel_spacing);
+    let render_data = fractal::render(constants, cplx + step_im);
+    accumulator += colour::colour_data(render_data, constants, pixel_spacing);
+    let render_data = fractal::render(constants, cplx + step_re + step_im);
+    accumulator += colour::colour_data(render_data, constants, pixel_spacing);
+
+    accumulator / 4.0
 }
 
 /// SPIRV `vertex` entrypoint.
