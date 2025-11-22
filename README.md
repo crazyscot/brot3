@@ -41,9 +41,18 @@ We use a [toolchain file](rust-toolchain.toml) to select the rust-gpu recommende
 
 **Cargo will automatically install the required nightly toolchain if you don't already have it.**
 
-`cargo run --locked` will launch the GUI in interactive mode. By default this runs with the `hot-reload-shader` feature. As you might imagine, this rebuilds and reloads the shader on save.
+`cargo run --locked` will launch the GUI in interactive mode.
 
-For a standalone application binary, `cargo build --locked --no-default-features` disables runtime shader compilation.
+The useful feature flag combinations are:
+
+| Flags passed to cargo    | Result                                                                                             |
+| ------------------------ | -------------------------------------------------------------------------------------------------- |
+| _None_                   | Shader compiled at build time only. **Recommended if you only want to browse the Mandelbrot set!** |
+| `-F hot-reload-shader`   | Runtime shader compilation with hot reload                                                         |
+| `-F runtime-compilation` | Runtime shader compilation without hot reload                                                      |
+
+As you might imagine, the runtime compilation options add the cost of the spirv-builder to compile-time and binary size.
+This is only useful if you want to hack on the shader.
 
 There are limited unit tests and benchmarks. More may be added later.
 

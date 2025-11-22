@@ -21,7 +21,7 @@ doctest = false
 bench = false
 
 [features]
-default = ["hot-reload-shader"]
+default = []
 runtime-compilation = ["easy-shader-runner/runtime-compilation"]
 hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 
