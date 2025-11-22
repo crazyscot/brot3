@@ -16,6 +16,18 @@ This time around it's in Rust and has quite the history.
 
 More notes to come here when things are in less of a state of flux...
 
+**N.B. You don't necessarily need a GPU card: I find this runs just fine on a PC with integrated graphics.** If rust-gpu can talk to it, it will probably work.
+
+## Acknowledgements
+
+Credit is due to [@abel465](https://github.com/abel465) for creating:
+
+- [easy-shader-runner](https://github.com/abel465/easy-shader-runner), which provided a very useful way for me to get started with Rust on the GPU;
+- His own [mandelbrot](https://github.com/abel465/mandelbrot) implementation, which I drew a lot of inspiration from;
+- The [abels-complex](https://crates.io/crates/abels-complex) crate, which is GPU-friendly.
+
+Credit is also due to the [rust-gpu](https://github.com/Rust-GPU/rust-gpu) team past and present for creating the platform. While Rust on the GPU does have a bit of a "cursed subset of the language" feel, which is inherent to the nature of GPU programming, I have found it workable and performant so far in this use case.
+
 ## Supported systems
 
 Primary:
@@ -24,10 +36,21 @@ Primary:
 
 Secondary:
 
-- OSX (minimum Rust supported versions apply; currently 10.12 on x86_64 and 11.0 on aarch64)
+- OSX (requires OSX 10.12 on x86_64, or 11.0 on Apple silicon)
 - Windows 11
 
 Binary releases can be found in [github releases](https://github.com/crazyscot/brot3/releases/).
+
+### Hardware requirements
+
+You need a GPU, or integrated graphics chip, that rust-gpu can talk to.
+
+I have had success with the following:
+
+- Intel iGPU (Ultra7 265K processor)
+- AMD Radeon integrated graphics (Lenovo V15 laptop with Ryzen 7 CPU)
+- nVidia RTX 3070 GPU (with AMD Ryzen 7 CPU)
+- nVidia GT 755M (2014 iMac)
 
 ## Experimenting
 
