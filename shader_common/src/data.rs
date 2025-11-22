@@ -31,14 +31,14 @@ pub struct PointResultA {
     iters_fraction: f32,
     /// distance estimate from fractal
     distance: f32,
-    /// final angle (argument) (range -pi..pi)
-    pub angle: f32,
 }
 
 /// Constituent part B of `PointResult`
 #[derive(Copy, Clone, Debug, Default, NoUninit)]
 #[repr(C)]
 pub struct PointResultB {
+    /// final angle (argument) (range -pi..pi)
+    pub angle: f32,
     /// final complex distance, squared
     pub radius_sqr: f32,
 }
@@ -59,9 +59,8 @@ impl PointResult {
                 iters: u32::MAX,
                 iters_fraction: 0.,
                 distance,
-                angle,
             },
-            b: PointResultB { radius_sqr },
+            b: PointResultB { angle, radius_sqr },
         }
     }
     pub fn new_outside(
@@ -76,9 +75,8 @@ impl PointResult {
                 iters,
                 iters_fraction,
                 distance,
-                angle,
             },
-            b: PointResultB { radius_sqr },
+            b: PointResultB { angle, radius_sqr },
         }
     }
     /// Reconstitutes a `PointResult` from its storage shards
@@ -114,7 +112,7 @@ impl PointResult {
     }
     /// Final angle (-pi .. pi)
     pub fn angle(&self) -> f32 {
-        self.a.angle
+        self.b.angle
     }
     /// Final distance from origin (aka radius or absolute value), squared
     pub fn radius_sqr(&self) -> f32 {
