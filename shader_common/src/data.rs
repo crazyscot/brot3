@@ -75,6 +75,8 @@ const _: () = {
 
 impl PointResult {
     // CONSTRUCTORS //////////////////////////////////////////////////////////
+    /// This is a convenience, but using it adds complexity to the shader.
+    #[cfg(all(test, not(target_arch = "spirv")))]
     pub fn new_inside(distance: f32, angle: f32, radius_sqr: f32) -> Self {
         Self {
             a: PointResultA {

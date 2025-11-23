@@ -118,7 +118,6 @@ where
             norm_sqr = z.abs_sq();
             deprintln!("DBG: iters={iters}, z={z}, dz={dz}, |z|^2={norm_sqr}");
         }
-        let inside = iters == max_iter && (norm_sqr < ESCAPE_THRESHOLD_SQ);
 
         // distance estimate, angle
         let za = z.abs();
@@ -155,11 +154,10 @@ where
         let log_zn = z.abs_sq().log2() * 0.5;
         let smoothed_iters = 1. + loglog2_escape_threshold - log_zn.log2() / log2_exponent;
 
-        if inside {
-            PointResult::new_inside(distance, angle, radius_sqr)
-        } else {
-            PointResult::new_outside(iters, smoothed_iters, distance, angle, radius_sqr)
+        if norm_sqr < ESCAPE_THRESHOLD_SQ {
+            iters = u32::MAX;
         }
+        PointResult::new_outside(iters, smoothed_iters, distance, angle, radius_sqr)
     }
 }
 
