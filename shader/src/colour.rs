@@ -38,7 +38,7 @@ pub fn colour_data(
             CS::OneLoneCoder => one_lone_coder(constants, iters, &data),
             CS::LchGradient => lch_gradient(constants, iters, &data),
             CS::Monochrome => monochrome(constants, iters, &data),
-            _ => todo!(),
+            _ => Hsl::BLACK,
         }
     };
     deprintln!("interim hsl: {hsl:?}");

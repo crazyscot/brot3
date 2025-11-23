@@ -22,6 +22,8 @@ use spirv_std::num_traits::real::Real;
 use super::{Complex, FragmentConstants, PointResult, Vec2};
 use crate::exponentiation::Exponentiator;
 
+use const_default::ConstDefault as _;
+
 use core::marker::PhantomData;
 
 pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
@@ -58,7 +60,7 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
                     c: $c_value,
                 }
                 .run(),
-                _ => todo!(),
+                _ => PointResult::DEFAULT,
             }
         }};
     }
@@ -71,7 +73,7 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
         Algorithm::Celtic => builder!(Celtic, c),
         Algorithm::Variant => builder!(Variant, c),
         Algorithm::BirdOfPrey => builder!(BirdOfPrey, c),
-        _ => todo!(),
+        _ => PointResult::DEFAULT,
     }
 }
 

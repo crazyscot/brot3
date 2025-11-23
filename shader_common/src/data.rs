@@ -1,6 +1,7 @@
 //! Fractal data structures
 
 use crate::enums::ColourStyle;
+use crate::ConstDefault;
 
 use super::GRID_SIZE;
 use bytemuck::NoUninit;
@@ -21,6 +22,13 @@ pub struct PointResult {
     b: PointResultB,
 }
 
+impl ConstDefault for PointResult {
+    const DEFAULT: Self = Self {
+        a: PointResultA::DEFAULT,
+        b: PointResultB::DEFAULT,
+    };
+}
+
 /// Constituent part A of `PointResult`
 #[derive(Copy, Clone, Debug, Default, NoUninit)]
 #[repr(C)]
@@ -32,6 +40,13 @@ pub struct PointResultA {
     /// distance estimate from fractal
     distance: f32,
 }
+impl ConstDefault for PointResultA {
+    const DEFAULT: Self = Self {
+        iters: u32::MAX,
+        iters_fraction: 0.0,
+        distance: 0.0,
+    };
+}
 
 /// Constituent part B of `PointResult`
 #[derive(Copy, Clone, Debug, Default, NoUninit)]
@@ -41,6 +56,13 @@ pub struct PointResultB {
     pub angle: f32,
     /// final complex distance, squared
     pub radius_sqr: f32,
+}
+
+impl ConstDefault for PointResultB {
+    const DEFAULT: Self = Self {
+        angle: 0.0,
+        radius_sqr: 0.0,
+    };
 }
 
 // compile time assertion: confirm that neither buffer will runtime fail in wgpu
