@@ -16,7 +16,7 @@ macro_rules! deprintln {
 use spirv_std::num_traits::real::Real;
 
 use core::f32::consts::TAU;
-use shader_common::enums::{ColourStyle, Colourer as CS, Modifier};
+use shader_common::enums::Modifier;
 use shader_util::colourspace::{Hsl, Lch, Rgb, Vec3Rgb};
 
 use super::{vec3, FragmentConstants, PointResult};
@@ -27,19 +27,17 @@ pub fn colour_data(
     pixel_spacing: f32,
 ) -> Vec3Rgb {
     let iters = data.iters(constants.palette.colour_style);
-    let mut hsl = if constants.palette.colour_style == ColourStyle::None {
-        Hsl::WHITE
-    } else {
-        match constants.palette.colourer {
-            CS::LogRainbow => log_rainbow(constants, iters, &data),
-            CS::SqrtRainbow => sqrt_rainbow(constants, iters, &data),
-            CS::WhiteFade => white_fade(constants, iters, &data),
-            CS::BlackFade => black_fade(constants, iters, &data),
-            CS::OneLoneCoder => one_lone_coder(constants, iters, &data),
-            CS::LchGradient => lch_gradient(constants, iters, &data),
-            CS::Monochrome => monochrome(constants, iters, &data),
-            _ => Hsl::BLACK,
-        }
+    use shader_common::enums::Colourer as C;
+    let mut hsl = match constants.palette.colourer {
+        C::LogRainbow => log_rainbow(constants, iters, &data),
+        C::SqrtRainbow => sqrt_rainbow(constants, iters, &data),
+        C::WhiteFade => white_fade(constants, iters, &data),
+        C::BlackFade => black_fade(constants, iters, &data),
+        C::OneLoneCoder => one_lone_coder(constants, iters, &data),
+        C::LchGradient => lch_gradient(constants, iters, &data),
+        C::Monochrome => monochrome(constants, iters, &data),
+        C::None => Hsl::WHITE,
+        _ => Hsl::BLACK,
     };
     deprintln!("interim hsl: {hsl:?}");
 
@@ -278,7 +276,7 @@ mod tests {
         let mut consts = FragmentConstants {
             max_iter: 200,
             palette: Palette::default()
-                .with_style(ColourStyle::None)
+                .with_colourer(Colourer::None)
                 .with_brightness(Modifier::Filaments1),
             size: uvec2(500, 500).into(),
             ..Default::default()
@@ -304,7 +302,7 @@ mod tests {
         let mut consts = FragmentConstants {
             max_iter: 200,
             palette: Palette::default()
-                .with_style(ColourStyle::None)
+                .with_colourer(Colourer::None)
                 .with_brightness(Modifier::Filaments1),
             size: uvec2(500, 500).into(),
             ..Default::default()
@@ -331,7 +329,7 @@ mod tests {
         let mut consts = FragmentConstants {
             max_iter: 200,
             palette: Palette::default()
-                .with_style(ColourStyle::None)
+                .with_colourer(Colourer::None)
                 .with_brightness(Modifier::Filaments1),
             size: uvec2(500, 500).into(),
             ..Default::default()
@@ -357,7 +355,7 @@ mod tests {
         let mut consts = FragmentConstants {
             max_iter: 200,
             palette: Palette::default()
-                .with_style(ColourStyle::None)
+                .with_colourer(Colourer::None)
                 .with_brightness(Modifier::FinalRadius),
             size: uvec2(500, 500).into(),
             ..Default::default()

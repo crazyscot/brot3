@@ -52,16 +52,11 @@ enumdef!(
     BlackFade,
     OneLoneCoder,
     LchGradient,
-    Monochrome
-);
-
-enumdef!(
-    doc = "Colouring style",
-    ColourStyle,
-    Continuous,
-    Discrete,
+    Monochrome,
     None
 );
+
+enumdef!(doc = "Colouring style", ColourStyle, Continuous, Discrete);
 
 enumdef!(
     doc = "Style modifier",

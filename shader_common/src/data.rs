@@ -118,7 +118,7 @@ impl PointResult {
     pub fn iters(&self, style: ColourStyle) -> f32 {
         match style {
             ColourStyle::Discrete => self.iters_whole() as f32,
-            ColourStyle::Continuous | _ => self.iters_whole() as f32 + self.iters_fraction(),
+            ColourStyle::Continuous => self.iters_whole() as f32 + self.iters_fraction(),
         }
     }
 
