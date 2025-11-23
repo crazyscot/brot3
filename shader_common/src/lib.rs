@@ -40,6 +40,11 @@ pub struct FragmentConstants {
     pub inspector_point_pixel_address: Vec2,
 }
 
+// compile time assertion: confirm that push constants will fit into the size that e-s-r requests
+const _: () = {
+    assert!(core::mem::size_of::<FragmentConstants>() < 128);
+};
+
 impl FragmentConstants {
     pub const DEFAULT_ZOOM: f32 = 0.25;
     /// Conversion factor applied to viewport_zoom whenever it's presented to a human
