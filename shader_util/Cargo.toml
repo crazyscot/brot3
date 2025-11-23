@@ -25,6 +25,7 @@ glam = { workspace = true, default-features = false, features = ["bytemuck"] }
 [dev-dependencies]
 divan = "0.1.21"
 glam = { workspace = true, default-features = false, features = ["std"] }
+num-traits = { workspace = true }
 
 [lints]
 workspace = true

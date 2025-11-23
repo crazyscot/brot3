@@ -168,7 +168,11 @@ where
 
         // distance estimate, angle
         let za = z.abs();
-        let distance = 2.0 * za.ln() * za / dz.abs();
+        // special case to avoid hitting a NaN when calculating ln(0)
+        let ln_za = if za == 0.0 { 0.0 } else { za.ln() };
+
+        let distance = 2.0 * ln_za * za / dz.abs();
+        deprintln!("za {za} zaln {ln_za} dzabs {} dist {distance}", dz.abs());
         let angle = prev_z.arg();
         let radius_sqr = prev_norm_sqr;
 
@@ -177,14 +181,23 @@ where
         // Note that the log of theexponent is not allowed to be 0 or subnormal (we divide by
         // it below), so we special case those regions (in Exponentiator).
 
-        // by the logarithm of a power law,
-        // z.norm().log() === z.norm_sqr().log() * 0.5
-        let log_zn = z.abs_sq().log2() * 0.5;
-        let smoothed_iters = 1. + loglog2_escape_threshold - log_zn.log2() / self.expo.log2();
+        let z_abs_sq = z.abs_sq();
+        // take two logs, avoiding NaN
+        let log_log_zn = if z_abs_sq <= 1.0 {
+            // special case: log2(log2(1+epsilon)) tends to -inf
+            -1000.0
+        } else {
+            // by the logarithm of a power law,
+            // z.norm().log() === z.norm_sqr().log() * 0.5
+            (z_abs_sq.log2() * 0.5).log2()
+        };
+        // Previous algorithm: let log_log_zn = if z_abs_sq < 1.0 { -1000.0 } else { (z_abs_sq.log2() * 0.5).log2() };
 
-        if norm_sqr < ESCAPE_THRESHOLD_SQ {
-            iters = u32::MAX;
-        }
+        let smoothed_iters = 1. + loglog2_escape_threshold - log_log_zn / self.expo.log2();
+
+        // sigh! saturating_add is not currently implemented, so do it ourselves:
+        let inside = norm_sqr < ESCAPE_THRESHOLD_SQ;
+        iters = if inside { u32::MAX } else { iters };
         PointResult::new_outside(iters, smoothed_iters, distance, angle, radius_sqr)
     }
 }

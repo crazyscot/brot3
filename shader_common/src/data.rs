@@ -147,4 +147,13 @@ impl PointResult {
     pub fn inside(&self) -> bool {
         self.a.iters == u32::MAX
     }
+
+    /// Debug checker
+    #[cfg(not(target_arch = "spirv"))]
+    pub fn assert_no_subnormals(&self) {
+        assert!(self.iters_fraction().is_finite());
+        assert!(self.distance().is_finite());
+        assert!(self.angle().is_finite());
+        assert!(self.radius_sqr().is_finite());
+    }
 }

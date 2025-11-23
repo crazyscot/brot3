@@ -35,7 +35,7 @@ glam = { workspace = true }
 #image = { version = "0.25.8", features = ["png"], default-features = false }
 log = "0.4.28"
 mimalloc = "0.1.48"
-num-traits = { version = "0.2.19", default-features = false }
+num-traits = { workspace = true }
 shader = { path = "../shader" }
 shader_common = { path = "../shader_common" }
 strum = { version = "0.27.2", default-features = false, features = ["std"] }

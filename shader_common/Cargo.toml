@@ -26,7 +26,7 @@ abels-complex = { workspace = true, features = ["std", "glam"] }
 clap = { workspace = true, features = ["derive"] }
 glam = { workspace = true, features = ["bytemuck"] }
 num-derive = "0.4.2"
-num-traits = { version = "0.2.19", default-features = false }
+num-traits = { workspace = true }
 strum = { version = "0.27.2", default-features = false, features = ["derive"] }
 
 [lints.rust]

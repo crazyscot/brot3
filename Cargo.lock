@@ -3157,6 +3157,7 @@ dependencies = [
  "document-features",
  "float_eq",
  "glam",
+ "num-traits",
  "spirv-std",
 ]
 

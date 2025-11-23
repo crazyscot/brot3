@@ -292,6 +292,60 @@ mod tests {
         consts.viewport_translate = pt;
         let data = crate::fractal::render(&consts, pt);
         eprintln!("data: {data:?}");
+        data.assert_no_subnormals();
+        let result = super::colour_data(data, &consts, pixel_size);
+        eprintln!("result: {result:?}");
+        assert_eq!(result, Vec3Rgb::splat(0.));
+    }
+
+    #[test]
+    fn filaments2() {
+        use spirv_std::glam::{uvec2, Vec2};
+        let mut consts = FragmentConstants {
+            max_iter: 200,
+            palette: Palette::default()
+                .with_style(ColourStyle::None)
+                .with_brightness(Modifier::Filaments1),
+            size: uvec2(500, 500).into(),
+            ..Default::default()
+        };
+        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
+
+        // Origin (0,0), zoom 30 => the viewport is filled by the cardioid
+        consts.viewport_zoom = 30.0;
+        let pixel_size =
+            FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
+        let pt = Vec2::splat(0.1);
+        consts.viewport_translate = pt;
+        let data = crate::fractal::render(&consts, pt);
+        eprintln!("data: {data:?}");
+        data.assert_no_subnormals();
+        let result = super::colour_data(data, &consts, pixel_size);
+        eprintln!("result: {result:?}");
+        assert_eq!(result, Vec3Rgb::splat(1.));
+    }
+
+    #[test]
+    fn filaments3() {
+        use spirv_std::glam::{uvec2, vec2};
+        let mut consts = FragmentConstants {
+            max_iter: 200,
+            palette: Palette::default()
+                .with_style(ColourStyle::None)
+                .with_brightness(Modifier::Filaments1),
+            size: uvec2(500, 500).into(),
+            ..Default::default()
+        };
+        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
+
+        consts.viewport_zoom = 4.0;
+        let pixel_size =
+            FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
+        let pt = vec2(-0.8789, -0.23563);
+        consts.viewport_translate = pt;
+        let data = crate::fractal::render(&consts, pt);
+        eprintln!("data: {data:?}");
+        data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
         assert_eq!(result, Vec3Rgb::splat(0.));
