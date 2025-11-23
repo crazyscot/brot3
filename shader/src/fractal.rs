@@ -159,7 +159,8 @@ pub(crate) trait AlgorithmDetail<E: Exponentiator> {
         c: Complex,
         _iters: u32,
     ) -> (Complex /*z*/, Complex /*dz*/) {
-        let dz = e.derivative() * z * dz + 1.0;
+        let power = e.power().re;
+        let dz = power * z.powf(power - 1.0).to_rectangular() * dz + 1.0;
         let z = e.apply_to(z) + c;
         (z, dz)
     }
@@ -199,7 +200,8 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Celtic {
     ) -> (Complex, Complex) {
         // Based on mandelbrot, but using the formula:
         //   z := abs(re(z^2)) + i.im(z^2) + c
-        let dz = e.derivative() * z * dz + 1.0;
+        let power = e.power().re;
+        let dz = power * z.powf(power - 1.0).to_rectangular() * dz + 1.0;
         let zz = e.apply_to(z);
         let z2 = Complex {
             re: zz.re.abs(),
@@ -228,7 +230,8 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
         c: Complex,
         iters: u32,
     ) -> (Complex, Complex) {
-        let dz = e.derivative() * z * dz + 1.0;
+        let power = e.power().re;
+        let dz = power * z.powf(power - 1.0).to_rectangular() * dz + 1.0;
         let zz = e.apply_to(z);
         let z = if (iters % 2) == 1 {
             Complex {
@@ -274,6 +277,7 @@ mod tests {
         eprintln!("{result:?}");
         assert_eq!(result.iters_fraction(), 0.52201414);
     }
+
     #[test]
     fn mandelbrot_known_answer_cpow() {
         let point = crate::vec2(-0.75, 0.75);

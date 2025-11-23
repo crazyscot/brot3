@@ -294,7 +294,7 @@ mod tests {
         eprintln!("data: {data:?}");
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
-        assert_eq!(result, Vec3Rgb::new(0.0, 0., 0.));
+        assert_eq!(result, Vec3Rgb::splat(0.));
     }
 
     #[test]

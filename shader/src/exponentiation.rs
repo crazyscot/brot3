@@ -8,8 +8,8 @@ use spirv_std::num_traits::real::Real;
 
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;
-    /// For the function z := z^k + c, what is the derivative of the z^k term?
-    fn derivative(self) -> Complex;
+    /// For the function z := z^k + c, what is the power k so that we can compute the derivative?
+    fn power(self) -> Complex;
     /// What is the log2 of the exponent?
     fn log2(self) -> f32;
 }
@@ -38,7 +38,7 @@ impl Exponentiator for Exp2 {
         z * z
     }
     #[inline(always)]
-    fn derivative(self) -> Complex {
+    fn power(self) -> Complex {
         Complex { re: 2.0, im: 0.0 }
     }
     fn log2(self) -> f32 {
@@ -65,9 +65,9 @@ impl Exponentiator for ExpIntN {
         res
     }
     #[inline(always)]
-    fn derivative(self) -> Complex {
+    fn power(self) -> Complex {
         Complex {
-            re: self.0 as f32 - 1.0,
+            re: self.0 as f32,
             im: 0.0,
         }
     }
@@ -97,9 +97,9 @@ impl Exponentiator for ExpFloat {
         res
     }
     #[inline(always)]
-    fn derivative(self) -> Complex {
+    fn power(self) -> Complex {
         Complex {
-            re: self.0 - 1.0,
+            re: self.0,
             im: 0.0,
         }
     }
@@ -141,9 +141,9 @@ impl Exponentiator for ExpComplex {
         // (Sigh! The things we do on the GPU.)
     }
     #[inline(always)]
-    fn derivative(self) -> Complex {
+    fn power(self) -> Complex {
         Complex {
-            re: self.0.re - 1.0,
+            re: self.0.re,
             im: self.0.im,
         }
     }
@@ -276,19 +276,19 @@ mod tests {
     }
 
     #[test]
-    fn derivatives() {
-        assert_eq!(ExpIntN(2).derivative(), Complex::ONE);
-        assert_eq!(ExpIntN(1).derivative(), Complex::ZERO);
-        assert_eq!(ExpIntN(0).derivative(), -Complex::ONE);
-        assert_eq!(ExpFloat(3.0).derivative(), Complex::ONE * 2.0);
-        assert_eq!(ExpFloat(3.5).derivative(), Complex::ONE * 2.5);
+    fn powers() {
+        assert_eq!(ExpIntN(2).power(), Complex::ONE * 2.0);
+        assert_eq!(ExpIntN(1).power(), Complex::ONE);
+        assert_eq!(ExpIntN(0).power(), Complex::ZERO);
+        assert_eq!(ExpFloat(3.0).power(), Complex::ONE * 3.0);
+        assert_eq!(ExpFloat(3.5).power(), Complex::ONE * 3.5);
         assert_eq!(
-            ExpComplex(Complex::new(2.5, 0.0)).derivative(),
-            Complex::ONE * 1.5
+            ExpComplex(Complex::new(2.5, 0.0)).power(),
+            Complex::ONE * 2.5
         );
         assert_eq!(
-            ExpComplex(Complex::new(2.5, 3.0)).derivative(),
-            Complex::new(1.5, 3.0),
+            ExpComplex(Complex::new(2.5, 3.0)).power(),
+            Complex::new(2.5, 3.0),
         );
     }
 }
