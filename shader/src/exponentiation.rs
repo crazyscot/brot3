@@ -49,11 +49,20 @@ impl Exponentiator for Exp2 {
 impl Exponentiator for ExpIntN {
     #[inline(always)]
     fn apply_to(self, z: Complex) -> Complex {
-        if self.0 == 0 && z == Complex::ZERO {
-            // special case to align with ExpFloat and ExpComplex behaviour
-            return Complex::ZERO;
-        }
-        z.powi(self.0).to_rectangular()
+        // Special case to align with ExpFloat and ExpComplex behaviour
+        let special_case = (self.0 == 0 && z == Complex::ZERO) as u32 as f32;
+        // Set up `special_case` as a boolean float (0.0 false, 1.0 true).
+        // When the special case applies, change the input to be safe for the calculation that follows
+        let z_safe = Complex {
+            re: z.re + special_case,
+            im: z.im,
+        };
+        let mut res = z_safe.powi(self.0).to_rectangular();
+        // if the input was zero, return zero (by multiplying the output by zero - using special_case as a mask)
+        let keep = 1.0 - special_case;
+        res.re *= keep;
+        res.im *= keep;
+        res
     }
     #[inline(always)]
     fn derivative(self) -> Complex {
@@ -73,10 +82,19 @@ impl Exponentiator for ExpFloat {
     fn apply_to(self, z: Complex) -> Complex {
         // Special case as this seems to cause a shader abort on the GPU
         // when z==0.0... This isn't surprising as 0^0 is strictly undefined.
-        if self.0 == 0.0 && z == Complex::ZERO {
-            return Complex::ZERO;
-        }
-        z.powf(self.0).to_rectangular()
+        let special_case = (self.0 == 0.0 && z == Complex::ZERO) as u32 as f32;
+        // Set up `special_case` as a boolean float (0.0 false, 1.0 true).
+        // When the special case applies, change the input to be safe for the calculation that follows
+        let z_safe = Complex {
+            re: z.re + special_case,
+            im: z.im,
+        };
+        let mut res = z_safe.powf(self.0).to_rectangular();
+        // if the input was zero, return zero (by multiplying the output by zero - using special_case as a mask)
+        let keep = 1.0 - special_case;
+        res.re *= keep;
+        res.im *= keep;
+        res
     }
     #[inline(always)]
     fn derivative(self) -> Complex {
@@ -94,16 +112,33 @@ impl Exponentiator for ExpFloat {
 impl Exponentiator for ExpComplex {
     #[inline(always)]
     fn apply_to(self, z: Complex) -> Complex {
-        // special case as ln(0) is undefined
-        if z == Complex::ZERO {
-            return Complex::ZERO;
-        }
-        // special case to avoid breaking at 0^0 (undefined)
-        if self.0 == Complex::ZERO {
-            return Complex::ONE;
-        }
-        // function: z^p = e^(p ln(z))
-        (self.0 * z.ln()).exp().to_rectangular()
+        // Special case as ln(0) is undefined: force z to 1.0 in that case
+        let input_zero = (z == Complex::ZERO) as u32 as f32;
+        let z_safe = Complex {
+            re: z.re + input_zero,
+            im: z.im,
+        };
+
+        // Special case to avoid breaking at 0^0 (undefined).
+        // Another boolean-float that forces z_safe to be 1.0 in that case.
+        let power_zero = (self.0 == Complex::ZERO) as u32 as f32;
+        let power_safe = Complex {
+            re: self.0.re + power_zero,
+            im: self.0.im,
+        };
+
+        // basic function: z^p = e^(p ln(z))
+        let mut res = (power_safe * z_safe.ln()).exp().to_rectangular();
+
+        // But if either special case applied, multiply the output by zero.
+        // input zero? 0^x == 0, return zero.
+        // power zero? see below.
+        let keep = 1.0 - (power_zero + input_zero);
+        res.re *= keep;
+        res.im *= keep;
+        // If the power was zero, special case the result to 1.0
+        res + Complex::ONE * power_zero
+        // (Sigh! The things we do on the GPU.)
     }
     #[inline(always)]
     fn derivative(self) -> Complex {
@@ -132,6 +167,8 @@ impl From<PushExponent> for ExpComplex {
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
+    #![allow(clippy::cognitive_complexity)]
+
     use super::{Complex, Exp2, ExpComplex, ExpFloat, ExpIntN, Exponentiator};
     use float_eq::{assert_float_eq, float_ne};
     use pretty_assertions::assert_eq;
