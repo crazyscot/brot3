@@ -3,10 +3,15 @@
 use super::Complex;
 use shader_common::PushExponent;
 
+#[cfg(target_arch = "spirv")]
+use spirv_std::num_traits::real::Real;
+
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;
     /// For the function z := z^k + c, what is the derivative of the z^k term?
     fn derivative(self) -> Complex;
+    /// What is the log2 of the exponent?
+    fn log2(self) -> f32;
 }
 /// Special case for raising to the power 2
 #[derive(Copy, Clone, Debug)]
@@ -36,6 +41,9 @@ impl Exponentiator for Exp2 {
     fn derivative(self) -> Complex {
         Complex { re: 2.0, im: 0.0 }
     }
+    fn log2(self) -> f32 {
+        1.0
+    }
 }
 
 impl Exponentiator for ExpIntN {
@@ -53,6 +61,10 @@ impl Exponentiator for ExpIntN {
             re: self.0 as f32 - 1.0,
             im: 0.0,
         }
+    }
+    fn log2(self) -> f32 {
+        // special case to avoid divide-by-zero or log(0)
+        (self.0.abs().max(2) as f32).log2()
     }
 }
 
@@ -72,6 +84,10 @@ impl Exponentiator for ExpFloat {
             re: self.0 - 1.0,
             im: 0.0,
         }
+    }
+    fn log2(self) -> f32 {
+        // special case to avoid divide-by-zero or log(0)
+        self.0.abs().max(2.0).log2()
     }
 }
 
@@ -95,6 +111,12 @@ impl Exponentiator for ExpComplex {
             re: self.0.re - 1.0,
             im: self.0.im,
         }
+    }
+    fn log2(self) -> f32 {
+        // For now, we'll take abs(z) so we can compute a log in ℝ.
+        // c.abs().log() === (c.abs_sq() ^ 0.5).log() === 0.5 * c.abs_sq().log()
+        // For parity with Int and Floats, we'll special case where abs < 2 i.e. abs_sq < 4
+        self.0.abs_sq().max(4.0).log2() * 0.5
     }
 }
 

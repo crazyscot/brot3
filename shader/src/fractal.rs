@@ -94,8 +94,6 @@ where
     E: Exponentiator,
 {
     fn run(self) -> PointResult {
-        use shader_common::NumericType;
-
         let loglog2_escape_threshold: f32 = ESCAPE_THRESHOLD.log2().log2();
 
         let mut iters = 0;
@@ -127,32 +125,13 @@ where
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // The log(exponent) term is necessary for powers other than 2.
-        // Note that log2_exponent is not allowed to be 0 or subnormal (we divide by
-        // it below), so we special case those regions.
-        let exp = &self.constants.exponent;
-        let log2_exponent = match exp.typ {
-            NumericType::Integer if exp.int <= 2 => 1.0,
-            NumericType::Integer => (exp.int as f32).abs().log2(),
-            NumericType::Float if exp.real <= 2.0 => 1.0,
-            NumericType::Float => exp.real.abs().log2(),
-            NumericType::Complex => {
-                // For now, we'll take abs(z) so we can compute a log in ℝ.
-                // c.abs().log() === (c.abs_sq() ^ 0.5).log() === 0.5 * c.abs_sq().log()
-                let abssq = Complex::from(exp).abs_sq();
-                // For parity with Int and Floats, we'll special case where abs < 2 i.e. abs_sq < 4
-                if abssq <= 4.0 {
-                    1.0
-                } else {
-                    0.5 * abssq.log2()
-                }
-            }
-            _ => unimplemented!(),
-        };
+        // Note that the log of theexponent is not allowed to be 0 or subnormal (we divide by
+        // it below), so we special case those regions (in Exponentiator).
 
         // by the logarithm of a power law,
         // z.norm().log() === z.norm_sqr().log() * 0.5
         let log_zn = z.abs_sq().log2() * 0.5;
-        let smoothed_iters = 1. + loglog2_escape_threshold - log_zn.log2() / log2_exponent;
+        let smoothed_iters = 1. + loglog2_escape_threshold - log_zn.log2() / self.expo.log2();
 
         if norm_sqr < ESCAPE_THRESHOLD_SQ {
             iters = u32::MAX;
