@@ -28,7 +28,12 @@ use core::marker::PhantomData;
 
 pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
     use shader_common::{enums::Algorithm, NumericType};
-    let c = Complex::from(point);
+    let c = match constants.algorithm {
+        // Mandeldrop is the same as Mandelbrot but with a different c
+        Algorithm::Mandeldrop => Complex::from(point).recip(),
+        _ => Complex::from(point),
+    };
+
     macro_rules! builder {
         ($fractal:ident, $c_value:expr) => {{
             match constants.exponent.typ {
@@ -64,17 +69,7 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
             }
         }};
     }
-    match constants.algorithm {
-        Algorithm::Mandelbrot => builder!(Mandelbrot, c),
-        // Mandeldrop is the same algorithm but with a different c
-        Algorithm::Mandeldrop => builder!(Mandelbrot, c.recip()),
-        Algorithm::Mandelbar => builder!(Mandelbar, c),
-        Algorithm::BurningShip => builder!(BurningShip, c),
-        Algorithm::Celtic => builder!(Celtic, c),
-        Algorithm::Variant => builder!(Variant, c),
-        Algorithm::BirdOfPrey => builder!(BirdOfPrey, c),
-        _ => PointResult::DEFAULT,
-    }
+    builder!(MandelbrotFamily, c)
 }
 
 struct Runner<'a, F, E>
@@ -86,6 +81,58 @@ where
     algo: PhantomData<F>,
     expo: E,
     c: Complex,
+}
+
+/// Having a match expression in a hot loop hurts performance pretty badly,
+/// so we're reducing it down to some simple boolean decisions.
+#[derive(Default, Copy, Clone)]
+pub(crate) struct AlgorithmModifiers {
+    iter_re_abs: bool,
+    iter_re_variant: bool,
+
+    premod_re_abs: bool,
+    premod_im_abs: bool,
+    premod_im_conjugate: bool,
+}
+
+impl From<&FragmentConstants> for AlgorithmModifiers {
+    fn from(consts: &FragmentConstants) -> Self {
+        use shader_common::enums::Algorithm;
+
+        let mut rv = Self::default();
+
+        /* Point pre-modifiers:
+           Default is to do nothing
+           Mandelbar takes the complex conjugate of the point i.e. negates z.im
+           Burning Ship takes the abs of both parts of z
+           Bird of Prey takes the abs of z.im
+        */
+        match consts.algorithm {
+            Algorithm::Mandelbar => {
+                rv.premod_im_conjugate = true;
+            }
+            Algorithm::BirdOfPrey => {
+                rv.premod_im_abs = true;
+            }
+            Algorithm::BurningShip => {
+                rv.premod_re_abs = true;
+                rv.premod_im_abs = true;
+            }
+            _ => {}
+        }
+
+        /* Algorithm iteration modifiers:
+          Celtic applies abs() to z.re before adding c
+          Variant applies abs() to z.re before adding c IFF iters is odd.
+          Otherwise use z.re unmodified.
+        */
+        match consts.algorithm {
+            Algorithm::Celtic => rv.iter_re_abs = true,
+            Algorithm::Variant => rv.iter_re_variant = true,
+            _ => (),
+        }
+        rv
+    }
 }
 
 impl<F, E> Runner<'_, F, E>
@@ -107,11 +154,13 @@ where
         deprintln!("DBG: run for c={:?}", self.c);
         // TODO: Cardoid and period-2 bulb checks in original?
 
+        let iterate_params = AlgorithmModifiers::from(self.constants);
+
         while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
-            F::pre_modify_point(&mut z);
+            F::pre_modify_point(&mut z, iterate_params);
             prev_z = z;
             prev_norm_sqr = norm_sqr;
-            (z, dz) = F::iterate_algorithm(z, dz, self.expo, self.c, iters);
+            (z, dz) = F::iterate_algorithm(z, dz, self.expo, self.c, iters, iterate_params);
             iters += 1;
             norm_sqr = z.abs_sq();
             deprintln!("DBG: iters={iters}, z={z}, dz={dz}, |z|^2={norm_sqr}");
@@ -145,7 +194,9 @@ pub(crate) trait AlgorithmDetail<E: Exponentiator> {
     ///
     /// Override as necessary.
     #[inline(always)]
-    fn pre_modify_point(_z: &mut Complex) {}
+    fn pre_modify_point(z: &mut Complex, params: AlgorithmModifiers) {
+        mandelbrot_family_pre_modify_point(z, params);
+    }
 
     /// One iteration of the fractal algorithm.
     ///
@@ -157,71 +208,67 @@ pub(crate) trait AlgorithmDetail<E: Exponentiator> {
         dz: Complex,
         e: E,
         c: Complex,
-        _iters: u32,
+        iters: u32,
+        params: AlgorithmModifiers,
     ) -> (Complex /*z*/, Complex /*dz*/) {
-        let power = e.power().re;
-        let dz = power * z.powf(power - 1.0).to_rectangular() * dz + 1.0;
-        let z = e.apply_to(z) + c;
-        (z, dz)
+        mandelbrot_family_iterate_algorithm(z, dz, e, c, iters, params)
     }
 }
 
-struct Mandelbrot {}
-impl<E: Exponentiator> AlgorithmDetail<E> for Mandelbrot {}
+// returns (z, dz)
+fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
+    z: Complex,
+    dz: Complex,
+    e: E,
+    c: Complex,
+    iters: u32,
+    par: AlgorithmModifiers,
+) -> (Complex, Complex) {
+    let power = e.power().re;
+    let dz = power * z.powf(power - 1.0).to_rectangular() * dz + 1.0;
+    let mut z = e.apply_to(z);
+    // Algorithm difference here:
+    // Celtic uses z_re_abs instead of z_re.
+    // Variant may or may not take z_re_abs depending on the iters count.
+    let z_re = z.re;
+    let z_re_abs = z_re.abs();
+    let is_odd = !iters.is_multiple_of(2);
 
-struct Mandelbar {}
-impl<E: Exponentiator> AlgorithmDetail<E> for Mandelbar {
-    // Same as mandelbrot, but conjugate c each time
-    #[inline(always)]
-    fn pre_modify_point(z: &mut super::Complex) {
-        *z = z.conjugate();
-    }
+    let use_z_re_abs = par.iter_re_abs || (par.iter_re_variant && is_odd);
+
+    // Now bring it all together:
+    z.re = if use_z_re_abs { z_re_abs } else { z_re };
+    (z + c, dz)
 }
 
-struct BurningShip {}
-impl<E: Exponentiator> AlgorithmDetail<E> for BurningShip {
-    // Same as mandelbrot, but take abs(re) and abs(im) each time
-    #[inline(always)]
-    fn pre_modify_point(z: &mut super::Complex) {
+fn mandelbrot_family_pre_modify_point(z: &mut super::Complex, params: AlgorithmModifiers) {
+    let abs_im = z.im.abs();
+    let conj_im = -z.im;
+
+    // Algorithm differences here:
+    // Mandelbar conjugates i.e. negates the imaginary part
+    // BirdOfPrey applies abs() to the imaginary part
+    // Burning Ship applies abs() to both parts
+
+    if params.premod_re_abs {
         z.re = z.re.abs();
-        z.im = z.im.abs();
     }
+    z.im = if params.premod_im_abs {
+        abs_im
+    } else if params.premod_im_conjugate {
+        conj_im
+    } else {
+        z.im
+    };
 }
 
-struct Celtic {}
-impl<E: Exponentiator> AlgorithmDetail<E> for Celtic {
+struct MandelbrotFamily {}
+impl<E: Exponentiator> AlgorithmDetail<E> for MandelbrotFamily {
     #[inline(always)]
-    fn iterate_algorithm(
-        z: Complex,
-        dz: Complex,
-        e: E,
-        c: Complex,
-        _iters: u32,
-    ) -> (Complex, Complex) {
-        // Based on mandelbrot, but using the formula:
-        //   z := abs(re(z^2)) + i.im(z^2) + c
-        let power = e.power().re;
-        let dz = power * z.powf(power - 1.0).to_rectangular() * dz + 1.0;
-        let zz = e.apply_to(z);
-        let z2 = Complex {
-            re: zz.re.abs(),
-            im: zz.im,
-        };
-        (z2 + c, dz)
+    fn pre_modify_point(z: &mut Complex, params: AlgorithmModifiers) {
+        mandelbrot_family_pre_modify_point(z, params);
     }
-}
 
-struct BirdOfPrey {}
-impl<E: Exponentiator> AlgorithmDetail<E> for BirdOfPrey {
-    // Same as mandelbrot, but take abs(im) each time
-    #[inline(always)]
-    fn pre_modify_point(z: &mut super::Complex) {
-        z.im = z.im.abs();
-    }
-}
-
-struct Variant {}
-impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
     #[inline(always)]
     fn iterate_algorithm(
         z: Complex,
@@ -229,25 +276,17 @@ impl<E: Exponentiator> AlgorithmDetail<E> for Variant {
         e: E,
         c: Complex,
         iters: u32,
-    ) -> (Complex, Complex) {
-        let power = e.power().re;
-        let dz = power * z.powf(power - 1.0).to_rectangular() * dz + 1.0;
-        let zz = e.apply_to(z);
-        let z = if (iters % 2) == 1 {
-            Complex {
-                re: zz.re.abs() + c.re,
-                im: zz.im + c.im,
-            }
-        } else {
-            zz + c
-        };
-        (z, dz)
+        params: AlgorithmModifiers,
+    ) -> (Complex /*z*/, Complex /*dz*/) {
+        mandelbrot_family_iterate_algorithm(z, dz, e, c, iters, params)
     }
 }
 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
+    #![allow(clippy::cognitive_complexity)]
+
     use crate::{fractal, vec2, FragmentConstants, Vec2};
     use const_default::ConstDefault as _;
     use shader_common::{enums::Algorithm, Flags, NumericType, Palette, PushExponent};
@@ -289,5 +328,15 @@ mod tests {
         let result = fractal::render(&consts, point);
         eprintln!("{result:?}");
         assert_eq!(result.iters_fraction(), 0.5220146);
+    }
+
+    #[test]
+    fn variant_correctness() {
+        let point = crate::vec2(-0.75, 0.75);
+        let mut consts = test_frag_consts();
+        consts.algorithm = Algorithm::Variant;
+        // Variant has a debug_assert! consistency check
+        let result = fractal::render(&consts, point);
+        eprintln!("{result:?}");
     }
 }
