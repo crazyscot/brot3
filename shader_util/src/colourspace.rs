@@ -152,32 +152,37 @@ impl From<Rgb> for Hsl {
         let max = r.max(g.max(b));
         let min = r.min(g.min(b));
         let l = (max + min) * 0.5;
-        if float_eq!(max, min, abs <= 0.000_001) {
-            Self {
-                h: 0.,
-                s: 0.,
-                l: l * 100.,
-            }
+
+        let is_gray = float_eq!(max, min, abs <= 0.000_001);
+
+        // saturation (taking care not to divide by zero)
+        let d = max - min;
+        let s_denom = if l > 0.5 { 2.0 - max - min } else { max + min };
+        let s_general = (d / s_denom).max(0.0); // if we just divided by zero, max gets rid of the NaN
+        let s = if is_gray { 0.0 } else { s_general * 100.0 };
+
+        // compute hue components safely: avoid dividing by zero by substituting 1.0 when chroma == 0
+        #[allow(clippy::cast_precision_loss)]
+        let safe_d = if is_gray { 1.0 } else { d };
+        let t = if g < b { 6.0 } else { 0.0 };
+        let h_r = ((g - b) / safe_d + t) * 60.0;
+        let h_g = ((b - r) / safe_d + 2.0) * 60.0;
+        let h_b = ((r - g) / safe_d + 4.0) * 60.0;
+
+        // priority-preserving selection for which channel is max (r wins if tied)
+        #[allow(clippy::cast_precision_loss)]
+        let mr = u32::from(float_eq!(max, r, abs <= 0.000_001)) as f32;
+        let mg = if float_eq!(max, g, abs <= 0.000_001) {
+            1.0 - mr
         } else {
-            let d = max - min;
-            let s = if l > 0.5 {
-                d / (2.0 - max - min)
-            } else {
-                d / (max + min)
-            };
-            let h = if float_eq!(max, r, abs <= 0.000_001) {
-                (g - b) / d + if g < b { 6.0 } else { 0.0 }
-            } else if float_eq!(max, g, abs <= 0.000_001) {
-                (b - r) / d + 2.0
-            } else {
-                (r - g) / d + 4.0
-            } * 60.0;
-            Self {
-                h,
-                s: s * 100.,
-                l: l * 100.,
-            }
-        }
+            0.0
+        };
+        let mb = 1.0 - mr - mg;
+
+        let h_general = h_r * mr + h_g * mg + h_b * mb;
+        let h = if is_gray { 0.0 } else { h_general };
+
+        Self { h, s, l: l * 100.0 }
     }
 }
 
@@ -243,7 +248,16 @@ const fn matvecmul(m: &[[f32; 3]; 3], x: [f32; 3]) -> [f32; 3] {
     ]
 }
 
-const KAPPA: f32 = 24389. / 27.;
+fn pivot(value: f32) -> f32 {
+    const KAPPA: f32 = 24389. / 27.;
+    // This is EPSILON.cbrt() but that function isn't const (yet)
+    const EPSILON_CBRT: f32 = 0.206_896_56;
+    if value > EPSILON_CBRT {
+        value * value * value
+    } else {
+        (116. / KAPPA) * value - (16. / KAPPA)
+    }
+}
 
 impl From<Lab> for Vec3Rgb {
     fn from(value: Lab) -> Self {
@@ -252,16 +266,7 @@ impl From<Lab> for Vec3Rgb {
         let f1 = l * (1. / 116.) + (16. / 116.);
         let f0 = a * (1. / 500.) + f1;
         let f2 = f1 - b * (1. / 200.);
-        let cbrt = |value| {
-            // This is EPSILON.cbrt() but that function isn't const (yet)
-            const EPSILON_CBRT: f32 = 0.206_896_56;
-            if value > EPSILON_CBRT {
-                value * value * value
-            } else {
-                (116. / KAPPA) * value - (16. / KAPPA)
-            }
-        };
-        let xyz = [cbrt(f0), cbrt(f1), cbrt(f2)];
+        let xyz = [pivot(f0), pivot(f1), pivot(f2)];
         matvecmul(&LAB_XYZ_TO_SRGB, xyz).into()
     }
 }
@@ -293,7 +298,7 @@ mod tests {
         assert!(rgb.g >= 0.0 && rgb.g <= 255.0);
         assert!(rgb.b >= 0.0 && rgb.b <= 255.0);
         let hsl2: Hsl = rgb.into();
-        assert_eq!(hsl, hsl2);
+        assert_eq!(hsl, hsl2, "failing case: {hsl:?}");
     }
     #[test]
     fn hsl_rgb_tests() {
