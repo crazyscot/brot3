@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 use shader_common::enums::{Algorithm, Colourer};
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, clap::Parser, Clone, Default)]
 pub(crate) struct Args {
     #[arg(short = 'V', long, help = "Print version")]
@@ -21,7 +22,7 @@ pub(crate) struct Args {
     #[cfg(we_compile)]
     #[arg(long)]
     /// Specifies the path to the the SPIRV tools library, if needed
-    /// (librustc_codegen_spirv.so, librustc_codegen_spirv.dylib, rustc_codegen_spirv.dll)
+    /// (`librustc_codegen_spirv.so`, `librustc_codegen_spirv.dylib`, `rustc_codegen_spirv.dll`)
     ///
     /// This is only required when the tools library is not on your shared library/DLL search path.
     /// It works best with absolute paths.

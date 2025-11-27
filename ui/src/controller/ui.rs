@@ -57,6 +57,7 @@ impl super::Controller {
         let dt = self.last_instant.elapsed().as_secs_f64();
         self.last_instant = Instant::now();
         let factor = self.modifier_key_factor();
+        #[allow(clippy::cast_possible_truncation)]
         let factor32 = factor as f32;
         let movement = &mut self.movement;
         if movement.zoom != 0.0 {
@@ -73,6 +74,7 @@ impl super::Controller {
             if self.exponent.real != new_exp {
                 self.reiterate = true;
                 self.exponent.real = new_exp;
+                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
                 if self.exponent.is_integer() {
                     self.exponent.int = self.exponent.real.round() as u32;
                 }

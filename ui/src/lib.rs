@@ -1,3 +1,5 @@
+//! UI and main entrypoint for brot3
+
 #![allow(clippy::single_match)]
 
 #[cfg(wasm)]
@@ -5,9 +7,20 @@ use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
 mod cli;
 mod controller;
-mod widgets;
+pub mod widgets;
 
 use clap::Parser;
+
+#[cfg(we_compile)]
+use std::path::PathBuf;
+
+// CAUTION: Hard-wired paths
+/// The relative path to the shader crate, from the point of view of the ui crate
+#[cfg(we_compile)]
+const CARGO_SHADER_RELATIVE_PATH: &str = "../shader";
+/// Where to look for the shader at runtime, if we're not running under cargo and no path was given
+#[cfg(we_compile)]
+const CANDIDATE_SHADER_PATHS: &[&str] = &["./shader", "../shader"];
 
 pub(crate) mod version;
 use version::version_string;
@@ -28,6 +41,7 @@ fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
     }
 }
 
+/// Main CLI entrypoint
 #[cfg_attr(wasm, wasm_bindgen(start))]
 pub fn main() -> anyhow::Result<()> {
     easy_shader_runner::setup_logging();
@@ -41,13 +55,6 @@ pub fn main() -> anyhow::Result<()> {
         .esc_key_exits(false);
     cfg_if::cfg_if! {
         if #[cfg(we_compile)] {
-            use std::path::PathBuf;
-
-            // CAUTION: Hard-wired paths
-            /// The relative path to the shader crate, from the point of view of the ui crate
-            const CARGO_SHADER_RELATIVE_PATH: &str = "../shader";
-            /// Where to look for the shader at runtime, if we're not running under cargo and no path was given
-            const CANDIDATE_SHADER_PATHS: &[&str] = &["./shader", "../shader"];
 
             let manifest = std::env::var("CARGO_MANIFEST_DIR");
             let relative_to_manifest = manifest.is_ok();
@@ -72,7 +79,7 @@ pub fn main() -> anyhow::Result<()> {
                 if let Some(path) = args.shader.as_ref() {
                     if !is_directory(path) {
                         // If given, an explicit shader directory must be present
-                        anyhow::bail!("Shader directory {path:?} not found");
+                        anyhow::bail!("Shader directory {} not found", path.display());
                     }
                     shader_path = args.shader;
                 } else if !args.static_shader {
@@ -92,7 +99,7 @@ pub fn main() -> anyhow::Result<()> {
             if let Some(ref tp) = args.spirv_tools
                 && !is_file(tp)
             {
-                anyhow::bail!("SPIRV tools {tp:?} not found");
+                anyhow::bail!("SPIRV tools {} not found", tp.display());
             }
             if let Some(path) = shader_path
                 && !args.static_shader

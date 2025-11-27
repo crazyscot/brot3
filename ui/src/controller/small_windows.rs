@@ -12,6 +12,7 @@ impl super::Controller {
             return;
         }
         // Bottom centre of window
+        #[allow(clippy::cast_precision_loss)]
         let pos = ((self.size.x / 2) as f32, (self.size.y - 10) as f32);
 
         let mut bar = egui::Area::new(egui::Id::new("scalebar"))

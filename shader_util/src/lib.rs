@@ -17,14 +17,6 @@ pub use glam::{uvec2, vec2, DVec2, UVec2, Vec2, Vec3};
 /// Re-exported from [`glam`].
 pub use spirv_std::glam::{uvec2, vec2, DVec2, UVec2, Vec2, Vec3};
 
-/// Arbitrary precision versions of `Complex` and `Vec2`.
-/// **Only available on non-GPU builds** and gated by the `big` feature flag.
-#[cfg(all(feature = "big", not(target_arch = "spirv")))]
-pub mod big {
-    pub use super::big_complex::BigComplex;
-    pub use super::big_vec2::BigVec2;
-}
-
 pub mod colourspace;
 
 use bytemuck::NoUninit;

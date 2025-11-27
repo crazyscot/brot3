@@ -7,12 +7,8 @@ use easy_shader_runner::egui::{
     Shape, TextStyle, Ui, Vec2, Widget, WidgetInfo, WidgetType,
 };
 
-/*
-This is basically a Button
-- whose contents are a checkbox
-- with accelerator text
- */
-
+/// A type of Button whose contents are a checkbox, and that has accelerator text.
+#[allow(missing_debug_implementations)]
 pub struct CheckableButton<'a> {
     checked: &'a mut bool,
     atoms: AtomLayout<'a>,
@@ -20,6 +16,7 @@ pub struct CheckableButton<'a> {
 }
 
 impl<'a> CheckableButton<'a> {
+    /// Constructor
     pub fn new(checked: &'a mut bool, label: impl IntoAtoms<'a>) -> Self {
         let mut cb = CheckableButton {
             checked,
@@ -31,10 +28,14 @@ impl<'a> CheckableButton<'a> {
         cb.atoms.push_right(Atom::grow());
         cb
     }
+    /// Mutator: Sets minimum size
+    #[must_use]
     pub fn min_size(mut self, min_size: Vec2) -> Self {
         self.min_size = min_size;
         self
     }
+    /// Mutator: Adds shortcut text
+    #[must_use]
     pub fn shortcut_text(mut self, shortcut_text: impl Into<Atom<'a>>) -> Self {
         let mut atom = shortcut_text.into();
         atom.kind = match atom.kind {
@@ -47,7 +48,7 @@ impl<'a> CheckableButton<'a> {
     }
 }
 
-impl<'a> Widget for CheckableButton<'a> {
+impl Widget for CheckableButton<'_> {
     fn ui(self, ui: &mut Ui) -> Response {
         let CheckableButton {
             checked,
@@ -115,7 +116,7 @@ impl<'a> Widget for CheckableButton<'a> {
 
             if let Some(rect) = response.rect(rect_id) {
                 let (small_icon_rect, big_icon_rect) = ui.spacing().icon_rectangles(rect);
-                ui.painter().add(epaint::RectShape::new(
+                let _ = ui.painter().add(epaint::RectShape::new(
                     big_icon_rect.expand(visuals.expansion),
                     visuals.corner_radius,
                     visuals.bg_fill,
@@ -125,7 +126,7 @@ impl<'a> Widget for CheckableButton<'a> {
 
                 if *checked {
                     // Check mark:
-                    ui.painter().add(Shape::line(
+                    let _ = ui.painter().add(Shape::line(
                         vec![
                             pos2(small_icon_rect.left(), small_icon_rect.center().y),
                             pos2(small_icon_rect.center().x, small_icon_rect.bottom()),
