@@ -7,7 +7,7 @@ use divan::black_box;
 use shader::exponentiation::{Exp2, ExpFloat, ExpIntN, Exponentiator as _};
 use shader_common::enums::{Algorithm, Colourer};
 use shader_common::{data::PointResult, Flags, FragmentConstants, Palette, PushExponent};
-use shader_util::{vec2, Size, Vec2, Vec3};
+use shader_util::{colourspace::RgbVec, vec2, Size, Vec2};
 use strum::VariantArray as _;
 
 use shader_common::Complex;
@@ -36,7 +36,7 @@ fn fractal(alg: Algorithm) -> PointResult {
 }
 
 #[divan::bench(args = Colourer::VARIANTS)]
-fn colour(col: Colourer) -> Vec3 {
+fn colour(col: Colourer) -> RgbVec {
     let consts = FragmentConstants {
         flags: Flags::NEEDS_REITERATE,
         viewport_translate: vec2(0., 0.),

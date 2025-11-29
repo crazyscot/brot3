@@ -17,15 +17,11 @@ use spirv_std::num_traits::real::Real;
 
 use core::f32::consts::TAU;
 use shader_common::enums::Modifier;
-use shader_util::colourspace::{Hsl, Lch, Rgb, Vec3Rgb};
+use shader_util::colourspace::{Hsl, Lch, RgbVec};
 
-use super::{vec3, FragmentConstants, PointResult};
+use super::{FragmentConstants, PointResult};
 
-pub fn colour_data(
-    data: PointResult,
-    constants: &FragmentConstants,
-    pixel_spacing: f32,
-) -> Vec3Rgb {
+pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
     let iters = data.iters(constants.palette.colour_style);
     use shader_common::enums::Colourer as C;
     let mut hsl = match constants.palette.colourer {
@@ -133,11 +129,11 @@ fn white_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
     if iters < 0.0 {
         Hsl::WHITE
     } else {
-        Rgb::from(vec3(
+        RgbVec::from([
             (iters * 2.0 * grad + off).cos() * 0.5 + 0.5,
             (iters * 1.5 * grad + off).cos() * 0.5 + 0.5,
             (iters * 1.0 * grad + off).cos() * 0.5 + 0.5,
-        ))
+        ])
         .into()
     }
 }
@@ -155,11 +151,11 @@ fn black_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
     if iters < 0.0 {
         Hsl::BLACK
     } else {
-        Rgb::from(vec3(
+        RgbVec::from([
             0.5 - (iters * 1.0 * grad + off).cos() * 0.5,
             0.5 - (iters * 2.0 * grad + off).cos() * 0.5,
             0.5 - (iters * 3.0 * grad + off).cos() * 0.5,
-        ))
+        ])
         .into()
     }
 }
@@ -173,11 +169,11 @@ fn one_lone_coder(constants: &FragmentConstants, iters: f32, pixel: &PointResult
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
-    Rgb::from(vec3(
+    RgbVec::from([
         (0.1 * grad * iters + off).sin() * 0.5 + 0.5,
         (0.1 * grad * iters + off + 2.094).sin() * 0.5 + 0.5,
         (0.1 * grad * iters + off + 4.188).sin() * 0.5 + 0.5,
-    ))
+    ])
     .into()
 }
 
@@ -213,19 +209,19 @@ fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{PointResult, Vec3Rgb};
+    use super::{PointResult, RgbVec};
     use crate::Vec3;
     use float_eq::float_eq;
     use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
     use shader_common::{FragmentConstants, Palette};
 
-    macro_rules! assert_vec3_eq {
+    macro_rules! assert_rgbvec_eq {
         ($a:expr, $b:expr) => {
             assert!(
-                float_eq!($a.x, $b.x, abs <= 0.000_04)
-                    && float_eq!($a.y, $b.y, abs <= 0.000_04)
-                    && float_eq!($a.z, $b.z, abs <= 0.000_04),
-                "float mismatch: {} != {}",
+                float_eq!($a.0.x, $b.0.x, abs <= 0.000_04)
+                    && float_eq!($a.0.y, $b.0.y, abs <= 0.000_04)
+                    && float_eq!($a.0.z, $b.0.z, abs <= 0.000_04),
+                "float mismatch: {:?} != {:?}",
                 $a,
                 $b
             );
@@ -236,8 +232,8 @@ mod tests {
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
         let data = PointResult::new_outside(100, 0.0, 1.0, 0., 0.);
-        let expected = Vec3Rgb::from([0.3247156, 1., 0.]);
-        assert_vec3_eq!(expected, super::colour_data(data, &consts, 0.0));
+        let expected = RgbVec::from([0.3247156, 1., 0.]);
+        assert_rgbvec_eq!(expected, super::colour_data(data, &consts, 0.0));
     }
 
     #[test]
@@ -251,9 +247,9 @@ mod tests {
         };
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
         let data = PointResult::new_outside(5, 0.31876, 1.0, 0., 0.);
-        let expected = Vec3Rgb::from([1., 0.7824273, 0.]);
+        let expected = RgbVec::from([1., 0.7824273, 0.]);
         let result = super::colour_data(data, &consts, 0.0);
-        assert_vec3_eq!(result, expected);
+        assert_rgbvec_eq!(result, expected);
     }
 
     #[test]
@@ -265,9 +261,9 @@ mod tests {
         };
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
         let data = PointResult::new_outside(10, 0.31876, 1.0, 0., 0.);
-        let expected = Vec3Rgb::from([0.47777647, 0.03193772, 0.1543931]);
+        let expected = RgbVec::from([0.47777647, 0.03193772, 0.1543931]);
         let result = super::colour_data(data, &consts, 0.0);
-        assert_vec3_eq!(result, expected);
+        assert_rgbvec_eq!(result, expected);
     }
 
     #[test]
@@ -293,7 +289,7 @@ mod tests {
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
-        assert_eq!(result, Vec3Rgb::splat(0.));
+        assert_eq!(result, RgbVec::BLACK);
     }
 
     #[test]
@@ -320,7 +316,7 @@ mod tests {
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
-        assert_eq!(result, Vec3Rgb::splat(1.));
+        assert_eq!(result, RgbVec::WHITE);
     }
 
     #[test]
@@ -346,7 +342,7 @@ mod tests {
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
-        assert_eq!(result, Vec3Rgb::splat(0.));
+        assert_eq!(result, RgbVec::BLACK);
     }
 
     #[test]
@@ -371,6 +367,6 @@ mod tests {
         eprintln!("data: {data:?}");
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
-        assert_eq!(result, Vec3::splat(0.3254935));
+        assert_eq!(result, Vec3::splat(0.3254935).into());
     }
 }

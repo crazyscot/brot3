@@ -4,6 +4,7 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
+#[allow(unused_imports)] // Some are reused in some configurations
 use spirv_std::glam::{f32, vec2, vec3, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
@@ -11,6 +12,7 @@ use shader_common::{
     data::{PointResult, PointResultA, PointResultB},
     Flags, FragmentConstants, GRID_SIZE,
 };
+use shader_util::colourspace::RgbVec;
 use shader_util::grid::{GridRef, GridRefMut};
 
 pub use shader_common::{Complex, INSPECTOR_MARKER_SIZE};
@@ -68,13 +70,14 @@ pub fn main_fs(
         // New York distance from the reference point draws a diamond shape
         let dist = new_york_distance(constants.inspector_point_pixel_address, coord);
         if dist < INSPECTOR_MARKER_SIZE * 0.667 {
-            colour = Vec3::splat(0.0); // TODO Do something better here? Change pixels underneath?
+            // TODO Do something better here? Change pixels underneath?
+            colour = RgbVec::BLACK;
         } else if dist < INSPECTOR_MARKER_SIZE {
-            colour = Vec3::splat(1.0);
+            colour = RgbVec::WHITE;
         }
     }
 
-    *output = colour.extend(1.0);
+    *output = colour.0.extend(1.0);
 }
 
 /// SPIRV `vertex` entrypoint.

@@ -5,46 +5,29 @@ use spirv_std::num_traits::real::Real;
 
 use float_eq::float_eq;
 
+use super::Vec3;
+
 /// RGB colour space.
 ///
 /// Each component is in the range (0.0, 1.0).
 ///
-pub use super::Vec3 as Vec3Rgb;
-
-/// RGB colour space representation
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Rgb {
-    /// Red component (range 0..255)
-    pub r: f32,
-    /// Green component (range 0..255)
-    pub g: f32,
-    /// Blue component (range 0..255)
-    pub b: f32,
-}
-impl Rgb {
-    #[must_use]
-    #[allow(missing_docs)]
-    pub fn new(r: f32, g: f32, b: f32) -> Self {
-        Self { r, g, b }
-    }
+pub struct RgbVec(pub Vec3);
+
+#[allow(missing_docs)]
+impl RgbVec {
+    pub const BLACK: RgbVec = RgbVec(Vec3::splat(0.0));
+    pub const WHITE: RgbVec = RgbVec(Vec3::splat(1.0));
 }
 
-impl From<Rgb> for Vec3Rgb {
-    fn from(value: Rgb) -> Self {
-        Self {
-            x: value.r / 255.0,
-            y: value.g / 255.0,
-            z: value.b / 255.0,
-        }
+impl From<[f32; 3]> for RgbVec {
+    fn from(value: [f32; 3]) -> Self {
+        Self(Vec3::from(value))
     }
 }
-impl From<Vec3Rgb> for Rgb {
-    fn from(value: Vec3Rgb) -> Self {
-        Self {
-            r: value.x * 255.0,
-            g: value.y * 255.0,
-            b: value.z * 255.0,
-        }
+impl From<Vec3> for RgbVec {
+    fn from(value: Vec3) -> Self {
+        Self(value)
     }
 }
 
@@ -83,7 +66,7 @@ impl PartialEq for Hsl {
     }
 }
 
-impl From<Hsl> for Vec3Rgb {
+impl From<Hsl> for RgbVec {
     fn from(value: Hsl) -> Self {
         // this algorithm is based on CSS Color 4 section 7.1 and cribbed from the color crate
         // (sadly, the color crate does not currently function in the rust-gpu environment)
@@ -96,36 +79,14 @@ impl From<Hsl> for Vec3Rgb {
             light - a * (k - 3.0).min(9.0 - k).clamp(-1.0, 1.0)
         };
         let [x, y, z] = [hue_component(0.), hue_component(8.), hue_component(4.)];
-        Self { x, y, z }
+        Self(Vec3 { x, y, z })
     }
 }
 
-impl From<Hsl> for Rgb {
-    fn from(value: Hsl) -> Self {
-        // this algorithm is based on CSS Color 4 section 7.1 and cribbed from the color crate
-        // (sadly, the color crate does not currently function in the rust-gpu environment)
-        let sat = value.s * 0.01;
-        let light = value.l * 0.01;
-        let a = sat * light.min(1.0 - light);
-        let hue_component = |n: f32| {
-            let x = n + value.h * (1.0 / 30.0);
-            let k = x - 12.0 * (x * (1.0 / 12.0)).floor();
-            light - a * (k - 3.0).min(9.0 - k).clamp(-1.0, 1.0)
-        };
-        Self {
-            r: 255.0 * hue_component(0.),
-            g: 255.0 * hue_component(8.),
-            b: 255.0 * hue_component(4.),
-        }
-    }
-}
-
-impl From<Rgb> for Hsl {
-    fn from(value: Rgb) -> Self {
+impl From<RgbVec> for Hsl {
+    fn from(value: RgbVec) -> Self {
         #![allow(clippy::many_single_char_names)]
-        let r = value.r / 255.0;
-        let g = value.g / 255.0;
-        let b = value.b / 255.0;
+        let RgbVec(Vec3 { x: r, y: g, z: b }) = value;
         let max = r.max(g.max(b));
         let min = r.min(g.min(b));
         let l = (max + min) * 0.5;
@@ -236,7 +197,7 @@ fn pivot(value: f32) -> f32 {
     }
 }
 
-impl From<Lab> for Vec3Rgb {
+impl From<Lab> for RgbVec {
     fn from(value: Lab) -> Self {
         // Adapted to SPIRV from <https://docs.rs/color/0.3.2/src/color/colorspace.rs.html>
         let Lab { l, a, b } = value;
@@ -244,22 +205,21 @@ impl From<Lab> for Vec3Rgb {
         let f0 = a * (1. / 500.) + f1;
         let f2 = f1 - b * (1. / 200.);
         let xyz = [pivot(f0), pivot(f1), pivot(f2)];
-        matvecmul(&LAB_XYZ_TO_SRGB, xyz).into()
+        Self(Vec3::from(matvecmul(&LAB_XYZ_TO_SRGB, xyz)))
     }
 }
 
-impl From<Lch> for Vec3Rgb {
+impl From<Lch> for RgbVec {
     fn from(value: Lch) -> Self {
         let lab: Lab = value.into();
-        let unclamped: Vec3Rgb = lab.into();
-        unclamped.clamp(Vec3Rgb::ZERO, Vec3Rgb::ONE)
+        let unclamped: RgbVec = lab.into();
+        Self(unclamped.0.clamp(Vec3::ZERO, Vec3::ONE))
     }
 }
 
 impl From<Lch> for Hsl {
     fn from(lch: Lch) -> Self {
-        let vrgb: Vec3Rgb = lch.into();
-        let rgb: Rgb = vrgb.into();
+        let rgb: RgbVec = lch.into();
         rgb.into()
     }
 }
@@ -267,13 +227,13 @@ impl From<Lch> for Hsl {
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{Hsl, Rgb};
+    use super::{Hsl, RgbVec};
 
     fn hsl_rgb_case(hsl: Hsl) {
-        let rgb: Rgb = hsl.into();
-        assert!(rgb.r >= 0.0 && rgb.r <= 255.0);
-        assert!(rgb.g >= 0.0 && rgb.g <= 255.0);
-        assert!(rgb.b >= 0.0 && rgb.b <= 255.0);
+        let rgb: RgbVec = hsl.into();
+        assert!(rgb.0.x >= 0.0 && rgb.0.x <= 1.0);
+        assert!(rgb.0.y >= 0.0 && rgb.0.y <= 1.0);
+        assert!(rgb.0.z >= 0.0 && rgb.0.z <= 1.0);
         let hsl2: Hsl = rgb.into();
         assert_eq!(hsl, hsl2, "failing case: {hsl:?}");
     }
