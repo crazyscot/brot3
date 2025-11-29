@@ -11,29 +11,6 @@ use float_eq::float_eq;
 ///
 pub use super::Vec3 as Vec3Rgb;
 
-/// Clamps values to the range (0.0, 1.0)
-trait Clamp01 {
-    /// Clamps a value to the range (0.0, 1.0)
-    ///
-    /// Returns the clamped value
-    fn clamp01(&self) -> Self;
-}
-
-impl Clamp01 for Vec3Rgb {
-    fn clamp01(&self) -> Self {
-        Self {
-            x: self.x.clamp01(),
-            y: self.y.clamp01(),
-            z: self.z.clamp01(),
-        }
-    }
-}
-impl Clamp01 for f32 {
-    fn clamp01(&self) -> Self {
-        self.clamp(0., 1.)
-    }
-}
-
 /// RGB colour space representation
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Rgb {
@@ -275,7 +252,7 @@ impl From<Lch> for Vec3Rgb {
     fn from(value: Lch) -> Self {
         let lab: Lab = value.into();
         let unclamped: Vec3Rgb = lab.into();
-        unclamped.clamp01()
+        unclamped.clamp(Vec3Rgb::ZERO, Vec3Rgb::ONE)
     }
 }
 
