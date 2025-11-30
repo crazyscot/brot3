@@ -49,6 +49,7 @@ pub(crate) struct Controller {
     last_instant: Instant,
     mouse_position: DVec2,
     reiterate: bool,
+    always_reiterate: bool,
     dragging: bool,
     ctrl_pressed: bool,
     shift_pressed: bool,
@@ -94,6 +95,7 @@ impl Controller {
             last_instant: Instant::now(),
             mouse_position: DVec2::default(),
             reiterate: true,
+            always_reiterate: false,
             dragging: false,
             ctrl_pressed: false,
             shift_pressed: false,
@@ -107,7 +109,8 @@ impl Controller {
 
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
         let flags = flag_if(reiterate, Flags::NEEDS_REITERATE)
-            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE);
+            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
+            | flag_if(self.always_reiterate, Flags::ALWAYS_ITERATE);
         FragmentConstants {
             flags,
             viewport_translate: self.viewport_translate.as_vec2(),

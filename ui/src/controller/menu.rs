@@ -45,6 +45,7 @@ impl super::Controller {
 
                     checkbox!(self.show_fps, "Show FPS");
                     checkbox!(self.vsync, "vsync");
+                    checkbox!(self.always_reiterate, "Always reiterate");
 
                     ui.separator();
                     checkbox!(self.keyboard_help, "Show Help", "F1");
