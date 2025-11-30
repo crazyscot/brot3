@@ -147,6 +147,15 @@ impl super::Controller {
             }
             Key::Named(NamedKey::F11) if pressed => {
                 self.fullscreen_requested = !self.fullscreen_requested;
+                if self.ctrl_pressed {
+                    // Perf mode (undocumented)
+                    self.vsync = false;
+                    self.show_fps = true;
+                    self.show_controls = false;
+                    self.show_coords_window = false;
+                    self.show_scale_bar = false;
+                    self.always_reiterate = true;
+                }
             }
             _ => (),
         }
