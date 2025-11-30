@@ -214,7 +214,7 @@ impl ControllerTrait for Controller {
         _offset: Vec2,
     ) -> impl bytemuck::NoUninit {
         let reiterate = self.reiterate;
-        self.inspector.stale = reiterate;
+        self.inspector.stale |= reiterate;
         self.reiterate = false;
         self.fragment_constants(reiterate)
     }
