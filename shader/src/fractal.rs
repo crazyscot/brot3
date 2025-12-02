@@ -6,6 +6,7 @@ const DEBUG_FRACTAL: bool = false;
 
 pub(crate) const ESCAPE_THRESHOLD: f32 = 10.0;
 pub(crate) const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
+const LOGLOG2_ESCAPE_THRESHOLD: f32 = 1.732_020_9;
 
 macro_rules! deprintln {
     ($($arg:tt)*) => {
@@ -20,14 +21,15 @@ macro_rules! deprintln {
 use spirv_std::num_traits::real::Real;
 
 use super::{Complex, FragmentConstants, PointResult, Vec2};
-use crate::exponentiation::Exponentiator;
-
-use const_default::ConstDefault as _;
+use crate::exponentiation::{
+    ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, Power5, Power6, RealPower,
+};
+use shader_common::NumericType;
 
 use core::marker::PhantomData;
 
 pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
-    use shader_common::{enums::Algorithm, NumericType};
+    use shader_common::enums::Algorithm;
     let c = match constants.algorithm {
         // Mandeldrop is the same as Mandelbrot but with a different c
         Algorithm::Mandeldrop => Complex::from(point).recip(),
@@ -40,32 +42,62 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
                 NumericType::Integer if constants.exponent.int == 2 => Runner {
                     constants,
                     algo: PhantomData::<$fractal>,
-                    expo: crate::exponentiation::Exp2,
                     c: $c_value,
+                    expo: Power2 {},
                 }
                 .run(),
+                NumericType::Integer if constants.exponent.int == 3 => Runner {
+                    constants,
+                    algo: PhantomData::<$fractal>,
+                    c: $c_value,
+                    expo: Power3 {},
+                }
+                .run(),
+                NumericType::Integer if constants.exponent.int == 4 => Runner {
+                    constants,
+                    algo: PhantomData::<$fractal>,
+                    c: $c_value,
+                    expo: Power4 {},
+                }
+                .run(),
+                NumericType::Integer if constants.exponent.int == 5 => Runner {
+                    constants,
+                    algo: PhantomData::<$fractal>,
+                    c: $c_value,
+                    expo: Power5 {},
+                }
+                .run(),
+                NumericType::Integer if constants.exponent.int == 6 => Runner {
+                    constants,
+                    algo: PhantomData::<$fractal>,
+                    c: $c_value,
+                    expo: Power6 {},
+                }
+                .run(),
+
                 NumericType::Integer => Runner {
                     constants,
                     algo: PhantomData::<$fractal>,
-                    expo: crate::exponentiation::ExpIntN(constants.exponent.int),
                     c: $c_value,
+                    expo: IntegerPower(constants.exponent.int),
                 }
                 .run(),
+
                 NumericType::Float => Runner {
                     constants,
                     algo: PhantomData::<$fractal>,
-                    expo: crate::exponentiation::ExpFloat(constants.exponent.real),
                     c: $c_value,
+                    expo: RealPower(constants.exponent.real),
                 }
                 .run(),
                 NumericType::Complex => Runner {
                     constants,
                     algo: PhantomData::<$fractal>,
-                    expo: crate::exponentiation::ExpComplex::from(constants.exponent),
                     c: $c_value,
+                    expo: ComplexPower::from(constants.exponent),
                 }
                 .run(),
-                _ => PointResult::DEFAULT,
+                _ => unreachable!(),
             }
         }};
     }
@@ -74,13 +106,13 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
 
 struct Runner<'a, F, E>
 where
-    F: AlgorithmDetail<E>,
+    F: AlgorithmDetail,
     E: Exponentiator,
 {
     constants: &'a FragmentConstants,
     algo: PhantomData<F>,
-    expo: E,
     c: Complex,
+    expo: E,
 }
 
 /// Having a match expression in a hot loop hurts performance pretty badly,
@@ -99,7 +131,7 @@ impl From<&FragmentConstants> for AlgorithmModifiers {
     fn from(consts: &FragmentConstants) -> Self {
         use shader_common::enums::Algorithm;
 
-        let mut rv = Self::default();
+        let mut rv = AlgorithmModifiers::default();
 
         /* Point pre-modifiers:
            Default is to do nothing
@@ -137,12 +169,10 @@ impl From<&FragmentConstants> for AlgorithmModifiers {
 
 impl<F, E> Runner<'_, F, E>
 where
-    F: AlgorithmDetail<E>,
+    F: AlgorithmDetail,
     E: Exponentiator,
 {
     fn run(self) -> PointResult {
-        let loglog2_escape_threshold: f32 = ESCAPE_THRESHOLD.log2().log2();
-
         let mut iters = 0;
         let mut z = Complex::ZERO;
         let mut dz = Complex::ZERO;
@@ -156,11 +186,11 @@ where
 
         let iterate_params = AlgorithmModifiers::from(self.constants);
 
-        while norm_sqr < ESCAPE_THRESHOLD_SQ && iters < max_iter {
+        while iters < max_iter && norm_sqr < ESCAPE_THRESHOLD_SQ {
             F::pre_modify_point(&mut z, iterate_params);
             prev_z = z;
             prev_norm_sqr = norm_sqr;
-            (z, dz) = F::iterate_algorithm(z, dz, self.expo, self.c, iters, iterate_params);
+            (z, dz) = F::iterate_algorithm(z, dz, self.c, iters, iterate_params, self.expo);
             iters += 1;
             norm_sqr = z.abs_sq();
             deprintln!("DBG: iters={iters}, z={z}, dz={dz}, |z|^2={norm_sqr}");
@@ -191,9 +221,8 @@ where
             // z.norm().log() === z.norm_sqr().log() * 0.5
             (z_abs_sq.log2() * 0.5).log2()
         };
-        // Previous algorithm: let log_log_zn = if z_abs_sq < 1.0 { -1000.0 } else { (z_abs_sq.log2() * 0.5).log2() };
 
-        let smoothed_iters = 1. + loglog2_escape_threshold - log_log_zn / self.expo.log2();
+        let smoothed_iters = 1. + LOGLOG2_ESCAPE_THRESHOLD - log_log_zn / self.expo.log2();
 
         // sigh! saturating_add is not currently implemented, so do it ourselves:
         let inside = norm_sqr < ESCAPE_THRESHOLD_SQ;
@@ -202,44 +231,39 @@ where
     }
 }
 
-pub(crate) trait AlgorithmDetail<E: Exponentiator> {
+pub(crate) trait AlgorithmDetail {
     /// Pre-modifies a point before applying the algorithm.
     ///
     /// Override as necessary.
     #[inline(always)]
-    fn pre_modify_point(z: &mut Complex, params: AlgorithmModifiers) {
-        mandelbrot_family_pre_modify_point(z, params);
-    }
+    fn pre_modify_point(_z: &mut Complex, _params: AlgorithmModifiers) {}
 
     /// One iteration of the fractal algorithm.
     ///
     /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
     /// suit all algorithms. Override as necessary.
-    #[inline(always)]
-    fn iterate_algorithm(
+    fn iterate_algorithm<E: Exponentiator>(
         z: Complex,
         dz: Complex,
-        e: E,
         c: Complex,
         iters: u32,
         params: AlgorithmModifiers,
-    ) -> (Complex /*z*/, Complex /*dz*/) {
-        mandelbrot_family_iterate_algorithm(z, dz, e, c, iters, params)
-    }
+        expo: E,
+    ) -> (Complex /*z*/, Complex /*dz*/);
 }
 
 // returns (z, dz)
 fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     z: Complex,
     dz: Complex,
-    e: E,
     c: Complex,
     iters: u32,
     par: AlgorithmModifiers,
+    expo: E,
 ) -> (Complex, Complex) {
-    let power = e.power().re;
+    let power = expo.power();
     let dz = power * z.powf(power - 1.0).to_rectangular() * dz + 1.0;
-    let mut z = e.apply_to(z);
+    let mut z = expo.apply_to(z);
     // Algorithm difference here:
     // Celtic uses z_re_abs instead of z_re.
     // Variant may or may not take z_re_abs depending on the iters count.
@@ -276,30 +300,28 @@ fn mandelbrot_family_pre_modify_point(z: &mut super::Complex, params: AlgorithmM
 }
 
 struct MandelbrotFamily {}
-impl<E: Exponentiator> AlgorithmDetail<E> for MandelbrotFamily {
+impl AlgorithmDetail for MandelbrotFamily {
     #[inline(always)]
     fn pre_modify_point(z: &mut Complex, params: AlgorithmModifiers) {
         mandelbrot_family_pre_modify_point(z, params);
     }
 
     #[inline(always)]
-    fn iterate_algorithm(
+    fn iterate_algorithm<E: Exponentiator>(
         z: Complex,
         dz: Complex,
-        e: E,
         c: Complex,
         iters: u32,
         params: AlgorithmModifiers,
+        expo: E,
     ) -> (Complex /*z*/, Complex /*dz*/) {
-        mandelbrot_family_iterate_algorithm(z, dz, e, c, iters, params)
+        mandelbrot_family_iterate_algorithm(z, dz, c, iters, params, expo)
     }
 }
 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    #![allow(clippy::cognitive_complexity)]
-
     use crate::{fractal, vec2, FragmentConstants, Vec2};
     use const_default::ConstDefault as _;
     use shader_common::{enums::Algorithm, Flags, NumericType, Palette, PushExponent};

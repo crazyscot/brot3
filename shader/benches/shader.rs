@@ -3,8 +3,12 @@ fn main() {
     divan::main();
 }
 
+use std::sync::LazyLock;
+
 use divan::black_box;
-use shader::exponentiation::{Exp2, ExpFloat, ExpIntN, Exponentiator as _};
+use shader::exponentiation::{
+    ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower,
+};
 use shader_common::enums::{Algorithm, Colourer};
 use shader_common::{data::PointResult, Flags, FragmentConstants, Palette, PushExponent};
 use shader_util::{colourspace::RgbVec, vec2, Size, Vec2};
@@ -16,7 +20,8 @@ use shader_common::Complex;
 fn ___warm_up() {
     // this is a hack to ensure the binary and libraries are fully loaded.
     // without it, the first run of the first benchmark - and certain others - are outliers.
-    let _ = ExpIntN(2).apply_to(Complex::new(0., 0.));
+    let _ = IntegerPower(2).apply_to(Complex::new(0., 0.));
+    let _ = Power2 {}.apply_to(Complex::new(0., 0.));
 }
 
 #[divan::bench(args = Algorithm::VARIANTS)]
@@ -52,13 +57,62 @@ fn colour(col: Colourer) -> RgbVec {
     shader::colour::colour_data(black_box(data), &consts, 0.0)
 }
 
-#[divan::bench(args = [0, 1, 2])]
-fn exponentiation(which: u32) -> Complex {
-    let z = Complex::new(0.1, 0.5);
-    match which {
-        0 => Exp2 {}.apply_to(black_box(z)),
-        1 => ExpIntN(2).apply_to(black_box(z)),
-        2 => ExpFloat(2.).apply_to(black_box(z)),
-        _ => unreachable!(),
+#[derive(Copy, Clone, derive_more::Debug)]
+enum Ewrap {
+    #[debug("SP2")]
+    P2(Power2),
+    #[debug("SP3")]
+    P3(Power3),
+    #[debug("SP4")]
+    P4(Power4),
+    #[debug("I{}", _0.0)]
+    Int(IntegerPower),
+    #[debug("R{}", _0.0)]
+    Real(RealPower),
+    #[debug("C{}", _0.0)]
+    Complex(ComplexPower),
+}
+impl Exponentiator for Ewrap {
+    fn apply_to(self, z: Complex) -> Complex {
+        match self {
+            Ewrap::P2(p) => p.apply_to(z),
+            Ewrap::P3(p) => p.apply_to(z),
+            Ewrap::P4(p) => p.apply_to(z),
+            Ewrap::Int(p) => p.apply_to(z),
+            Ewrap::Real(p) => p.apply_to(z),
+            Ewrap::Complex(p) => p.apply_to(z),
+        }
     }
+
+    fn power(self) -> f32 {
+        todo!()
+    }
+
+    fn log2(self) -> f32 {
+        todo!()
+    }
+}
+
+static EXP_CASES: LazyLock<Vec<Ewrap>> = LazyLock::new(|| {
+    vec![
+        Ewrap::P2(Power2 {}),
+        Ewrap::P3(Power3 {}),
+        Ewrap::P4(Power4 {}),
+        Ewrap::Int(IntegerPower(2)),
+        Ewrap::Int(IntegerPower(3)),
+        Ewrap::Int(IntegerPower(4)),
+        Ewrap::Real(RealPower(2.0)),
+        Ewrap::Real(RealPower(2.1)),
+        Ewrap::Real(RealPower(3.0)),
+        Ewrap::Complex(ComplexPower(Complex::from(2.0))),
+        Ewrap::Complex(ComplexPower(Complex::from(2.1))),
+        Ewrap::Complex(ComplexPower(Complex { re: 2.1, im: 0.1 })),
+    ]
+});
+
+const EXP_INPUT: Complex = Complex { re: 0.1, im: 0.5 };
+
+#[divan::bench(args = LazyLock::force(&EXP_CASES) )]
+fn exponentiation(e: Ewrap) {
+    e.apply_to(black_box(EXP_INPUT));
 }

@@ -1,6 +1,7 @@
 //! Exponentation strategies for fractals, as a trait to allow monomorphisation and inlining
 
 use super::Complex;
+//use const_default::ConstDefault;
 use shader_common::PushExponent;
 
 #[cfg(target_arch = "spirv")]
@@ -8,158 +9,117 @@ use spirv_std::num_traits::real::Real;
 
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;
-    /// For the function z := z^k + c, what is the power k so that we can compute the derivative?
-    fn power(self) -> Complex;
+    /// For the function z := z^k + c, what is the real power k so that we can compute the derivative?
+    fn power(self) -> f32;
     /// What is the log2 of the exponent?
     fn log2(self) -> f32;
 }
-/// Special case for raising to the power 2
-#[derive(Copy, Clone, Debug)]
-pub struct Exp2;
-/// Integer power (`powi` function)
-#[derive(Copy, Clone, Debug)]
-pub struct ExpIntN(pub i32);
 
-/// Real number power (`powf` function)
-#[derive(Copy, Clone, Debug)]
-pub struct ExpFloat(pub f32);
-/// Complex power (`powc` function)
-///
-/// <div class="warning">
-/// The complex logarithm is multi-valued. We use the principal value only in computing the power.
-/// </div>
-#[derive(Copy, Clone, Debug)]
-pub struct ExpComplex(pub Complex);
+macro_rules! power_unrolled {
+    ($pow:literal, $unroll:expr) => {
+        paste::paste! {
+            #[derive(Copy, Clone, Debug)]
+            pub struct [<Power $pow>] {}
+            impl Exponentiator for [<Power $pow>] {
+                fn apply_to(self, z: Complex) -> Complex {
+                    $unroll(z)
+                }
+                fn power(self) -> f32 {
+                    $pow as f32
+                }
+                fn log2(self) -> f32 {
+                    ($pow as f32).log2()
+                }
+            }
+        }
+    };
+}
 
-// special case for exponent 2, which is the most common and can be optimised to a simple complex multiplication
-impl Exponentiator for Exp2 {
-    #[inline(always)]
-    fn apply_to(self, z: Complex) -> Complex {
-        z * z
-    }
-    #[inline(always)]
-    fn power(self) -> Complex {
-        Complex { re: 2.0, im: 0.0 }
-    }
-    fn log2(self) -> f32 {
-        1.0
+macro_rules! int_powers {
+    ($(($pow:literal, $unroll:expr)),+) => {
+        $(power_unrolled!($pow, $unroll);)+
     }
 }
 
-impl Exponentiator for ExpIntN {
-    #[inline(always)]
+int_powers!(
+    (2, |z| z * z),
+    (3, |z| z * z * z),
+    (4, |z| z * z * z * z),
+    (5, |z| z * z * z * z * z),
+    (6, |z| z * z * z * z * z * z)
+);
+
+#[derive(Copy, Clone, Debug)]
+pub struct IntegerPower(pub i32);
+impl Exponentiator for IntegerPower {
     fn apply_to(self, z: Complex) -> Complex {
-        // Special case to align with ExpFloat and ExpComplex behaviour
-        let special_case = (self.0 == 0 && z == Complex::ZERO) as u32 as f32;
-        // Set up `special_case` as a boolean float (0.0 false, 1.0 true).
-        // When the special case applies, change the input to be safe for the calculation that follows
-        let z_safe = Complex {
-            re: z.re + special_case,
-            im: z.im,
-        };
-        let mut res = z_safe.powi(self.0).to_rectangular();
-        // if the input was zero, return zero (by multiplying the output by zero - using special_case as a mask)
-        let keep = 1.0 - special_case;
-        res.re *= keep;
-        res.im *= keep;
-        res
-    }
-    #[inline(always)]
-    fn power(self) -> Complex {
-        Complex {
-            re: self.0 as f32,
-            im: 0.0,
+        match self.0 {
+            0 => {
+                if z == Complex::ZERO {
+                    Complex::ZERO
+                } else {
+                    Complex::ONE
+                }
+            }
+            _ => z.powi(self.0).to_rectangular(),
         }
     }
+    fn power(self) -> f32 {
+        self.0 as f32
+    }
     fn log2(self) -> f32 {
-        // special case to avoid divide-by-zero or log(0)
-        (self.0.abs().max(2) as f32).log2()
+        (self.0 as f32).log2()
     }
 }
 
-impl Exponentiator for ExpFloat {
-    #[inline(always)]
+#[derive(Copy, Clone, Debug)]
+pub struct RealPower(pub f32);
+impl Exponentiator for RealPower {
     fn apply_to(self, z: Complex) -> Complex {
-        // Special case as this seems to cause a shader abort on the GPU
-        // when z==0.0... This isn't surprising as 0^0 is strictly undefined.
-        let special_case = (self.0 == 0.0 && z == Complex::ZERO) as u32 as f32;
-        // Set up `special_case` as a boolean float (0.0 false, 1.0 true).
-        // When the special case applies, change the input to be safe for the calculation that follows
-        let z_safe = Complex {
-            re: z.re + special_case,
-            im: z.im,
-        };
-        let mut res = z_safe.powf(self.0).to_rectangular();
-        // if the input was zero, return zero (by multiplying the output by zero - using special_case as a mask)
-        let keep = 1.0 - special_case;
-        res.re *= keep;
-        res.im *= keep;
-        res
-    }
-    #[inline(always)]
-    fn power(self) -> Complex {
-        Complex {
-            re: self.0,
-            im: 0.0,
+        if self.0 == 0.0 && z == Complex::ZERO {
+            Complex::ZERO
+        } else {
+            z.powf(self.0).to_rectangular()
         }
     }
+    fn power(self) -> f32 {
+        self.0
+    }
     fn log2(self) -> f32 {
-        // special case to avoid divide-by-zero or log(0)
-        self.0.abs().max(2.0).log2()
+        self.0.log2()
     }
 }
 
-impl Exponentiator for ExpComplex {
-    #[inline(always)]
+#[derive(Copy, Clone, Debug)]
+pub struct ComplexPower(pub Complex);
+impl Exponentiator for ComplexPower {
     fn apply_to(self, z: Complex) -> Complex {
-        // Special case as ln(0) is undefined: force z to 1.0 in that case
-        let input_zero = (z == Complex::ZERO) as u32 as f32;
-        let z_safe = Complex {
-            re: z.re + input_zero,
-            im: z.im,
-        };
-
-        // Special case to avoid breaking at 0^0 (undefined).
-        // Another boolean-float that forces z_safe to be 1.0 in that case.
-        let power_zero = (self.0 == Complex::ZERO) as u32 as f32;
-        let power_safe = Complex {
-            re: self.0.re + power_zero,
-            im: self.0.im,
-        };
-
-        // basic function: z^p = e^(p ln(z))
-        let mut res = (power_safe * z_safe.ln()).exp().to_rectangular();
-
-        // But if either special case applied, multiply the output by zero.
-        // input zero? 0^x == 0, return zero.
-        // power zero? see below.
-        let keep = 1.0 - (power_zero + input_zero);
-        res.re *= keep;
-        res.im *= keep;
-        // If the power was zero, special case the result to 1.0
-        res + Complex::ONE * power_zero
-        // (Sigh! The things we do on the GPU.)
-    }
-    #[inline(always)]
-    fn power(self) -> Complex {
-        Complex {
-            re: self.0.re,
-            im: self.0.im,
+        // special case as ln(0) is undefined
+        if z == Complex::ZERO {
+            return Complex::ZERO;
         }
+        // special case to avoid breaking at 0^0 (undefined)
+        if self.0 == Complex::ZERO {
+            return Complex::ONE;
+        }
+        // function: z^p = e^(p ln(z))
+        (self.0 * z.ln()).exp().to_rectangular()
     }
+    fn power(self) -> f32 {
+        self.0.re
+    }
+    // For now, we'll compute a log in ℝ so take abs(power).
+    // c.abs().log() === (c.abs_sq() ^ 0.5).log() === 0.5 * c.abs_sq().log()
+    // For parity with Int and Floats, we'll special case where abs < 2 i.e. abs_sq < 4
     fn log2(self) -> f32 {
-        // For now, we'll take abs(z) so we can compute a log in ℝ.
-        // c.abs().log() === (c.abs_sq() ^ 0.5).log() === 0.5 * c.abs_sq().log()
-        // For parity with Int and Floats, we'll special case where abs < 2 i.e. abs_sq < 4
         self.0.abs_sq().max(4.0).log2() * 0.5
     }
 }
-
-impl From<PushExponent> for ExpComplex {
-    fn from(value: PushExponent) -> Self {
+impl From<PushExponent> for ComplexPower {
+    fn from(exp: PushExponent) -> Self {
         Self(Complex {
-            re: value.real,
-            im: value.imag,
+            re: exp.real,
+            im: exp.imag,
         })
     }
 }
@@ -169,7 +129,10 @@ impl From<PushExponent> for ExpComplex {
 mod tests {
     #![allow(clippy::cognitive_complexity)]
 
-    use super::{Complex, Exp2, ExpComplex, ExpFloat, ExpIntN, Exponentiator};
+    use crate::exponentiation::{
+        Complex, ComplexPower, Exponentiator, IntegerPower, Power2, RealPower,
+    };
+
     use float_eq::{assert_float_eq, float_ne};
     use pretty_assertions::assert_eq;
 
@@ -193,41 +156,45 @@ mod tests {
 
     #[test]
     fn two() {
-        let e2 = Exp2;
-        let ei = ExpIntN(2);
-        let ef = ExpFloat(2.0);
+        use super::Exponentiator as _;
+        let e2 = IntegerPower(2);
+        let ef = RealPower(2.0);
+        let sc = Power2 {};
 
         // known answers, a basic sanity check that Complex and Exponentiator work
         let input = Complex::new(10., 0.);
         let expected = Complex::new(100., 0.);
-        assert_eq!(e2.apply_to(input), expected);
-        assert_eq!(ei.apply_to(input), expected);
-        assert_eq!(ef.apply_to(input), expected);
+        assert_complex_eq!(e2.apply_to(input), expected);
+        assert_complex_eq!(ef.apply_to(input), expected);
+        assert_complex_eq!(sc.apply_to(input), expected);
 
         let input = Complex::new(2., 2.);
         let expected = Complex::new(0., 8.);
-        assert_eq!(e2.apply_to(input), expected);
-        assert_complex_eq!(ei.apply_to(input), expected);
+        assert_complex_eq!(e2.apply_to(input), expected);
         assert_complex_eq!(ef.apply_to(input), expected);
+        assert_complex_eq!(sc.apply_to(input), expected);
 
         let input = Complex::new(0., 1.);
         let expected = Complex::new(-1., 0.);
-        assert_eq!(e2.apply_to(input), expected);
-        assert_complex_eq!(ei.apply_to(input), expected);
+        assert_complex_eq!(e2.apply_to(input), expected);
         assert_complex_eq!(ef.apply_to(input), expected);
+        assert_complex_eq!(sc.apply_to(input), expected);
     }
 
     #[test]
     fn complex_basics() {
-        let e2 = Exp2;
-        let ec = ExpComplex(Complex::from(2.0));
+        let e2 = IntegerPower(2);
+        let ec = ComplexPower(Complex::from(2.0));
+        let sc = Power2 {};
 
         let mut z = Complex::new(0., 1.);
         // Test that i^2 = -1 and that -1^2 = 1:
         for _ in 0..2 {
             let z2 = e2.apply_to(z);
             let zc = ec.apply_to(z);
+            let zsc = sc.apply_to(z);
             assert_complex_eq!(z2, zc);
+            assert_complex_eq!(z2, zsc);
             assert_complex_ne!(z, z2);
             z = z2;
         }
@@ -235,60 +202,47 @@ mod tests {
         let z = crate::vec2(-0.75, 0.75).into();
         let z2 = e2.apply_to(z);
         let zc = ec.apply_to(z);
+        let zsc = sc.apply_to(z);
         println!("{zc}");
         assert_complex_eq!(z2, zc);
+        assert_complex_eq!(z2, zsc);
     }
     #[test]
     fn powc_known_answer() {
         let z = Complex::new(2.0, 3.0);
-        let exp = ExpComplex(Complex::new(0.5, -0.707));
+        let exp = ComplexPower(Complex::new(0.5, -0.707));
         let expected = Complex::new(3.4806898, -1.5348526);
         let result = exp.apply_to(z);
         assert_complex_eq!(result, expected);
-        println!("{z} ^ {} = {result}", exp.0);
+        println!("{z} ^ {exp:?} = {result}");
     }
 
     #[test]
     fn power_zero_special_cases() {
-        let expf = ExpFloat(0.0);
+        let expf = RealPower(0.0);
         let two = Complex::ONE * 2.0;
 
         // x^0 == 0
         let f1 = expf.apply_to(two);
         assert_eq!(f1, Complex::ONE);
-        // 0^0 is undefined, but in our world we've special cased it as zero to prevent a shader abort.
+        // 0^0 is undefined, but in our world we've special-cased it as zero to prevent a shader abort.
         let z2 = expf.apply_to(Complex::ZERO);
         assert_eq!(z2, Complex::ZERO);
 
         // Consistency check with integer powers
-        let expi = ExpIntN(0);
+        let expi = IntegerPower(0);
         let i1 = expi.apply_to(two);
         assert_eq!(i1, Complex::ONE);
         let i2 = expi.apply_to(Complex::ZERO);
         assert_eq!(i2, Complex::ZERO);
+        let i3 = Power2 {}.apply_to(Complex::ZERO);
+        assert_eq!(i3, Complex::ZERO);
 
         // Now do it all again with complex powers
-        let expc = ExpComplex(Complex::ZERO);
+        let expc = ComplexPower(Complex::ZERO);
         let z1 = expc.apply_to(two);
         assert_eq!(z1, Complex::ONE);
         let z2 = expc.apply_to(Complex::ZERO);
         assert_eq!(z2, Complex::ZERO);
-    }
-
-    #[test]
-    fn powers() {
-        assert_eq!(ExpIntN(2).power(), Complex::ONE * 2.0);
-        assert_eq!(ExpIntN(1).power(), Complex::ONE);
-        assert_eq!(ExpIntN(0).power(), Complex::ZERO);
-        assert_eq!(ExpFloat(3.0).power(), Complex::ONE * 3.0);
-        assert_eq!(ExpFloat(3.5).power(), Complex::ONE * 3.5);
-        assert_eq!(
-            ExpComplex(Complex::new(2.5, 0.0)).power(),
-            Complex::ONE * 2.5
-        );
-        assert_eq!(
-            ExpComplex(Complex::new(2.5, 3.0)).power(),
-            Complex::new(2.5, 3.0),
-        );
     }
 }
