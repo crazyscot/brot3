@@ -107,9 +107,8 @@ impl Controller {
     }
 
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
-        let flags = flag_if(reiterate, Flags::NEEDS_REITERATE)
-            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
-            | flag_if(self.always_reiterate, Flags::ALWAYS_ITERATE);
+        let flags = flag_if(reiterate || self.always_reiterate, Flags::NEEDS_REITERATE)
+            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE);
         FragmentConstants {
             flags,
             viewport_translate: self.viewport_translate.as_vec2(),

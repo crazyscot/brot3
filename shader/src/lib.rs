@@ -42,10 +42,7 @@ pub fn main_fs(
     let size = constants.size.as_vec2();
     let pixel_spacing = constants.pixel_spacing();
 
-    let render_data = if constants
-        .flags
-        .intersects(Flags::NEEDS_REITERATE | Flags::ALWAYS_ITERATE)
-    {
+    let render_data = if constants.flags.contains(Flags::NEEDS_REITERATE) {
         // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
         let cplx = (coord - 0.5 * size) * pixel_spacing;
         let render_data = fractal::render(constants, cplx + constants.viewport_translate);

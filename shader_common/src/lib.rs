@@ -75,8 +75,6 @@ bitflags::bitflags! {
 pub struct Flags : u32 {
     const NEEDS_REITERATE = 1 << 0;
     const INSPECTOR_ACTIVE = 1 << 1;
-    /// For performance testing. Always iterate the algorithm, don't use cached data.
-    const ALWAYS_ITERATE = 1 << 2;
 
     const _ = !0;
 }
