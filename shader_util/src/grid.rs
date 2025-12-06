@@ -4,6 +4,31 @@
 
 use super::UVec2;
 
+/// Common operations (shared code) between `GridRef` and `GridRefMut`
+pub trait GridShared<'a, T> {
+    /// Accessor for the 2-dimensional size of the buffer
+    fn size(&self) -> UVec2;
+
+    /// Checks whether the given matrix size (NOT a point address!) will fit in the buffer.
+    #[must_use]
+    fn size_valid(size: UVec2, len: usize) -> bool {
+        len >= (size.x * size.y) as usize
+    }
+
+    /// Converts a 2-dimensional address into a linear address
+    fn address(&self, coords: UVec2) -> usize {
+        (coords.y * self.size().x + coords.x) as usize
+    }
+
+    /// The number of cells in the grid (length of the buffer)
+    fn count(&self) -> usize;
+
+    /// Checks the validity of a given coordinate within an existing grid.
+    fn address_valid(&self, coords: UVec2) -> bool {
+        self.address(coords) < self.count() && coords.x < self.size().x
+    }
+}
+
 #[derive(Clone, Copy)]
 /// A read-only view of a two-dimensional array, that uses a borrowed slice (one-dimensional) as storage.
 ///
@@ -14,7 +39,16 @@ pub struct GridRef<'a, T> {
     buffer: &'a [T],
 }
 
-impl<'a, T: Copy> GridRef<'a, T> {
+impl<'a, T> GridShared<'a, T> for GridRef<'a, T> {
+    fn size(&self) -> UVec2 {
+        self.size
+    }
+    fn count(&self) -> usize {
+        self.buffer.len()
+    }
+}
+
+impl<'a, T: Copy + Default> GridRef<'a, T> {
     /// Constructs a new `GridRef` of a given size and type.
     ///
     /// The length of storage `buffer` must be at least `size.x * size.y`.
@@ -37,7 +71,7 @@ impl<'a, T: Copy> GridRef<'a, T> {
     /// ```
     pub fn new(size: UVec2, buffer: &'a [T]) -> Self {
         debug_assert!(
-            buffer.len() >= (size.x * size.y).try_into().unwrap(),
+            Self::size_valid(size, buffer.len()),
             "storage not large enough (needed {})",
             size.x * size.y
         );
@@ -47,19 +81,24 @@ impl<'a, T: Copy> GridRef<'a, T> {
     #[must_use]
     /// Accesses a given grid co-ordinate
     ///
-    /// # Panics
+    /// Safety is guaranteed.
+    /// If the requested co-ordinates are outside of the underlying storage, returns default data
+    /// (but without crashing).
     ///
-    /// If the requested co-ordinates are outside of the underlying storage
     ///
-    /// ```should_panic
+    /// ```
     /// # use shader_util::GridRef;
     /// use glam::uvec2;
-    /// let buf = vec![0,0,0,42];
+    /// let buf = vec![1,2,3,42];
     /// let gr = GridRef::new(uvec2(2, 2), &buf);
-    /// assert_eq!(gr.get(uvec2(3, 3)), 42); // PANIC: index out of bounds
+    /// assert_eq!(gr.get(uvec2(3, 3)), 0); // Index is out of bounds
     /// ```
     pub fn get(&self, p: UVec2) -> T {
-        self.buffer[(p.y * self.size.x + p.x) as usize]
+        if self.address_valid(p) {
+            self.buffer[self.address(p)]
+        } else {
+            T::default()
+        }
     }
 }
 
@@ -70,7 +109,16 @@ pub struct GridRefMut<'a, T> {
     buffer: &'a mut [T],
 }
 
-impl<'a, T: Copy> GridRefMut<'a, T> {
+impl<'a, T> GridShared<'a, T> for GridRefMut<'a, T> {
+    fn size(&self) -> UVec2 {
+        self.size
+    }
+    fn count(&self) -> usize {
+        self.buffer.len()
+    }
+}
+
+impl<'a, T: Copy + Default> GridRefMut<'a, T> {
     /// Constructs a new `GridRefMut` of a given size and type.
     ///
     /// The length of storage `buffer` must be at least `size.x * size.y`.
@@ -97,8 +145,9 @@ impl<'a, T: Copy> GridRefMut<'a, T> {
     /// ```
     pub fn new(size: UVec2, buffer: &'a mut [T]) -> Self {
         debug_assert!(
-            buffer.len() >= (size.x * size.y).try_into().unwrap(),
-            "storage not large enough"
+            Self::size_valid(size, buffer.len()),
+            "storage not large enough (needed {})",
+            size.x * size.y
         );
         Self { size, buffer }
     }
@@ -125,20 +174,26 @@ impl<'a, T: Copy> GridRefMut<'a, T> {
     #[must_use]
     /// Accesses a given grid co-ordinate
     ///
-    /// # Panics
-    ///
-    /// If the requested co-ordinates are outside of the underlying storage
+    /// Safety is guaranteed.
+    /// If the requested co-ordinates are outside of the underlying storage, returns undefined data
+    /// (but without crashing).
     pub fn get(&self, p: UVec2) -> T {
-        self.buffer[(p.y * self.size.x + p.x) as usize]
+        if self.address_valid(p) {
+            self.buffer[self.address(p)]
+        } else {
+            T::default()
+        }
     }
 
     /// Writes an item to a given grid co-ordinate
     ///
-    /// # Panics
-    ///
-    /// If the requested co-ordinates are outside of the underlying storage
+    /// Safety is guaranteed. If the given coordinates are out of bounds, the write is ignored.
+    /// (This is not as unhelpful as you might think. In the GPU, branches are pre-emptively executed, but
+    /// a panic in one branch might take down all branches.)
     pub fn set(&mut self, p: UVec2, value: T) {
-        self.buffer[(p.y * self.size.x + p.x) as usize] = value;
+        if self.address_valid(p) {
+            self.buffer[self.address(p)] = value;
+        }
     }
 
     /// Swaps the values at two locations in the grid
