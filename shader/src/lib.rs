@@ -8,9 +8,9 @@
 use spirv_std::glam::{f32, vec2, vec3, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
-use shader_common::{data::PointResult, Flags, FragmentConstants, GRID_SIZE};
+use shader_common::{data::PointResult, Flags, FragmentConstants};
 use shader_util::colourspace::RgbVec;
-use shader_util::grid::{GridRef, GridRefMut};
+use shader_util::grid::{GridRef, GridRefMut, GridShared};
 
 pub use shader_common::{Complex, INSPECTOR_MARKER_SIZE};
 
@@ -38,20 +38,28 @@ pub fn main_fs(
 ) {
     // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we ignore depth & 1/w
     let coord = frag_coord.xy();
+    let coord_int = coord.as_uvec2();
+
     // viewport pixel size e.g. 1920x1080
     let size = constants.size.as_vec2();
     let pixel_spacing = constants.pixel_spacing();
 
-    let render_data = if constants.flags.contains(Flags::NEEDS_REITERATE) {
-        // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
-        let cplx = (coord - 0.5 * size) * pixel_spacing;
-        let render_data = fractal::render(constants, cplx + constants.viewport_translate);
-        let mut cache = GridRefMut::new(GRID_SIZE, grid);
-        cache.set(coord.as_uvec2(), render_data);
+    // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
+    let complex_coord = (coord - 0.5 * size) * pixel_spacing + constants.viewport_translate;
+
+    let cache = GridRef::new(constants.buffer_size.as_uvec2(), grid);
+    let cacheable = cache.address_valid(coord_int);
+
+    let render_data = if !cacheable {
+        fractal::render(constants, complex_coord)
+    } else if constants.flags.contains(Flags::NEEDS_REITERATE) {
+        let render_data = fractal::render(constants, complex_coord);
+        let mut cache = GridRefMut::new(constants.buffer_size.as_uvec2(), grid);
+        cache.set(coord_int, render_data);
         render_data
     } else {
-        let cache = GridRef::new(GRID_SIZE, grid);
-        cache.get(coord.as_uvec2())
+        // it's cacheable and cached
+        cache.get(coord_int)
     };
 
     let mut colour = colour::colour_data(render_data, constants, pixel_spacing);
@@ -88,13 +96,15 @@ pub fn main_vs(
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{new_york_distance, FragmentConstants, GRID_SIZE};
+    use super::{new_york_distance, FragmentConstants};
 
     use const_default::ConstDefault as _;
     use float_eq::assert_float_eq;
     use shader_common::{data::PointResult, enums::Algorithm, Flags, Palette, PushExponent};
     use shader_util::Size;
-    use spirv_std::glam::{vec2, vec4, Vec2, Vec3, Vec4};
+    use spirv_std::glam::{uvec2, vec2, vec4, UVec2, Vec2, Vec3, Vec4};
+
+    const TEST_GRID_SIZE: UVec2 = uvec2(2560, 1440);
 
     #[test]
     fn vertex() {
@@ -119,6 +129,7 @@ mod tests {
             viewport_translate: vec2(0., 0.),
             viewport_zoom: 0.3,
             size: Size::new(1024, 1024),
+            buffer_size: TEST_GRID_SIZE.into(),
             max_iter: 10,
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
@@ -131,7 +142,7 @@ mod tests {
     fn render_save_retrieve() {
         use shader_common::Flags;
         let mut res = Vec4::default();
-        let mut grid = vec![PointResult::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+        let mut grid = vec![PointResult::default(); (TEST_GRID_SIZE.x * TEST_GRID_SIZE.y) as usize];
 
         let no_iterate = FragmentConstants {
             flags: Flags::empty(),
@@ -183,7 +194,8 @@ mod tests {
 
         for (point, expect_rgb) in cases {
             let mut res = Vec4::default();
-            let mut grid = vec![PointResult::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+            let mut grid =
+                vec![PointResult::default(); (TEST_GRID_SIZE.x * TEST_GRID_SIZE.y) as usize];
 
             // Set up to inspect the pixel we're rendering
             let inspector = FragmentConstants {

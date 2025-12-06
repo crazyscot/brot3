@@ -335,6 +335,7 @@ mod tests {
             viewport_translate: vec2(0., 0.),
             viewport_zoom: 0.3,
             size: Size::new(1, 1),
+            buffer_size: Size::new(1, 1),
             max_iter: 10,
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),

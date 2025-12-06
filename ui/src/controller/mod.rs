@@ -114,6 +114,7 @@ impl Controller {
             viewport_translate: self.viewport_translate.as_vec2(),
             viewport_zoom: self.viewport_zoom as f32,
             size: self.size.into(),
+            buffer_size: GRID_SIZE.into(),
             algorithm: self.algorithm,
             max_iter: self.max_iter,
             exponent: self.exponent.into(),

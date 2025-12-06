@@ -28,16 +28,21 @@ pub mod data;
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
 pub struct FragmentConstants {
-    pub flags: Flags,
-    pub viewport_translate: Vec2,
-    pub viewport_zoom: f32,
+    // Caution! Larger structs must be correctly aligned, hence the random ordering.
+    pub exponent: PushExponent, // 128 bits
+
     /// window pixel size
-    pub size: Size,
-    pub algorithm: Algorithm,
+    pub size: Size, // 64 bits
+    /// size of pixel cache grid we've allocated
+    pub buffer_size: Size, // 64 bits
+    pub inspector_point_pixel_address: Vec2, // 64 bits
+    pub viewport_translate: Vec2,            // 64 bits
+
+    pub flags: Flags, // u32
+    pub viewport_zoom: f32,
+    pub algorithm: Algorithm, // u32
     pub max_iter: u32,
-    pub exponent: PushExponent,
-    pub palette: Palette,
-    pub inspector_point_pixel_address: Vec2,
+    pub palette: Palette, // u32
 }
 
 // compile time assertion: confirm that push constants will fit into the size that e-s-r requests
@@ -60,6 +65,7 @@ impl Default for FragmentConstants {
             viewport_translate: vec2(0.0, 0.0),
             viewport_zoom: Self::DEFAULT_ZOOM,
             size: Self::DEFAULT_SIZE.into(),
+            buffer_size: Self::DEFAULT_SIZE.into(),
             max_iter: Self::DEFAULT_MAX_ITER,
             algorithm: Algorithm::default(),
             exponent: PushExponent::default(),
