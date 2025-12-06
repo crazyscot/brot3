@@ -8,10 +8,7 @@
 use spirv_std::glam::{f32, vec2, vec3, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
-use shader_common::{
-    data::{PointResult, PointResultA, PointResultB},
-    Flags, FragmentConstants, GRID_SIZE,
-};
+use shader_common::{data::PointResult, Flags, FragmentConstants, GRID_SIZE};
 use shader_util::colourspace::RgbVec;
 use shader_util::grid::{GridRef, GridRefMut};
 
@@ -36,8 +33,7 @@ pub fn main_fs(
     #[cfg(feature = "emulate_constants")]
     #[spirv(storage_buffer, descriptor_set = 1, binding = 0)]
     constants: &FragmentConstants,
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid_a: &mut [PointResultA],
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 1)] grid_b: &mut [PointResultB],
+    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [PointResult],
     output: &mut Vec4,
 ) {
     // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we ignore depth & 1/w
@@ -53,17 +49,12 @@ pub fn main_fs(
         // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
         let cplx = (coord - 0.5 * size) * pixel_spacing;
         let render_data = fractal::render(constants, cplx + constants.viewport_translate);
-        let mut cache_a = GridRefMut::new(GRID_SIZE, grid_a);
-        cache_a.set(coord.as_uvec2(), render_data.a());
-        let mut cache_b = GridRefMut::new(GRID_SIZE, grid_b);
-        cache_b.set(coord.as_uvec2(), render_data.b());
+        let mut cache = GridRefMut::new(GRID_SIZE, grid);
+        cache.set(coord.as_uvec2(), render_data);
         render_data
     } else {
-        let cache_a = GridRef::new(GRID_SIZE, grid_a);
-        let a = cache_a.get(coord.as_uvec2());
-        let cache_b = GridRef::new(GRID_SIZE, grid_b);
-        let b = cache_b.get(coord.as_uvec2());
-        PointResult::join(a, b)
+        let cache = GridRef::new(GRID_SIZE, grid);
+        cache.get(coord.as_uvec2())
     };
 
     let mut colour = colour::colour_data(render_data, constants, pixel_spacing);
@@ -100,11 +91,11 @@ pub fn main_vs(
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{new_york_distance, FragmentConstants, PointResultA, PointResultB, GRID_SIZE};
+    use super::{new_york_distance, FragmentConstants, GRID_SIZE};
 
     use const_default::ConstDefault as _;
     use float_eq::assert_float_eq;
-    use shader_common::{enums::Algorithm, Flags, Palette, PushExponent};
+    use shader_common::{data::PointResult, enums::Algorithm, Flags, Palette, PushExponent};
     use shader_util::Size;
     use spirv_std::glam::{vec2, vec4, Vec2, Vec3, Vec4};
 
@@ -143,8 +134,7 @@ mod tests {
     fn render_save_retrieve() {
         use shader_common::Flags;
         let mut res = Vec4::default();
-        let mut grid_a = vec![PointResultA::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
-        let mut grid_b = vec![PointResultB::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+        let mut grid = vec![PointResult::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
 
         let no_iterate = FragmentConstants {
             flags: Flags::empty(),
@@ -152,13 +142,7 @@ mod tests {
         };
 
         // Cache starts out empty (you probably couldn't run this on an actual GPU, the NaN might trigger an abort)
-        super::main_fs(
-            vec4(0., 0., 0., 0.),
-            &no_iterate,
-            &mut grid_a,
-            &mut grid_b,
-            &mut res,
-        );
+        super::main_fs(vec4(0., 0., 0., 0.), &no_iterate, &mut grid, &mut res);
         assert!(res[0].is_nan());
         assert!(res[1].is_nan());
         assert!(res[2].is_nan());
@@ -168,8 +152,7 @@ mod tests {
         super::main_fs(
             vec4(0., 0., 0., 0.),
             &test_frag_consts(),
-            &mut grid_a,
-            &mut grid_b,
+            &mut grid,
             &mut res,
         );
         let expected = vec4(0.0, 1.0, 0.1414485, 1.0);
@@ -179,13 +162,7 @@ mod tests {
         );
 
         // Pass 2: Retrieve from cache
-        super::main_fs(
-            vec4(0., 0., 0., 0.),
-            &no_iterate,
-            &mut grid_a,
-            &mut grid_b,
-            &mut res,
-        );
+        super::main_fs(vec4(0., 0., 0., 0.), &no_iterate, &mut grid, &mut res);
         assert!(
             res.abs_diff_eq(expected, 0.000_000_1),
             "mismatch: {res} vs {expected}"
@@ -209,8 +186,7 @@ mod tests {
 
         for (point, expect_rgb) in cases {
             let mut res = Vec4::default();
-            let mut grid_a = vec![PointResultA::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
-            let mut grid_b = vec![PointResultB::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
+            let mut grid = vec![PointResult::default(); (GRID_SIZE.x * GRID_SIZE.y) as usize];
 
             // Set up to inspect the pixel we're rendering
             let inspector = FragmentConstants {
@@ -218,13 +194,7 @@ mod tests {
                 inspector_point_pixel_address: Vec2::from(*point),
                 ..test_frag_consts()
             };
-            super::main_fs(
-                vec4(0., 0., 0., 0.),
-                &inspector,
-                &mut grid_a,
-                &mut grid_b,
-                &mut res,
-            );
+            super::main_fs(vec4(0., 0., 0., 0.), &inspector, &mut grid, &mut res);
             let expected = Vec3::from(*expect_rgb).extend(1.0);
             assert!(
                 res.abs_diff_eq(expected, 0.000_000_1),

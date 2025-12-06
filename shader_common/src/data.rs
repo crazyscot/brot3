@@ -3,75 +3,33 @@
 use crate::enums::ColourStyle;
 use crate::ConstDefault;
 
-use super::GRID_SIZE;
 use bytemuck::NoUninit;
 
 /// Raw data from a fractal invocation
-///
-/// This structure is split into two sub-structs because of the 128MB default limit on data sizes.
-/// With a GRID_SIZE of 3840x2160, the default limit allows us 16.18 bytes per grid pixel.
-/// Therefore, split our data into shards, each of which is up to 16 bytes in size.
-/// If somehow we need to make GRID_SIZE larger, might need to refactor this to split it differently.
-///
-/// (Yes, we could check the operational capabilities and request more... but that would involve
-/// making things dynamic. Not for today.)
 #[derive(Copy, Clone, Debug, Default, NoUninit)]
 #[repr(C)]
 pub struct PointResult {
-    a: PointResultA,
-    b: PointResultB,
-}
-
-impl ConstDefault for PointResult {
-    const DEFAULT: Self = Self {
-        a: PointResultA::DEFAULT,
-        b: PointResultB::DEFAULT,
-    };
-}
-
-/// Constituent part A of `PointResult`
-#[derive(Copy, Clone, Debug, Default, NoUninit)]
-#[repr(C)]
-pub struct PointResultA {
     /// iteration count
     iters: u32,
     /// fractional part of iteration count (range 0..1)
     iters_fraction: f32,
     /// distance estimate from fractal
     distance: f32,
-}
-impl ConstDefault for PointResultA {
-    const DEFAULT: Self = Self {
-        iters: u32::MAX,
-        iters_fraction: 0.0,
-        distance: 0.0,
-    };
-}
-
-/// Constituent part B of `PointResult`
-#[derive(Copy, Clone, Debug, Default, NoUninit)]
-#[repr(C)]
-pub struct PointResultB {
     /// final angle (argument) (range -pi..pi)
     pub angle: f32,
     /// final complex distance, squared
     pub radius_sqr: f32,
 }
 
-impl ConstDefault for PointResultB {
+impl ConstDefault for PointResult {
     const DEFAULT: Self = Self {
+        iters: u32::MAX,
+        iters_fraction: 0.0,
+        distance: 0.0,
         angle: 0.0,
         radius_sqr: 0.0,
     };
 }
-
-// compile time assertion: confirm that neither buffer will runtime fail in wgpu
-const _: () = {
-    const N_POINTS: usize = (GRID_SIZE.x * GRID_SIZE.y) as usize;
-    const LIMIT: usize = 128 * 1024 * 1024; // == wgpu::Limits::max_storage_buffer_binding_size
-    assert!(core::mem::size_of::<PointResultA>() * N_POINTS < LIMIT);
-    assert!(core::mem::size_of::<PointResultB>() * N_POINTS < LIMIT);
-};
 
 impl PointResult {
     // CONSTRUCTORS //////////////////////////////////////////////////////////
@@ -79,12 +37,11 @@ impl PointResult {
     #[cfg(all(test, not(target_arch = "spirv")))]
     pub fn new_inside(distance: f32, angle: f32, radius_sqr: f32) -> Self {
         Self {
-            a: PointResultA {
-                iters: u32::MAX,
-                iters_fraction: 0.,
-                distance,
-            },
-            b: PointResultB { angle, radius_sqr },
+            iters: u32::MAX,
+            iters_fraction: 0.,
+            distance,
+            angle,
+            radius_sqr,
         }
     }
     pub fn new_outside(
@@ -95,25 +52,14 @@ impl PointResult {
         radius_sqr: f32,
     ) -> Self {
         Self {
-            a: PointResultA {
-                iters,
-                iters_fraction,
-                distance,
-            },
-            b: PointResultB { angle, radius_sqr },
+            iters,
+            iters_fraction,
+            distance,
+            angle,
+            radius_sqr,
         }
     }
-    /// Reconstitutes a `PointResult` from its storage shards
-    pub fn join(a: PointResultA, b: PointResultB) -> Self {
-        Self { a, b }
-    }
     // ACCESSORS ////////////////////////////////////////////////////////////
-    pub fn a(&self) -> PointResultA {
-        self.a
-    }
-    pub fn b(&self) -> PointResultB {
-        self.b
-    }
     /// Iterations
     pub fn iters(&self, style: ColourStyle) -> f32 {
         match style {
@@ -124,28 +70,28 @@ impl PointResult {
 
     /// Whole part of iterations
     pub fn iters_whole(&self) -> u32 {
-        self.a.iters
+        self.iters
     }
     /// Fractional part of iterations (0..1)
     pub fn iters_fraction(&self) -> f32 {
-        self.a.iters_fraction
+        self.iters_fraction
     }
     /// Distance from fractal
     pub fn distance(&self) -> f32 {
-        self.a.distance
+        self.distance
     }
     /// Final angle (-pi .. pi)
     pub fn angle(&self) -> f32 {
-        self.b.angle
+        self.angle
     }
     /// Final distance from origin (aka radius or absolute value), squared
     pub fn radius_sqr(&self) -> f32 {
-        self.b.radius_sqr
+        self.radius_sqr
     }
     // COMPUTED ACCESSORS ///////////////////////////////////////////////////
     /// Is this point inside the set? If so, the iterations count is effectively infinite.
     pub fn inside(&self) -> bool {
-        self.a.iters == u32::MAX
+        self.iters == u32::MAX
     }
 
     /// Debug checker
