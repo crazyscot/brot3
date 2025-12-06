@@ -1,14 +1,16 @@
 use crate::cli::Args;
 
 use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
-use glam::{dvec2, DVec2, UVec2, Vec2};
+use glam::{dvec2, uvec2, DVec2, UVec2, Vec2};
 use shader_common::{
     data::PointResult, enums::Algorithm, flag_if, Flags, FragmentConstants, NumericType, Palette,
-    PushExponent, GRID_SIZE,
+    PushExponent,
 };
 use util::BigVec2;
 use web_time::Instant;
+use winit::dpi::PhysicalSize;
 use winit::event::{ElementState, MouseButton};
+use winit::event_loop::ActiveEventLoop;
 
 mod about;
 mod controls;
@@ -23,8 +25,9 @@ const MIN_ZOOM: f64 = 0.05;
 const MAX_ZOOM: f64 = 13000.; // TODO: implement perturbed mbrot
 
 pub(crate) struct Controller {
-    /// viewport pixel size
+    /// viewport size in pixels
     size: UVec2,
+    cache_size: UVec2,
     // Viewport position and movement
     viewport_translate: BigVec2,
     viewport_zoom: f64,
@@ -72,6 +75,7 @@ impl Controller {
     pub fn new(options: &Args) -> Self {
         Self {
             size: UVec2::ZERO,
+            cache_size: UVec2::ZERO,
             // TODO figure out what precision is best
             viewport_translate: BigVec2::try_new(-1., 0.).unwrap().with_precision(PRECISION),
             viewport_zoom: FragmentConstants::DEFAULT_ZOOM.into(),
@@ -114,7 +118,7 @@ impl Controller {
             viewport_translate: self.viewport_translate.as_vec2(),
             viewport_zoom: self.viewport_zoom as f32,
             size: self.size.into(),
-            buffer_size: GRID_SIZE.into(),
+            buffer_size: self.cache_size.into(),
             algorithm: self.algorithm,
             max_iter: self.max_iter,
             exponent: self.exponent.into(),
@@ -221,14 +225,18 @@ impl ControllerTrait for Controller {
     fn describe_wgpu_features_and_limits(
         &self,
         _supported_features: wgpu::Features,
-        _supported_limits: wgpu::Limits,
+        supported_limits: wgpu::Limits,
     ) -> (wgpu::Features, wgpu::Limits) {
         let max_storage_buffer_binding_size =
-            core::mem::size_of::<PointResult>() as u32 * GRID_SIZE.x * GRID_SIZE.y;
+            core::mem::size_of::<PointResult>() as u32 * self.cache_size.element_product();
+        let max_buffer_size = max_storage_buffer_binding_size.into();
+        assert!(max_buffer_size < supported_limits.max_buffer_size);
+        assert!(max_storage_buffer_binding_size < supported_limits.max_storage_buffer_binding_size);
         (
             wgpu::Features::default(),
             wgpu::Limits {
                 max_storage_buffer_binding_size,
+                max_buffer_size,
                 ..Default::default()
             },
         )
@@ -254,12 +262,18 @@ impl ControllerTrait for Controller {
         });
 
         use wgpu::util::DeviceExt;
+        let cache_size = self.cache_size;
+        log::info!("Using cache size {cache_size}");
+        assert!(
+            cache_size != UVec2::ZERO,
+            "logic error: cache_size was not set up by the time we needed it"
+        );
+        let initial_contents =
+            vec![0; std::mem::size_of::<PointResult>() * cache_size.element_product() as usize];
         let render_data_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("render_data_buffer"),
             usage: wgpu::BufferUsages::STORAGE,
-            contents: &[0; std::mem::size_of::<PointResult>()
-                * GRID_SIZE.x as usize
-                * GRID_SIZE.y as usize],
+            contents: &initial_contents,
         });
 
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -333,6 +347,28 @@ impl ControllerTrait for Controller {
         let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / *zoom / size.y;
         self.viewport_translate += mouse_pos0 - mouse_pos1;
         self.reiterate = true;
+    }
+
+    /// Early app callback, before the window is created.
+    ///
+    /// Find the largest fullscreen size available to us
+    fn app_resumed(&mut self, event_loop: &ActiveEventLoop) {
+        let mut biggest = PhysicalSize::new(800, 600); // fallback in case detection fails
+
+        for mon in event_loop.available_monitors() {
+            for mode in mon.video_modes() {
+                let size = mode.size();
+                if size.width >= biggest.width && size.height >= biggest.height {
+                    biggest = size;
+                }
+            }
+        }
+        log::info!(
+            "Largest available screen is {} x {}",
+            biggest.width,
+            biggest.height
+        );
+        self.cache_size = uvec2(biggest.width, biggest.height);
     }
 }
 

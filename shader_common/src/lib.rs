@@ -9,7 +9,6 @@ use glam::{uvec2, vec2, UVec2, Vec2};
 #[cfg(target_arch = "spirv")]
 use spirv_std::glam::{uvec2, vec2, UVec2, Vec2};
 
-pub const GRID_SIZE: UVec2 = uvec2(3840, 2160);
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 
 use bytemuck::{NoUninit, Pod, Zeroable};
