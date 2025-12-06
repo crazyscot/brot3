@@ -75,7 +75,7 @@ impl Controller {
     pub fn new(options: &Args) -> Self {
         Self {
             size: UVec2::ZERO,
-            cache_size: UVec2::ZERO,
+            cache_size: options.cache_size.unwrap_or_default().into(),
             // TODO figure out what precision is best
             viewport_translate: BigVec2::try_new(-1., 0.).unwrap().with_precision(PRECISION),
             viewport_zoom: FragmentConstants::DEFAULT_ZOOM.into(),
@@ -368,7 +368,11 @@ impl ControllerTrait for Controller {
             biggest.width,
             biggest.height
         );
-        self.cache_size = uvec2(biggest.width, biggest.height);
+        if self.cache_size != UVec2::ZERO {
+            log::info!("Cache size override active");
+        } else {
+            self.cache_size = uvec2(biggest.width, biggest.height);
+        }
     }
 }
 

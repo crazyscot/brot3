@@ -5,6 +5,7 @@
 use std::path::PathBuf;
 
 use shader_common::enums::{Algorithm, Colourer};
+use std::str::FromStr;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, clap::Parser, Clone, Default)]
@@ -60,4 +61,49 @@ pub(crate) struct Args {
         default_value = "log-rainbow"
     )]
     pub colourer: Colourer,
+
+    /// Overrides the point cache size autodetection, in the format "x,y" (e.g. "1920,1080")
+    ///
+    /// The cache is normally set up to suit the largest available monitor detected.
+    /// If the detection fails or you have an unusual setup, it may be necessary to override.
+    ///
+    /// The maximum available cache size is determined at runtime by the GPU driver.
+    #[arg(long, value_name = "WIDTH,HEIGHT")]
+    pub cache_size: Option<LocalUVec2>,
+}
+
+// A simple tuple struct to represent a 2D u32 vector.
+// You can also use a custom struct if you prefer named fields.
+#[derive(Debug, Default, Clone, Copy)]
+pub(crate) struct LocalUVec2(pub u32, pub u32);
+
+// Implement FromStr for UVec2 to use the standard parse() method.
+// This allows clap's built-in value_parser! macro to work seamlessly.
+impl FromStr for LocalUVec2 {
+    type Err = String; // Use a String for a simple error type
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts: Vec<&str> = s.split(',').collect();
+        if parts.len() != 2 {
+            return Err(format!("'{s}' is not in the format 'u32,u32'"));
+        }
+
+        let x = parts[0]
+            .parse::<u32>()
+            .map_err(|e| format!("Invalid x value: {e}"))?;
+        let y = parts[1]
+            .parse::<u32>()
+            .map_err(|e| format!("Invalid y value: {e}"))?;
+
+        Ok(LocalUVec2(x, y))
+    }
+}
+
+impl From<LocalUVec2> for glam::UVec2 {
+    fn from(value: LocalUVec2) -> Self {
+        Self {
+            x: value.0,
+            y: value.1,
+        }
+    }
 }

@@ -29,7 +29,7 @@ hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 anyhow = { workspace = true }
 bytemuck = { workspace = true }
 cfg-if = "1.0.4"
-clap = { workspace = true, features = ["derive"] }
+clap = { workspace = true, features = ["derive", "wrap_help"] }
 egui_extras = { version = "0.33", features = ["image"] }
 glam = { workspace = true }
 #image = { version = "0.25.8", features = ["png"], default-features = false }
