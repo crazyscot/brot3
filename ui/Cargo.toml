@@ -46,7 +46,8 @@ web-time = "1.1.0"
 easy-shader-runner = { workspace = true, default-features = false }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = "0.4.55"
+# CAUTION: wasm builds are not currently tested.
+#wasm-bindgen-futures = "0.4.55"
 easy-shader-runner = { workspace = true, default-features = false, features = [
   "emulate_constants",
 ] }

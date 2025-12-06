@@ -284,7 +284,6 @@ dependencies = [
  "shader_common",
  "strum",
  "util",
- "wasm-bindgen-futures",
  "web-time",
 ]
 
