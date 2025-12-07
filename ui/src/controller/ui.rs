@@ -14,6 +14,8 @@ impl super::Controller {
         ui_state: &mut UiState,
         _graphics_context: &easy_shader_runner::GraphicsContext,
     ) {
+        self.render_pass += 1;
+
         egui_extras::install_image_loaders(ctx);
         ui_state.vsync = self.vsync;
         self.apply_movement();
@@ -49,8 +51,15 @@ impl super::Controller {
         }
 
         self.fullscreen_checkbox = ui_state.fullscreen_active;
-        ui_state.fullscreen_requested = self.fullscreen_requested;
-        self.fullscreen_requested = None;
+
+        // Don't action initial-fullscreen requests on the first four passes. They get lost.
+        if let Some(_s) = self.fullscreen_requested
+            && self.size.y != 0
+            && self.render_pass > 4
+        {
+            ui_state.fullscreen_requested = self.fullscreen_requested;
+            self.fullscreen_requested = None;
+        }
 
         self.resized = false;
         self.set_mouse_pointer(ctx);

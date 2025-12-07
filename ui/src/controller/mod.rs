@@ -62,6 +62,7 @@ pub(crate) struct Controller {
     fullscreen_requested: Option<bool>,
     context_menu: Option<DVec2>,
     inspector: Inspector,
+    render_pass: u32,
 }
 
 #[derive(Default)]
@@ -120,6 +121,7 @@ impl Controller {
             fullscreen_requested: Some(options.fullscreen),
             context_menu: None,
             inspector: Inspector::default(),
+            render_pass: 0,
         }
     }
 
