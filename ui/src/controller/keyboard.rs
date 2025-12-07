@@ -46,13 +46,8 @@ impl super::Controller {
                                 ui.end_row();
                             };
                         }
-                        //row!("F1", "Help");
-                        //row!("F2", "Controls");
                         row!("F7 F8", "Fractal");
                         row!("F9 F10", "Palette");
-                        //row!("F11", "Fullscreen");
-                        // F12 will be Save As PNG
-                        row!("^Q", "Quit");
 
                         ui.separator();
                         ui.separator();
@@ -92,6 +87,9 @@ impl super::Controller {
             }
             Key::Named(NamedKey::Alt) => {
                 self.alt_pressed = pressed;
+            }
+            Key::Named(NamedKey::Super) => {
+                self.super_pressed = pressed;
             }
             Key::Named(NamedKey::ArrowLeft) => {
                 if pressed {
@@ -145,16 +143,20 @@ impl super::Controller {
             Key::Named(NamedKey::F10) if pressed => {
                 self.palette(true);
             }
+
             Key::Named(NamedKey::F11) if pressed => {
-                self.fullscreen_requested = !self.fullscreen_requested;
                 if self.ctrl_pressed {
-                    // Perf mode (undocumented)
+                    // Perf test mode (undocumented) is Ctrl+F11 on all platforms.
+                    self.fullscreen_requested = true;
                     self.vsync = false;
                     self.show_fps = true;
                     self.show_controls = false;
                     self.show_coords_window = false;
                     self.show_scale_bar = false;
                     self.always_reiterate = true;
+                } else if cfg!(not(target_os = "macos")) {
+                    // F11 only operates fullscreen on Windows and Linux; Apple uses Ctrl+Cmd+F
+                    self.fullscreen_requested = !self.fullscreen_requested;
                 }
             }
             _ => (),
@@ -167,11 +169,22 @@ impl super::Controller {
             match c {
                 'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
                 'e' | 'r' => self.expo_re(c == 'r', pressed),
+                #[cfg(target_os = "macos")]
+                // Fullscreen on Apple
+                'f' if self.ctrl_pressed && self.super_pressed => {
+                    self.fullscreen_requested = !self.fullscreen_requested;
+                }
                 'd' | 'f' => self.expo_im(c == 'f', pressed),
-                'q' if pressed && self.ctrl_pressed => std::process::exit(0),
+
+                // Quit
+                #[cfg(target_os = "macos")]
+                'q' if pressed && self.super_pressed => std::process::exit(0),
                 // SOMEDAY: It would be tidier to call event_loop.exit().
                 // Expose this in easy-shader-runner, or add a new CustomEvent
                 // and expose an EventLoopProxy.
+                #[cfg(not(target_os = "macos"))]
+                'q' if pressed && self.ctrl_pressed => std::process::exit(0),
+
                 'y' | 'u' => self.gradient(c == 'u', pressed),
                 'h' | 'j' => self.offset(c == 'j', pressed),
                 'n' | 'm' => self.gamma(c == 'm', pressed),

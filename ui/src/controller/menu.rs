@@ -22,7 +22,7 @@ impl super::Controller {
                                 .min_size(vec2(ITEM_WIDTH, 0.0))
                                 .ui(ui);
                         };
-                        ($var:expr, $lbl:literal, $accel:literal) => {
+                        ($var:expr, $lbl:literal, $accel:expr) => {
                             CheckableButton::new(&mut $var, $lbl)
                                 .shortcut_text($accel)
                                 .min_size(vec2(ITEM_WIDTH, 0.0))
@@ -30,7 +30,7 @@ impl super::Controller {
                         };
                     }
                     macro_rules! item {
-                        ($label:expr, $accel:literal) => {
+                        ($label:expr, $accel:expr) => {
                             egui::Button::new($label)
                                 .shortcut_text($accel)
                                 .min_size(vec2(ITEM_WIDTH, 0.0))
@@ -39,7 +39,15 @@ impl super::Controller {
                     checkbox!(self.show_controls, "Controls", "F2");
                     checkbox!(self.show_coords_window, "Data read-out", "F3");
                     checkbox!(self.show_scale_bar, "Scale bar", "F4");
-                    checkbox!(self.fullscreen_requested, "Fullscreen", "F11");
+                    checkbox!(
+                        self.fullscreen_requested,
+                        "Fullscreen",
+                        if cfg!(target_os = "macos") {
+                            "^⌘F"
+                        } else {
+                            "F11"
+                        }
+                    );
 
                     ui.separator();
 
@@ -55,7 +63,17 @@ impl super::Controller {
                     }
                     ui.separator();
 
-                    if ui.add(item!("Quit", "Ctrl+Q")).clicked() {
+                    if ui
+                        .add(item!(
+                            "Quit",
+                            if cfg!(target_os = "macos") {
+                                "⌘Q"
+                            } else {
+                                "Ctrl+Q"
+                            }
+                        ))
+                        .clicked()
+                    {
                         // SOMEDAY: It would be tidier to call event_loop.exit().
                         std::process::exit(0);
                     }
