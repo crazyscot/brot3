@@ -147,7 +147,7 @@ impl super::Controller {
             Key::Named(NamedKey::F11) if pressed => {
                 if self.ctrl_pressed {
                     // Perf test mode (undocumented) is Ctrl+F11 on all platforms.
-                    self.fullscreen_requested = true;
+                    self.fullscreen_requested = Some(true);
                     self.vsync = false;
                     self.show_fps = true;
                     self.show_controls = false;
@@ -155,8 +155,8 @@ impl super::Controller {
                     self.show_scale_bar = false;
                     self.always_reiterate = true;
                 } else if cfg!(not(target_os = "macos")) {
-                    // F11 only operates fullscreen on Windows and Linux; Apple uses Ctrl+Cmd+F
-                    self.fullscreen_requested = !self.fullscreen_requested;
+                    // F11 only operates fullscreen on Windows and Linux; Apple uses Ctrl+Cmd+F, and that's implemented by the OS.
+                    self.fullscreen_requested = Some(!self.fullscreen_checkbox);
                 }
             }
             _ => (),
@@ -170,10 +170,8 @@ impl super::Controller {
                 'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
                 'e' | 'r' => self.expo_re(c == 'r', pressed),
                 #[cfg(target_os = "macos")]
-                // Fullscreen on Apple
-                'f' if self.ctrl_pressed && self.super_pressed => {
-                    self.fullscreen_requested = !self.fullscreen_requested;
-                }
+                // Fullscreen on Apple is implemented by the OS
+                'f' if self.ctrl_pressed && self.super_pressed => {}
                 'd' | 'f' => self.expo_im(c == 'f', pressed),
 
                 // Quit

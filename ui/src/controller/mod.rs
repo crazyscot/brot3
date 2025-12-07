@@ -58,7 +58,8 @@ pub(crate) struct Controller {
     alt_pressed: bool,
     super_pressed: bool,
     resized: bool,
-    fullscreen_requested: bool,
+    fullscreen_checkbox: bool,
+    fullscreen_requested: Option<bool>,
     context_menu: Option<DVec2>,
     inspector: Inspector,
 }
@@ -115,7 +116,8 @@ impl Controller {
             alt_pressed: false,
             super_pressed: false,
             resized: true,
-            fullscreen_requested: options.fullscreen,
+            fullscreen_checkbox: options.fullscreen,
+            fullscreen_requested: Some(options.fullscreen),
             context_menu: None,
             inspector: Inspector::default(),
         }

@@ -16,7 +16,6 @@ impl super::Controller {
     ) {
         egui_extras::install_image_loaders(ctx);
         ui_state.vsync = self.vsync;
-        ui_state.fullscreen = self.fullscreen_requested;
         self.apply_movement();
         if self.inspector.stale {
             self.update_inspector();
@@ -48,6 +47,10 @@ impl super::Controller {
         if self.show_license {
             self.license_modal(ctx);
         }
+
+        self.fullscreen_checkbox = ui_state.fullscreen_active;
+        ui_state.fullscreen_requested = self.fullscreen_requested;
+        self.fullscreen_requested = None;
 
         self.resized = false;
         self.set_mouse_pointer(ctx);

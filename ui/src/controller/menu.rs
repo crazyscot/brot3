@@ -20,13 +20,13 @@ impl super::Controller {
                         ($var:expr, $lbl:literal) => {
                             CheckableButton::new(&mut $var, $lbl)
                                 .min_size(vec2(ITEM_WIDTH, 0.0))
-                                .ui(ui);
+                                .ui(ui)
                         };
                         ($var:expr, $lbl:literal, $accel:expr) => {
                             CheckableButton::new(&mut $var, $lbl)
                                 .shortcut_text($accel)
                                 .min_size(vec2(ITEM_WIDTH, 0.0))
-                                .ui(ui);
+                                .ui(ui)
                         };
                     }
                     macro_rules! item {
@@ -39,15 +39,22 @@ impl super::Controller {
                     checkbox!(self.show_controls, "Controls", "F2");
                     checkbox!(self.show_coords_window, "Data read-out", "F3");
                     checkbox!(self.show_scale_bar, "Scale bar", "F4");
-                    checkbox!(
-                        self.fullscreen_requested,
+
+                    // Fullscreen is tricky. On OSX the OS may change the state; we are not the sole arbiters.
+                    if checkbox!(
+                        self.fullscreen_checkbox,
                         "Fullscreen",
                         if cfg!(target_os = "macos") {
                             "^⌘F"
                         } else {
                             "F11"
                         }
-                    );
+                    )
+                    .clicked()
+                    {
+                        // We need to tell easy-shader-runner explicitly about clicks
+                        self.fullscreen_requested = Some(self.fullscreen_checkbox);
+                    }
 
                     ui.separator();
 
