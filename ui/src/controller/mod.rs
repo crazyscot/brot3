@@ -72,6 +72,15 @@ struct Inspector {
 }
 
 impl Controller {
+    /// This function exists to provide a _build-time_ dependency on the `png` feature of the `image` crate.
+    /// It is not called.
+    #[allow(dead_code)]
+    fn dummy_dependency() {
+        let slice = &[0u8; 1];
+        let rdr = std::io::BufReader::new(std::io::Cursor::new(slice));
+        let _ = image::codecs::png::PngDecoder::new(rdr);
+    }
+
     pub fn new(options: &Args) -> Self {
         Self {
             size: UVec2::ZERO,

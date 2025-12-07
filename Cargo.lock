@@ -277,6 +277,7 @@ dependencies = [
  "easy-shader-runner",
  "egui_extras",
  "glam",
+ "image",
  "log",
  "mimalloc",
  "num-traits",
