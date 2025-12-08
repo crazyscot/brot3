@@ -14,11 +14,10 @@ bench = false
 bitflags = { version = "2.10.0", features = ["bytemuck"] }
 bytemuck = { workspace = true, features = ["derive"] }
 const-default = { workspace = true }
+spirv-std = { workspace = true }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
-glam = { workspace = true }
 abels-complex = { workspace = true, features = ["libm", "glam"] }
-spirv-std = { workspace = true }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 abels-complex = { workspace = true, features = ["std", "glam"] }

@@ -7,10 +7,6 @@
 /// Complex type used on shader
 pub type Complex = abels_complex::Complex<f32>;
 
-#[cfg(not(target_arch = "spirv"))]
-use glam::{uvec2, vec2, UVec2, Vec2};
-
-#[cfg(target_arch = "spirv")]
 use spirv_std::glam::{uvec2, vec2, UVec2, Vec2};
 
 /// Size of the inspector marker diamond in pixels
@@ -29,7 +25,7 @@ use crate::enums::Modifier;
 pub mod data;
 
 #[derive(Copy, Clone, Debug)]
-// We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninint on spirv builds.
+// We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninit on spirv builds.
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
 /// Shader push constants
