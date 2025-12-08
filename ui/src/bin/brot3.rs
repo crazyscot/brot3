@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #![windows_subsystem = "windows"]
 
 #[global_allocator]

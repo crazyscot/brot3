@@ -3,6 +3,7 @@
 
 use easy_shader_runner::egui;
 
+#[allow(unused_results)]
 impl super::Controller {
     pub(crate) fn about_modal(&mut self, ctx: &egui::Context) {
         if egui::Modal::new("about".into())

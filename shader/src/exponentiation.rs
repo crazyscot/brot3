@@ -1,5 +1,7 @@
 //! Exponentation strategies for fractals, as a trait to allow monomorphisation and inlining
 
+#![allow(missing_docs)]
+
 use super::Complex;
 //use const_default::ConstDefault;
 use shader_common::PushExponent;
@@ -24,9 +26,11 @@ macro_rules! power_unrolled {
                 fn apply_to(self, z: Complex) -> Complex {
                     $unroll(z)
                 }
+                #[allow(clippy::cast_precision_loss)]
                 fn power(self) -> f32 {
                     $pow as f32
                 }
+                #[allow(clippy::cast_precision_loss)]
                 fn log2(self) -> f32 {
                     ($pow as f32).log2()
                 }
@@ -64,9 +68,11 @@ impl Exponentiator for IntegerPower {
             _ => z.powi(self.0).to_rectangular(),
         }
     }
+    #[allow(clippy::cast_precision_loss)]
     fn power(self) -> f32 {
         self.0 as f32
     }
+    #[allow(clippy::cast_precision_loss)]
     fn log2(self) -> f32 {
         (self.0 as f32).log2()
     }
@@ -211,7 +217,7 @@ mod tests {
     fn powc_known_answer() {
         let z = Complex::new(2.0, 3.0);
         let exp = ComplexPower(Complex::new(0.5, -0.707));
-        let expected = Complex::new(3.4806898, -1.5348526);
+        let expected = Complex::new(3.480_689_8, -1.534_852_6);
         let result = exp.apply_to(z);
         assert_complex_eq!(result, expected);
         println!("{z} ^ {exp:?} = {result}");
@@ -230,19 +236,19 @@ mod tests {
         assert_eq!(z2, Complex::ZERO);
 
         // Consistency check with integer powers
-        let expi = IntegerPower(0);
-        let i1 = expi.apply_to(two);
+        let exp_int = IntegerPower(0);
+        let i1 = exp_int.apply_to(two);
         assert_eq!(i1, Complex::ONE);
-        let i2 = expi.apply_to(Complex::ZERO);
+        let i2 = exp_int.apply_to(Complex::ZERO);
         assert_eq!(i2, Complex::ZERO);
         let i3 = Power2 {}.apply_to(Complex::ZERO);
         assert_eq!(i3, Complex::ZERO);
 
         // Now do it all again with complex powers
-        let expc = ComplexPower(Complex::ZERO);
-        let z1 = expc.apply_to(two);
+        let exp_complex = ComplexPower(Complex::ZERO);
+        let z1 = exp_complex.apply_to(two);
         assert_eq!(z1, Complex::ONE);
-        let z2 = expc.apply_to(Complex::ZERO);
+        let z2 = exp_complex.apply_to(Complex::ZERO);
         assert_eq!(z2, Complex::ZERO);
     }
 }

@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use spirv_builder::SpirvBuilder;
 use std::env;
 use std::path::Path;

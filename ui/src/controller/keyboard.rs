@@ -1,3 +1,5 @@
+#![allow(unused_results)]
+
 use easy_shader_runner::egui;
 use easy_shader_runner::winit::{
     event::KeyEvent,
@@ -24,7 +26,7 @@ macro_rules! field_fn {
 }
 
 impl super::Controller {
-    pub(super) fn keyboard_help_window(&mut self, ctx: &egui::Context) {
+    pub(super) fn keyboard_help_window(ctx: &egui::Context) {
         egui::Window::new("keyboard")
             //.default_width(crate::controller::ui::DEFAULT_WIDTH)
             //.auto_sized()
@@ -74,7 +76,8 @@ impl super::Controller {
             });
     }
 
-    pub(super) fn keyboard_input_impl(&mut self, key: KeyEvent) {
+    #[allow(clippy::too_many_lines)]
+    pub(super) fn keyboard_input_impl(&mut self, key: &KeyEvent) {
         use easy_shader_runner::winit::platform::modifier_supplement::KeyEventExtModifierSupplement as _;
 
         let pressed = key.state.is_pressed();
@@ -162,9 +165,8 @@ impl super::Controller {
             _ => (),
         }
         if let Key::Character(c) = key.key_without_modifiers() {
-            let c = match c.chars().next() {
-                Some(ch) => ch,
-                None => return, // should never happen
+            let Some(c) = c.chars().next() else {
+                return; /* should never happen */
             };
             match c {
                 'z' | 'x' => self.kbd_zoom(c == 'z', pressed),

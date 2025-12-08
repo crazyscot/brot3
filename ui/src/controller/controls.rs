@@ -5,9 +5,16 @@ use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
 
 use easy_shader_runner::egui;
 
+#[allow(unused_results)]
 impl super::Controller {
     pub(crate) const DEFAULT_WIDTH: f32 = 130.;
 
+    #[allow(
+        clippy::too_many_lines,
+        clippy::cast_precision_loss,
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss
+    )]
     pub(super) fn controls_window(&mut self, ctx: &egui::Context) {
         // Don't render this on the first pass before we know the window size. That gives it a bad default position.
         if self.size.y == 0 {

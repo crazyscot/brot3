@@ -5,6 +5,12 @@ use easy_shader_runner::egui;
 use shader_common::FragmentConstants;
 use util::dynfmt;
 
+#[allow(
+    unused_results,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
+)]
 impl super::Controller {
     /// Calculates the decimal precision required to satisfactorily express a fractal part co-ordinate.
     ///
@@ -103,7 +109,7 @@ impl super::Controller {
             && self
                 .mouse_position
                 .distance_squared(self.complex_point_to_pixel(&self.inspector.position))
-                < INSPECTOR_MARKER_SIZE as f64 * INSPECTOR_MARKER_SIZE as f64
+                < f64::from(INSPECTOR_MARKER_SIZE) * f64::from(INSPECTOR_MARKER_SIZE)
     }
 
     pub(crate) fn set_mouse_pointer(&mut self, ctx: &egui::Context) {

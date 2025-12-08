@@ -6,6 +6,7 @@
 
 //! ## Feature flags
 #![doc = document_features::document_features!()]
+#![allow(missing_docs)]
 
 #[allow(unused_imports)] // Some are reused in some configurations
 use spirv_std::spirv;
@@ -92,6 +93,7 @@ pub fn main_vs(
     #[spirv(vertex_index)] vert_id: i32,
     #[spirv(position, invariant)] out_pos: &mut Vec4,
 ) {
+    #[allow(clippy::cast_precision_loss)]
     let uv = vec2(((vert_id << 1) & 2) as f32, (vert_id & 2) as f32);
     // uv expresses the cycle: (0,0) (2,0) (0,2) (2,2)
     let pos = 2.0 * uv - Vec2::ONE;
@@ -146,6 +148,8 @@ mod tests {
 
     #[test]
     fn render_save_retrieve() {
+        #![allow(clippy::float_cmp)]
+
         use shader_common::Flags;
         let mut res = Vec4::default();
         let mut grid = vec![PointResult::default(); (TEST_GRID_SIZE.x * TEST_GRID_SIZE.y) as usize];
@@ -169,7 +173,7 @@ mod tests {
             &mut grid,
             &mut res,
         );
-        let expected = vec4(0.0, 1.0, 0.1414485, 1.0);
+        let expected = vec4(0.0, 1.0, 0.141_448_5, 1.0);
         assert!(
             res.abs_diff_eq(expected, 0.000_000_1),
             "mismatch: {res} vs {expected}"
@@ -195,7 +199,7 @@ mod tests {
             ((7.0, 0.0), (1.0, 1.0, 1.0)),
             ((8.0, 0.0), (1.0, 1.0, 1.0)),
             // 10 or more pixels out is unaltered
-            ((9.0, 0.0), (0.0, 1.0, 0.1414485)),
+            ((9.0, 0.0), (0.0, 1.0, 0.141_448_5)),
         ];
 
         for (point, expect_rgb) in cases {

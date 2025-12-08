@@ -3,6 +3,7 @@
 use super::DVec2;
 use easy_shader_runner::{egui, UiState};
 
+#[allow(unused_results)]
 impl super::Controller {
     pub(crate) fn scale_bar(&mut self, ctx: &egui::Context) {
         use egui::epaint::{self, Color32};
@@ -48,10 +49,10 @@ impl super::Controller {
                     SCALE_BAR_WIDTH,
                 );
                 painter.add(shape2);
-                let bar_mid = (resp.rect.max.y + resp.rect.min.y) / 2.;
+                let bar_mid = f32::midpoint(resp.rect.max.y, resp.rect.min.y);
                 let window_pos: egui::Pos2 = (resp.rect.max.x + SCALE_BAR_WIDTH, bar_mid).into();
-                let pix_c = self.pixel_complex_size() * ui.pixels_per_point() as f64;
-                let pixel_legend = pix_c * SCALE_BAR_SIZE as f64;
+                let pix_c = self.pixel_complex_size() * f64::from(ui.pixels_per_point());
+                let pixel_legend = pix_c * f64::from(SCALE_BAR_SIZE);
                 egui::Window::new("scale label")
                     .title_bar(false)
                     .resizable(false)
@@ -65,7 +66,7 @@ impl super::Controller {
         });
     }
 
-    pub(crate) fn fps_window(&mut self, ctx: &egui::Context, ui_state: &UiState) {
+    pub(crate) fn fps_window(ctx: &egui::Context, ui_state: &UiState) {
         egui::Window::new("fps")
             .title_bar(false)
             .resizable(false)
@@ -76,6 +77,7 @@ impl super::Controller {
             });
     }
 
+    #[allow(clippy::cast_possible_truncation)]
     pub(crate) fn context_menu_window(&mut self, ctx: &egui::Context, pos: DVec2) {
         let scale = ctx.pixels_per_point();
         let r = egui::Window::new("right_click_menu")

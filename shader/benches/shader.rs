@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 fn main() {
     // Run registered benchmarks.
     divan::main();
@@ -116,5 +118,5 @@ const EXP_INPUT: Complex = Complex { re: 0.1, im: 0.5 };
 
 #[divan::bench(args = LazyLock::force(&EXP_CASES) )]
 fn exponentiation(e: Ewrap) {
-    e.apply_to(black_box(EXP_INPUT));
+    let _ = e.apply_to(black_box(EXP_INPUT));
 }

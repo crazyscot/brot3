@@ -1,6 +1,10 @@
+//! Structures shared between shader and UI
+
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
+#![allow(missing_docs)]
 
+/// Complex type used on shader
 pub type Complex = abels_complex::Complex<f32>;
 
 #[cfg(not(target_arch = "spirv"))]
@@ -9,6 +13,7 @@ use glam::{uvec2, vec2, UVec2, Vec2};
 #[cfg(target_arch = "spirv")]
 use spirv_std::glam::{uvec2, vec2, UVec2, Vec2};
 
+/// Size of the inspector marker diamond in pixels
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 
 use bytemuck::{NoUninit, Pod, Zeroable};
@@ -27,6 +32,8 @@ pub mod data;
 // We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninint on spirv builds.
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
 #[repr(C)]
+/// Shader push constants
+#[allow(missing_docs)]
 pub struct FragmentConstants {
     // Caution! Larger structs must be correctly aligned, hence the random ordering.
     pub exponent: PushExponent, // 128 bits
@@ -50,9 +57,10 @@ const _: () = {
     assert!(core::mem::size_of::<FragmentConstants>() < 128);
 };
 
+#[allow(missing_docs)]
 impl FragmentConstants {
     pub const DEFAULT_ZOOM: f32 = 0.25;
-    /// Conversion factor applied to viewport_zoom whenever it's presented to a human
+    /// Conversion factor applied to `viewport_zoom` whenever it's presented to a human
     pub const UI_ZOOM_FACTOR: f32 = 4.0;
     pub const DEFAULT_MAX_ITER: u32 = 250;
     pub const DEFAULT_SIZE: UVec2 = uvec2(800, 600);
@@ -70,7 +78,7 @@ impl Default for FragmentConstants {
             algorithm: Algorithm::default(),
             exponent: PushExponent::default(),
             palette: Palette::default(),
-            inspector_point_pixel_address: Default::default(),
+            inspector_point_pixel_address: Vec2::default(),
         }
     }
 }
@@ -78,6 +86,7 @@ impl Default for FragmentConstants {
 bitflags::bitflags! {
 #[derive(Copy, Clone, Debug, Default, Zeroable, Pod)]
 #[repr(transparent)]
+/// blah
 pub struct Flags : u32 {
     const NEEDS_REITERATE = 1 << 0;
     const INSPECTOR_ACTIVE = 1 << 1;
@@ -87,6 +96,7 @@ pub struct Flags : u32 {
 }
 
 /// Conditionally returns a flag value
+#[must_use]
 pub fn flag_if(condition: bool, flag: Flags) -> Flags {
     if condition {
         flag
@@ -96,14 +106,19 @@ pub fn flag_if(condition: bool, flag: Flags) -> Flags {
 }
 
 impl FragmentConstants {
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn pixel_spacing_f32(height: u32, zoom: f32) -> f32 {
         1.0 / (height as f32 * zoom)
     }
     #[cfg(not(target_arch = "spirv"))]
+    #[must_use]
+    #[allow(clippy::cast_lossless)]
     pub fn pixel_spacing_f64(height: u32, zoom: f64) -> f64 {
         1.0 / (height as f64 * zoom)
     }
 
+    #[must_use]
     pub fn pixel_spacing(&self) -> f32 {
         Self::pixel_spacing_f32(self.size.height, self.viewport_zoom)
     }
@@ -143,14 +158,17 @@ impl Default for Palette {
 }
 
 impl Palette {
+    #[must_use]
     pub fn with_colourer(mut self, colourer: Colourer) -> Self {
         self.colourer = colourer;
         self
     }
+    #[must_use]
     pub fn with_style(mut self, style: ColourStyle) -> Self {
         self.colour_style = style;
         self
     }
+    #[must_use]
     pub fn with_brightness(mut self, style: Modifier) -> Self {
         self.brightness_style = style;
         self
@@ -244,6 +262,7 @@ impl From<Complex> for PushExponent {
 }
 
 impl From<&PushExponent> for Complex {
+    #[allow(clippy::cast_precision_loss)]
     fn from(e: &PushExponent) -> Self {
         match e.typ {
             NumericType::Complex => Self {

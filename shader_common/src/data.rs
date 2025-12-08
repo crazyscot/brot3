@@ -35,6 +35,7 @@ impl PointResult {
     // CONSTRUCTORS //////////////////////////////////////////////////////////
     /// This is a convenience, but using it adds complexity to the shader.
     #[cfg(all(test, not(target_arch = "spirv")))]
+    #[must_use]
     pub fn new_inside(distance: f32, angle: f32, radius_sqr: f32) -> Self {
         Self {
             iters: u32::MAX,
@@ -44,6 +45,7 @@ impl PointResult {
             radius_sqr,
         }
     }
+    #[must_use]
     pub fn new_outside(
         iters: u32,
         iters_fraction: f32,
@@ -61,6 +63,8 @@ impl PointResult {
     }
     // ACCESSORS ////////////////////////////////////////////////////////////
     /// Iterations
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn iters(&self, style: ColourStyle) -> f32 {
         match style {
             ColourStyle::Discrete => self.iters_whole() as f32,
@@ -69,32 +73,41 @@ impl PointResult {
     }
 
     /// Whole part of iterations
+    #[must_use]
     pub fn iters_whole(&self) -> u32 {
         self.iters
     }
     /// Fractional part of iterations (0..1)
+    #[must_use]
     pub fn iters_fraction(&self) -> f32 {
         self.iters_fraction
     }
     /// Distance from fractal
+    #[must_use]
     pub fn distance(&self) -> f32 {
         self.distance
     }
     /// Final angle (-pi .. pi)
+    #[must_use]
     pub fn angle(&self) -> f32 {
         self.angle
     }
     /// Final distance from origin (aka radius or absolute value), squared
+    #[must_use]
     pub fn radius_sqr(&self) -> f32 {
         self.radius_sqr
     }
     // COMPUTED ACCESSORS ///////////////////////////////////////////////////
     /// Is this point inside the set? If so, the iterations count is effectively infinite.
+    #[must_use]
     pub fn inside(&self) -> bool {
         self.iters == u32::MAX
     }
 
     /// Debug checker
+    ///
+    /// # Panics
+    /// If any of the checked conditions are not met
     #[cfg(not(target_arch = "spirv"))]
     pub fn assert_no_subnormals(&self) {
         assert!(self.iters_fraction().is_finite());

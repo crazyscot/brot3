@@ -1,6 +1,8 @@
 //! Fractal algorithms.
 //! Can also be called on the host.
 
+#![allow(missing_docs)]
+
 #[cfg(not(target_arch = "spirv"))]
 const DEBUG_FRACTAL: bool = false;
 
@@ -28,6 +30,7 @@ use shader_common::NumericType;
 
 use core::marker::PhantomData;
 
+#[must_use]
 pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
     use shader_common::enums::Algorithm;
     let c = match constants.algorithm {
@@ -118,6 +121,7 @@ where
 /// Having a match expression in a hot loop hurts performance pretty badly,
 /// so we're reducing it down to some simple boolean decisions.
 #[derive(Default, Copy, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub(crate) struct AlgorithmModifiers {
     iter_re_abs: bool,
     iter_re_variant: bool,
@@ -301,12 +305,10 @@ fn mandelbrot_family_pre_modify_point(z: &mut super::Complex, params: AlgorithmM
 
 struct MandelbrotFamily {}
 impl AlgorithmDetail for MandelbrotFamily {
-    #[inline(always)]
     fn pre_modify_point(z: &mut Complex, params: AlgorithmModifiers) {
         mandelbrot_family_pre_modify_point(z, params);
     }
 
-    #[inline(always)]
     fn iterate_algorithm<E: Exponentiator>(
         z: Complex,
         dz: Complex,
@@ -345,15 +347,17 @@ mod tests {
 
     #[test]
     fn mandelbrot_known_answer() {
+        #![allow(clippy::float_cmp)]
         let point = crate::vec2(-0.75, 0.75);
         eprintln!("{:#?}", test_frag_consts());
         let result = fractal::render(&test_frag_consts(), point);
         eprintln!("{result:?}");
-        assert_eq!(result.iters_fraction(), 0.52201414);
+        assert_eq!(result.iters_fraction(), 0.522_014_14);
     }
 
     #[test]
     fn mandelbrot_known_answer_cpow() {
+        #![allow(clippy::float_cmp)]
         let point = crate::vec2(-0.75, 0.75);
         let mut consts = test_frag_consts();
         consts.exponent.typ = NumericType::Complex;
@@ -362,7 +366,7 @@ mod tests {
         eprintln!("{consts:#?}");
         let result = fractal::render(&consts, point);
         eprintln!("{result:?}");
-        assert_eq!(result.iters_fraction(), 0.5220146);
+        assert_eq!(result.iters_fraction(), 0.522_014_6);
     }
 
     #[test]

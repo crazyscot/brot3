@@ -1,5 +1,7 @@
 //! Colouring algorithms
 
+#![allow(missing_docs)]
+
 #[cfg(not(target_arch = "spirv"))]
 const DEBUG_COLOUR: bool = false;
 
@@ -21,9 +23,10 @@ use shader_common::enums::Modifier;
 
 use super::{FragmentConstants, PointResult};
 
+#[must_use]
 pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
-    let iters = data.iters(constants.palette.colour_style);
     use shader_common::enums::Colourer as C;
+    let iters = data.iters(constants.palette.colour_style);
     let mut hsl = match constants.palette.colourer {
         C::LogRainbow => log_rainbow(constants, iters, &data),
         C::SqrtRainbow => sqrt_rainbow(constants, iters, &data),
@@ -177,6 +180,7 @@ fn one_lone_coder(constants: &FragmentConstants, iters: f32, pixel: &PointResult
     .into()
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn monochrome(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     if pixel.inside() {
         return Hsl::BLACK;
@@ -191,6 +195,7 @@ fn monochrome(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
 }
 
 /// LCH Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#LCH_coloring>
+#[allow(clippy::cast_precision_loss)]
 fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     if pixel.inside() {
         return Hsl::BLACK;
@@ -232,7 +237,7 @@ mod tests {
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
         let data = PointResult::new_outside(100, 0.0, 1.0, 0., 0.);
-        let expected = RgbVec::from([0.3247156, 1., 0.]);
+        let expected = RgbVec::from([0.324_715_6, 1., 0.]);
         assert_rgbvec_eq!(expected, super::colour_data(data, &consts, 0.0));
     }
 
@@ -247,7 +252,7 @@ mod tests {
         };
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
         let data = PointResult::new_outside(5, 0.31876, 1.0, 0., 0.);
-        let expected = RgbVec::from([1., 0.7824273, 0.]);
+        let expected = RgbVec::from([1., 0.782_427_3, 0.]);
         let result = super::colour_data(data, &consts, 0.0);
         assert_rgbvec_eq!(result, expected);
     }
@@ -261,7 +266,7 @@ mod tests {
         };
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
         let data = PointResult::new_outside(10, 0.31876, 1.0, 0., 0.);
-        let expected = RgbVec::from([0.47777647, 0.03193772, 0.1543931]);
+        let expected = RgbVec::from([0.477_776_47, 0.031_937_72, 0.154_393_1]);
         let result = super::colour_data(data, &consts, 0.0);
         assert_rgbvec_eq!(result, expected);
     }
@@ -282,7 +287,7 @@ mod tests {
         consts.viewport_zoom = 0.83;
         let pixel_size =
             FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
-        let pt = vec2(-0.707752, -0.3530653);
+        let pt = vec2(-0.707_752, -0.353_065_3);
         consts.viewport_translate = pt;
         let data = crate::fractal::render(&consts, pt);
         eprintln!("data: {data:?}");
@@ -367,6 +372,6 @@ mod tests {
         eprintln!("data: {data:?}");
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
-        assert_eq!(result, Vec3::splat(0.3254935).into());
+        assert_eq!(result, Vec3::splat(0.325_493_5).into());
     }
 }

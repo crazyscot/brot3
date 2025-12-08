@@ -5,6 +5,7 @@ use easy_shader_runner::egui::{self, vec2};
 
 use crate::widgets::CheckableButton;
 
+#[allow(unused_results)]
 impl super::Controller {
     pub(crate) fn main_menu(&mut self, ctx: &egui::Context) {
         egui::Area::new(egui::Id::new("mainmenu"))

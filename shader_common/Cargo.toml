@@ -28,11 +28,8 @@ num-derive = "0.4.2"
 num-traits = { workspace = true }
 strum = { version = "0.27.2", default-features = false, features = ["derive"] }
 
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = [
-    'cfg(target_arch, values("spirv"))',
-    'cfg(coverage_nightly)',
-] }
+[lints]
+workspace = true
 
 [dev-dependencies]
 float_eq = "1.0.1"

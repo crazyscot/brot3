@@ -40,10 +40,10 @@ impl super::Controller {
             self.scale_bar(ctx);
         }
         if self.show_fps {
-            self.fps_window(ctx, ui_state);
+            Self::fps_window(ctx, ui_state);
         }
         if self.keyboard_help {
-            self.keyboard_help_window(ctx);
+            Self::keyboard_help_window(ctx);
         }
         if self.show_about {
             self.about_modal(ctx);
@@ -67,6 +67,7 @@ impl super::Controller {
         self.set_mouse_pointer(ctx);
     }
 
+    #[allow(clippy::float_cmp)]
     fn apply_movement(&mut self) {
         let dt = self.last_instant.elapsed().as_secs_f64();
         self.last_instant = Instant::now();

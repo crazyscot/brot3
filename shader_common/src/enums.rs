@@ -23,7 +23,7 @@ macro_rules! enumdef {
         pub enum $name {
             #[default]
             $first,
-            $($variant,)*
+            $($variant,)+
         }
         impl ConstDefault for $name {
             const DEFAULT: Self = Self::$first;
@@ -78,6 +78,7 @@ macro_rules! incrementable {
                 use num_traits::FromPrimitive as _;
                 use num_traits::ToPrimitive as _;
                 use strum::VariantArray as _;
+                #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
                 let n = Self::VARIANTS.len() as i32;
                 let mut i = self.to_i32().unwrap_or_default() + delta;
                 i = i.rem_euclid(n);

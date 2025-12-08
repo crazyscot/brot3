@@ -24,6 +24,7 @@ const PRECISION: usize = 128;
 const MIN_ZOOM: f64 = 0.05;
 const MAX_ZOOM: f64 = 13000.; // TODO: implement perturbed mbrot
 
+#[allow(clippy::struct_excessive_bools)]
 pub(crate) struct Controller {
     /// viewport size in pixels
     size: UVec2,
@@ -84,7 +85,7 @@ impl Controller {
         let _ = image::codecs::png::PngDecoder::new(rdr);
     }
 
-    pub fn new(options: &Args) -> Self {
+    pub(crate) fn new(options: &Args) -> Self {
         Self {
             size: UVec2::ZERO,
             cache_size: options.cache_size.unwrap_or_default().into(),
@@ -125,6 +126,7 @@ impl Controller {
         }
     }
 
+    #[allow(clippy::cast_possible_truncation)]
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
         let flags = flag_if(reiterate || self.always_reiterate, Flags::NEEDS_REITERATE)
             | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE);
@@ -183,6 +185,7 @@ impl Exponent {
 }
 impl From<Exponent> for PushExponent {
     // TODO: Can we merge Exponent and PushExponent?
+    #[allow(clippy::cast_possible_truncation)]
     fn from(exp: Exponent) -> Self {
         match exp.typ {
             NumericType::Integer => PushExponent {
@@ -222,7 +225,7 @@ impl Default for Movement {
     fn default() -> Self {
         Self {
             zoom2: 1.0,
-            translate: Default::default(),
+            translate: DVec2::ZERO,
             exponent: Default::default(),
             exponent_im: Default::default(),
             gradient: Default::default(),
@@ -252,6 +255,7 @@ impl ControllerTrait for Controller {
         self.fragment_constants(reiterate)
     }
 
+    #[allow(clippy::cast_possible_truncation)]
     fn describe_wgpu_features_and_limits(
         &self,
         _supported_features: wgpu::Features,
@@ -276,6 +280,8 @@ impl ControllerTrait for Controller {
         &mut self,
         gfx_ctx: &GraphicsContext,
     ) -> (Vec<wgpu::BindGroupLayout>, Vec<wgpu::BindGroup>) {
+        use wgpu::util::DeviceExt;
+
         let device = &gfx_ctx.device;
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[wgpu::BindGroupLayoutEntry {
@@ -291,7 +297,6 @@ impl ControllerTrait for Controller {
             label: Some("bind_group_layout"),
         });
 
-        use wgpu::util::DeviceExt;
         let cache_size = self.cache_size;
         log::info!("Using cache size {cache_size}");
         assert!(
@@ -327,7 +332,7 @@ impl ControllerTrait for Controller {
     }
 
     fn keyboard_input(&mut self, key: winit::event::KeyEvent) {
-        self.keyboard_input_impl(key);
+        self.keyboard_input_impl(&key);
     }
 
     fn mouse_input(&mut self, state: ElementState, button: MouseButton) {
@@ -355,7 +360,7 @@ impl ControllerTrait for Controller {
             self.inspector.stale = true;
         } else if self.dragging {
             let delta =
-                BigVec2::try_from((prev_position - self.mouse_position) / self.size.y as f64)
+                BigVec2::try_from((prev_position - self.mouse_position) / f64::from(self.size.y))
                     .unwrap()
                     .with_precision(PRECISION);
             self.viewport_translate += delta * self.modifier_key_factor() / self.viewport_zoom;
@@ -398,10 +403,10 @@ impl ControllerTrait for Controller {
             biggest.width,
             biggest.height
         );
-        if self.cache_size != UVec2::ZERO {
-            log::info!("Cache size override active");
-        } else {
+        if self.cache_size == UVec2::ZERO {
             self.cache_size = uvec2(biggest.width, biggest.height);
+        } else {
+            log::info!("Cache size override active");
         }
     }
 }
