@@ -1,3 +1,7 @@
+//! <div class="warning">
+//! This crate has a hidden dependency on the `png` feature of the `image` crate.
+//! </div>
+
 use crate::cli::Args;
 
 use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
@@ -76,15 +80,6 @@ struct Inspector {
 }
 
 impl Controller {
-    /// This function exists to provide a _build-time_ dependency on the `png` feature of the `image` crate.
-    /// It is not called.
-    #[allow(dead_code)]
-    fn dummy_dependency() {
-        let slice = &[0u8; 1];
-        let rdr = std::io::BufReader::new(std::io::Cursor::new(slice));
-        let _ = image::codecs::png::PngDecoder::new(rdr);
-    }
-
     pub(crate) fn new(options: &Args) -> Self {
         Self {
             size: UVec2::ZERO,

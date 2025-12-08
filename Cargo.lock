@@ -3188,7 +3188,6 @@ dependencies = [
  "document-features",
  "float_eq",
  "glam",
- "num-traits",
  "paste",
  "pretty_assertions",
  "shader_common",
@@ -3932,7 +3931,6 @@ version = "3.1.2"
 dependencies = [
  "dashu",
  "dashu-float",
- "float_eq",
  "glam",
  "pretty_assertions",
 ]

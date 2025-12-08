@@ -110,3 +110,6 @@ icon = ["icons/*"]
 category = "GraphicsAndDesign"
 # Don't forget to run cargo bundle --no-default-features ...
 # N.B. README, etc, do not live in the bundle; they travel outboard as nobody ever looks inside the .app
+
+[package.metadata.cargo-machete]
+ignored = ["cfg_aliases", "image"]

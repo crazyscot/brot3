@@ -19,7 +19,6 @@ dashu-float = { workspace = true }
 glam = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
-float_eq = { workspace = true }
 pretty_assertions.workspace = true
 
 [lints]
