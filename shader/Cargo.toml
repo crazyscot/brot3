@@ -27,18 +27,18 @@ emulate_constants = []
 [dependencies]
 const-default = { workspace = true }
 spirv-std = { workspace = true }
-shader_common = { path = "../shader_common" }
-paste = "1.0.15"
-float_eq = { version = "1.0.1", default-features = false }
-document-features = "0.2.12"
+shader_common = { workspace = true }
+paste = { workspace = true }
+float_eq = { workspace = true }
+document-features = { workspace = true }
 
 [lints]
 workspace = true
 
 [dev-dependencies]
-divan = "0.1.21"
+divan = { workspace = true }
 glam = { workspace = true, default-features = false, features = ["std"] }
 num-traits = { workspace = true }
 pretty_assertions = { workspace = true }
-strum = { version = "0.27.2", default-features = false }
-derive_more = { version = "2.1.0", features = ["debug"] }
+strum = { workspace = true }
+derive_more = { workspace = true, features = ["debug"] }

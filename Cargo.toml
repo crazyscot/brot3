@@ -32,6 +32,28 @@ const-default = { version = "1.0.0", features = ["derive"], default-features = f
 glam = { version = "=0.30.9", default-features = false }
 num-traits = { version = "0.2.19", default-features = false }
 pretty_assertions = "1.4.1"
+bitflags = "2.10.0"
+cfg-if = "1.0.4"
+cfg_aliases = "0.2.1"
+chrono = { version = "0.4.42", default-features = false }
+dashu = { version = "0.4.2", default-features = false }
+dashu-float = { version = "0.4.3", default-features = false }
+derive_more = "2.1.0"
+divan = "0.1.21"
+document-features = "0.2.12"
+egui_extras = "0.33"
+flate2 = "1.1.5"
+float_eq = { version = "1.0.1", default-features = false }
+image = { version = "0.25.8", default-features = false }
+log = "0.4.28"
+mimalloc = "0.1.48"
+paste = "1.0.15"
+pico-args = "0.5.0"
+shader = { path = "shader" }
+shader_common = { path = "shader_common" }
+strum = { version = "0.27.2", default-features = false }
+util = { path = "util" }
+web-time = "1.1.0"
 
 [workspace.dependencies.spirv-std]
 git = "https://github.com/Rust-GPU/rust-gpu"

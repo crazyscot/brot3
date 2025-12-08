@@ -14,12 +14,12 @@ publish = false
 bench = false
 
 [dependencies]
-dashu = { version = "0.4.2", default-features = false }
-dashu-float = { version = "0.4.3", default-features = false }
+dashu = { workspace = true }
+dashu-float = { workspace = true }
 glam = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
-float_eq = { version = "1.0.1", default-features = false }
+float_eq = { workspace = true }
 pretty_assertions.workspace = true
 
 [lints]

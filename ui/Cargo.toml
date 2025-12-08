@@ -28,20 +28,20 @@ hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 [dependencies]
 anyhow = { workspace = true }
 bytemuck = { workspace = true }
-cfg-if = "1.0.4"
+cfg-if = { workspace = true }
 clap = { workspace = true, features = ["derive", "wrap_help"] }
-egui_extras = { version = "0.33", features = ["image"] }
+egui_extras = { workspace = true, features = ["image"] }
 glam = { workspace = true }
 # image is indirectly used, for unpicking PNGs
-image = { version = "0.25.8", features = ["png"], default-features = false }
-log = "0.4.28"
-mimalloc = "0.1.48"
+image = { workspace = true, features = ["png"] }
+log = { workspace = true }
+mimalloc = { workspace = true }
 num-traits = { workspace = true }
-shader = { path = "../shader" }
-shader_common = { path = "../shader_common" }
-strum = { version = "0.27.2", default-features = false, features = ["std"] }
-util = { path = "../util" }
-web-time = "1.1.0"
+shader = { workspace = true }
+shader_common = { workspace = true }
+strum = { workspace = true, features = ["std"] }
+util = { workspace = true }
+web-time = { workspace = true }
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
 easy-shader-runner = { workspace = true, default-features = false }
@@ -54,7 +54,7 @@ easy-shader-runner = { workspace = true, default-features = false, features = [
 ] }
 
 [build-dependencies]
-cfg_aliases = "0.2.1"
+cfg_aliases = { workspace = true }
 
 [lints]
 workspace = true
