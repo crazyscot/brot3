@@ -1,12 +1,12 @@
 [package]
 name = "brot3-ui"
-description = "Interactive fractal explorer"
-publish = false
-default-run = "brot3"
 version.workspace = true
 authors.workspace = true
+default-run = "brot3"
 edition.workspace = true
 license.workspace = true
+publish = false
+description = "Interactive fractal explorer"
 
 [[bin]]
 name = "brot3"
@@ -48,10 +48,8 @@ easy-shader-runner = { workspace = true, default-features = false }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # CAUTION: wasm builds are not currently tested.
-#wasm-bindgen-futures = "0.4.55"
-easy-shader-runner = { workspace = true, default-features = false, features = [
-  "emulate_constants",
-] }
+# wasm-bindgen-futures = "0.4.55"
+easy-shader-runner = { workspace = true, default-features = false, features = ["emulate_constants"] }
 
 [build-dependencies]
 cfg_aliases = { workspace = true }

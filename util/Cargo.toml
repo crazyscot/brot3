@@ -1,14 +1,14 @@
 [package]
 name = "util"
-description = "Utilities used by the brot3 ui (separate crate for efficient testing)"
-authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
-license = "MIT"
 version.workspace = true
-edition.workspace = true
-repository.workspace = true
-keywords.workspace = true
+authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
 categories.workspace = true
+edition.workspace = true
+keywords.workspace = true
+license = "MIT"
 publish = false
+repository.workspace = true
+description = "Utilities used by the brot3 ui (separate crate for efficient testing)"
 
 [lib]
 bench = false

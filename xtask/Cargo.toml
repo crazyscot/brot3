@@ -1,18 +1,18 @@
 [package]
 name = "xtask"
 version.workspace = true
-edition.workspace = true
 authors.workspace = true
+edition.workspace = true
 license.workspace = true
-repository.workspace = true
 publish = false
+repository.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
 chrono = { workspace = true, features = ["clock"] }
 flate2 = { workspace = true }
 pico-args = { workspace = true }
-#xshell = "0.2.7"
+# xshell = "0.2.7"
 
 [lints]
 workspace = true

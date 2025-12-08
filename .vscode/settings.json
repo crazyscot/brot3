@@ -8,6 +8,9 @@
     "[css]": {
         "editor.defaultFormatter": "vscode.css-language-features"
     },
+    "[toml]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    },
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml"
     ],

@@ -165,9 +165,7 @@ jobs:
           dry-run-intended: true
           # Fake up a ref to control the output directory/archive name
           ref: refs/tags/${{ steps.version.outputs.version }}
-          include: "\
-            README.md,LICENSE,CHANGELOG.md\
-            "
+          include: "README.md,LICENSE,CHANGELOG.md"
           leading-dir: true
           locked: true
           package: brot3-ui

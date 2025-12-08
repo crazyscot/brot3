@@ -7,7 +7,6 @@ version: 2
 updates:
 
   # DEV BRANCH
-
   - package-ecosystem: "cargo"
     directory: "/" # Location of package manifests
     schedule:

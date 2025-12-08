@@ -1,11 +1,11 @@
 [package]
 name = "shader_common"
-description = "Common types shared by the brot3 shader and UI crates"
-authors = ["Ross Younger <crazyscot@gmail.com>"]
-publish = false
 version.workspace = true
-license.workspace = true
+authors = ["Ross Younger <crazyscot@gmail.com>"]
 edition.workspace = true
+license.workspace = true
+publish = false
+description = "Common types shared by the brot3 shader and UI crates"
 
 [lib]
 bench = false

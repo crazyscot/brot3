@@ -1,0 +1,16 @@
+{
+  "toml": {
+  },
+  "markup": {
+  },
+  "yaml": {
+  },
+  "excludes": [
+    "**/node_modules"
+  ],
+  "plugins": [
+    "https://plugins.dprint.dev/toml-0.7.0.wasm",
+    "https://plugins.dprint.dev/g-plane/markup_fmt-v0.25.1.wasm",
+    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.1.wasm"
+  ]
+}
