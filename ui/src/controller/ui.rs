@@ -1,5 +1,7 @@
 use easy_shader_runner::{egui, UiState};
 
+use crate::controller::{MAX_ZOOM, MIN_ZOOM};
+
 use super::{DVec2, Instant};
 
 impl super::Controller {
@@ -72,8 +74,17 @@ impl super::Controller {
         #[allow(clippy::cast_possible_truncation)]
         let factor32 = factor as f32;
         let movement = &mut self.movement;
-        if movement.zoom != 0.0 {
-            self.viewport_zoom *= (movement.zoom - 1.0) * factor * dt + 1.0;
+        if movement.zoom2 != 1.0 {
+            let zoom_in = movement.zoom2.is_sign_positive();
+            let raw_zoom = movement.zoom2.abs();
+            assert!(raw_zoom >= 1.0);
+            let dfactor = (raw_zoom - 1.0) * factor * dt + 1.0;
+            if zoom_in {
+                self.viewport_zoom *= dfactor;
+            } else {
+                self.viewport_zoom /= dfactor;
+            }
+            self.viewport_zoom = self.viewport_zoom.clamp(MIN_ZOOM, MAX_ZOOM);
             self.reiterate = true;
         }
         if movement.translate != DVec2::ZERO {

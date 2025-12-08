@@ -4,8 +4,8 @@ use easy_shader_runner::winit::{
     keyboard::{Key, NamedKey},
 };
 
-const MOVE_SPEED: f64 = 0.2;
-const ZOOM_SPEED: f64 = 1.4;
+const MOVE_SPEED: f64 = 0.4;
+const ZOOM_SPEED: f64 = 3.0;
 
 /// DRY... Define a standard field function
 macro_rules! field_fn {
@@ -197,18 +197,15 @@ impl super::Controller {
 
     fn kbd_zoom(&mut self, inwards: bool, active: bool) {
         if active {
-            self.movement.zoom = if inwards {
-                ZOOM_SPEED
-            } else {
-                1.0 / ZOOM_SPEED
-            };
+            self.movement.zoom2 = if inwards { ZOOM_SPEED } else { -ZOOM_SPEED };
         } else if inwards {
-            if self.movement.zoom > 1. {
-                self.movement.zoom = 0.;
+            /* !active inwards */
+            if self.movement.zoom2 > 1. {
+                self.movement.zoom2 = 1.;
             }
-        } else if self.movement.zoom < 1. {
+        } else if self.movement.zoom2 < 1. {
             /* !active !inwards */
-            self.movement.zoom = 0.;
+            self.movement.zoom2 = 1.;
         }
     }
 
