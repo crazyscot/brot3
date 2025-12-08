@@ -30,7 +30,7 @@ jobs:
     # Prevent sudden announcement of a new advisory from failing ci:
     continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: cargo deny
@@ -43,14 +43,14 @@ jobs:
   cargo-fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: cargo fmt (stable toolchain)
         run: cargo +stable fmt --all -- --check
 
   cargo-machete:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: machete
         uses: bnjbvr/cargo-machete@04b9adbd8c1c00963289b5628510dd907b27dc60
 
@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Set minimal profile # no fmt or clippy
         run: rustup set profile minimal
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@6d653acede28d24f02e3cd41383119e8b1b35921 # 2025-09-17
         with:
