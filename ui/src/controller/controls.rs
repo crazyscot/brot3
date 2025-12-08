@@ -12,7 +12,8 @@ impl super::Controller {
         clippy::too_many_lines,
         clippy::cast_precision_loss,
         clippy::cast_possible_truncation,
-        clippy::cast_sign_loss
+        clippy::cast_sign_loss,
+        clippy::missing_panics_doc
     )]
     pub(super) fn controls_window(&mut self, ctx: &egui::Context) {
         // Don't render this on the first pass before we know the window size. That gives it a bad

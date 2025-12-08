@@ -51,6 +51,7 @@ pub fn debian(mut cli_args: Arguments, args: &DebPackageMeta) -> Result<()> {
     )?;
 
     println!("Running cargo deb...");
+    #[allow(clippy::disallowed_methods)]
     let mut cargo_deb = Command::new("cargo");
     let _ = cargo_deb
         .args([

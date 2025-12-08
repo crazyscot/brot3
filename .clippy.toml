@@ -1,0 +1,55 @@
+# https://doc.rust-lang.org/clippy/configuration.html
+# using config file `.clippy.toml`, `clippy.toml` will be ignored
+msrv = "1.90.0"
+avoid-breaking-exported-api = true
+check-private-items = true
+cognitive-complexity-threshold = 30
+
+doc-valid-idents = [
+  "DirectX",
+  "EiB",
+  "GiB",
+  "GilRs",
+  "GitHub",
+  "glTF",
+  "GPLv2",
+  "GPLv3",
+  "HTTPS",
+  "IPv4",
+  "IPv6",
+  "JavaScript",
+  "JSON",
+  "macOS",
+  "MiB",
+  "MySQL",
+  "NaN",
+  "NVidia",
+  "OAuth",
+  "OpenGL",
+  "OpenXR",
+  "PiB",
+  "PostgreSQL",
+  "SQLite",
+  "sRGB",
+  "TCP",
+  "TiB",
+  "TLS",
+  "TrueType",
+  "UDP",
+  "VSync",
+  "WebGL2",
+  "WebGPU",
+]
+
+disallowed-methods = [
+  # { path = "criterion::black_box", reason = "use core::hint::black_box instead" },
+  { path = "f32::abs_sub", reason = "deprecated and deeply confusing method" },
+  { path = "std::env::set_var", reason = "Setting environment variables can cause issues with non-rust code" },
+  { path = "std::fs::canonicalize", reason = "use `dunce` to avoid UNC/verbatim paths, where possible" },
+  { path = "std::process::Command::new", reason = "may inadvertly run executables from the current working directory" },
+]
+
+disallowed-types = [
+  { path = "std::collections::HashMap", reason = "Non-deterministic time, consider BTreeMap" },
+  { path = "std::collections::HashSet", reason = "Non-deterministic time, consider BTreeSet" },
+]

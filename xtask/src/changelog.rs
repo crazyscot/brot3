@@ -20,6 +20,7 @@ pub fn changelog(mut cli_args: Arguments) -> Result<()> {
     let new = path;
 
     // git cliff --unreleased [--bump <bump>] & capture the output
+    #[allow(clippy::disallowed_methods)]
     let mut cliff = Command::new("git");
     let _ = cliff.args(["cliff", "--unreleased"]);
     if let Some(bbump) = bump {

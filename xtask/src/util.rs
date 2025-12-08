@@ -47,6 +47,7 @@ fn help(tasks: Tasks<'_>) -> Result<()> {
 }
 
 pub fn top_level() -> Result<PathBuf> {
+    #[allow(clippy::disallowed_methods)]
     let git_revparse = Command::new("git")
         .args(["rev-parse", "--show-toplevel"])
         .output()
@@ -97,6 +98,7 @@ pub fn gzip(from: PathBuf, to: PathBuf) -> Result<()> {
 }
 
 pub fn git_short_hash() -> Result<String> {
+    #[allow(clippy::disallowed_methods)]
     let git_revparse = Command::new("git")
         .args(["rev-parse", "--short=8", "HEAD"])
         .output()

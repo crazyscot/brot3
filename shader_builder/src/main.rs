@@ -1,4 +1,4 @@
-#![allow(missing_docs)]
+#![allow(missing_docs, clippy::missing_panics_doc)]
 
 use std::{env, path::Path};
 
@@ -12,6 +12,7 @@ fn build_shader(path_to_crate: &str) -> anyhow::Result<()> {
         builder = builder.shader_crate_features(["emulate_constants".into()]);
     }
     let compile_result = builder.build()?;
+    #[allow(clippy::disallowed_methods)]
     let shader_path = std::fs::canonicalize(compile_result.module.unwrap_single()).unwrap();
     let file_name = shader_path.file_name().unwrap().to_str().unwrap();
     // sample output:

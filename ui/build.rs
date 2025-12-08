@@ -1,4 +1,4 @@
-#![allow(missing_docs)]
+#![allow(missing_docs, clippy::missing_panics_doc)]
 
 use std::{env, path::PathBuf};
 
@@ -56,6 +56,7 @@ fn build_shader() {
     // otherwise repeated `cargo build`s will cause build script reruns and the
     // rebuilding of `rustc_codegen_spirv` (likely due to common proc macro deps).
     let dir = dir.join("builder");
+    #[allow(clippy::disallowed_methods)]
     let status = std::process::Command::new("cargo")
         .args(["run", "--release", "-p", "shader_builder"])
         .arg("--target-dir")
@@ -160,8 +161,8 @@ fn github_tag() -> Option<String> {
 }
 
 fn git_command(args: &[&str]) -> Option<String> {
-    use std::process::Command;
-    if let Ok(output) = Command::new("git").args(args).output() {
+    #[allow(clippy::disallowed_methods)]
+    if let Ok(output) = std::process::Command::new("git").args(args).output() {
         Some(String::from_utf8_lossy(&output.stdout).trim().to_string())
     } else {
         None

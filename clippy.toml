@@ -1,4 +1,0 @@
-disallowed-types = [
-  { path = "std::collections::HashMap", reason = "Non-deterministic time, consider BTreeMap" },
-  { path = "std::collections::HashSet", reason = "Non-deterministic time, consider BTreeSet" },
-]

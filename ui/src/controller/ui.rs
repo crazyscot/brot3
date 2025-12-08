@@ -66,7 +66,7 @@ impl super::Controller {
         self.set_mouse_pointer(ctx);
     }
 
-    #[allow(clippy::float_cmp)]
+    #[allow(clippy::float_cmp, clippy::missing_panics_doc)]
     fn apply_movement(&mut self) {
         let dt = self.last_instant.elapsed().as_secs_f64();
         self.last_instant = Instant::now();

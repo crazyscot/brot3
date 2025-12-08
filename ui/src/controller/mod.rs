@@ -83,6 +83,7 @@ struct Inspector {
 }
 
 impl Controller {
+    #[allow(clippy::missing_panics_doc)]
     pub(crate) fn new(options: &Args) -> Self {
         Self {
             size: UVec2::ZERO,
@@ -422,6 +423,7 @@ impl Controller {
         FragmentConstants::pixel_spacing_f64(self.size.y, self.viewport_zoom)
     }
 
+    #[allow(clippy::missing_panics_doc)]
     fn pixel_address_to_complex(&self, p: DVec2) -> BigVec2 {
         let size = self.size.as_dvec2();
         self.viewport_translate.clone()
