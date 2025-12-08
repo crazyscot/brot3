@@ -36,7 +36,6 @@ fn build_shader() {
     println!("cargo:rerun-if-changed=../shader_builder/");
     println!("cargo:rerun-if-changed=../shader/");
     println!("cargo:rerun-if-changed=../shader_common/");
-    println!("cargo:rerun-if-changed=../shader_util/");
     println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
 
     // While OUT_DIR is set for both build.rs and compiling the crate, PROFILE is only set in

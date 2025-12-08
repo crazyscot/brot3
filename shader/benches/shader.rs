@@ -9,9 +9,9 @@ use divan::black_box;
 use shader::exponentiation::{
     ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower,
 };
+use shader::{colourspace::RgbVec, vec2, Vec2};
 use shader_common::enums::{Algorithm, Colourer};
-use shader_common::{data::PointResult, Flags, FragmentConstants, Palette, PushExponent};
-use shader_util::{colourspace::RgbVec, vec2, Size, Vec2};
+use shader_common::{data::PointResult, Flags, FragmentConstants, Palette, PushExponent, Size};
 use strum::VariantArray as _;
 
 use shader_common::Complex;

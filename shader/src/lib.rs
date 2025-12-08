@@ -4,19 +4,26 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
+//! ## Feature flags
+#![doc = document_features::document_features!()]
+
 #[allow(unused_imports)] // Some are reused in some configurations
-use spirv_std::glam::{f32, vec2, vec3, Vec2, Vec3, Vec4, Vec4Swizzles as _};
 use spirv_std::spirv;
 
-use shader_common::{data::PointResult, Flags, FragmentConstants};
-use shader_util::colourspace::RgbVec;
-use shader_util::grid::{GridRef, GridRefMut, GridShared};
-
-pub use shader_common::{Complex, INSPECTOR_MARKER_SIZE};
+use spirv_std::glam::Vec4Swizzles as _;
+pub use spirv_std::glam::{f32, uvec2, vec2, DVec2, UVec2, Vec2, Vec3, Vec4};
 
 pub mod colour;
+pub mod colourspace;
 pub mod exponentiation;
 pub mod fractal;
+pub mod grid;
+
+use colourspace::RgbVec;
+use grid::{GridRef, GridRefMut, GridShared};
+use shader_common::{data::PointResult, Flags, FragmentConstants};
+
+pub use shader_common::{Complex, INSPECTOR_MARKER_SIZE};
 
 fn new_york_distance(a: Vec2, b: Vec2) -> f32 {
     (a.x - b.x).abs() + (a.y - b.y).abs()
@@ -100,8 +107,7 @@ mod tests {
 
     use const_default::ConstDefault as _;
     use float_eq::assert_float_eq;
-    use shader_common::{data::PointResult, enums::Algorithm, Flags, Palette, PushExponent};
-    use shader_util::Size;
+    use shader_common::{data::PointResult, enums::Algorithm, Flags, Palette, PushExponent, Size};
     use spirv_std::glam::{uvec2, vec2, vec4, UVec2, Vec2, Vec3, Vec4};
 
     const TEST_GRID_SIZE: UVec2 = uvec2(2560, 1440);

@@ -6,7 +6,7 @@ fn main() {
 }
 
 use divan::black_box;
-use shader_util::colourspace::{Hsl, Lab, Lch, RgbVec};
+use shader::colourspace::{Hsl, Lab, Lch, RgbVec};
 
 #[divan::bench]
 fn ___warm_up() -> Lab {

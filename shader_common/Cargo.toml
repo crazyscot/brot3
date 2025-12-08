@@ -14,7 +14,6 @@ bench = false
 bitflags = { version = "2.10.0", features = ["bytemuck"] }
 bytemuck = { workspace = true, features = ["derive"] }
 const-default = { workspace = true }
-shader_util = { path = "../shader_util" }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
 glam = { workspace = true }
@@ -36,4 +35,5 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 ] }
 
 [dev-dependencies]
+float_eq = "1.0.1"
 pretty_assertions = { workspace = true }

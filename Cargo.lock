@@ -3185,11 +3185,13 @@ dependencies = [
  "const-default",
  "derive_more 2.1.0",
  "divan",
+ "document-features",
  "float_eq",
+ "glam",
+ "num-traits",
  "paste",
  "pretty_assertions",
  "shader_common",
- "shader_util",
  "spirv-std",
  "strum",
 ]
@@ -3211,26 +3213,13 @@ dependencies = [
  "bytemuck",
  "clap",
  "const-default",
+ "float_eq",
  "glam",
  "num-derive",
  "num-traits",
  "pretty_assertions",
- "shader_util",
  "spirv-std",
  "strum",
-]
-
-[[package]]
-name = "shader_util"
-version = "0.3.0"
-dependencies = [
- "bytemuck",
- "divan",
- "document-features",
- "float_eq",
- "glam",
- "num-traits",
- "spirv-std",
 ]
 
 [[package]]
@@ -3939,7 +3928,7 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "util"
-version = "0.0.0"
+version = "3.1.2"
 dependencies = [
  "dashu",
  "dashu-float",

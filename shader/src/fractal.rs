@@ -324,8 +324,7 @@ impl AlgorithmDetail for MandelbrotFamily {
 mod tests {
     use crate::{fractal, vec2, FragmentConstants, Vec2};
     use const_default::ConstDefault as _;
-    use shader_common::{enums::Algorithm, Flags, NumericType, Palette, PushExponent};
-    use shader_util::Size;
+    use shader_common::{enums::Algorithm, Flags, NumericType, Palette, PushExponent, Size};
 
     use pretty_assertions::assert_eq;
 

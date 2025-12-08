@@ -14,10 +14,11 @@ pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 use bytemuck::{NoUninit, Pod, Zeroable};
 use const_default::ConstDefault;
 
-use shader_util::Size;
+mod size;
+pub use size::Size;
 
 pub mod enums;
-use enums::{Algorithm, ColourStyle, Colourer};
+pub use enums::{Algorithm, ColourStyle, Colourer};
 
 use crate::enums::Modifier;
 pub mod data;

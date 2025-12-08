@@ -15,9 +15,9 @@ macro_rules! deprintln {
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
+use super::colourspace::{Hsl, Lch, RgbVec};
 use core::f32::consts::TAU;
 use shader_common::enums::Modifier;
-use shader_util::colourspace::{Hsl, Lch, RgbVec};
 
 use super::{FragmentConstants, PointResult};
 

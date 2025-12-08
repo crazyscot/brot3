@@ -1,5 +1,5 @@
 [workspace]
-members = ["shader_common", "shader", "shader_builder", "shader_util", "ui", "xtask", "util"]
+members = ["shader_common", "shader", "shader_builder", "ui", "xtask", "util"]
 resolver = "2"
 
 [workspace.package]
@@ -12,8 +12,7 @@ keywords = ["fractal", "mandelbrot"]
 categories = ["graphics", "mathematics"]
 
 # note: rust-cache turns off incremental builds, so we don't need a profile mod for CI.
-
-[profile.release]
+#[profile.release]
 # See https://nnethercote.github.io/perf-book/build-configuration.html
 #codegen-units = 1
 #lto = "thin"

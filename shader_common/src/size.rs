@@ -1,25 +1,8 @@
-//! Helper types for GPU shaders
-
-#![cfg_attr(target_arch = "spirv", no_std)]
-#![cfg_attr(coverage_nightly, feature(coverage_attribute))]
-
-//! ## Feature flags
-#![doc = document_features::document_features!()]
-
-pub mod grid;
-pub use grid::*;
-
-#[cfg(not(target_arch = "spirv"))]
-/// Re-exported from [`glam`].
-pub use glam::{uvec2, vec2, DVec2, UVec2, Vec2, Vec3};
-
-#[cfg(target_arch = "spirv")]
-/// Re-exported from [`glam`].
-pub use spirv_std::glam::{uvec2, vec2, DVec2, UVec2, Vec2, Vec3};
-
-pub mod colourspace;
+//! GPU-friendly representation of a two-dimensional `u32` vector
 
 use bytemuck::NoUninit;
+
+use super::{uvec2, vec2, UVec2, Vec2};
 
 /// GPU-friendly representation of a two-dimensional `u32` vector
 ///
@@ -41,7 +24,7 @@ impl Size {
     /// Calculates the aspect ratio
     ///
     /// ```
-    /// # use shader_util::Size;
+    /// # use shader_common::Size;
     /// let sz = Size::new(100, 200);
     /// assert_eq!(sz.aspect_ratio(), 0.5);
     /// ```
@@ -54,7 +37,7 @@ impl Size {
     /// Converts to a [`Vec2`]
     ///
     /// ```
-    /// # use shader_util::Size;
+    /// # use shader_common::Size;
     /// let sz = Size::new(100,200);
     /// let v = sz.as_vec2();
     /// assert_eq!(v.x, 100.0);
@@ -68,7 +51,7 @@ impl Size {
 
     /// Converts to a [`UVec2`]
     /// ```
-    /// # use shader_util::Size;
+    /// # use shader_common::Size;
     /// let sz = Size::new(100,200);
     /// let v = sz.as_uvec2();
     /// assert_eq!(v.x, 100);
@@ -82,7 +65,7 @@ impl Size {
 
 impl From<UVec2> for Size {
     /// ```
-    /// # use shader_util::Size;
+    /// # use shader_common::Size;
     /// # use glam::uvec2;
     /// let uv = uvec2(200, 100);
     /// let sz: Size = uv.into();
