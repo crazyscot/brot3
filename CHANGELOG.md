@@ -1,3 +1,69 @@
+## [3.2.0](https://github.com/crazyscot/brot3/releases/tag/v3.2.0) - 2025-12-09
+
+### 🚀 Features
+
+- *(cli)* Add --cache-size override, enable wrap_help - ([0e1079e](https://github.com/crazyscot/brot3/commit/0e1079e9cfe6e8c2d7ed46b458af55f2b8a3e58d))
+- Add modifier keys (shift, alt) to affect control speed - ([680cd2a](https://github.com/crazyscot/brot3/commit/680cd2a7871e15fa24321a5e438c6ba49981cb86))
+- Option to always reiterate, without using the fractal data cache - ([ab9f5b5](https://github.com/crazyscot/brot3/commit/ab9f5b5a6e839d542f3b5c862d5ee8402e73310a))
+- Add undocumented performance test mode, accessed by ctrl+F11 - ([0fd7b99](https://github.com/crazyscot/brot3/commit/0fd7b99993f3a8d77c107b03f9a1fa60f7ff5cb0))
+
+### 🐛 Bug Fixes
+
+- *(build)* Update the internal reference to spirv-builder - ([74be54b](https://github.com/crazyscot/brot3/commit/74be54b1f8dace308afe9f842c264e0697b0d035))
+- *(macos)* PNG file rendering in UI - ([50e58d7](https://github.com/crazyscot/brot3/commit/50e58d72a03b7697232fe7034baea191849acf87))
+- Align exponentation special cases, add tests - ([647864d](https://github.com/crazyscot/brot3/commit/647864d92d2fb6e27e2081709a4937325c525fc6))
+- Derivative calculation in distance estimator - ([8b8456c](https://github.com/crazyscot/brot3/commit/8b8456c7e0fb616334a9c88dfff25c2f0c50ddee))
+- Avoid NaNs breaking filaments styles - ([a440310](https://github.com/crazyscot/brot3/commit/a440310751e7a040abd4f8f36bc8550fb90e74c8))
+- Update inspector data when requested via the context menu - ([b1d7493](https://github.com/crazyscot/brot3/commit/b1d74931c0310d044652a2b5adeed1bd16268e48))
+- Menu icon transparency - ([e44dfc6](https://github.com/crazyscot/brot3/commit/e44dfc658f144bd100282632a359d330f60a1d96))
+- Shader checks cache buffer size and falls back appropriately - ([a1f8881](https://github.com/crazyscot/brot3/commit/a1f88817b4f73907d8671c897995e7ad24869594))
+- Don't let --fullscreen CLI option get lost - ([f480431](https://github.com/crazyscot/brot3/commit/f480431f425dcf1241d3a4f20ac67d925b5825a9))
+- Make keyboard zooms more consistent with mouse scrolls - ([92beeaf](https://github.com/crazyscot/brot3/commit/92beeaf9ca220e0577c6714bf2eaca4c360ba8ba))
+
+### ⚡ Performance
+
+- Simplify shader by moving log2 calculation into Exponentiator and making it branchless - ([687e3ec](https://github.com/crazyscot/brot3/commit/687e3eccd11b977d924797150c80e012264c68e9))
+- Make exponentiation special cases branchless - ([69abbda](https://github.com/crazyscot/brot3/commit/69abbda68620758a39bb84f7f5511789db396b3e))
+- Merge the individual fractal traits - ([f5e214d](https://github.com/crazyscot/brot3/commit/f5e214d815ca95c6e62581bace02b44bae8e49f8))
+- Remove some branching in colourspace - ([512d88f](https://github.com/crazyscot/brot3/commit/512d88fcca75cf89852418f04d4f0e3eb7392385))
+- Refactor Exponentiator - ([2b23e95](https://github.com/crazyscot/brot3/commit/2b23e9541f5b29bc78ac156a608e6f69859c2b39))
+
+### 🚜 Refactor
+
+- ColourStyle::None becomes a Colourer - ([75ded55](https://github.com/crazyscot/brot3/commit/75ded5537fb3062c35ed90ebcc27af7985d19bf6))
+- RgbVec -> Vec3Rgb; ditch Rgb type - ([a14ca7c](https://github.com/crazyscot/brot3/commit/a14ca7c60a583698f653154e8a44a47d2ede3a43))
+- Unsplit PointResult, request the actual buffer size we want from wgpu - ([3ee3f23](https://github.com/crazyscot/brot3/commit/3ee3f238885e7869aedf8f01f02040fa355382ff))
+- GridRef/GridRefMut check their buffer limits - ([7f18572](https://github.com/crazyscot/brot3/commit/7f185728ba031111ee547952276eaeeaa348a07e))
+- Set the cache buffer size at runtime (largest available monitor) - ([e6b5073](https://github.com/crazyscot/brot3/commit/e6b50731c92c1c3a1efb3d89e9f9856ca4bddf01))
+- Fullscreen, so it works better on macOS - ([ba3e7c5](https://github.com/crazyscot/brot3/commit/ba3e7c515c54f309218ffd90a28f4b239038ed61))
+- Merge shader_util crate into shader - ([84d9afd](https://github.com/crazyscot/brot3/commit/84d9afd6a7bdf8e35180141109092f399ee375ac))
+
+### 🎨 Styling
+
+- Create options menu - ([255723f](https://github.com/crazyscot/brot3/commit/255723fe4f4296f7fdfcf90fd788c1fa4a3c3630))
+
+### 🧪 Testing
+
+- Use nextest in coverage, clone doctests to maintain coverage - ([0ec6d21](https://github.com/crazyscot/brot3/commit/0ec6d213308c03aeff9f3585576ca790b2e502a0))
+- Improve coverage in shader - ([bebda73](https://github.com/crazyscot/brot3/commit/bebda736c4f893025f57fab57293eb72d5927591))
+- Add benchmarks for colour conversions - ([dfd15ec](https://github.com/crazyscot/brot3/commit/dfd15ec8dba4f80b4cf951af1023abe3de189ae1))
+
+### 🏗️  Build, packaging & CI
+
+- *(!)* Change default feature flags to NOT include runtime compilation - ([b7d69e3](https://github.com/crazyscot/brot3/commit/b7d69e32168973b5722c624e5cd23a159006a37a))
+- Re-enable OSX builds - ([d4e8f97](https://github.com/crazyscot/brot3/commit/d4e8f97429ee07cfbebe552b0141d2aa83108a8a))
+- Use later easy-shader-runner; updates rust-gpu - ([df0bcdd](https://github.com/crazyscot/brot3/commit/df0bcdd93238198cff2c5579830340df830aea48))
+- Add more checks, streamline - ([8e01907](https://github.com/crazyscot/brot3/commit/8e01907835b16f070c1c304cb7655e1fa86450a0))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(macos)* Update keyboard shortcuts - ([e5ecb25](https://github.com/crazyscot/brot3/commit/e5ecb250907b149334cf2e17d5495d73591feda7))
+- Add division to BigVec2 - ([765f959](https://github.com/crazyscot/brot3/commit/765f95912c488fc426a1c17fc9b46fa0edf9203b))
+- Use mimalloc as global allocator - ([b8d642e](https://github.com/crazyscot/brot3/commit/b8d642e7a6519eb477e5c8c799635f1db8037fbb))
+- Introduce flag_if() helper - ([b68b0fa](https://github.com/crazyscot/brot3/commit/b68b0fab619b035d7f4d6a82615f790075f5ccde))
+- Redistribute data between PointResultA and PointResultB - ([6c4388f](https://github.com/crazyscot/brot3/commit/6c4388faa395688101e26bdc4e70bab4422593bc))
+- Add scripts/janitor - ([e7f23ae](https://github.com/crazyscot/brot3/commit/e7f23ae38611db20fce260381c04dcc22edd426d))
+
 ## [3.1.2](https://github.com/crazyscot/brot3/releases/tag/v3.1.2) - 2025-11-15
 
 ### 🏗️  Build, packaging & CI

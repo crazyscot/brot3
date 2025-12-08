@@ -17,8 +17,8 @@ Steps:
 - Create release changeset
   - `cargo xtask changelog --bump major|minor|patch`
   - Update project version in `cargo.toml`
-  - commit with prefix `chore(release)`
   - cargo build, to ensure the lockfile is updated
+  - commit with prefix `chore(release)`
 - Merge changeset as usual, update `dev` branches
 - Create and push the new tag
 - Create the release in Github. Sometimes it's useful to press the button to autogenerate the release notes; sometimes less so.
