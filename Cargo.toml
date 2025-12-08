@@ -3,39 +3,24 @@ members = ["shader_common", "shader", "shader_builder", "ui", "xtask", "util"]
 resolver = "2"
 
 [workspace.package]
-edition = "2024"
 authors = ["Ross Younger <crazyscot@gmail.com>"]
-version = "3.1.2"
+categories = ["graphics", "mathematics"]
+edition = "2024"
+keywords = ["fractal", "mandelbrot"]
 license = "MIT"
 repository = "https://github.com/crazyscot/brot3/"
-keywords = ["fractal", "mandelbrot"]
-categories = ["graphics", "mathematics"]
-
-# note: rust-cache turns off incremental builds, so we don't need a profile mod for CI.
-#[profile.release]
-# See https://nnethercote.github.io/perf-book/build-configuration.html
-#codegen-units = 1
-#lto = "thin"
-#strip = "debuginfo"
-#incremental = false # implicit by rust-cache
-
-[profile.bench]
-strip = false
-debug = true
+version = "3.1.2"
 
 [workspace.dependencies]
 abels-complex = { version = "0.4.0", default-features = false }
 anyhow = "1.0.100"
-bytemuck = { version = "1.24.0", default-features = false }
-clap = { version = "4.5.51", features = ["derive"] }
-const-default = { version = "1.0.0", features = ["derive"], default-features = false }
-glam = { version = "=0.30.9", default-features = false }
-num-traits = { version = "0.2.19", default-features = false }
-pretty_assertions = "1.4.1"
 bitflags = "2.10.0"
+bytemuck = { version = "1.24.0", default-features = false }
 cfg-if = "1.0.4"
 cfg_aliases = "0.2.1"
 chrono = { version = "0.4.42", default-features = false }
+clap = { version = "4.5.51", features = ["derive"] }
+const-default = { version = "1.0.0", features = ["derive"], default-features = false }
 dashu = { version = "0.4.2", default-features = false }
 dashu-float = { version = "0.4.3", default-features = false }
 derive_more = "2.1.0"
@@ -44,11 +29,14 @@ document-features = "0.2.12"
 egui_extras = "0.33"
 flate2 = "1.1.5"
 float_eq = { version = "1.0.1", default-features = false }
+glam = { version = "=0.30.9", default-features = false }
 image = { version = "0.25.8", default-features = false }
 log = "0.4.28"
 mimalloc = "0.1.48"
+num-traits = { version = "0.2.19", default-features = false }
 paste = "1.0.15"
 pico-args = "0.5.0"
+pretty_assertions = "1.4.1"
 shader = { path = "shader" }
 shader_common = { path = "shader_common" }
 strum = { version = "0.27.2", default-features = false }
@@ -64,10 +52,10 @@ git = "https://github.com/Rust-GPU/rust-gpu"
 rev = "2aa4d4f8a8ba73103501562cfca17b8163e5a887"
 
 [workspace.dependencies.easy-shader-runner]
-git = "https://github.com/crazyscot/easy-shader-runner"
-rev = "bfb84d6acb5f05229dbb177fb68541bc285112b7"
 # path = "../easy-shader-runner/easy-shader-runner" # Used when working on e-s-r
 default-features = false
+git = "https://github.com/crazyscot/easy-shader-runner"
+rev = "bfb84d6acb5f05229dbb177fb68541bc285112b7"
 
 [workspace.lints.rust]
 dead_code = "warn"
@@ -81,13 +69,13 @@ non_ascii_idents = "deny"
 single_use_lifetimes = "deny"
 trivial_casts = "deny"
 trivial_numeric_casts = "deny"
-unsafe_code = "deny"
-unsafe_op_in_unsafe_fn = "deny"
-unreachable_pub = "deny"
 unexpected_cfgs = { level = "allow", check-cfg = [
     'cfg(target_arch, values("spirv"))',
     'cfg(coverage_nightly)',
 ] }
+unreachable_pub = "deny"
+unsafe_code = "deny"
+unsafe_op_in_unsafe_fn = "deny"
 # unused_crate_dependencies = "deny" # false positives
 unused_extern_crates = "deny"
 unused_lifetimes = "deny"
@@ -95,5 +83,17 @@ unused_results = "deny"
 variant_size_differences = "deny"
 
 [workspace.lints.clippy]
-pedantic = { level = "deny", priority = -1 }
 missing_errors_doc = "allow"
+pedantic = { level = "deny", priority = -1 }
+
+# note: rust-cache turns off incremental builds, so we don't need a profile mod for CI.
+#[profile.release]
+# See https://nnethercote.github.io/perf-book/build-configuration.html
+#codegen-units = 1
+#lto = "thin"
+#strip = "debuginfo"
+#incremental = false # implicit by rust-cache
+
+[profile.bench]
+debug = true
+strip = false
