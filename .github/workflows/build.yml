@@ -26,9 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@6d653acede28d24f02e3cd41383119e8b1b35921 # 2025-09-17
+        uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # 2025-09-17
         with:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
           components: rustfmt,clippy
@@ -131,7 +131,7 @@ jobs:
       # Downloaded artifact from an earlier job - set up by ui_build_prep action
       BROT3_PREBUILT_SHADER: ${{ github.workspace }}/target/prebuilt-shader/shader.spv
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
@@ -178,7 +178,7 @@ jobs:
       - name: Upload binary
         if: ${{ success() || failure() }}
         # always try to do this, it allows the package to be checked
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           # For this OUTER archive, we use -raw on Mac and -binary elsewhere.
           # The inner and outer names must be different to avoid archive overwrites, confusion
@@ -195,7 +195,7 @@ jobs:
         # this writes the output 'deb=<file>'
       - name: upload deb
         if: ${{ matrix.platform == 'linux' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: brot3_${{ steps.version.outputs.version }}-deb-${{ matrix.runs_on }}
           path: ${{ steps.build_deb.outputs.deb }}
@@ -265,7 +265,7 @@ jobs:
       - name: upload mac app bundle
         # always try to do this, it allows the package to be checked
         if: ${{ matrix.platform == 'mac' && ( success() || failure() ) }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: brot3_${{ steps.version.outputs.version }}-${{ matrix.short_target }}-app
           path: ${{ steps.bundle-mac.outputs.zipfile }}

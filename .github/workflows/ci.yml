@@ -30,11 +30,11 @@ jobs:
     # Prevent sudden announcement of a new advisory from failing ci:
     continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: cargo deny
-        uses: EmbarkStudios/cargo-deny-action@f2ba7abc2abebaf185c833c3961145a3c275caad # 2.0.13
+        uses: EmbarkStudios/cargo-deny-action@76cd80eb775d7bbbd2d80292136d74d39e1b4918 # 2.0.14
         with:
           command: check ${{ matrix.checks }}
           rust-version: "nightly-2025-06-30"
@@ -43,16 +43,16 @@ jobs:
   cargo-fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: cargo fmt (stable toolchain)
         run: cargo +stable fmt --all -- --check
 
   cargo-machete:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: machete
-        uses: bnjbvr/cargo-machete@04b9adbd8c1c00963289b5628510dd907b27dc60
+        uses: bnjbvr/cargo-machete@72602674bc341ca927683caddbf578672c352476
 
   coverage:
     name: coverage (selected)
@@ -61,9 +61,9 @@ jobs:
     steps:
       - name: Set minimal profile # no fmt or clippy
         run: rustup set profile minimal
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@6d653acede28d24f02e3cd41383119e8b1b35921 # 2025-09-17
+        uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # 2025-09-17
         with:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
           components: llvm-tools-preview
@@ -85,7 +85,7 @@ jobs:
           name: lcov.info
           path: lcov.info
       - name: Send result to codecov
-        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5.5.0
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
           #files: lcov.info # not needed, it autodetects
           #verbose: true # not needed
