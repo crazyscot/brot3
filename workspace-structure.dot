@@ -6,10 +6,11 @@ digraph {
     ui;
     shader;
     shader_builder;
-    // xtask;
+    xtask;
     shader_common;
     shader_util;
     shader_spv [shape = cylinder;label = "shader.spv";];
+    util;
     node [shape = box3d; style = filled;];
     edge [fontname = "arial"; fontsize = 7;];
     spirv_builder;
@@ -27,9 +28,10 @@ digraph {
     
     
     ui -> shader_common;
-    ui -> shader_util;
+    # ui -> shader_util;
     # ui -> egui;
     ui -> easy_shader_runner;
+    ui -> util;
     
     
     shader_spv -> shader [style = dotted; label = "artefact of"; lhead = cluster_shader_;];
