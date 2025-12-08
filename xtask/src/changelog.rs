@@ -1,8 +1,7 @@
 //! xtask to update the changelog
 // (c) 2025 Ross Younger
 
-use std::path::PathBuf;
-use std::process::Command;
+use std::{path::PathBuf, process::Command};
 
 use anyhow::{Context as _, Result};
 use pico_args::Arguments;

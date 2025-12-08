@@ -19,6 +19,9 @@ macro_rules! deprintln {
     };
 }
 
+use core::marker::PhantomData;
+
+use shader_common::NumericType;
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
@@ -26,9 +29,6 @@ use super::{Complex, FragmentConstants, PointResult, Vec2};
 use crate::exponentiation::{
     ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, Power5, Power6, RealPower,
 };
-use shader_common::NumericType;
-
-use core::marker::PhantomData;
 
 #[must_use]
 pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
@@ -253,7 +253,7 @@ pub(crate) trait AlgorithmDetail {
         iters: u32,
         params: AlgorithmModifiers,
         expo: E,
-    ) -> (Complex /*z*/, Complex /*dz*/);
+    ) -> (Complex /* z */, Complex /* dz */);
 }
 
 // returns (z, dz)
@@ -316,7 +316,7 @@ impl AlgorithmDetail for MandelbrotFamily {
         iters: u32,
         params: AlgorithmModifiers,
         expo: E,
-    ) -> (Complex /*z*/, Complex /*dz*/) {
+    ) -> (Complex /* z */, Complex /* dz */) {
         mandelbrot_family_iterate_algorithm(z, dz, c, iters, params, expo)
     }
 }
@@ -324,11 +324,11 @@ impl AlgorithmDetail for MandelbrotFamily {
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use crate::{fractal, vec2, FragmentConstants, Vec2};
     use const_default::ConstDefault as _;
-    use shader_common::{enums::Algorithm, Flags, NumericType, Palette, PushExponent, Size};
-
     use pretty_assertions::assert_eq;
+    use shader_common::{Flags, NumericType, Palette, PushExponent, Size, enums::Algorithm};
+
+    use crate::{FragmentConstants, Vec2, fractal, vec2};
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {

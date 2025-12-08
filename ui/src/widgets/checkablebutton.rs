@@ -3,8 +3,8 @@
 //! This is basically a welding-together of the relevant parts of checkbox.rs and button.rs
 
 use easy_shader_runner::egui::{
-    epaint, pos2, Atom, AtomKind, AtomLayout, Frame, Id, IntoAtoms, NumExt as _, Response, Sense,
-    Shape, TextStyle, Ui, Vec2, Widget, WidgetInfo, WidgetType,
+    Atom, AtomKind, AtomLayout, Frame, Id, IntoAtoms, NumExt as _, Response, Sense, Shape,
+    TextStyle, Ui, Vec2, Widget, WidgetInfo, WidgetType, epaint, pos2,
 };
 
 /// A type of Button whose contents are a checkbox, and that has accelerator text.
@@ -28,12 +28,14 @@ impl<'a> CheckableButton<'a> {
         cb.atoms.push_right(Atom::grow());
         cb
     }
+
     /// Mutator: Sets minimum size
     #[must_use]
     pub fn min_size(mut self, min_size: Vec2) -> Self {
         self.min_size = min_size;
         self
     }
+
     /// Mutator: Adds shortcut text
     #[must_use]
     pub fn shortcut_text(mut self, shortcut_text: impl Into<Atom<'a>>) -> Self {

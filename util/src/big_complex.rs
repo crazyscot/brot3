@@ -1,8 +1,10 @@
 //! Arbitrary precision complex numbers, powered by `dashu::float::FBig`
 
-use crate::big_vec2::BigVec2;
-use dashu_float::FBig;
 use std::ops::{Add, Deref, DerefMut, Sub};
+
+use dashu_float::FBig;
+
+use crate::big_vec2::BigVec2;
 
 /// Arbitrary precision complex number using `dashu_float::FBig` as the underlying data type
 ///
@@ -127,6 +129,7 @@ impl From<BigVec2> for BigComplex {
 
 impl Add for BigComplex {
     type Output = Self;
+
     fn add(self, other: Self) -> Self::Output {
         Self(self.0 + other.0)
     }
@@ -134,6 +137,7 @@ impl Add for BigComplex {
 
 impl Sub for BigComplex {
     type Output = Self;
+
     fn sub(self, other: Self) -> Self::Output {
         Self(self.0 - other.0)
     }
@@ -142,10 +146,11 @@ impl Sub for BigComplex {
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{BigVec2, FBig};
-    use crate::{make_bigvec2, make_complex, BigComplex};
     use dashu::fbig;
     use dashu_float::round::mode::Zero;
+
+    use super::{BigVec2, FBig};
+    use crate::{BigComplex, make_bigvec2, make_complex};
 
     #[test]
     fn conversions() {

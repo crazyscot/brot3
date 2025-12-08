@@ -7,11 +7,10 @@
     missing_copy_implementations
 )]
 
+use std::{path::PathBuf, process::Command};
+
 use anyhow::{Context, Result};
 use pico_args::Arguments;
-
-use std::path::PathBuf;
-use std::process::Command;
 
 pub type TaskDefinition<'a> = (&'a str, fn(Arguments) -> Result<()>, &'a str);
 pub type Tasks<'a> = &'a [TaskDefinition<'a>];
@@ -76,9 +75,9 @@ pub fn ensure_all_args_used(args: Arguments) -> Result<()> {
 
 /// This is essentially the `gzip` shell command
 pub fn gzip(from: PathBuf, to: PathBuf) -> Result<()> {
+    use std::{fs::File, io::BufReader};
+
     use flate2::{Compression, GzBuilder};
-    use std::fs::File;
-    use std::io::BufReader;
 
     let filename = from.clone();
     let filename = filename

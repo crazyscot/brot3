@@ -1,9 +1,11 @@
 #![allow(unused_results)]
 
-use easy_shader_runner::egui;
-use easy_shader_runner::winit::{
-    event::KeyEvent,
-    keyboard::{Key, NamedKey},
+use easy_shader_runner::{
+    egui,
+    winit::{
+        event::KeyEvent,
+        keyboard::{Key, NamedKey},
+    },
 };
 
 const MOVE_SPEED: f64 = 0.4;
@@ -26,6 +28,8 @@ macro_rules! field_fn {
 }
 
 impl super::Controller {
+    field_fn!(gradient, offset, gamma, saturation, lightness);
+
     pub(super) fn keyboard_help_window(ctx: &egui::Context) {
         egui::Window::new("keyboard")
             //.default_width(crate::controller::ui::DEFAULT_WIDTH)
@@ -158,7 +162,8 @@ impl super::Controller {
                     self.show_scale_bar = false;
                     self.always_reiterate = true;
                 } else if cfg!(not(target_os = "macos")) {
-                    // F11 only operates fullscreen on Windows and Linux; Apple uses Ctrl+Cmd+F, and that's implemented by the OS.
+                    // F11 only operates fullscreen on Windows and Linux; Apple uses Ctrl+Cmd+F, and
+                    // that's implemented by the OS.
                     self.fullscreen_requested = Some(!self.fullscreen_checkbox);
                 }
             }
@@ -220,6 +225,7 @@ impl super::Controller {
             minimax(&mut self.movement.exponent, 0., 0., increase);
         }
     }
+
     fn expo_im(&mut self, increase: bool, active: bool) {
         if active {
             let magnitude = self.exponent.step();
@@ -240,8 +246,6 @@ impl super::Controller {
         let delta = if increment { 1 } else { -1 };
         self.palette.colourer += delta;
     }
-
-    field_fn!(gradient, offset, gamma, saturation, lightness);
 }
 
 /// Clamps a value with either a minimum or a maximum.

@@ -1,8 +1,9 @@
 //! Arbitrary precision version of [`Vec2`], powered by `dashu::float::FBig`
 
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+
 use dashu::float::FBig;
 use glam::{DVec2, UVec2, Vec2};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 /// Arbitrary precision version of [`glam::Vec2`]
 #[derive(Clone, Debug, PartialEq, Default)]
@@ -96,12 +97,14 @@ impl TryFrom<glam::DVec2> for BigVec2 {
 
 impl Add for BigVec2 {
     type Output = Self;
+
     fn add(self, other: Self) -> Self::Output {
         Self::new(self.x + other.x, self.y + other.y)
     }
 }
 impl Sub for BigVec2 {
     type Output = Self;
+
     fn sub(self, other: Self) -> Self::Output {
         Self::new(self.x - other.x, self.y - other.y)
     }
@@ -145,6 +148,7 @@ impl DivAssign<f64> for BigVec2 {
 
 impl Div<f64> for BigVec2 {
     type Output = Self;
+
     fn div(mut self, other: f64) -> Self::Output {
         self /= other;
         self
@@ -153,6 +157,7 @@ impl Div<f64> for BigVec2 {
 
 impl Mul<f64> for BigVec2 {
     type Output = Self;
+
     fn mul(mut self, other: f64) -> Self::Output {
         self *= other;
         self
@@ -186,9 +191,10 @@ impl std::fmt::Display for BigVec2 {
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
+    use glam::dvec2;
+
     use super::{BigVec2, DVec2};
     use crate::make_bigvec2;
-    use glam::dvec2;
     #[test]
     fn conversions() {
         let z = make_bigvec2!(3, 4).with_precision(10);

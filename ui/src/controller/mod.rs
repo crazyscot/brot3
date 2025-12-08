@@ -2,19 +2,21 @@
 //! This crate has a hidden dependency on the `png` feature of the `image` crate.
 //! </div>
 
-use crate::cli::Args;
-
-use easy_shader_runner::{egui, wgpu, winit, ControllerTrait, GraphicsContext, UiState};
-use glam::{dvec2, uvec2, DVec2, UVec2, Vec2};
+use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
+use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 use shader_common::{
-    data::PointResult, enums::Algorithm, flag_if, Flags, FragmentConstants, NumericType, Palette,
-    PushExponent,
+    Flags, FragmentConstants, NumericType, Palette, PushExponent, data::PointResult,
+    enums::Algorithm, flag_if,
 };
 use util::BigVec2;
 use web_time::Instant;
-use winit::dpi::PhysicalSize;
-use winit::event::{ElementState, MouseButton};
-use winit::event_loop::ActiveEventLoop;
+use winit::{
+    dpi::PhysicalSize,
+    event::{ElementState, MouseButton},
+    event_loop::ActiveEventLoop,
+};
+
+use crate::cli::Args;
 
 mod about;
 mod controls;
@@ -75,7 +77,8 @@ struct Inspector {
     active: bool,
     dragging: bool,
     position: BigVec2,
-    stale: bool, // N.B. Controller.reiterate implies the inspector data is stale. The converse is not true.
+    stale: bool, /* N.B. Controller.reiterate implies the inspector data is stale. The converse
+                  * is not true. */
     data: PointResult,
 }
 
@@ -91,7 +94,8 @@ impl Controller {
 
             algorithm: options.fractal,
             max_iter: FragmentConstants::DEFAULT_MAX_ITER,
-            palette: Palette::default().with_colourer(options.colourer), // TODO with render style too
+            palette: Palette::default().with_colourer(options.colourer), /* TODO with render
+                                                                          * style too */
             exponent: Exponent::default(),
 
             show_coords_window: true,
@@ -167,6 +171,7 @@ impl Exponent {
     fn variant(&self) -> NumericType {
         self.typ
     }
+
     fn step(&self) -> f32 {
         if self.typ == NumericType::Integer {
             1.
@@ -174,6 +179,7 @@ impl Exponent {
             0.1
         }
     }
+
     fn is_integer(&self) -> bool {
         self.typ == NumericType::Integer
     }
@@ -206,7 +212,8 @@ impl From<Exponent> for PushExponent {
 
 struct Movement {
     translate: DVec2,
-    zoom2: f64, // Specialised scale factor. 1.0 => do nothing; >1.0 zoom in by that factor; < -1.0 zoom out by negated factor; (-1.0..1.0) invalid.
+    zoom2: f64, /* Specialised scale factor. 1.0 => do nothing; >1.0 zoom in by that factor; <
+                 * -1.0 zoom out by negated factor; (-1.0..1.0) invalid. */
     exponent: f32,
     exponent_im: f32,
     gradient: f32,
@@ -339,13 +346,15 @@ impl ControllerTrait for Controller {
             }
             MouseButton::Right => {
                 if state == ElementState::Pressed {
-                    // hack: offset the menu from the clicked point, so it doesn't immediately disappear
+                    // hack: offset the menu from the clicked point, so it doesn't immediately
+                    // disappear
                     self.context_menu = Some(self.mouse_position - DVec2::splat(5.0));
                 }
             }
             _ => (),
         }
     }
+
     fn mouse_move(&mut self, position: DVec2) {
         let prev_position = self.mouse_position;
         self.mouse_position = position;
@@ -362,6 +371,7 @@ impl ControllerTrait for Controller {
             self.reiterate = true;
         }
     }
+
     fn mouse_scroll(&mut self, delta: DVec2) {
         if delta.y == 0. {
             return;

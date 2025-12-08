@@ -2,10 +2,9 @@
 
 use bytemuck::NoUninit;
 
-use super::{uvec2, vec2, UVec2, Vec2};
+use super::{UVec2, Vec2, uvec2, vec2};
 
 /// GPU-friendly representation of a two-dimensional `u32` vector
-///
 #[derive(Copy, Clone, Debug, Default, NoUninit)]
 #[repr(C)]
 #[allow(missing_docs)] // self-explanatory !
@@ -38,7 +37,7 @@ impl Size {
     ///
     /// ```
     /// # use shader_common::Size;
-    /// let sz = Size::new(100,200);
+    /// let sz = Size::new(100, 200);
     /// let v = sz.as_vec2();
     /// assert_eq!(v.x, 100.0);
     /// assert_eq!(v.y, 200.0);
@@ -52,7 +51,7 @@ impl Size {
     /// Converts to a [`UVec2`]
     /// ```
     /// # use shader_common::Size;
-    /// let sz = Size::new(100,200);
+    /// let sz = Size::new(100, 200);
     /// let v = sz.as_uvec2();
     /// assert_eq!(v.x, 100);
     /// assert_eq!(v.y, 200);
@@ -82,8 +81,9 @@ impl From<UVec2> for Size {
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::Size;
     use float_eq::assert_float_eq;
+
+    use super::Size;
 
     #[test]
     fn conversion() {

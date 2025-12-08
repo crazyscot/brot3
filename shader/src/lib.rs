@@ -8,11 +8,10 @@
 #![doc = document_features::document_features!()]
 #![allow(missing_docs)]
 
+use spirv_std::glam::Vec4Swizzles as _;
+pub use spirv_std::glam::{DVec2, UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2};
 #[allow(unused_imports)] // Some are reused in some configurations
 use spirv_std::spirv;
-
-use spirv_std::glam::Vec4Swizzles as _;
-pub use spirv_std::glam::{f32, uvec2, vec2, DVec2, UVec2, Vec2, Vec3, Vec4};
 
 pub mod colour;
 pub mod colourspace;
@@ -22,9 +21,8 @@ pub mod grid;
 
 use colourspace::RgbVec;
 use grid::{GridRef, GridRefMut, GridShared};
-use shader_common::{data::PointResult, Flags, FragmentConstants};
-
 pub use shader_common::{Complex, INSPECTOR_MARKER_SIZE};
+use shader_common::{Flags, FragmentConstants, data::PointResult};
 
 fn new_york_distance(a: Vec2, b: Vec2) -> f32 {
     (a.x - b.x).abs() + (a.y - b.y).abs()
@@ -44,7 +42,8 @@ pub fn main_fs(
     #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [PointResult],
     output: &mut Vec4,
 ) {
-    // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we ignore depth & 1/w
+    // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we
+    // ignore depth & 1/w
     let coord = frag_coord.xy();
     let coord_int = coord.as_uvec2();
 
@@ -105,12 +104,12 @@ pub fn main_vs(
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::{new_york_distance, FragmentConstants};
-
     use const_default::ConstDefault as _;
     use float_eq::assert_float_eq;
-    use shader_common::{data::PointResult, enums::Algorithm, Flags, Palette, PushExponent, Size};
-    use spirv_std::glam::{uvec2, vec2, vec4, UVec2, Vec2, Vec3, Vec4};
+    use shader_common::{Flags, Palette, PushExponent, Size, data::PointResult, enums::Algorithm};
+    use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, uvec2, vec2, vec4};
+
+    use super::{FragmentConstants, new_york_distance};
 
     const TEST_GRID_SIZE: UVec2 = uvec2(2560, 1440);
 
@@ -159,7 +158,8 @@ mod tests {
             ..test_frag_consts()
         };
 
-        // Cache starts out empty (you probably couldn't run this on an actual GPU, the NaN might trigger an abort)
+        // Cache starts out empty (you probably couldn't run this on an actual GPU, the NaN might
+        // trigger an abort)
         super::main_fs(vec4(0., 0., 0., 0.), &no_iterate, &mut grid, &mut res);
         assert!(res[0].is_nan());
         assert!(res[1].is_nan());

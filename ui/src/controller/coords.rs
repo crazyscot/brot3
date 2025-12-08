@@ -12,7 +12,8 @@ use util::dynfmt;
     clippy::cast_sign_loss
 )]
 impl super::Controller {
-    /// Calculates the decimal precision required to satisfactorily express a fractal part co-ordinate.
+    /// Calculates the decimal precision required to satisfactorily express a fractal part
+    /// co-ordinate.
     ///
     /// We need two guard digits to correctly reconstruct to desired accuracy.
     /// <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#693> refers.
@@ -23,7 +24,8 @@ impl super::Controller {
 
     pub(crate) fn coords_window(&mut self, ctx: &egui::Context) {
         let precision = self.precision_digits();
-        // Don't render this on the first pass before we know the window size. That gives it a bad default position.
+        // Don't render this on the first pass before we know the window size. That gives it a bad
+        // default position.
         if self.size.y == 0 {
             return;
         }
@@ -121,6 +123,7 @@ impl super::Controller {
             ctx.set_cursor_icon(egui::CursorIcon::Default);
         }
     }
+
     pub(crate) fn update_inspector(&mut self) {
         self.inspector.stale = false;
         let consts = self.fragment_constants(false);

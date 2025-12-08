@@ -75,8 +75,7 @@ macro_rules! incrementable {
             type Output = Self;
 
             fn add(self, delta: i32) -> Self::Output {
-                use num_traits::FromPrimitive as _;
-                use num_traits::ToPrimitive as _;
+                use num_traits::{FromPrimitive as _, ToPrimitive as _};
                 use strum::VariantArray as _;
                 #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
                 let n = Self::VARIANTS.len() as i32;

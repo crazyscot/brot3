@@ -14,14 +14,16 @@ macro_rules! deprintln {
     };
 }
 
+use core::f32::consts::TAU;
+
+use shader_common::enums::Modifier;
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
-use super::colourspace::{Hsl, Lch, RgbVec};
-use core::f32::consts::TAU;
-use shader_common::enums::Modifier;
-
-use super::{FragmentConstants, PointResult};
+use super::{
+    FragmentConstants, PointResult,
+    colourspace::{Hsl, Lch, RgbVec},
+};
 
 #[must_use]
 pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
@@ -92,7 +94,8 @@ fn dist_value(distance: f32, pixel_spacing: f32) -> f32 {
 }
 
 fn log_rainbow(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
-    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
+    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 ===
+    // 360.
     if pixel.inside() {
         return Hsl::BLACK;
     }
@@ -109,7 +112,8 @@ fn sqrt_rainbow(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
     if pixel.inside() {
         return Hsl::BLACK;
     }
-    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
+    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 ===
+    // 360.
     let offset = constants.palette.offset * 36.;
     let angle: f32 = iters.sqrt() * constants.palette.gradient * 100. + offset; // DEGREES
     Hsl::new(
@@ -200,7 +204,8 @@ fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
     if pixel.inside() {
         return Hsl::BLACK;
     }
-    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 === 360.
+    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 ===
+    // 360.
     let offset = constants.palette.offset * 36.;
 
     let s: f32 = iters / constants.max_iter as f32;
@@ -214,11 +219,14 @@ fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
+    use float_eq::float_eq;
+    use shader_common::{
+        FragmentConstants, Palette,
+        enums::{Algorithm, ColourStyle, Colourer, Modifier},
+    };
+
     use super::{PointResult, RgbVec};
     use crate::Vec3;
-    use float_eq::float_eq;
-    use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
-    use shader_common::{FragmentConstants, Palette};
 
     macro_rules! assert_rgbvec_eq {
         ($a:expr, $b:expr) => {
@@ -299,7 +307,7 @@ mod tests {
 
     #[test]
     fn filaments2() {
-        use spirv_std::glam::{uvec2, Vec2};
+        use spirv_std::glam::{Vec2, uvec2};
         let mut consts = FragmentConstants {
             max_iter: 200,
             palette: Palette::default()

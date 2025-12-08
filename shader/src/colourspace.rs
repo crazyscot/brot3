@@ -1,16 +1,14 @@
 //! GPU-friendly colour space representations and conversions
 
+use float_eq::float_eq;
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
-
-use float_eq::float_eq;
 
 use super::Vec3;
 
 /// RGB colour space.
 ///
 /// Each component is in the range (0.0, 1.0).
-///
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct RgbVec(pub Vec3);
 
@@ -43,10 +41,6 @@ pub struct Hsl {
 }
 #[allow(missing_docs)]
 impl Hsl {
-    #[must_use]
-    pub fn new(h: f32, s: f32, l: f32) -> Self {
-        Self { h, s, l }
-    }
     pub const BLACK: Self = Self {
         h: 0.,
         s: 0.,
@@ -57,6 +51,11 @@ impl Hsl {
         s: 0.,
         l: 100.,
     };
+
+    #[must_use]
+    pub fn new(h: f32, s: f32, l: f32) -> Self {
+        Self { h, s, l }
+    }
 }
 impl PartialEq for Hsl {
     fn eq(&self, other: &Self) -> bool {
@@ -99,7 +98,8 @@ impl From<RgbVec> for Hsl {
         let s_general = (d / s_denom).max(0.0); // if we just divided by zero, max gets rid of the NaN
         let s = if is_gray { 0.0 } else { s_general * 100.0 };
 
-        // compute hue components safely: avoid dividing by zero by substituting 1.0 when chroma == 0
+        // compute hue components safely: avoid dividing by zero by substituting 1.0 when chroma ==
+        // 0
         #[allow(clippy::cast_precision_loss)]
         let safe_d = if is_gray { 1.0 } else { d };
         let t = if g < b { 6.0 } else { 0.0 };

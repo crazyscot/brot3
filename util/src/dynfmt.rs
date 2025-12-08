@@ -9,8 +9,8 @@ fn strip_trailers(s: &str) -> &str {
 /// Dynamic string formatting for floating point types.
 ///
 /// This function attempts to mirror the behaviour of printf %g:
-/// * formats in exponential (`e`) style if the exponent is less
-///   than -4 or greater than the required precision;
+/// * formats in exponential (`e`) style if the exponent is less than -4 or greater than the
+///   required precision;
 /// * otherwise formats in normal (`f`) style;
 /// * removes any trailing zeroes;
 /// * removes any trailing decimal point.
@@ -74,8 +74,9 @@ macro_rules! dynfmt {
 mod tests {
     use core::f32;
 
-    use crate::dynfmt;
     use pretty_assertions::assert_eq;
+
+    use crate::dynfmt;
 
     // testcase helper macro: run both positive and negative versions of input data
     macro_rules! tc {

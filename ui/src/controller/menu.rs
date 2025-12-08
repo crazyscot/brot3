@@ -41,7 +41,8 @@ impl super::Controller {
                     checkbox!(self.show_coords_window, "Data read-out", "F3");
                     checkbox!(self.show_scale_bar, "Scale bar", "F4");
 
-                    // Fullscreen is tricky. On OSX the OS may change the state; we are not the sole arbiters.
+                    // Fullscreen is tricky. On OSX the OS may change the state; we are not the sole
+                    // arbiters.
                     if checkbox!(
                         self.fullscreen_checkbox,
                         "Fullscreen",

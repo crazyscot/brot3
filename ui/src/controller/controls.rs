@@ -1,9 +1,8 @@
 //! Controls window
 // (c) 2025 Ross Younger
 
-use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
-
 use easy_shader_runner::egui;
+use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
 
 #[allow(unused_results)]
 impl super::Controller {
@@ -16,7 +15,8 @@ impl super::Controller {
         clippy::cast_sign_loss
     )]
     pub(super) fn controls_window(&mut self, ctx: &egui::Context) {
-        // Don't render this on the first pass before we know the window size. That gives it a bad default position.
+        // Don't render this on the first pass before we know the window size. That gives it a bad
+        // default position.
         if self.size.y == 0 {
             return;
         }

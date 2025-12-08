@@ -3,9 +3,9 @@
 
 #[cfg(we_compile)]
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use shader_common::enums::{Algorithm, Colourer};
-use std::str::FromStr;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, clap::Parser, Clone, Default)]
@@ -80,7 +80,8 @@ pub(crate) struct LocalUVec2(pub u32, pub u32);
 // Implement FromStr for UVec2 to use the standard parse() method.
 // This allows clap's built-in value_parser! macro to work seamlessly.
 impl FromStr for LocalUVec2 {
-    type Err = String; // Use a String for a simple error type
+    // Use a String for a simple error type
+    type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = s.split(',').collect();

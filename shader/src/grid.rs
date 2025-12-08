@@ -30,7 +30,8 @@ pub trait GridShared<'a, T> {
 }
 
 #[derive(Clone, Copy)]
-/// A read-only view of a two-dimensional array, that uses a borrowed slice (one-dimensional) as storage.
+/// A read-only view of a two-dimensional array, that uses a borrowed slice (one-dimensional) as
+/// storage.
 ///
 /// Note that coordinates are mapped to the array in (y,x) order.
 pub struct GridRef<'a, T> {
@@ -43,6 +44,7 @@ impl<'a, T> GridShared<'a, T> for GridRef<'a, T> {
     fn size(&self) -> UVec2 {
         self.size
     }
+
     fn count(&self) -> usize {
         self.buffer.len()
     }
@@ -55,19 +57,21 @@ impl<'a, T: Copy + Default> GridRef<'a, T> {
     /// ```
     /// # use shader::grid::GridRef;
     /// use glam::uvec2;
-    /// let buf = vec![0,0,0,42];
-    /// let gr = GridRef::new(uvec2(2,2), &buf);
-    /// assert_eq!(gr.get(uvec2(1,1)), 42);
+    /// let buf = vec![0, 0, 0, 42];
+    /// let gr = GridRef::new(uvec2(2, 2), &buf);
+    /// assert_eq!(gr.get(uvec2(1, 1)), 42);
     /// ```
     ///
     /// # Panics
     ///
-    /// In a debug build, if the underlying slice is not large enough to hold `size.x * size.y` items.
+    /// In a debug build, if the underlying slice is not large enough to hold `size.x * size.y`
+    /// items.
+    ///
     /// ```should_panic
     /// # use shader::grid::GridRef;
     /// use glam::uvec2;
     /// let buf = vec![0];
-    /// let _gr = GridRef::new(uvec2(2,2), &buf); // PANIC: storage not large enough
+    /// let _gr = GridRef::new(uvec2(2, 2), &buf); // PANIC: storage not large enough
     /// ```
     pub fn new(size: UVec2, buffer: &'a [T]) -> Self {
         debug_assert!(
@@ -89,7 +93,7 @@ impl<'a, T: Copy + Default> GridRef<'a, T> {
     /// ```
     /// # use shader::grid::GridRef;
     /// use glam::uvec2;
-    /// let buf = vec![1,2,3,42];
+    /// let buf = vec![1, 2, 3, 42];
     /// let gr = GridRef::new(uvec2(2, 2), &buf);
     /// assert_eq!(gr.get(uvec2(3, 3)), 0); // Index is out of bounds
     /// ```
@@ -102,8 +106,8 @@ impl<'a, T: Copy + Default> GridRef<'a, T> {
     }
 }
 
-/// A mutable view of a two-dimensional array, that uses a borrowed slice (one-dimensional) as storage.
-/// This is the mutable version of [`GridRef`].
+/// A mutable view of a two-dimensional array, that uses a borrowed slice (one-dimensional) as
+/// storage. This is the mutable version of [`GridRef`].
 pub struct GridRefMut<'a, T> {
     size: UVec2,
     buffer: &'a mut [T],
@@ -113,6 +117,7 @@ impl<'a, T> GridShared<'a, T> for GridRefMut<'a, T> {
     fn size(&self) -> UVec2 {
         self.size
     }
+
     fn count(&self) -> usize {
         self.buffer.len()
     }
@@ -129,19 +134,20 @@ impl<'a, T: Copy + Default> GridRefMut<'a, T> {
     /// # use shader::grid::GridRefMut;
     /// use glam::uvec2;
     /// let mut buf = [42, 43, 44, 45];
-    /// let gr = GridRefMut::new(uvec2(2,2), &mut buf);
-    /// assert_eq!(gr.get(uvec2(0,1)), 44);
+    /// let gr = GridRefMut::new(uvec2(2, 2), &mut buf);
+    /// assert_eq!(gr.get(uvec2(0, 1)), 44);
     /// ```
     ///
     /// # Panics
     ///
-    /// In a debug build, if the underlying slice is not large enough to hold `size.x * size.y` items.
+    /// In a debug build, if the underlying slice is not large enough to hold `size.x * size.y`
+    /// items.
     ///
     /// ```should_panic
     /// # use shader::grid::GridRefMut;
     /// use glam::uvec2;
-    /// let mut buf = [0;1];
-    /// let _gr = GridRefMut::new(uvec2(2,2), &mut buf); // PANIC: storage not large enough
+    /// let mut buf = [0; 1];
+    /// let _gr = GridRefMut::new(uvec2(2, 2), &mut buf); // PANIC: storage not large enough
     /// ```
     pub fn new(size: UVec2, buffer: &'a mut [T]) -> Self {
         debug_assert!(
@@ -188,8 +194,8 @@ impl<'a, T: Copy + Default> GridRefMut<'a, T> {
     /// Writes an item to a given grid co-ordinate
     ///
     /// Safety is guaranteed. If the given coordinates are out of bounds, the write is ignored.
-    /// (This is not as unhelpful as you might think. In the GPU, branches are pre-emptively executed, but
-    /// a panic in one branch might take down all branches.)
+    /// (This is not as unhelpful as you might think. In the GPU, branches are pre-emptively
+    /// executed, but a panic in one branch might take down all branches.)
     pub fn set(&mut self, p: UVec2, value: T) {
         if self.address_valid(p) {
             self.buffer[self.address(p)] = value;
@@ -207,7 +213,7 @@ impl<'a, T: Copy + Default> GridRefMut<'a, T> {
     /// let mut buf = [0, 1, 2, 3];
     /// let c00 = uvec2(0, 0);
     /// let c01 = uvec2(0, 1);
-    /// let mut grid = GridRefMut::new(uvec2(2,2), &mut buf);
+    /// let mut grid = GridRefMut::new(uvec2(2, 2), &mut buf);
     /// assert_eq!(grid.get(c00), 0);
     /// grid.swap(c00, c01);
     /// assert_eq!(grid.get(c00), 2);
@@ -316,7 +322,7 @@ where
     /// use glam::uvec2;
     /// let c00 = uvec2(0, 0);
     /// let c01 = uvec2(0, 1);
-    /// let mut grid = Grid::new(uvec2(2,2));
+    /// let mut grid = Grid::new(uvec2(2, 2));
     /// grid.set(c01, 2);
     /// assert_eq!(grid.get(c00), 0);
     /// grid.swap(c00, c01);

@@ -7,7 +7,7 @@
 /// Complex type used on shader
 pub type Complex = abels_complex::Complex<f32>;
 
-use spirv_std::glam::{uvec2, vec2, UVec2, Vec2};
+use spirv_std::glam::{UVec2, Vec2, uvec2, vec2};
 
 /// Size of the inspector marker diamond in pixels
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
@@ -55,11 +55,11 @@ const _: () = {
 
 #[allow(missing_docs)]
 impl FragmentConstants {
+    pub const DEFAULT_MAX_ITER: u32 = 250;
+    pub const DEFAULT_SIZE: UVec2 = uvec2(800, 600);
     pub const DEFAULT_ZOOM: f32 = 0.25;
     /// Conversion factor applied to `viewport_zoom` whenever it's presented to a human
     pub const UI_ZOOM_FACTOR: f32 = 4.0;
-    pub const DEFAULT_MAX_ITER: u32 = 250;
-    pub const DEFAULT_SIZE: UVec2 = uvec2(800, 600);
 }
 
 impl Default for FragmentConstants {
@@ -94,11 +94,7 @@ pub struct Flags : u32 {
 /// Conditionally returns a flag value
 #[must_use]
 pub fn flag_if(condition: bool, flag: Flags) -> Flags {
-    if condition {
-        flag
-    } else {
-        Flags::empty()
-    }
+    if condition { flag } else { Flags::empty() }
 }
 
 impl FragmentConstants {
@@ -107,6 +103,7 @@ impl FragmentConstants {
     pub fn pixel_spacing_f32(height: u32, zoom: f32) -> f32 {
         1.0 / (height as f32 * zoom)
     }
+
     #[cfg(not(target_arch = "spirv"))]
     #[must_use]
     #[allow(clippy::cast_lossless)]
@@ -154,32 +151,6 @@ impl Default for Palette {
 }
 
 impl Palette {
-    #[must_use]
-    pub fn with_colourer(mut self, colourer: Colourer) -> Self {
-        self.colourer = colourer;
-        self
-    }
-    #[must_use]
-    pub fn with_style(mut self, style: ColourStyle) -> Self {
-        self.colour_style = style;
-        self
-    }
-    #[must_use]
-    pub fn with_brightness(mut self, style: Modifier) -> Self {
-        self.brightness_style = style;
-        self
-    }
-    pub const MINIMA: Palette = Palette {
-        colourer: Colourer::DEFAULT,
-        colour_style: ColourStyle::DEFAULT,
-        brightness_style: Modifier::DEFAULT,
-        saturation_style: Modifier::DEFAULT,
-        gradient: 0.1,
-        offset: -10.0,
-        saturation: 0.,
-        lightness: 0.,
-        gamma: 0.,
-    };
     pub const MAXIMA: Palette = Palette {
         colourer: Colourer::DEFAULT,
         colour_style: ColourStyle::DEFAULT,
@@ -191,6 +162,35 @@ impl Palette {
         lightness: 100.,
         gamma: 4.0,
     };
+    pub const MINIMA: Palette = Palette {
+        colourer: Colourer::DEFAULT,
+        colour_style: ColourStyle::DEFAULT,
+        brightness_style: Modifier::DEFAULT,
+        saturation_style: Modifier::DEFAULT,
+        gradient: 0.1,
+        offset: -10.0,
+        saturation: 0.,
+        lightness: 0.,
+        gamma: 0.,
+    };
+
+    #[must_use]
+    pub fn with_colourer(mut self, colourer: Colourer) -> Self {
+        self.colourer = colourer;
+        self
+    }
+
+    #[must_use]
+    pub fn with_style(mut self, style: ColourStyle) -> Self {
+        self.colour_style = style;
+        self
+    }
+
+    #[must_use]
+    pub fn with_brightness(mut self, style: Modifier) -> Self {
+        self.brightness_style = style;
+        self
+    }
 }
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]

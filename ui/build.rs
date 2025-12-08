@@ -1,7 +1,6 @@
 #![allow(missing_docs)]
 
-use std::env;
-use std::path::PathBuf;
+use std::{env, path::PathBuf};
 
 use cfg_aliases::cfg_aliases;
 
@@ -67,7 +66,8 @@ fn build_shader() {
         .status()
         .unwrap();
     // N.B. shader_builder outputs something like:
-    // cargo::rustc-env=shader.spv=/home/builder/brot3/target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/shader.spv
+    // cargo::rustc-env=shader.spv=/home/builder/brot3/target/spirv-builder/spirv-unknown-vulkan1.1/
+    // release/deps/shader.spv
     if !status.success() {
         if let Some(code) = status.code() {
             std::process::exit(code);
@@ -134,7 +134,8 @@ fn process_version_string() {
     // Force a rerun on change of branch or on commit
     // CAUTION: Hard wired path
     // TRAP: You cannot use an absolute path with cargo:rerun-if-changed
-    // TRAP: Don't pretty-print a PathBuf here, you get quotes with it: cargo doesn't dequote, so it will be always-dirty.
+    // TRAP: Don't pretty-print a PathBuf here, you get quotes with it: cargo doesn't dequote, so it
+    // will be always-dirty.
     let top_level = PathBuf::from("..");
     let index = top_level.clone().join(".git").join("index");
     println!("cargo:rerun-if-changed={}", index.display());

@@ -2,16 +2,17 @@
 
 #![allow(missing_docs)]
 
-use super::Complex;
 //use const_default::ConstDefault;
 use shader_common::PushExponent;
-
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
+use super::Complex;
+
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;
-    /// For the function z := z^k + c, what is the real power k so that we can compute the derivative?
+    /// For the function z := z^k + c, what is the real power k so that we can compute the
+    /// derivative?
     fn power(self) -> f32;
     /// What is the log2 of the exponent?
     fn log2(self) -> f32;
@@ -68,10 +69,12 @@ impl Exponentiator for IntegerPower {
             _ => z.powi(self.0).to_rectangular(),
         }
     }
+
     #[allow(clippy::cast_precision_loss)]
     fn power(self) -> f32 {
         self.0 as f32
     }
+
     #[allow(clippy::cast_precision_loss)]
     fn log2(self) -> f32 {
         (self.0 as f32).log2()
@@ -88,9 +91,11 @@ impl Exponentiator for RealPower {
             z.powf(self.0).to_rectangular()
         }
     }
+
     fn power(self) -> f32 {
         self.0
     }
+
     fn log2(self) -> f32 {
         self.0.log2()
     }
@@ -111,9 +116,11 @@ impl Exponentiator for ComplexPower {
         // function: z^p = e^(p ln(z))
         (self.0 * z.ln()).exp().to_rectangular()
     }
+
     fn power(self) -> f32 {
         self.0.re
     }
+
     // For now, we'll compute a log in ℝ so take abs(power).
     // c.abs().log() === (c.abs_sq() ^ 0.5).log() === 0.5 * c.abs_sq().log()
     // For parity with Int and Floats, we'll special case where abs < 2 i.e. abs_sq < 4
@@ -135,12 +142,12 @@ impl From<PushExponent> for ComplexPower {
 mod tests {
     #![allow(clippy::cognitive_complexity)]
 
+    use float_eq::{assert_float_eq, float_ne};
+    use pretty_assertions::assert_eq;
+
     use crate::exponentiation::{
         Complex, ComplexPower, Exponentiator, IntegerPower, Power2, RealPower,
     };
-
-    use float_eq::{assert_float_eq, float_ne};
-    use pretty_assertions::assert_eq;
 
     macro_rules! assert_complex_eq {
         ($a:expr, $b:expr) => {
@@ -231,7 +238,8 @@ mod tests {
         // x^0 == 0
         let f1 = expf.apply_to(two);
         assert_eq!(f1, Complex::ONE);
-        // 0^0 is undefined, but in our world we've special-cased it as zero to prevent a shader abort.
+        // 0^0 is undefined, but in our world we've special-cased it as zero to prevent a shader
+        // abort.
         let z2 = expf.apply_to(Complex::ZERO);
         assert_eq!(z2, Complex::ZERO);
 

@@ -1,9 +1,8 @@
 //! Fractal data structures
 
-use crate::enums::ColourStyle;
-use crate::ConstDefault;
-
 use bytemuck::NoUninit;
+
+use crate::{ConstDefault, enums::ColourStyle};
 
 /// Raw data from a fractal invocation
 #[derive(Copy, Clone, Debug, Default, NoUninit)]
@@ -45,6 +44,7 @@ impl PointResult {
             radius_sqr,
         }
     }
+
     #[must_use]
     pub fn new_outside(
         iters: u32,
@@ -61,6 +61,7 @@ impl PointResult {
             radius_sqr,
         }
     }
+
     // ACCESSORS ////////////////////////////////////////////////////////////
     /// Iterations
     #[must_use]
@@ -77,26 +78,31 @@ impl PointResult {
     pub fn iters_whole(&self) -> u32 {
         self.iters
     }
+
     /// Fractional part of iterations (0..1)
     #[must_use]
     pub fn iters_fraction(&self) -> f32 {
         self.iters_fraction
     }
+
     /// Distance from fractal
     #[must_use]
     pub fn distance(&self) -> f32 {
         self.distance
     }
+
     /// Final angle (-pi .. pi)
     #[must_use]
     pub fn angle(&self) -> f32 {
         self.angle
     }
+
     /// Final distance from origin (aka radius or absolute value), squared
     #[must_use]
     pub fn radius_sqr(&self) -> f32 {
         self.radius_sqr
     }
+
     // COMPUTED ACCESSORS ///////////////////////////////////////////////////
     /// Is this point inside the set? If so, the iterations count is effectively infinite.
     #[must_use]

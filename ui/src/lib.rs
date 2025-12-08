@@ -9,10 +9,10 @@ mod cli;
 mod controller;
 pub mod widgets;
 
-use clap::Parser;
-
 #[cfg(we_compile)]
 use std::path::PathBuf;
+
+use clap::Parser;
 
 // CAUTION: Hard-wired paths
 /// The relative path to the shader crate, from the point of view of the ui crate

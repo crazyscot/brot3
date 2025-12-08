@@ -1,14 +1,16 @@
 // (c) 2025 Ross Younger
 
+use easy_shader_runner::{UiState, egui};
+
 use super::DVec2;
-use easy_shader_runner::{egui, UiState};
 
 #[allow(unused_results)]
 impl super::Controller {
     pub(crate) fn scale_bar(&mut self, ctx: &egui::Context) {
         use egui::epaint::{self, Color32};
 
-        // Don't render this on the first pass before we know the window size. That gives it a bad default position.
+        // Don't render this on the first pass before we know the window size. That gives it a bad
+        // default position.
         if self.size.y == 0 {
             return;
         }

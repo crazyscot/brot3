@@ -1,14 +1,13 @@
-use easy_shader_runner::{egui, UiState};
-
-use crate::controller::{MAX_ZOOM, MIN_ZOOM};
+use easy_shader_runner::{UiState, egui};
 
 use super::{DVec2, Instant};
+use crate::controller::{MAX_ZOOM, MIN_ZOOM};
 
 impl super::Controller {
-    pub(super) const EXPONENT_MIN: f32 = 0.;
-    pub(super) const EXPONENT_MIN_INT: u32 = 0;
     pub(super) const EXPONENT_MAX: f32 = 20.;
     pub(super) const EXPONENT_MAX_INT: u32 = 20;
+    pub(super) const EXPONENT_MIN: f32 = 0.;
+    pub(super) const EXPONENT_MIN_INT: u32 = 0;
 
     pub(super) fn ui_impl(
         &mut self,

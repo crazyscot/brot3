@@ -98,8 +98,8 @@ pub fn debian(mut cli_args: Arguments, args: &DebPackageMeta) -> Result<()> {
 /// Create dummy Debian changelog in destdir/changelog.Debian
 fn create_dch(args: &DebPackageMeta, destdir: &Path) -> Result<()> {
     // Get package cargo version
-    // Caution! CARGO_PKG_VERSION only tells us the version for the xtask crate, so the versions must align.
-    // (alternative: parse Cargo.toml using `cargo_toml::Manifest`)
+    // Caution! CARGO_PKG_VERSION only tells us the version for the xtask crate, so the versions
+    // must align. (alternative: parse Cargo.toml using `cargo_toml::Manifest`)
     let version = env!("CARGO_PKG_VERSION");
 
     // Traditionally the developer would invoke the `dch' script (in devscripts).

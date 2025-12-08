@@ -8,15 +8,20 @@ fn main() {
 use std::sync::LazyLock;
 
 use divan::black_box;
-use shader::exponentiation::{
-    ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower,
+use shader::{
+    Vec2,
+    colourspace::RgbVec,
+    exponentiation::{
+        ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower,
+    },
+    vec2,
 };
-use shader::{colourspace::RgbVec, vec2, Vec2};
-use shader_common::enums::{Algorithm, Colourer};
-use shader_common::{data::PointResult, Flags, FragmentConstants, Palette, PushExponent, Size};
+use shader_common::{
+    Complex, Flags, FragmentConstants, Palette, PushExponent, Size,
+    data::PointResult,
+    enums::{Algorithm, Colourer},
+};
 use strum::VariantArray as _;
-
-use shader_common::Complex;
 
 #[divan::bench]
 fn ___warm_up() {
