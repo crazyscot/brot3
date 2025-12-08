@@ -52,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: machete
-        uses: bnjbvr/cargo-machete@04b9adbd8c1c00963289b5628510dd907b27dc60
+        uses: bnjbvr/cargo-machete@72602674bc341ca927683caddbf578672c352476
 
   coverage:
     name: coverage (shader)
