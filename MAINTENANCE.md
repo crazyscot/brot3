@@ -18,6 +18,8 @@ Steps:
   - `cargo xtask changelog --bump major|minor|patch`
   - Update project version in `cargo.toml`
   - cargo build, to ensure the lockfile is updated
+  - run `typos` in case anything in the changelog flags
+    (add overrides in \_typos.toml if needed) (then run `dprint fmt` for formatting)
   - commit with prefix `chore(release)`
 - Merge changeset as usual, update `dev` branches
 - Create and push the new tag

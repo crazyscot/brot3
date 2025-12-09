@@ -1,4 +1,6 @@
 [default]
 extend-ignore-identifiers-re = [
   "3ba343c",
+  "75ded55",
+  "ba3e7c5",
 ]

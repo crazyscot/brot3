@@ -11,7 +11,7 @@
 
 - *(build)* Update the internal reference to spirv-builder - ([74be54b](https://github.com/crazyscot/brot3/commit/74be54b1f8dace308afe9f842c264e0697b0d035))
 - *(macos)* PNG file rendering in UI - ([50e58d7](https://github.com/crazyscot/brot3/commit/50e58d72a03b7697232fe7034baea191849acf87))
-- Align exponentation special cases, add tests - ([647864d](https://github.com/crazyscot/brot3/commit/647864d92d2fb6e27e2081709a4937325c525fc6))
+- Align exponentiation special cases, add tests - ([647864d](https://github.com/crazyscot/brot3/commit/647864d92d2fb6e27e2081709a4937325c525fc6))
 - Derivative calculation in distance estimator - ([8b8456c](https://github.com/crazyscot/brot3/commit/8b8456c7e0fb616334a9c88dfff25c2f0c50ddee))
 - Avoid NaNs breaking filaments styles - ([a440310](https://github.com/crazyscot/brot3/commit/a440310751e7a040abd4f8f36bc8550fb90e74c8))
 - Update inspector data when requested via the context menu - ([b1d7493](https://github.com/crazyscot/brot3/commit/b1d74931c0310d044652a2b5adeed1bd16268e48))
