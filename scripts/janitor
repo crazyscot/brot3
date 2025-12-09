@@ -1,0 +1,26 @@
+#!/bin/bash -ex
+
+cargo +nightly fmt
+
+cargo update --recursive
+cargo update --recursive --locked
+cargo upgrade --recursive true --verbose
+
+cargo autoinherit
+
+typos
+dprint fmt
+
+# normally one would use +nightly for this
+cargo +nightly-2025-06-30 fix --edition --edition-idioms --broken-code --allow-dirty --allow-staged --allow-no-vcs --workspace
+
+# normally one would use +nightly for this
+cargo +nightly-2025-06-30 clippy --fix --broken-code --allow-dirty --allow-staged
+
+# udeps emits some false positive warnings:
+#
+#    warning: duplicate package mentioned in toml abels-complex v0.4.0. abels-complex
+#    warning: duplicate package mentioned in toml easy-shader-runner v0.0.0 (https://github.com/crazyscot/easy-shader-runner?rev=bfb84d6acb5f05229dbb177fb68541bc285112b7#bfb84d6a). easy-shader-runner
+
+cargo +nightly-2025-06-30 udeps --workspace --all-targets
+cargo +nightly-2025-06-30 udeps --workspace --all-targets --all-features
