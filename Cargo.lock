@@ -907,7 +907,7 @@ dependencies = [
  "glam",
  "js-sys",
  "log",
- "spirv-builder 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378)",
+ "spirv-builder",
  "thiserror 2.0.17",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2902,38 +2902,6 @@ checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
 [[package]]
 name = "rustc_codegen_spirv"
 version = "0.9.0"
-source = "git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887#2aa4d4f8a8ba73103501562cfca17b8163e5a887"
-dependencies = [
- "ahash",
- "ar",
- "bytemuck",
- "either",
- "indexmap",
- "itertools 0.14.0",
- "lazy_static",
- "libc",
- "log",
- "object 0.37.3",
- "regex",
- "rspirv",
- "rustc-demangle",
- "rustc_codegen_spirv-target-specs 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887)",
- "rustc_codegen_spirv-types 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887)",
- "rustix 1.1.2",
- "sanitize-filename",
- "smallvec",
- "spirt",
- "spirv-std-types 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887)",
- "spirv-tools",
- "thorin-dwp",
- "tracing",
- "tracing-subscriber",
- "tracing-tree",
-]
-
-[[package]]
-name = "rustc_codegen_spirv"
-version = "0.9.0"
 source = "git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378#b3eda4df9814b6176d3c0844eb67f70a22ebb378"
 dependencies = [
  "ahash",
@@ -2949,13 +2917,13 @@ dependencies = [
  "regex",
  "rspirv",
  "rustc-demangle",
- "rustc_codegen_spirv-target-specs 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378)",
- "rustc_codegen_spirv-types 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378)",
+ "rustc_codegen_spirv-target-specs",
+ "rustc_codegen_spirv-types",
  "rustix 1.1.2",
  "sanitize-filename",
  "smallvec",
  "spirt",
- "spirv-std-types 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378)",
+ "spirv-std-types",
  "spirv-tools",
  "thorin-dwp",
  "tracing",
@@ -2966,23 +2934,7 @@ dependencies = [
 [[package]]
 name = "rustc_codegen_spirv-target-specs"
 version = "0.9.0"
-source = "git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887#2aa4d4f8a8ba73103501562cfca17b8163e5a887"
-
-[[package]]
-name = "rustc_codegen_spirv-target-specs"
-version = "0.9.0"
 source = "git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378#b3eda4df9814b6176d3c0844eb67f70a22ebb378"
-
-[[package]]
-name = "rustc_codegen_spirv-types"
-version = "0.9.0"
-source = "git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887#2aa4d4f8a8ba73103501562cfca17b8163e5a887"
-dependencies = [
- "rspirv",
- "serde",
- "serde_json",
- "spirv",
-]
 
 [[package]]
 name = "rustc_codegen_spirv-types"
@@ -3200,7 +3152,7 @@ name = "shader_builder"
 version = "3.1.2"
 dependencies = [
  "anyhow",
- "spirv-builder 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887)",
+ "spirv-builder",
 ]
 
 [[package]]
@@ -3378,24 +3330,6 @@ dependencies = [
 [[package]]
 name = "spirv-builder"
 version = "0.9.0"
-source = "git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887#2aa4d4f8a8ba73103501562cfca17b8163e5a887"
-dependencies = [
- "cargo_metadata",
- "log",
- "memchr",
- "raw-string",
- "rustc_codegen_spirv 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887)",
- "rustc_codegen_spirv-target-specs 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887)",
- "rustc_codegen_spirv-types 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887)",
- "semver",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
-]
-
-[[package]]
-name = "spirv-builder"
-version = "0.9.0"
 source = "git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378#b3eda4df9814b6176d3c0844eb67f70a22ebb378"
 dependencies = [
  "cargo_metadata",
@@ -3403,9 +3337,9 @@ dependencies = [
  "memchr",
  "notify",
  "raw-string",
- "rustc_codegen_spirv 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378)",
- "rustc_codegen_spirv-target-specs 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378)",
- "rustc_codegen_spirv-types 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378)",
+ "rustc_codegen_spirv",
+ "rustc_codegen_spirv-target-specs",
+ "rustc_codegen_spirv-types",
  "semver",
  "serde",
  "serde_json",
@@ -3415,31 +3349,26 @@ dependencies = [
 [[package]]
 name = "spirv-std"
 version = "0.9.0"
-source = "git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887#2aa4d4f8a8ba73103501562cfca17b8163e5a887"
+source = "git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378#b3eda4df9814b6176d3c0844eb67f70a22ebb378"
 dependencies = [
  "bitflags 1.3.2",
  "glam",
  "libm",
  "num-traits",
  "spirv-std-macros",
- "spirv-std-types 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887)",
+ "spirv-std-types",
 ]
 
 [[package]]
 name = "spirv-std-macros"
 version = "0.9.0"
-source = "git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887#2aa4d4f8a8ba73103501562cfca17b8163e5a887"
+source = "git+https://github.com/Rust-GPU/rust-gpu?rev=b3eda4df9814b6176d3c0844eb67f70a22ebb378#b3eda4df9814b6176d3c0844eb67f70a22ebb378"
 dependencies = [
  "proc-macro2",
  "quote",
- "spirv-std-types 0.9.0 (git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887)",
+ "spirv-std-types",
  "syn 2.0.111",
 ]
-
-[[package]]
-name = "spirv-std-types"
-version = "0.9.0"
-source = "git+https://github.com/Rust-GPU/rust-gpu?rev=2aa4d4f8a8ba73103501562cfca17b8163e5a887#2aa4d4f8a8ba73103501562cfca17b8163e5a887"
 
 [[package]]
 name = "spirv-std-types"
