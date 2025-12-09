@@ -22,6 +22,7 @@ jobs:
 
   cargo-deny:
     runs-on: ubuntu-latest
+    timeout-minutes: 1
     strategy:
       matrix:
         checks:
@@ -33,6 +34,8 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - name: set toolchain override
+        run: cp -f rust-toolchain-fmt.toml rust-toolchain.toml
       - name: cargo deny
         uses: EmbarkStudios/cargo-deny-action@76cd80eb775d7bbbd2d80292136d74d39e1b4918 # 2.0.14
         with:
@@ -42,17 +45,17 @@ jobs:
 
   cargo-fmt:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - name: cargo fmt (stable toolchain)
-        run: cargo +stable fmt --all -- --check
-
-  cargo-machete:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: machete
-        uses: bnjbvr/cargo-machete@72602674bc341ca927683caddbf578672c352476
+      - name: set toolchain override
+        run: cp -f rust-toolchain-fmt.toml rust-toolchain.toml
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # 2025-09-17
+        with:
+          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          components: rustfmt
+      - run: cargo fmt --all -- --check
 
   coverage:
     name: coverage (selected)
@@ -66,8 +69,7 @@ jobs:
         uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # 2025-09-17
         with:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
-          components: llvm-tools-preview
-      - uses: taiki-e/install-action@33734a118689b0b418824fb78ea2bf18e970b43b # v2.50.4
+      - uses: taiki-e/install-action@cf46383a970594553a83cc6140075ef6a7f54dee # v2.62.64
         with:
           tool: cargo-llvm-cov
           checksum: true
@@ -92,3 +94,24 @@ jobs:
           name: lcov
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  checks-stable-suite:
+    name: checks (stable suite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # This job runs all its checks without stopping (unless cancelled)
+      - uses: actions/checkout@v6
+      - uses: taiki-e/install-action@cf46383a970594553a83cc6140075ef6a7f54dee # v2.62.64
+        with:
+          tool: typos,dprint,cargo-machete
+          checksum: true
+      - run: typos
+        if: ${{ success() || failure() }}
+      - run: dprint check --list-different
+        # to fix: dprint fmt
+        if: ${{ success() || failure() }}
+      - run: dprint fmt --diff
+        if: ${{ failure() }}
+      - run: cargo +stable machete --with-metadata
+        if: ${{ success() || failure() }}

@@ -27,11 +27,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
+      - name: set toolchain override
+        run: cp -f rust-toolchain-fmt.toml rust-toolchain.toml
       - name: Install Rust
         uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # 2025-09-17
         with:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
-          components: rustfmt,clippy
+          components: clippy,rust-src,rustc-dev,llvm-tools
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2.8.0
         with:
           cache-workspace-crates: true
@@ -140,6 +142,7 @@ jobs:
         with:
           rust-components: ${{ matrix.rust_components }}
           tools: ${{ matrix.tools }}
+          profile: minimal
       - name: status check
         run: git status --porcelain
       - name: build

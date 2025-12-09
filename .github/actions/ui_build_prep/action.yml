@@ -4,11 +4,15 @@ inputs:
     required: false
     type: string
     default:
-    description: Any additional Rust components required (on top of the minimal profile)
+    description: Any additional Rust components required (on top of the specified profile)
   tools:
     required: false
     type: string
     description: Any tools to be installed by install-action
+  profile:
+    required: false
+    type: string
+    description: The rustup profile to set
 runs:
   using: composite
   steps:
@@ -23,8 +27,7 @@ runs:
         components: ${{ inputs.rust-components }}
     - name: install tools
       if: ${{ inputs.tools }}
-      uses:
-        taiki-e/install-action@33734a118689b0b418824fb78ea2bf18e970b43b # v2.50.4
+      uses: taiki-e/install-action@cf46383a970594553a83cc6140075ef6a7f54dee # v2.62.64
       # this action is used in multiple places
       with:
         tool: ${{ inputs.tools }}
