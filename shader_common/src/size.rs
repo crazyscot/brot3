@@ -80,6 +80,7 @@ impl From<UVec2> for Size {
 
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
+#[allow(clippy::missing_panics_doc)]
 mod tests {
     use float_eq::assert_float_eq;
 

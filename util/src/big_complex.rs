@@ -145,6 +145,7 @@ impl Sub for BigComplex {
 
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
+#[allow(clippy::missing_panics_doc)]
 mod tests {
     use dashu::fbig;
     use dashu_float::round::mode::Zero;

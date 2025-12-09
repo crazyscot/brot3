@@ -42,7 +42,7 @@ jobs:
         run: cargo run -p shader_builder --locked --release
         # Continue on error as far as possible, to provide maximum useful information
       - name: clippy (shader)
-        run: cargo clippy -p shader -p shader_common --locked --release
+        run: cargo clippy -p shader -p shader_common --locked --release --all-targets
         if: ${{ !cancelled() }}
       - name: Upload SPIRV artifact
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4.6.2
@@ -207,7 +207,7 @@ jobs:
         # Run clippy only on the Linux build
         # !cancelled() because we want this to run even if a previous step failed
         if: ${{ matrix.platform == 'linux' && !cancelled() }}
-        run: cargo clippy -p brot3-ui -p shader_builder -p util -p xtask --locked --release --no-default-features
+        run: cargo clippy -p brot3-ui -p shader_builder -p util -p xtask --locked --release --no-default-features --all-targets
 
       - name: create mac Info.plist
         if: ${{ matrix.platform == 'mac' }}

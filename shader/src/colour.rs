@@ -218,6 +218,7 @@ fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
+#[allow(clippy::missing_panics_doc)]
 mod tests {
     use float_eq::float_eq;
     use shader_common::{

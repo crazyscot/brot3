@@ -226,6 +226,7 @@ impl From<Lch> for Hsl {
 
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
+#[allow(clippy::missing_panics_doc)]
 mod tests {
     use super::{Hsl, RgbVec};
 
