@@ -1,24 +1,26 @@
 {
-    "[typescript]": {
-        "editor.defaultFormatter": "vscode.typescript-language-features"
-    },
-    "[html]": {
-        "editor.defaultFormatter": "vscode.html-language-features"
-    },
-    "[css]": {
-        "editor.defaultFormatter": "vscode.css-language-features"
-    },
-    "[toml]": {
-        "editor.defaultFormatter": "rust-lang.rust-analyzer"
-    },
-    "rust-analyzer.linkedProjects": [
-        "./Cargo.toml"
-    ],
-    "rust-analyzer.showUnlinkedFileNotification": false,
-    // "rust-analyzer.cargo.features": ["unstable-test-helpers"],
-    "editor.formatOnSave": true,
-    "[rust]": {
-        "editor.inlayHints.enabled": "offUnlessPressed",
-        "editor.defaultFormatter": "rust-lang.rust-analyzer",
-    }
+  "[html]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[yml]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[hbs]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "rust-analyzer.linkedProjects": [
+    "./Cargo.toml"
+  ],
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  // rustup component add rust-analyzer, then set this in ~/.config/Code/User/settings.json:
+  // "rust-analyzer.server.path": "${userHome}/.cargo/bin/rust-analyzer",
+
+  // "rust-analyzer.cargo.features": ["unstable-test-helpers"],
+  "editor.formatOnSave": true
 }

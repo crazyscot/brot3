@@ -107,11 +107,11 @@ jobs:
           tool: typos,dprint,cargo-machete
           checksum: true
       - run: typos
-        if: ${{ success() || failure() }}
+        if: ${{ !cancelled() }}
       - run: dprint check --list-different
         # to fix: dprint fmt
-        if: ${{ success() || failure() }}
+        if: ${{ !cancelled() }}
       - run: dprint fmt --diff
         if: ${{ failure() }}
       - run: cargo +stable machete --with-metadata
-        if: ${{ success() || failure() }}
+        if: ${{ !cancelled() }}

@@ -1,6 +1,3 @@
 [default]
-extend-ignore-identifiers-re = [
-  "3ba343c",
-  "75ded55",
-  "ba3e7c5",
-]
+extend-ignore-re = ["\\[[0-9a-f]{7}\\]"]
+extend-ignore-identifiers-re = []
