@@ -10,6 +10,7 @@ pub(crate) const ESCAPE_THRESHOLD: f32 = 10.0;
 pub(crate) const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
 const LOGLOG2_ESCAPE_THRESHOLD: f32 = 1.732_020_9;
 
+#[clippy::format_args]
 macro_rules! deprintln {
     ($($arg:tt)*) => {
         #[cfg(not(target_arch = "spirv"))]

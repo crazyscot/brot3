@@ -5,6 +5,7 @@
 #[cfg(not(target_arch = "spirv"))]
 const DEBUG_COLOUR: bool = false;
 
+#[clippy::format_args]
 macro_rules! deprintln {
     ($($arg:tt)*) => {
         #[cfg(not(target_arch = "spirv"))]
