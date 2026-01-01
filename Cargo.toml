@@ -23,7 +23,7 @@ clap = { version = "4.5.53", features = ["derive"] }
 const-default = { version = "1.0.0", features = ["derive"], default-features = false }
 dashu = { version = "0.4.2", default-features = false }
 dashu-float = { version = "0.4.3", default-features = false }
-derive_more = "2.1.0"
+derive_more = "2.1.1"
 divan = "0.1.21"
 document-features = "0.2.12"
 egui_extras = "0.33"
