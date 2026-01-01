@@ -69,7 +69,7 @@ jobs:
         uses: dtolnay/rust-toolchain@0b1efabc08b657293548b77fb76cc02d26091c7e # 2025-09-17
         with:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
-      - uses: taiki-e/install-action@cf46383a970594553a83cc6140075ef6a7f54dee # v2.62.64
+      - uses: taiki-e/install-action@a983ca795126a4be4e8a44879ac5c4c3ef66cae1 # v2.65.11
         with:
           tool: cargo-llvm-cov
           checksum: true
@@ -102,7 +102,7 @@ jobs:
     steps:
       # This job runs all its checks without stopping (unless cancelled)
       - uses: actions/checkout@v6
-      - uses: taiki-e/install-action@cf46383a970594553a83cc6140075ef6a7f54dee # v2.62.64
+      - uses: taiki-e/install-action@a983ca795126a4be4e8a44879ac5c4c3ef66cae1 # v2.65.11
         with:
           tool: typos,dprint,cargo-machete
           checksum: true
