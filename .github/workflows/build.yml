@@ -45,7 +45,7 @@ jobs:
         run: cargo clippy -p shader -p shader_common --locked --release --all-targets
         if: ${{ !cancelled() }}
       - name: Upload SPIRV artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4.6.2
         with:
           name: shader.spv
           path: target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/shader.spv
@@ -181,7 +181,7 @@ jobs:
       - name: Upload binary
         if: ${{ success() || failure() }}
         # always try to do this, it allows the package to be checked
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           # For this OUTER archive, we use -raw on Mac and -binary elsewhere.
           # The inner and outer names must be different to avoid archive overwrites, confusion
@@ -198,7 +198,7 @@ jobs:
         # this writes the output 'deb=<file>'
       - name: upload deb
         if: ${{ matrix.platform == 'linux' }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: brot3_${{ steps.version.outputs.version }}-deb-${{ matrix.runs_on }}
           path: ${{ steps.build_deb.outputs.deb }}
@@ -268,7 +268,7 @@ jobs:
       - name: upload mac app bundle
         # always try to do this, it allows the package to be checked
         if: ${{ matrix.platform == 'mac' && ( success() || failure() ) }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: brot3_${{ steps.version.outputs.version }}-${{ matrix.short_target }}-app
           path: ${{ steps.bundle-mac.outputs.zipfile }}
