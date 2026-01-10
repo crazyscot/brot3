@@ -1,4 +1,5 @@
 name: Common packaging prep
+description: Sets profile, installs toolchain and tools, downloads prebuilt shader
 inputs:
   rust-components:
     required: false
