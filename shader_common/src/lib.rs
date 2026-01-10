@@ -82,7 +82,7 @@ impl Default for FragmentConstants {
 bitflags::bitflags! {
 #[derive(Copy, Clone, Debug, Default, Zeroable, Pod)]
 #[repr(transparent)]
-/// blah
+#[allow(missing_docs)]
 pub struct Flags : u32 {
     const NEEDS_REITERATE = 1 << 0;
     const INSPECTOR_ACTIVE = 1 << 1;
