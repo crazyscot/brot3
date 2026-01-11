@@ -24,6 +24,7 @@ use shader_common::{
 use strum::VariantArray as _;
 
 #[divan::bench]
+#[allow(non_upper_case_globals)]
 fn ___warm_up() {
     // this is a hack to ensure the binary and libraries are fully loaded.
     // without it, the first run of the first benchmark - and certain others - are outliers.
