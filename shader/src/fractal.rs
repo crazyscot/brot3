@@ -40,72 +40,29 @@ pub fn render(constants: &FragmentConstants, point: Vec2) -> PointResult {
         _ => Complex::from(point),
     };
 
-    macro_rules! builder {
-        ($fractal:ident, $c_value:expr) => {{
-            match constants.exponent.typ {
-                NumericType::Integer if constants.exponent.int == 2 => Runner {
-                    constants,
-                    algo: PhantomData::<$fractal>,
-                    c: $c_value,
-                    expo: Power2 {},
-                }
-                .run(),
-                NumericType::Integer if constants.exponent.int == 3 => Runner {
-                    constants,
-                    algo: PhantomData::<$fractal>,
-                    c: $c_value,
-                    expo: Power3 {},
-                }
-                .run(),
-                NumericType::Integer if constants.exponent.int == 4 => Runner {
-                    constants,
-                    algo: PhantomData::<$fractal>,
-                    c: $c_value,
-                    expo: Power4 {},
-                }
-                .run(),
-                NumericType::Integer if constants.exponent.int == 5 => Runner {
-                    constants,
-                    algo: PhantomData::<$fractal>,
-                    c: $c_value,
-                    expo: Power5 {},
-                }
-                .run(),
-                NumericType::Integer if constants.exponent.int == 6 => Runner {
-                    constants,
-                    algo: PhantomData::<$fractal>,
-                    c: $c_value,
-                    expo: Power6 {},
-                }
-                .run(),
-
-                NumericType::Integer => Runner {
-                    constants,
-                    algo: PhantomData::<$fractal>,
-                    c: $c_value,
-                    expo: IntegerPower(constants.exponent.int),
-                }
-                .run(),
-
-                NumericType::Float => Runner {
-                    constants,
-                    algo: PhantomData::<$fractal>,
-                    c: $c_value,
-                    expo: RealPower(constants.exponent.real),
-                }
-                .run(),
-                NumericType::Complex => Runner {
-                    constants,
-                    algo: PhantomData::<$fractal>,
-                    c: $c_value,
-                    expo: ComplexPower::from(constants.exponent),
-                }
-                .run(),
-                _ => unreachable!(),
+    macro_rules! run_it {
+        ($expo:expr) => {
+            Runner {
+                constants,
+                algo: PhantomData::<MandelbrotFamily>,
+                c,
+                expo: $expo,
             }
-        }};
+            .run()
+        };
     }
-    builder!(MandelbrotFamily, c)
+
+    match constants.exponent.typ {
+        NumericType::Integer if constants.exponent.int == 2 => run_it!(Power2 {}),
+        NumericType::Integer if constants.exponent.int == 3 => run_it!(Power3 {}),
+        NumericType::Integer if constants.exponent.int == 4 => run_it!(Power4 {}),
+        NumericType::Integer if constants.exponent.int == 5 => run_it!(Power5 {}),
+        NumericType::Integer if constants.exponent.int == 6 => run_it!(Power6 {}),
+        NumericType::Integer => run_it!(IntegerPower(constants.exponent.int)),
+        NumericType::Float => run_it!(RealPower(constants.exponent.real)),
+        NumericType::Complex => run_it!(ComplexPower::from(constants.exponent)),
+        _ => unreachable!(),
+    }
 }
 
 struct Runner<'a, F, E>
