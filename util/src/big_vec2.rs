@@ -102,11 +102,26 @@ impl Add for BigVec2 {
         Self::new(self.x + other.x, self.y + other.y)
     }
 }
+impl Add<&BigVec2> for BigVec2 {
+    type Output = Self;
+
+    fn add(self, other: &Self) -> Self::Output {
+        Self::new(self.x + &other.x, self.y + &other.y)
+    }
+}
+
 impl Sub for BigVec2 {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
         Self::new(self.x - other.x, self.y - other.y)
+    }
+}
+impl Sub<&BigVec2> for BigVec2 {
+    type Output = Self;
+
+    fn sub(self, other: &Self) -> Self::Output {
+        Self::new(self.x - &other.x, self.y - &other.y)
     }
 }
 
@@ -116,11 +131,23 @@ impl AddAssign for BigVec2 {
         self.y += other.y;
     }
 }
+impl AddAssign<&BigVec2> for BigVec2 {
+    fn add_assign(&mut self, other: &Self) {
+        self.x += &other.x;
+        self.y += &other.y;
+    }
+}
 
 impl SubAssign for BigVec2 {
     fn sub_assign(&mut self, other: Self) {
         self.x -= other.x;
         self.y -= other.y;
+    }
+}
+impl SubAssign<&BigVec2> for BigVec2 {
+    fn sub_assign(&mut self, other: &Self) {
+        self.x -= &other.x;
+        self.y -= &other.y;
     }
 }
 
@@ -212,12 +239,12 @@ mod tests {
         let mut v2 = make_bigvec2!(3., 4.);
         v2 += v1;
         assert_eq!(v2, make_bigvec2!(3., 5.));
-        v2 -= make_bigvec2!(3., 5.);
+        v2 -= &make_bigvec2!(3., 5.);
         assert_eq!(v2, BigVec2::ZERO);
 
         let mut a1 = make_bigvec2!(20., 12.);
         let dv1 = dvec2(4., 4.);
-        let a2 = a1.clone() - dv1.try_into().unwrap();
+        let a2 = a1.clone() - BigVec2::try_from(dv1).unwrap();
         a1 -= dv1;
         assert_eq!(a1, a2);
         a1 /= 2.0;

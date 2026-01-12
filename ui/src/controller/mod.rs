@@ -361,7 +361,7 @@ impl ControllerTrait for Controller {
         self.mouse_position = position;
         if self.inspector.dragging {
             self.inspector.position += self.pixel_address_to_complex(self.mouse_position)
-                - self.pixel_address_to_complex(prev_position);
+                - &self.pixel_address_to_complex(prev_position);
             self.inspector.stale = true;
         } else if self.dragging {
             let delta =
@@ -386,7 +386,7 @@ impl ControllerTrait for Controller {
         let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / *zoom / size.y;
         *zoom = (prev_zoom * (1.0 + motion)).clamp(MIN_ZOOM, MAX_ZOOM);
         let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / *zoom / size.y;
-        self.viewport_translate += mouse_pos0 - mouse_pos1;
+        self.viewport_translate += &(mouse_pos0 - &mouse_pos1);
         self.reiterate = true;
     }
 
@@ -426,16 +426,16 @@ impl Controller {
     #[allow(clippy::missing_panics_doc)]
     fn pixel_address_to_complex(&self, p: DVec2) -> BigVec2 {
         let size = self.size.as_dvec2();
-        self.viewport_translate.clone()
-            + BigVec2::try_from(
-                (p - 0.5 * size) * dvec2(size.x / size.y, 1.0) / self.viewport_zoom / size,
-            )
-            .unwrap()
+        BigVec2::try_from(
+            (p - 0.5 * size) * dvec2(size.x / size.y, 1.0) / self.viewport_zoom / size,
+        )
+        .unwrap()
+            + &self.viewport_translate
     }
 
     fn complex_point_to_pixel(&self, p: &BigVec2) -> DVec2 {
         let size = self.size.as_dvec2();
-        (p.clone() - self.viewport_translate.clone()).as_dvec2() / dvec2(size.x / size.y, 1.0)
+        (p.clone() - &self.viewport_translate).as_dvec2() / dvec2(size.x / size.y, 1.0)
             * self.viewport_zoom
             * size
             + 0.5 * size

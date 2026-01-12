@@ -131,7 +131,14 @@ impl Add for BigComplex {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
-        Self(self.0 + other.0)
+        Self(self.0 + &other.0)
+    }
+}
+impl Add<&BigComplex> for BigComplex {
+    type Output = Self;
+
+    fn add(self, other: &Self) -> Self::Output {
+        Self(self.0 + &other.0)
     }
 }
 
@@ -139,7 +146,14 @@ impl Sub for BigComplex {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
-        Self(self.0 - other.0)
+        Self(self.0 - &other.0)
+    }
+}
+impl Sub<&BigComplex> for BigComplex {
+    type Output = Self;
+
+    fn sub(self, other: &Self) -> Self::Output {
+        Self(self.0 - &other.0)
     }
 }
 
@@ -160,7 +174,7 @@ mod tests {
         let mut c = BigComplex::from(v);
         let r = &mut *c;
         assert_eq!(r.length_squared(), FBig::<Zero>::from(25));
-        let z = r.clone() + v2;
+        let z = r.clone() + &v2;
         assert_eq!(z, make_bigvec2!(4, 5));
     }
 
@@ -168,11 +182,13 @@ mod tests {
     fn exercise() {
         let c1 = make_complex!(1.0, 2.0);
         let c2 = BigComplex::try_new(3.0, 4.0).unwrap();
-        let z = c1 + c2;
-        assert_eq!(z, make_complex!(4.0, 6.0));
+        let z = c1 + &c2;
+        let z = z + c2;
+        assert_eq!(z, make_complex!(7.0, 10.0));
         let a = make_complex!(123, 456);
         let b = a.clone() - a; // these are bignums, they do not support Copy
         assert_eq!(b, BigComplex::ZERO);
+        assert_eq!(z.clone() - &z, BigComplex::ZERO);
     }
 
     #[test]
