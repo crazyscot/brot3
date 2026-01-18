@@ -52,6 +52,7 @@ easy-shader-runner = { workspace = true, default-features = false }
 easy-shader-runner = { workspace = true, default-features = false, features = ["emulate_constants"] }
 
 [build-dependencies]
+build-print = { workspace = true }
 cfg_aliases = { workspace = true }
 
 [lints]
@@ -112,4 +113,8 @@ category = "GraphicsAndDesign"
 # N.B. README, etc, do not live in the bundle; they travel outboard as nobody ever looks inside the .app
 
 [package.metadata.cargo-machete]
-ignored = ["cfg_aliases", "image"]
+ignored = [
+  "build-print", # used by build.rs
+  "cfg_aliases", # used by build.rs
+  "image", # used as a mixin, not directly referenced
+]

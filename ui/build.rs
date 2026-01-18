@@ -20,9 +20,11 @@ fn main() {
     println!("cargo:rerun-if-env-changed=BROT3_PREBUILT_SHADER");
     if let Ok(shader_path) = env::var("BROT3_PREBUILT_SHADER") {
         // CAUTION: This must match what shader_builder main.rs outputs.
+        build_print::info!("Using prebuilt shader at {shader_path}");
         println!("cargo::rustc-env=shader.spv={shader_path}");
     } else {
         // If not, go build it.
+        build_print::note!("Running shader builder...");
         build_shader();
     }
 }

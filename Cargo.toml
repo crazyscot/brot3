@@ -42,6 +42,7 @@ shader_common = { path = "shader_common" }
 strum = { version = "0.27.2", default-features = false }
 util = { path = "util" }
 web-time = "1.1.0"
+build-print = "1.0.1"
 
 [workspace.dependencies.spirv-std]
 git = "https://github.com/Rust-GPU/rust-gpu"
