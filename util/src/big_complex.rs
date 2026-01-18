@@ -1,6 +1,6 @@
 //! Arbitrary precision complex numbers, powered by `dashu::float::FBig`
 
-use std::ops::{Add, Deref, DerefMut, Sub};
+use std::ops::{Add, Deref, DerefMut, Div, Sub};
 
 use dashu_float::FBig;
 
@@ -78,9 +78,11 @@ impl BigComplex {
     ///
     /// ```
     /// # use util::make_complex;
-    /// # use dashu::fbig;
+    /// # use dashu::{fbig, float::FBig, float::round};
     /// let x = make_complex!(0.0, 1.0);
     /// assert_eq!(x.norm_squared(), fbig!(1.0));
+    /// let z = make_complex!(5.0, 4.0);
+    /// assert_eq!(z.norm_squared(), FBig::<round::mode::Zero>::from(41));
     /// ```
     #[must_use]
     pub fn norm_squared(&self) -> FBig {
@@ -104,6 +106,38 @@ impl BigComplex {
     #[must_use]
     pub fn with_precision(self, precision: usize) -> Self {
         Self(self.0.with_precision(precision))
+    }
+
+    #[must_use]
+    /// Computes the complex conjugate
+    /// ```
+    /// # use util::make_complex;
+    /// let x = make_complex!(0.0, 1.0);
+    /// assert_eq!(x.conjugate(), make_complex!(0.0, -1.0));
+    /// let z = make_complex!(12.0, 34.0);
+    /// assert_eq!(z.conjugate(), make_complex!(12.0, -34.0));
+    /// ```
+    pub fn conjugate(mut self) -> Self {
+        self.y *= dashu::base::Sign::Negative;
+        self
+    }
+
+    /// Computes the reciprocal
+    /// ```
+    /// # use util::make_complex;
+    /// let z = make_complex!(2.0, 0.0);
+    /// assert_eq!(z.recip(), make_complex!(0.5, 0.0));
+    /// let z = make_complex!(0.0, 1.0);
+    /// assert_eq!(z.recip(), make_complex!(0.0, -1.0));
+    /// let z = make_complex!(0.4, -0.2);
+    /// let recip = z.clone().recip();
+    /// assert_eq!(recip.x.to_f64().value(), 2.0);
+    /// assert_eq!(recip.y.to_f64().value(), 1.0);
+    /// ```
+    #[must_use]
+    pub fn recip(self) -> Self {
+        let nsq = self.norm_squared();
+        self.conjugate() / &nsq
     }
 }
 
@@ -154,6 +188,18 @@ impl Sub<&BigComplex> for BigComplex {
 
     fn sub(self, other: &Self) -> Self::Output {
         Self(self.0 - &other.0)
+    }
+}
+
+impl Div<&FBig> for BigComplex {
+    type Output = Self;
+
+    fn div(self, rhs: &FBig) -> Self::Output {
+        let (x, y) = (self.0.x, self.0.y);
+        Self(BigVec2 {
+            x: x / rhs,
+            y: y / rhs,
+        })
     }
 }
 
