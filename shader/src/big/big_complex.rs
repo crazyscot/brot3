@@ -4,14 +4,14 @@ use std::ops::{Add, Deref, DerefMut, Div, Sub};
 
 use dashu_float::FBig;
 
-use crate::big_vec2::BigVec2;
+use crate::BigVec2;
 
 /// Arbitrary precision complex number using `dashu_float::FBig` as the underlying data type
 ///
 ///
 /// ```
-/// # use util::BigComplex;
-/// # use util::make_complex;
+/// # use shader::BigComplex;
+/// # use shader::make_complex;
 /// let x = make_complex!(1.0, 2.0);
 /// let y = make_complex!(3.0, 4.0);
 /// let z = x + y;
@@ -48,7 +48,7 @@ impl BigComplex {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use util::BigComplex;
+    /// # use shader::BigComplex;
     /// let z = BigComplex::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -63,7 +63,7 @@ impl BigComplex {
 
     /// Computes the square efficiently, consuming the original number.
     /// ```
-    /// # use util::make_complex;
+    /// # use shader::make_complex;
     /// let x = make_complex!(0.0, 1.0);
     /// // i^2 = -1
     /// assert_eq!(x.square(), make_complex!(-1.0, 0.0));
@@ -77,7 +77,7 @@ impl BigComplex {
     /// Computes the square of the modulus of the complex.
     ///
     /// ```
-    /// # use util::make_complex;
+    /// # use shader::make_complex;
     /// # use dashu::{fbig, float::FBig, float::round};
     /// let x = make_complex!(0.0, 1.0);
     /// assert_eq!(x.norm_squared(), fbig!(1.0));
@@ -97,7 +97,7 @@ impl BigComplex {
 
     /// Sets the precision of both parts of the underlying data storage
     /// ```
-    /// # use util::BigComplex;
+    /// # use shader::BigComplex;
     /// let z = BigComplex::ZERO.with_precision(123);
     /// let prec = z.precision();
     /// assert_eq!(prec.x, 123);
@@ -111,7 +111,7 @@ impl BigComplex {
     #[must_use]
     /// Computes the complex conjugate
     /// ```
-    /// # use util::make_complex;
+    /// # use shader::make_complex;
     /// let x = make_complex!(0.0, 1.0);
     /// assert_eq!(x.conjugate(), make_complex!(0.0, -1.0));
     /// let z = make_complex!(12.0, 34.0);
@@ -124,7 +124,7 @@ impl BigComplex {
 
     /// Computes the reciprocal
     /// ```
-    /// # use util::make_complex;
+    /// # use shader::make_complex;
     /// let z = make_complex!(2.0, 0.0);
     /// assert_eq!(z.recip(), make_complex!(0.5, 0.0));
     /// let z = make_complex!(0.0, 1.0);

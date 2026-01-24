@@ -24,6 +24,11 @@ use grid::{GridRef, GridRefMut, GridShared};
 pub use shader_common::{Complex, INSPECTOR_MARKER_SIZE};
 use shader_common::{Flags, FragmentConstants, data::PointResult};
 
+#[cfg(not(target_arch = "spirv"))]
+mod big;
+#[cfg(not(target_arch = "spirv"))]
+pub use big::{big_complex::BigComplex, big_vec2::BigVec2};
+
 fn new_york_distance(a: Vec2, b: Vec2) -> f32 {
     (a.x - b.x).abs() + (a.y - b.y).abs()
 }

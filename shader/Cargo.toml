@@ -32,6 +32,11 @@ paste = { workspace = true }
 shader_common = { workspace = true }
 spirv-std = { workspace = true }
 
+[target.'cfg(not(target_arch = "spirv"))'.dependencies]
+dashu = { workspace = true }
+dashu-float = { workspace = true }
+glam = { workspace = true, features = ["std"] }
+
 [lints]
 workspace = true
 

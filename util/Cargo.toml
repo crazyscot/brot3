@@ -14,9 +14,6 @@ description = "Utilities used by the brot3 ui (separate crate for efficient test
 bench = false
 
 [dependencies]
-dashu = { workspace = true }
-dashu-float = { workspace = true }
-glam = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
 pretty_assertions.workspace = true
