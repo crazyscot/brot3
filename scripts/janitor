@@ -12,7 +12,7 @@ typos
 dprint fmt
 
 # normally one would use +nightly for this
-cargo +nightly-2025-06-30 fix --edition --edition-idioms --broken-code --allow-dirty --allow-staged --allow-no-vcs --workspace
+cargo +nightly-2025-06-30 fix --edition-idioms --broken-code --allow-dirty --allow-staged --allow-no-vcs --workspace
 
 # normally one would use +nightly for this
 cargo +nightly-2025-06-30 clippy --fix --broken-code --allow-dirty --allow-staged
