@@ -9,21 +9,23 @@ use easy_shader_runner::egui::{
 
 /// A type of Button whose contents are a checkbox, and that has accelerator text.
 #[allow(missing_debug_implementations)]
-pub struct CheckableButton<'a> {
+pub struct CheckableButton<'a, F: Fn() -> bool> {
     checked: &'a mut bool,
     atoms: AtomLayout<'a>,
     min_size: Vec2,
+    indeterminate_fn: F,
 }
 
-impl<'a> CheckableButton<'a> {
+impl<'a, F: Fn() -> bool> CheckableButton<'a, F> {
     /// Constructor
-    pub fn new(checked: &'a mut bool, label: impl IntoAtoms<'a>) -> Self {
+    pub fn new(checked: &'a mut bool, label: impl IntoAtoms<'a>, indet_fn: F) -> Self {
         let mut cb = CheckableButton {
             checked,
             atoms: AtomLayout::new(label.into_atoms())
                 .sense(Sense::click())
                 .fallback_font(TextStyle::Button),
             min_size: Vec2::ZERO,
+            indeterminate_fn: indet_fn,
         };
         cb.atoms.push_right(Atom::grow());
         cb
@@ -48,14 +50,22 @@ impl<'a> CheckableButton<'a> {
         self.atoms.push_right(atom);
         self
     }
+
+    /// Closure Mutator: A closure to update the indeterminate state
+    #[must_use]
+    pub fn indeterminate(mut self, closure: F) -> Self {
+        self.indeterminate_fn = closure;
+        self
+    }
 }
 
-impl Widget for CheckableButton<'_> {
+impl<F: Fn() -> bool> Widget for CheckableButton<'_, F> {
     fn ui(self, ui: &mut Ui) -> Response {
         let CheckableButton {
             checked,
             mut atoms,
             mut min_size,
+            ref indeterminate_fn,
         } = self;
 
         let spacing = &ui.spacing();
@@ -126,7 +136,16 @@ impl Widget for CheckableButton<'_> {
                     epaint::StrokeKind::Inside,
                 ));
 
-                if *checked {
+                let indeterminate = indeterminate_fn();
+
+                if indeterminate {
+                    // Horizontal line
+                    let _ = ui.painter().add(Shape::hline(
+                        small_icon_rect.x_range(),
+                        small_icon_rect.center().y,
+                        visuals.fg_stroke,
+                    ));
+                } else if *checked {
                     // Check mark:
                     let _ = ui.painter().add(Shape::line(
                         vec![

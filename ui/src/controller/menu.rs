@@ -19,12 +19,18 @@ impl super::Controller {
 
                     macro_rules! checkbox {
                         ($var:expr, $lbl:literal) => {
-                            CheckableButton::new(&mut $var, $lbl)
+                            CheckableButton::new(&mut $var, $lbl, || false)
                                 .min_size(vec2(ITEM_WIDTH, 0.0))
                                 .ui(ui)
                         };
                         ($var:expr, $lbl:literal, $accel:expr) => {
-                            CheckableButton::new(&mut $var, $lbl)
+                            CheckableButton::new(&mut $var, $lbl, || false)
+                                .shortcut_text($accel)
+                                .min_size(vec2(ITEM_WIDTH, 0.0))
+                                .ui(ui)
+                        };
+                        ($var:expr, $lbl:literal, $accel:expr, $indet: expr) => {
+                            CheckableButton::new(&mut $var, $lbl, $indet)
                                 .shortcut_text($accel)
                                 .min_size(vec2(ITEM_WIDTH, 0.0))
                                 .ui(ui)
