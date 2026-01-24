@@ -15,10 +15,11 @@ repository = "https://github.com/crazyscot/brot3/"
 abels-complex = { version = "0.4.0", default-features = false }
 anyhow = "1.0.100"
 bitflags = "2.10.0"
+build-print = "1.0.1"
 bytemuck = { version = "1.24.0", default-features = false }
 cfg-if = "1.0.4"
 cfg_aliases = "0.2.1"
-chrono = { version = "0.4.42", default-features = false }
+chrono = { version = "0.4.43", default-features = false }
 clap = { version = "4.5.54", features = ["derive"] }
 const-default = { version = "1.0.0", features = ["derive"], default-features = false }
 dashu = { version = "0.4.2", default-features = false }
@@ -27,7 +28,7 @@ derive_more = "2.1.1"
 divan = "0.1.21"
 document-features = "0.2.12"
 egui_extras = "0.33"
-flate2 = "1.1.5"
+flate2 = "1.1.8"
 float_eq = { version = "1.0.1", default-features = false }
 glam = { version = "=0.30.10", default-features = false }
 image = { version = "0.25.9", default-features = false }
@@ -42,11 +43,14 @@ shader_common = { path = "shader_common" }
 strum = { version = "0.27.2", default-features = false }
 util = { path = "util" }
 web-time = "1.1.0"
-build-print = "1.0.1"
 
 [workspace.dependencies.spirv-std]
 git = "https://github.com/Rust-GPU/rust-gpu"
 rev = "b3eda4df9814b6176d3c0844eb67f70a22ebb378"
+
+# TODO: glam 0.31 breaks things, update once patched
+[patch.'https://github.com/Rust-GPU/rust-gpu']
+glam = { version = "=0.30.10" }
 
 [workspace.dependencies.spirv-builder]
 git = "https://github.com/Rust-GPU/rust-gpu"
