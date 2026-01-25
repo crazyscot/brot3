@@ -5,7 +5,7 @@ use bytemuck::NoUninit;
 use crate::enums::ColourStyle;
 
 /// Raw data from a fractal invocation
-#[derive(Copy, Clone, Debug, Default, NoUninit)]
+#[derive(Copy, Clone, Debug, Default, NoUninit, derive_more::Constructor)]
 #[repr(C)]
 pub struct PointResult {
     /// iteration count
@@ -31,37 +31,6 @@ impl const_default::ConstDefault for PointResult {
 }
 
 impl PointResult {
-    // CONSTRUCTORS //////////////////////////////////////////////////////////
-    /// This is a convenience, but using it adds complexity to the shader.
-    #[cfg(all(test, not(target_arch = "spirv")))]
-    #[must_use]
-    pub fn new_inside(distance: f32, angle: f32, radius_sqr: f32) -> Self {
-        Self {
-            iters: u32::MAX,
-            iters_fraction: 0.,
-            distance,
-            angle,
-            radius_sqr,
-        }
-    }
-
-    #[must_use]
-    pub fn new_outside(
-        iters: u32,
-        iters_fraction: f32,
-        distance: f32,
-        angle: f32,
-        radius_sqr: f32,
-    ) -> Self {
-        Self {
-            iters,
-            iters_fraction,
-            distance,
-            angle,
-            radius_sqr,
-        }
-    }
-
     // ACCESSORS ////////////////////////////////////////////////////////////
     /// Iterations
     #[must_use]

@@ -253,7 +253,7 @@ where
         // sigh! saturating_add is not currently implemented, so do it ourselves:
         let inside = norm_sqr < ESCAPE_THRESHOLD_SQ;
         iters = if inside { u32::MAX } else { iters };
-        PointResult::new_outside(iters, smoothed_iters, distance, angle, prev_norm_sqr)
+        PointResult::new(iters, smoothed_iters, distance, angle, prev_norm_sqr)
     }
 }
 

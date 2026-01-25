@@ -246,7 +246,7 @@ mod tests {
     #[test]
     fn hsl_known_answer() {
         let consts = FragmentConstants::default();
-        let data = PointResult::new_outside(100, 0.0, 1.0, 0., 0.);
+        let data = PointResult::new(100, 0.0, 1.0, 0., 0.);
         let expected = RgbVec::from([0.324_715_6, 1., 0.]);
         assert_rgbvec_eq!(expected, super::colour_data(data, &consts, 0.0));
     }
@@ -261,7 +261,7 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
-        let data = PointResult::new_outside(5, 0.31876, 1.0, 0., 0.);
+        let data = PointResult::new(5, 0.31876, 1.0, 0., 0.);
         let expected = RgbVec::from([1., 0.782_427_3, 0.]);
         let result = super::colour_data(data, &consts, 0.0);
         assert_rgbvec_eq!(result, expected);
@@ -275,7 +275,7 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
-        let data = PointResult::new_outside(10, 0.31876, 1.0, 0., 0.);
+        let data = PointResult::new(10, 0.31876, 1.0, 0., 0.);
         let expected = RgbVec::from([0.477_776_47, 0.031_937_72, 0.154_393_1]);
         let result = super::colour_data(data, &consts, 0.0);
         assert_rgbvec_eq!(result, expected);

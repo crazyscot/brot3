@@ -63,7 +63,7 @@ fn colour(col: Colourer) -> RgbVec {
         inspector_point_pixel_address: Vec2::default(),
         n_reference_points: 0,
     };
-    let data = PointResult::new_outside(3, 5.423, 0.123, 1., 2.);
+    let data = PointResult::new(3, 5.423, 0.123, 1., 2.);
     shader::colour::colour_data(black_box(data), &consts, 0.0)
 }
 
