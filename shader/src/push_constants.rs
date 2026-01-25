@@ -4,8 +4,6 @@
 
 use spirv_std::glam::{UVec2, Vec2, uvec2};
 
-use super::Complex;
-
 /// Size of the inspector marker diamond in pixels
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 
@@ -80,7 +78,7 @@ impl Default for FragmentConstants {
 }
 
 bitflags::bitflags! {
-#[derive(Copy, Clone, Debug, Default, Zeroable, Pod)]
+#[derive(Copy, Clone, Debug, Default, Zeroable, Pod, PartialEq)]
 #[repr(transparent)]
 #[allow(missing_docs)]
 pub struct Flags : u32 {
@@ -247,33 +245,54 @@ impl From<f32> for PushExponent {
     }
 }
 
-impl From<Complex> for PushExponent {
-    fn from(z: Complex) -> Self {
-        Self {
-            typ: NumericType::Float,
-            real: z.re,
-            imag: z.im,
-            ..Default::default()
-        }
-    }
-}
+#[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
+#[allow(clippy::missing_panics_doc)] // I shouldn't need to write this here, but rust-analyzer is confused.
+mod tests {
+    use std::assert_matches::assert_matches;
 
-impl From<&PushExponent> for Complex {
-    #[allow(clippy::cast_precision_loss)]
-    fn from(e: &PushExponent) -> Self {
-        match e.typ {
-            NumericType::Complex => Self {
-                re: e.real,
-                im: e.imag,
-            },
-            NumericType::Float => Self {
-                re: e.real,
-                im: 0.0,
-            },
-            NumericType::Integer => Self {
-                re: e.int as f32,
-                im: 0.0,
-            },
-        }
+    use float_eq::assert_float_eq;
+
+    use super::{Flags, flag_if};
+    use crate::{
+        ColourStyle, FragmentConstants, Palette,
+        push_constants::{NumericType, PushExponent},
+    };
+
+    #[test]
+    fn flags_if() {
+        assert_eq!(
+            flag_if(true, Flags::NEEDS_REITERATE),
+            Flags::NEEDS_REITERATE
+        );
+        assert_eq!(flag_if(false, Flags::NEEDS_REITERATE), Flags::empty());
+    }
+
+    #[test]
+    fn pixel_spacing() {
+        assert_float_eq!(
+            f64::from(FragmentConstants::pixel_spacing_f32(1920, 12345.0)),
+            FragmentConstants::pixel_spacing_f64(1920, 12345.0),
+            abs <= 0.00001
+        );
+    }
+
+    #[test]
+    fn construct_palette() {
+        let p = Palette::default().with_style(ColourStyle::Discrete);
+        assert_eq!(p.colour_style, ColourStyle::Discrete);
+    }
+
+    #[test]
+    fn construct_exponent() {
+        let pf = PushExponent::from(31.2);
+        assert_matches!(
+            pf,
+            PushExponent {
+                typ: NumericType::Float,
+                real: 31.2,
+                ..
+            }
+        );
     }
 }

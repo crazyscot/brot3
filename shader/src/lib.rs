@@ -8,6 +8,8 @@
 //! ## Feature flags
 #![doc = document_features::document_features!()]
 #![allow(missing_docs)]
+// enable this unstable feature (used in tests):
+#![feature(assert_matches)]
 
 use spirv_std::glam::Vec4Swizzles as _;
 pub use spirv_std::glam::{DVec2, UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec4};
