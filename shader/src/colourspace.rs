@@ -9,7 +9,8 @@ use super::Vec3;
 /// RGB colour space.
 ///
 /// Each component is in the range (0.0, 1.0).
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, derive_more::Display)]
+#[display("[r={} g={} b={}]", _0[0], _0[1], _0[2])]
 pub struct RgbVec(pub Vec3);
 
 #[allow(missing_docs)]

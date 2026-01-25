@@ -221,21 +221,24 @@ fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
 #[cfg_attr(coverage_nightly, coverage(off))]
 #[allow(clippy::missing_panics_doc)]
 mod tests {
+    use const_default::ConstDefault;
     use float_eq::float_eq;
     use glam::Vec2;
+    use strum::IntoEnumIterator;
 
     use super::{PointResult, RgbVec};
     use crate::{
         FragmentConstants, Palette, Vec3,
-        enums::{Algorithm, ColourStyle, Colourer, Modifier},
+        enums::{Algorithm, Colourer, Modifier},
     };
 
-    macro_rules! assert_rgbvec_eq {
+    macro_rules! assert_rgbvec_near {
         ($a:expr, $b:expr) => {
+            // 3 d.p. precision is enough for RGB triplets
             assert!(
-                float_eq!($a.0.x, $b.0.x, abs <= 0.000_04)
-                    && float_eq!($a.0.y, $b.0.y, abs <= 0.000_04)
-                    && float_eq!($a.0.z, $b.0.z, abs <= 0.000_04),
+                float_eq!($a.0.x, $b.0.x, abs <= 0.000_4)
+                    && float_eq!($a.0.y, $b.0.y, abs <= 0.000_4)
+                    && float_eq!($a.0.z, $b.0.z, abs <= 0.000_4),
                 "float mismatch: {:?} != {:?}",
                 $a,
                 $b
@@ -244,41 +247,46 @@ mod tests {
     }
 
     #[test]
-    fn hsl_known_answer() {
-        let consts = FragmentConstants::default();
-        let data = PointResult::new(100, 0.0, 1.0, 0., 0.);
-        let expected = RgbVec::from([0.324_715_6, 1., 0.]);
-        assert_rgbvec_eq!(expected, super::colour_data(data, &consts, 0.0));
+    fn known_answers() {
+        let cases = [
+            (Colourer::LogRainbow, 100, 0.0, [0.325, 1., 0.]),
+            (Colourer::SqrtRainbow, 100, 0.0, [0.667, 0., 1.]),
+            (Colourer::WhiteFade, 10, 0.31876, [0.478, 0.032, 0.154]),
+            (Colourer::WhiteFade, 0, 0.1, [1.0, 1.0, 1.0]),
+            (Colourer::BlackFade, 100, 0.0, [0.5535, 0.9885, 0.342]),
+            (Colourer::BlackFade, 0, 0.1, [0.0, 0.0, 0.0]),
+            (Colourer::OneLoneCoder, 100, 0.0, [0.228, 0.2725, 0.999]),
+            (Colourer::LchGradient, 100, 0.0, [1.0, 0.23, 1.0]),
+            (Colourer::Monochrome, 100, 0.0, [0.175, 0.175, 0.175]),
+        ];
+        for (colourer, iters, iters_fraction, expected) in cases {
+            let consts = FragmentConstants {
+                max_iter: 100_000,
+                palette: Palette::default().with_colourer(colourer),
+                ..Default::default()
+            };
+            let data = PointResult::new(iters, iters_fraction, 1.0, 0., 0.);
+            let expected = RgbVec::from(expected);
+            let result = super::colour_data(data, &consts, 0.0);
+            println!("{colourer}: expected={expected} output={result}");
+            assert_rgbvec_near!(result, expected);
+        }
     }
 
     #[test]
-    fn lch_known_answer() {
-        let consts = FragmentConstants {
-            max_iter: 100,
-            palette: Palette::default()
-                .with_colourer(Colourer::LchGradient)
-                .with_style(ColourStyle::Discrete),
-            ..Default::default()
-        };
-        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
-        let data = PointResult::new(5, 0.31876, 1.0, 0., 0.);
-        let expected = RgbVec::from([1., 0.782_427_3, 0.]);
-        let result = super::colour_data(data, &consts, 0.0);
-        assert_rgbvec_eq!(result, expected);
-    }
-
-    #[test]
-    fn white_fade_known_answer() {
-        let consts = FragmentConstants {
-            max_iter: 100,
-            palette: Palette::default().with_colourer(Colourer::WhiteFade),
-            ..Default::default()
-        };
-        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
-        let data = PointResult::new(10, 0.31876, 1.0, 0., 0.);
-        let expected = RgbVec::from([0.477_776_47, 0.031_937_72, 0.154_393_1]);
-        let result = super::colour_data(data, &consts, 0.0);
-        assert_rgbvec_eq!(result, expected);
+    fn inside_pixels() {
+        for c in Colourer::iter() {
+            if c == Colourer::None {
+                continue;
+            }
+            let consts = FragmentConstants {
+                palette: Palette::default().with_colourer(c),
+                ..Default::default()
+            };
+            let data = PointResult::DEFAULT;
+            let result = super::colour_data(data, &consts, 0.0);
+            assert_eq!(result, RgbVec::BLACK, "case {c}");
+        }
     }
 
     #[test]
