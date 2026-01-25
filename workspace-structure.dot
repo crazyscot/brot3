@@ -1,42 +1,36 @@
 digraph {
     compound = true;
+
     node [shape = box;];
-    
     ui;
-    shader;
     shader_builder;
     xtask [style = dashed;];
-    shader_common;
-    shader_spv [shape = cylinder;label = "shader.spv";];
     util;
+    shader;
+    {
+        rank=same;
+        shader;
+        shader_spv [shape = cylinder;label = "shader.spv";];
+    }
+
     node [shape = box3d; style = filled;];
-    edge [fontname = "arial"; fontsize = 7;];
     spirv_builder;
     easy_shader_runner;
-    spirv_std [label = "spirv_std";];
-    shader_spv;
-    subgraph cluster_shader_ {
-        style = dashed;
-        shader;
-        shader_common;
-        spirv_std;
-    }
-    
-    ui -> shader_common;
+
+    edge [fontname = "arial"; fontsize = 7;];
+    ui -> shader;
     ui -> easy_shader_runner;
     ui -> util;
     
-    shader_spv -> shader [style = dotted; label = "artefact of"; lhead = cluster_shader_;];
-    
-    shader -> spirv_std;
-    shader -> shader_common;
+    spirv_builder -> shader [style=dashed; label = "compiles"]
     
     shader_builder -> spirv_builder;
     
-    easy_shader_runner -> spirv_builder [style = dotted; label = "optional\n   (feature)";];
+    easy_shader_runner -> spirv_builder [style = dotted; label = "(feature gated)";];
     
-    ui -> shader_builder [style = dashed; label = "invoked on build.rs\n& cargo run";];
+    ui -> shader_builder [style = dotted; label = "invoked on build\n& cargo run (feature gated)";];
     
-    spirv_builder -> shader_spv [style = dashed; label = "    builds";];
+    spirv_builder -> shader_spv [style = dashed; label = "   outputs"];
     easy_shader_runner -> shader_spv [style = dashed; label = "loads\nat runtime";];
 }
+# caption xtask?
