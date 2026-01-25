@@ -16,6 +16,7 @@ abels-complex = { version = "0.4.0", default-features = false }
 anyhow = "1.0.100"
 bitflags = "2.10.0"
 build-print = "1.0.1"
+build_assert = "0.0.1"
 bytemuck = { version = "1.24.0", default-features = false }
 cfg-if = "1.0.4"
 cfg_aliases = "0.2.1"

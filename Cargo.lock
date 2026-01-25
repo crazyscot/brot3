@@ -295,6 +295,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8e6738dfb11354886f890621b4a34c0b177f75538023f7100b608ab9adbd66b"
 
 [[package]]
+name = "build_assert"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b277df377083c63db7509b5e482fe630a639885427a74e81e25558662e50b7b5"
+dependencies = [
+ "env_id",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1067,6 +1076,16 @@ checksum = "1bf3c259d255ca70051b30e2e95b5446cdb8949ac4cd22c0d7fd634d89f568e2"
 dependencies = [
  "log",
  "regex",
+]
+
+[[package]]
+name = "env_id"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d74f2251363d23650f2fccda0a795493e16c8684562f1c22afebebc78fd928af"
+dependencies = [
+ "quote",
+ "syn 2.0.114",
 ]
 
 [[package]]
@@ -3156,6 +3175,7 @@ version = "3.2.0"
 dependencies = [
  "abels-complex",
  "bitflags 2.10.0",
+ "build_assert",
  "bytemuck",
  "clap",
  "const-default",

@@ -2,22 +2,30 @@
 
 #![allow(missing_docs)]
 
-use spirv_std::glam::{UVec2, Vec2, uvec2};
-
-/// Size of the inspector marker diamond in pixels
-pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
-
 use bytemuck::{NoUninit, Pod, Zeroable};
 use const_default::ConstDefault;
+use spirv_std::glam::{UVec2, Vec2, uvec2};
 
 use crate::{
     ColourStyle, Colourer, Size,
     enums::{Algorithm, Modifier},
 };
 
+/// Size of the inspector marker diamond in pixels
+pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
+
 pub const ESCAPE_THRESHOLD: f32 = 10.0;
 pub const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
 pub const LOGLOG2_ESCAPE_THRESHOLD: f32 = 1.732_020_9;
+
+#[cfg(not(target_arch = "spirv"))]
+fn compile_time_checks() {
+    build_assert::build_assert!(float_eq::float_eq!(
+        2.0f32.powf(2.0f32.powf(LOGLOG2_ESCAPE_THRESHOLD)),
+        ESCAPE_THRESHOLD,
+        abs <= 0.0001
+    ));
+}
 
 #[derive(Copy, Clone, Debug)]
 // We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninit on spirv builds.
@@ -61,6 +69,8 @@ impl FragmentConstants {
 
 impl Default for FragmentConstants {
     fn default() -> Self {
+        #[cfg(not(target_arch = "spirv"))]
+        compile_time_checks();
         Self {
             flags: Flags::default(),
             viewport_translate: Vec2::ZERO,
