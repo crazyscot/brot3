@@ -144,8 +144,9 @@ mod tests {
     use float_eq::{assert_float_eq, float_ne};
     use pretty_assertions::assert_eq;
 
-    use crate::exponentiation::{
-        Complex, ComplexPower, Exponentiator, IntegerPower, Power2, RealPower,
+    use crate::{
+        exponentiation::{Complex, ComplexPower, Exponentiator, IntegerPower, Power2, RealPower},
+        push_constants::PushExponent,
     };
 
     macro_rules! assert_complex_eq {
@@ -167,30 +168,42 @@ mod tests {
     }
 
     #[test]
-    fn two() {
-        use super::Exponentiator as _;
-        let e2 = IntegerPower(2);
-        let ef = RealPower(2.0);
-        let sc = Power2 {};
+    #[allow(clippy::float_cmp, clippy::cast_precision_loss)]
+    fn int_basics() {
+        let z_two = Complex::ONE + Complex::ONE;
+        macro_rules! expo_object {
+            ($expo:expr,$alg:ty) => {{
+                let expo = $expo;
+                (expo.apply_to(z_two), expo.power(), expo.log2())
+            }};
+        }
+        for i in 2..=7 {
+            let (z, pow, log2) = crate::exponent_monomorph!(
+                PushExponent {
+                    typ: crate::push_constants::NumericType::Integer,
+                    int: i,
+                    ..Default::default()
+                },
+                expo_object,
+                MandelbrotFamily
+            );
+            assert_eq!(pow, i as f32);
+            assert_eq!(log2, (i as f32).log2());
+            assert_eq!(z.im, 0.0);
+            assert_eq!(z.re, 2.0_f32.powi(i));
+        }
+    }
 
-        // known answers, a basic sanity check that Complex and Exponentiator work
-        let input = Complex::new(10., 0.);
-        let expected = Complex::new(100., 0.);
-        assert_complex_eq!(e2.apply_to(input), expected);
-        assert_complex_eq!(ef.apply_to(input), expected);
-        assert_complex_eq!(sc.apply_to(input), expected);
-
-        let input = Complex::new(2., 2.);
-        let expected = Complex::new(0., 8.);
-        assert_complex_eq!(e2.apply_to(input), expected);
-        assert_complex_eq!(ef.apply_to(input), expected);
-        assert_complex_eq!(sc.apply_to(input), expected);
-
-        let input = Complex::new(0., 1.);
-        let expected = Complex::new(-1., 0.);
-        assert_complex_eq!(e2.apply_to(input), expected);
-        assert_complex_eq!(ef.apply_to(input), expected);
-        assert_complex_eq!(sc.apply_to(input), expected);
+    #[test]
+    #[allow(clippy::float_cmp, clippy::cast_precision_loss)]
+    fn real_basics() {
+        let rp = RealPower(2.5);
+        let z = Complex::new(1.0, 1.0);
+        let z1 = rp.apply_to(z);
+        assert_float_eq!(z1.re, -0.91018, abs <= 0.000_1);
+        assert_float_eq!(z1.im, 2.19737, abs <= 0.000_1);
+        assert_eq!(rp.power(), 2.5);
+        assert_float_eq!(rp.log2(), 1.32192, abs <= 0.000_1);
     }
 
     #[test]
