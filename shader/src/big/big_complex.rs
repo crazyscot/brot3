@@ -257,4 +257,17 @@ mod tests {
         assert_eq!(prec.x, 123);
         assert_eq!(prec.y, 123);
     }
+
+    #[test]
+    fn conjugate() {
+        let z = make_complex!(1.0, 2.0);
+        let expected = make_complex!(1.0, -2.0);
+        assert_eq!(z.conjugate(), expected);
+    }
+    #[test]
+    fn reciprocal() {
+        let z = make_complex!(2.0, 2.0);
+        let expected = make_complex!(0.25, -0.25);
+        assert_eq!(z.recip(), expected);
+    }
 }

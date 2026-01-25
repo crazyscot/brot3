@@ -101,59 +101,38 @@ impl TryFrom<glam::DVec2> for BigVec2 {
     }
 }
 
-impl Add for BigVec2 {
+impl AsRef<BigVec2> for BigVec2 {
+    fn as_ref(&self) -> &BigVec2 {
+        self
+    }
+}
+
+impl<V: AsRef<BigVec2>> Add<V> for BigVec2 {
     type Output = Self;
 
-    fn add(self, other: Self) -> Self::Output {
-        Self::new(self.x + other.x, self.y + other.y)
+    fn add(self, other: V) -> Self::Output {
+        Self::new(self.x + &other.as_ref().x, self.y + &other.as_ref().y)
     }
 }
-impl Add<&BigVec2> for BigVec2 {
+
+impl<V: AsRef<BigVec2>> Sub<V> for BigVec2 {
     type Output = Self;
 
-    fn add(self, other: &Self) -> Self::Output {
-        Self::new(self.x + &other.x, self.y + &other.y)
+    fn sub(self, other: V) -> Self::Output {
+        Self::new(self.x - &other.as_ref().x, self.y - &other.as_ref().y)
     }
 }
 
-impl Sub for BigVec2 {
-    type Output = Self;
-
-    fn sub(self, other: Self) -> Self::Output {
-        Self::new(self.x - other.x, self.y - other.y)
+impl<V: AsRef<BigVec2>> AddAssign<V> for BigVec2 {
+    fn add_assign(&mut self, other: V) {
+        self.x += &other.as_ref().x;
+        self.y += &other.as_ref().y;
     }
 }
-impl Sub<&BigVec2> for BigVec2 {
-    type Output = Self;
-
-    fn sub(self, other: &Self) -> Self::Output {
-        Self::new(self.x - &other.x, self.y - &other.y)
-    }
-}
-
-impl AddAssign for BigVec2 {
-    fn add_assign(&mut self, other: Self) {
-        self.x += other.x;
-        self.y += other.y;
-    }
-}
-impl AddAssign<&BigVec2> for BigVec2 {
-    fn add_assign(&mut self, other: &Self) {
-        self.x += &other.x;
-        self.y += &other.y;
-    }
-}
-
-impl SubAssign for BigVec2 {
-    fn sub_assign(&mut self, other: Self) {
-        self.x -= other.x;
-        self.y -= other.y;
-    }
-}
-impl SubAssign<&BigVec2> for BigVec2 {
-    fn sub_assign(&mut self, other: &Self) {
-        self.x -= &other.x;
-        self.y -= &other.y;
+impl<V: AsRef<BigVec2>> SubAssign<V> for BigVec2 {
+    fn sub_assign(&mut self, other: V) {
+        self.x -= &other.as_ref().x;
+        self.y -= &other.as_ref().y;
     }
 }
 
@@ -225,6 +204,7 @@ impl std::fmt::Display for BigVec2 {
 #[cfg_attr(coverage_nightly, coverage(off))]
 #[allow(clippy::missing_panics_doc)]
 mod tests {
+    use dashu_float::FBig;
     use glam::dvec2;
 
     use super::{BigVec2, DVec2};
@@ -266,5 +246,15 @@ mod tests {
 
         a2 *= 3.0;
         assert_eq!(a2, make_bigvec2!(12., 15.));
+        let a3 = a2 * 2.0;
+        assert_eq!(a3, make_bigvec2!(24., 30.));
+    }
+
+    #[test]
+    fn precision_larger() {
+        let x = FBig::from(42).with_precision(128).value();
+        let y = FBig::from(42).with_precision(192).value();
+        let z = BigVec2::new(x, y);
+        assert_eq!(z.precision_larger(), 192);
     }
 }
