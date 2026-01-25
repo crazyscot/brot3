@@ -219,13 +219,13 @@ impl super::Controller {
                         palette_slider!(offset);
                         // Hide parameters when they don't apply
                         match self.palette.colourer {
-                            Colourer::LogRainbow | Colourer::SqrtRainbow => {
+                            Colourer::LogRainbow => {
                                 ui.label(egui::RichText::new("Saturation"));
                                 palette_slider!(saturation);
                                 ui.label(egui::RichText::new("Lightness"));
                                 palette_slider!(lightness);
                             }
-                            Colourer::Monochrome => {
+                            Colourer::Monochrome | Colourer::IcyBlue => {
                                 ui.label(egui::RichText::new("Gamma"));
                                 palette_slider!(gamma);
                             }

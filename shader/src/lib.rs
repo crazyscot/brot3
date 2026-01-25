@@ -12,7 +12,7 @@
 #![feature(assert_matches)]
 
 use spirv_std::glam::Vec4Swizzles as _;
-pub use spirv_std::glam::{DVec2, UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec4};
+pub use spirv_std::glam::{DVec2, UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec3, vec4};
 #[allow(unused_imports)] // Some are reused in some configurations
 use spirv_std::spirv;
 
@@ -125,13 +125,15 @@ pub fn main_vs(
 #[cfg_attr(coverage_nightly, coverage(off))]
 #[allow(clippy::missing_panics_doc)]
 mod tests {
-    use const_default::ConstDefault as _;
     use float_eq::assert_float_eq;
     use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, uvec2, vec2, vec4};
 
     use super::{
-        Flags, FragmentConstants, Palette, Size, data::PointResult, enums::Algorithm,
-        new_york_distance, push_constants::PushExponent,
+        Flags, FragmentConstants, Palette, Size,
+        data::PointResult,
+        enums::{Algorithm, Colourer},
+        new_york_distance,
+        push_constants::PushExponent,
     };
 
     const TEST_GRID_SIZE: UVec2 = uvec2(2560, 1440);
@@ -163,7 +165,10 @@ mod tests {
             max_iter: 10,
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
-            palette: Palette::DEFAULT,
+            palette: Palette {
+                colourer: Colourer::LogRainbow,
+                ..Default::default()
+            },
             inspector_point_pixel_address: Vec2::default(),
             n_reference_points: 0,
         }

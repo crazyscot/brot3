@@ -47,13 +47,15 @@ enumdef!(
 enumdef!(
     doc = "Colouring algorithm selection",
     Colourer,
-    LogRainbow,
-    SqrtRainbow,
-    WhiteFade,
     BlackFade,
-    OneLoneCoder,
-    LchGradient,
+    IcyBlue,
+    LogRainbow,
+    Mandy,
     Monochrome,
+    Monochrome2,
+    Neon,
+    OneLoneCoder,
+    WhiteFade,
     None
 );
 
@@ -106,6 +108,6 @@ mod tests {
         use super::Colourer;
         let mut c = Colourer::LogRainbow;
         c += 1;
-        assert_eq!(c, Colourer::SqrtRainbow);
+        assert_eq!(c, Colourer::Mandy);
     }
 }

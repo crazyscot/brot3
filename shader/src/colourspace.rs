@@ -30,7 +30,7 @@ impl From<Vec3> for RgbVec {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, derive_more::Constructor)]
 /// HSL colour space
 pub struct Hsl {
     /// Hue in degrees (range 0..360)
@@ -52,11 +52,6 @@ impl Hsl {
         s: 0.,
         l: 100.,
     };
-
-    #[must_use]
-    pub fn new(h: f32, s: f32, l: f32) -> Self {
-        Self { h, s, l }
-    }
 }
 impl PartialEq for Hsl {
     fn eq(&self, other: &Self) -> bool {
@@ -125,106 +120,6 @@ impl From<RgbVec> for Hsl {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-/// LCH colour space
-pub struct Lch {
-    /// Lightness (range 0..100)
-    pub l: f32,
-    /// Chroma (range 0..100)
-    pub c: f32,
-    /// Hue (degrees)
-    pub h: f32,
-}
-impl Lch {
-    #[must_use]
-    #[allow(missing_docs)]
-    pub fn new(l: f32, c: f32, h: f32) -> Self {
-        Self { l, c, h }
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-/// CIE L*a*b* colour space
-pub struct Lab {
-    /// Lightness (range 0..100)
-    pub l: f32,
-    /// Red-green axis (range -100..100)
-    pub a: f32,
-    /// Yellow-blue axis (range -100..100)
-    pub b: f32,
-}
-
-impl Lab {
-    #[must_use]
-    #[allow(missing_docs)]
-    pub fn new(l: f32, a: f32, b: f32) -> Self {
-        Self { l, a, b }
-    }
-}
-
-impl From<Lch> for Lab {
-    fn from(value: Lch) -> Self {
-        let (sin, cos) = value.h.to_radians().sin_cos();
-        let a = value.c * cos;
-        let b = value.c * sin;
-        Self { l: value.l, a, b }
-    }
-}
-
-// Matrix from <https://docs.rs/color/0.3.2/src/color/colorspace.rs.html>: original source is CSS Color 4.
-const LAB_XYZ_TO_SRGB: [[f32; 3]; 3] = [
-    [3.022_233_7, -1.617_386, -0.404_847_65],
-    [-0.943_848_25, 1.916_254_4, 0.027_593_868],
-    [0.069_386_27, -0.228_976_76, 1.159_590_5],
-];
-
-/// Matrix by vector multiplication: `m * x` of a 3x3-matrix `m` and a 3-vector `x`.
-const fn matvecmul(m: &[[f32; 3]; 3], x: [f32; 3]) -> [f32; 3] {
-    [
-        m[0][0] * x[0] + m[0][1] * x[1] + m[0][2] * x[2],
-        m[1][0] * x[0] + m[1][1] * x[1] + m[1][2] * x[2],
-        m[2][0] * x[0] + m[2][1] * x[1] + m[2][2] * x[2],
-    ]
-}
-
-fn pivot(value: f32) -> f32 {
-    const KAPPA: f32 = 24389. / 27.;
-    // This is EPSILON.cbrt() but that function isn't const (yet)
-    const EPSILON_CBRT: f32 = 0.206_896_56;
-    if value > EPSILON_CBRT {
-        value * value * value
-    } else {
-        (116. / KAPPA) * value - (16. / KAPPA)
-    }
-}
-
-impl From<Lab> for RgbVec {
-    fn from(value: Lab) -> Self {
-        // Adapted to SPIRV from <https://docs.rs/color/0.3.2/src/color/colorspace.rs.html>
-        let Lab { l, a, b } = value;
-        let f1 = l * (1. / 116.) + (16. / 116.);
-        let f0 = a * (1. / 500.) + f1;
-        let f2 = f1 - b * (1. / 200.);
-        let xyz = [pivot(f0), pivot(f1), pivot(f2)];
-        Self(Vec3::from(matvecmul(&LAB_XYZ_TO_SRGB, xyz)))
-    }
-}
-
-impl From<Lch> for RgbVec {
-    fn from(value: Lch) -> Self {
-        let lab: Lab = value.into();
-        let unclamped: RgbVec = lab.into();
-        Self(unclamped.0.clamp(Vec3::ZERO, Vec3::ONE))
-    }
-}
-
-impl From<Lch> for Hsl {
-    fn from(lch: Lch) -> Self {
-        let rgb: RgbVec = lch.into();
-        rgb.into()
-    }
-}
-
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 #[allow(clippy::missing_panics_doc)]
@@ -250,5 +145,20 @@ mod tests {
         hsl_rgb_case(Hsl::new(0., 0., 0.));
         hsl_rgb_case(Hsl::new(0., 0., 50.));
         hsl_rgb_case(Hsl::new(0., 0., 100.));
+    }
+
+    #[test]
+    fn known_answer_conversions() {
+        macro_rules! tc {
+            // syntax: input, expected, conversion type
+            ($c1:expr, $c2:expr, $t:ty) => {|| {
+                let result = <$t>::from($c1);
+                assert_eq!(result, $c2.into(), "failing case: {}", stringify!($c1 $c2));
+            }};
+        }
+        let cases = [tc!(Hsl::new(240.0, 100.0, 50.0), [0.0, 0.0, 1.0], RgbVec)];
+        for f in cases {
+            f();
+        }
     }
 }

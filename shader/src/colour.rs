@@ -15,15 +15,16 @@ macro_rules! deprintln {
     };
 }
 
-use core::f32::consts::TAU;
+use core::f32::consts::{E, PI, TAU};
 
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
 use super::{
     FragmentConstants, PointResult, Vec3,
-    colourspace::{Hsl, Lch, RgbVec},
+    colourspace::{Hsl, RgbVec},
     enums::Modifier,
+    vec3,
 };
 
 /// Computes the sine of all the members of a vector
@@ -44,12 +45,14 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spaci
     let iters = data.iters(constants.palette.colour_style);
     let mut hsl = match constants.palette.colourer {
         C::LogRainbow => log_rainbow(constants, iters, &data),
-        C::SqrtRainbow => sqrt_rainbow(constants, iters, &data),
         C::WhiteFade => white_fade(constants, iters, &data),
         C::BlackFade => black_fade(constants, iters, &data),
+        C::Mandy => mandy(constants, iters, &data),
         C::OneLoneCoder => one_lone_coder(constants, iters, &data),
-        C::LchGradient => lch_gradient(constants, iters, &data),
         C::Monochrome => monochrome(constants, iters, &data),
+        C::Monochrome2 => monochrome2(constants, iters, &data),
+        C::Neon => neon(constants, iters, &data),
+        C::IcyBlue => icyblue(constants, iters, &data),
         C::None => Hsl::WHITE,
         // _ => Hsl::BLACK,
     };
@@ -121,21 +124,6 @@ fn log_rainbow(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -
     )
 }
 
-fn sqrt_rainbow(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
-    if pixel.inside() {
-        return Hsl::BLACK;
-    }
-    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 ===
-    // 360.
-    let offset = constants.palette.offset * 36.;
-    let angle: f32 = iters.sqrt() * constants.palette.gradient * 100. + offset; // DEGREES
-    Hsl::new(
-        angle,
-        constants.palette.saturation,
-        constants.palette.lightness,
-    )
-}
-
 /// Based on Tony Finch's "White Fade" colourer
 /// <https://dotat.at/prog/mandelbrot/>
 fn white_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
@@ -178,6 +166,26 @@ fn black_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
     }
 }
 
+/// Based on Richard Kettlewell's "mandy". <http://www.greenend.org.uk/rjk/mandy/>
+fn mandy(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
+    if pixel.inside() {
+        return Hsl::BLACK;
+    }
+    // Offset is applied before cos(), so scale that input (0..10) to 2pi
+    let off = constants.palette.offset * TAU / 10.;
+
+    // We are using a different escape threshold to rjk, so scale the function to suit.
+    let iters = (iters - 3.0).max(0.0).sqrt() * TAU;
+    let mut v = vec3(
+        0.2,       /* 1/5 */
+        0.14285,   /* 1/7 */
+        0.090_090, /* 1/11 */
+    );
+    v = v * Vec3::splat(constants.palette.gradient * iters) + Vec3::splat(off);
+    let v2 = vec3(v.x.cos(), v.y.cos(), v.z.cos()) + Vec3::ONE;
+    RgbVec::from(v2 * Vec3::splat(0.5)).into()
+}
+
 /// Colouring algorithm by `OneLoneCoder.com`
 /// <https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_Mandelbrot.cpp>
 fn one_lone_coder(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
@@ -210,22 +218,65 @@ fn monochrome(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
     Hsl::new(0., 0., shade * 100.0)
 }
 
-/// LCH Gradient function from <https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#LCH_coloring>
 #[allow(clippy::cast_precision_loss)]
-fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
+fn monochrome2(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     if pixel.inside() {
         return Hsl::BLACK;
     }
-    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 ===
-    // 360.
-    let offset = constants.palette.offset * 36.;
 
-    let s: f32 = iters / constants.max_iter as f32;
-    let v1 = (core::f32::consts::PI * s).cos();
-    let lightness = 75.0 * v1 * v1;
-    let hue = (s * 360.0 * constants.palette.gradient).powf(1.5) + offset;
-    let lch = Lch::new(lightness + 25.0, lightness + 35.0, hue);
-    lch.into()
+    let iters = (iters - 3.0).max(1.0).ln();
+    let grad = constants.palette.gradient;
+    // Offset is applied before cos(), so scale the input (0..10) to 2pi
+    let off = constants.palette.offset * TAU / 10.;
+    let r = iters * grad * 2.0 + off;
+    let l = f32::midpoint(r.cos(), 1.0);
+    Hsl::new(0., 0., l * 100.0)
+}
+
+/// Based on the `neon` theme by David Bau <https://github.com/davidbau/mandelbrot/blob/main/index.html>
+///
+/// Creates vibrant, intense colours by cycling three sine waves with saturation boost.
+/// One channel is always near zero. One channel is always near one.
+fn neon(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
+    if pixel.inside() {
+        return Hsl::BLACK;
+    }
+    let grad = constants.palette.gradient.sqrt();
+    // Offset is applied before sin(), so scale the input (0..10) to 2pi
+    let offset = constants.palette.offset * TAU / 10.;
+
+    // Apply minimum 10 iters to reduce visual noise
+    let angle = (iters + 10.0).ln() * 0.8 * PI * grad + offset;
+
+    let mut v = vec_sin(Vec3::new(0.0, PI * 0.66667, PI * 1.33333) + angle).abs();
+    // Suppress minimum channel to boost saturation
+    //let min_ch = r.min(g).min(b) * 0.8;
+    let min_ch = v.min_element() * 0.8;
+    v = (v - min_ch).max(Vec3::ZERO);
+    // Normalise
+    //let max_ch = r.max(g).max(b);
+    let max_ch = v.max_element();
+    if max_ch > 0.0 {
+        v /= max_ch;
+    }
+    RgbVec(v).into()
+}
+
+/// A cool appearance with blue hues.
+/// Inspired by the `iceblue` theme by David Bau <https://github.com/davidbau/mandelbrot/blob/main/index.html>
+#[allow(clippy::cast_precision_loss)]
+fn icyblue(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
+    if pixel.inside() {
+        return Hsl::BLACK;
+    }
+    // Log-scale input from 0..1, relative to max_iter
+    let input = (iters + E).ln().ln();
+    // Offset is applied before cos(), so scale the input (0..10) to 2pi
+    let offset = constants.palette.offset * TAU / 10.;
+    // This palette has a gamma transfer function
+    let r = (input * constants.palette.gradient * 2.5).powf(constants.palette.gamma) + offset;
+    let shade = f32::midpoint(r.cos(), 1.0);
+    Hsl::new(240., 100. * (1.0 - shade / 2.0), shade * 100.0)
 }
 
 #[cfg(all(test, not(target_arch = "spirv")))]
@@ -261,14 +312,16 @@ mod tests {
     fn known_answers() {
         let cases = [
             (Colourer::LogRainbow, 100, 0.0, [0.325, 1., 0.]),
-            (Colourer::SqrtRainbow, 100, 0.0, [0.667, 0., 1.]),
             (Colourer::WhiteFade, 10, 0.31876, [0.166, 0.006, 0.296]),
             (Colourer::WhiteFade, 0, 0.1, [1.0, 1.0, 1.0]),
             (Colourer::BlackFade, 100, 0.0, [0.569, 0.981, 0.299]),
             (Colourer::BlackFade, 0, 0.1, [0.0, 0.0, 0.0]),
             (Colourer::OneLoneCoder, 100, 0.0, [0.228, 0.2725, 0.999]),
-            (Colourer::LchGradient, 100, 0.0, [1.0, 0.23, 1.0]),
             (Colourer::Monochrome, 100, 0.0, [0.175, 0.175, 0.175]),
+            (Colourer::Monochrome2, 100, 0.0, [0.01883, 0.01883, 0.01883]),
+            (Colourer::Neon, 100, 0.0, [0.609, 1.0, 0.078]),
+            (Colourer::Mandy, 100, 0.0, [0.991, 0.083, 0.8797]),
+            (Colourer::IcyBlue, 100, 0.0, [0.9717, 0.9717, 0.9908]),
         ];
         for (colourer, iters, iters_fraction, expected) in cases {
             let consts = FragmentConstants {
