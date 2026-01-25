@@ -24,14 +24,47 @@ use core::marker::PhantomData;
 use spirv_std::num_traits::real::Real;
 
 use super::{Complex, FragmentConstants, PointResult, Vec2};
-use crate::{
-    Algorithm, Flags,
-    exponentiation::{
-        ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, Power5, Power6,
-        RealPower,
-    },
-    push_constants::NumericType,
-};
+use crate::{Algorithm, Flags, exponentiation::Exponentiator};
+
+#[macro_export]
+/// Exponent dispatcher.
+/// **(Second-order macro!)**
+///
+/// Parameters:
+/// * `$exponent`: The exponent to dispatch on
+/// * `$run_it`: Target macro that does something useful. Invoked as `$run_it!(Exponentiator,
+///   $alg)`.
+/// * `$alg`: Algorithm type to pass to `$run_it`
+macro_rules! exponent_monomorph {
+    ($exponent: expr, $run_it: ident, $alg:ty) => {
+        match $exponent.typ {
+            $crate::push_constants::NumericType::Integer if $exponent.int == 2 => {
+                $run_it!($crate::exponentiation::Power2 {}, $alg)
+            }
+            $crate::push_constants::NumericType::Integer if $exponent.int == 3 => {
+                $run_it!($crate::exponentiation::Power3 {}, $alg)
+            }
+            $crate::push_constants::NumericType::Integer if $exponent.int == 4 => {
+                $run_it!($crate::exponentiation::Power4 {}, $alg)
+            }
+            $crate::push_constants::NumericType::Integer if $exponent.int == 5 => {
+                $run_it!($crate::exponentiation::Power5 {}, $alg)
+            }
+            $crate::push_constants::NumericType::Integer if $exponent.int == 6 => {
+                $run_it!($crate::exponentiation::Power6 {}, $alg)
+            }
+            $crate::push_constants::NumericType::Integer => {
+                $run_it!($crate::exponentiation::IntegerPower($exponent.int), $alg)
+            }
+            $crate::push_constants::NumericType::Float => {
+                $run_it!($crate::exponentiation::RealPower($exponent.real), $alg)
+            }
+            $crate::push_constants::NumericType::Complex => {
+                $run_it!($crate::exponentiation::ComplexPower::from($exponent), $alg)
+            } // _ => unreachable!(),
+        }
+    };
+}
 
 #[must_use]
 pub fn render(
@@ -50,7 +83,7 @@ pub fn render(
         _ => (Complex::from(point), offset),
     };
 
-    macro_rules! run_it {
+    macro_rules! run_fractal {
         ($expo:expr,$alg:ty) => {
             Runner {
                 frag: constants,
@@ -68,25 +101,10 @@ pub fn render(
         };
     }
 
-    macro_rules! build_alg {
-        ($alg:ty) => {
-            match constants.exponent.typ {
-                NumericType::Integer if constants.exponent.int == 2 => run_it!(Power2 {}, $alg),
-                NumericType::Integer if constants.exponent.int == 3 => run_it!(Power3 {}, $alg),
-                NumericType::Integer if constants.exponent.int == 4 => run_it!(Power4 {}, $alg),
-                NumericType::Integer if constants.exponent.int == 5 => run_it!(Power5 {}, $alg),
-                NumericType::Integer if constants.exponent.int == 6 => run_it!(Power6 {}, $alg),
-                NumericType::Integer => run_it!(IntegerPower(constants.exponent.int), $alg),
-                NumericType::Float => run_it!(RealPower(constants.exponent.real), $alg),
-                NumericType::Complex => run_it!(ComplexPower::from(constants.exponent), $alg),
-                // _ => unreachable!(),
-            }
-        };
-    }
     if constants.flags.contains(Flags::PERTURBATION_MODE) {
-        build_alg!(MandelbrotPerturbed)
+        exponent_monomorph!(constants.exponent, run_fractal, MandelbrotPerturbed)
     } else {
-        build_alg!(MandelbrotFamily)
+        exponent_monomorph!(constants.exponent, run_fractal, MandelbrotFamily)
     }
 }
 
@@ -498,10 +516,13 @@ mod tests {
     use const_default::ConstDefault as _;
     use pretty_assertions::assert_eq;
 
-    use super::{Flags, NumericType};
+    use super::Flags;
     use crate::{
-        FragmentConstants, Palette, Size, Vec2, enums::Algorithm, fractal,
-        push_constants::PushExponent, vec2,
+        FragmentConstants, Palette, Size, Vec2,
+        enums::Algorithm,
+        fractal,
+        push_constants::{NumericType, PushExponent},
+        vec2,
     };
 
     fn test_frag_consts() -> FragmentConstants {
