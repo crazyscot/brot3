@@ -11,12 +11,12 @@ use crate::BigVec2;
 ///
 /// ```
 /// # use shader::BigComplex;
-/// # use shader::make_complex;
-/// let x = make_complex!(1.0, 2.0);
-/// let y = make_complex!(3.0, 4.0);
+/// # use shader::make_bigcomplex;
+/// let x = make_bigcomplex!(1.0, 2.0);
+/// let y = make_bigcomplex!(3.0, 4.0);
 /// let z = x + y;
-/// assert_eq!(z, make_complex!(4.0, 6.0));
-/// let a = make_complex!(123, 456);
+/// assert_eq!(z, make_bigcomplex!(4.0, 6.0));
+/// let a = make_bigcomplex!(123, 456);
 /// let b = a.clone() - a; // these are bignums, they do not support Copy
 /// assert_eq!(b, BigComplex::ZERO);
 /// ```
@@ -29,7 +29,7 @@ pub struct BigComplex(pub BigVec2);
 /// # Panics
 /// If the numeric conversion failed
 #[macro_export]
-macro_rules! make_complex {
+macro_rules! make_bigcomplex {
     ($x: expr, $y: expr) => {
         $crate::BigComplex::try_new($x, $y).unwrap()
     };
@@ -63,10 +63,10 @@ impl BigComplex {
 
     /// Computes the square efficiently, consuming the original number.
     /// ```
-    /// # use shader::make_complex;
-    /// let x = make_complex!(0.0, 1.0);
+    /// # use shader::make_bigcomplex;
+    /// let x = make_bigcomplex!(0.0, 1.0);
     /// // i^2 = -1
-    /// assert_eq!(x.square(), make_complex!(-1.0, 0.0));
+    /// assert_eq!(x.square(), make_bigcomplex!(-1.0, 0.0));
     /// ```
     #[must_use]
     pub fn square(self) -> Self {
@@ -77,11 +77,11 @@ impl BigComplex {
     /// Computes the square of the modulus of the complex.
     ///
     /// ```
-    /// # use shader::make_complex;
+    /// # use shader::make_bigcomplex;
     /// # use dashu::{fbig, float::FBig, float::round};
-    /// let x = make_complex!(0.0, 1.0);
+    /// let x = make_bigcomplex!(0.0, 1.0);
     /// assert_eq!(x.norm_squared(), fbig!(1.0));
-    /// let z = make_complex!(5.0, 4.0);
+    /// let z = make_bigcomplex!(5.0, 4.0);
     /// assert_eq!(z.norm_squared(), FBig::<round::mode::Zero>::from(41));
     /// ```
     #[must_use]
@@ -111,11 +111,11 @@ impl BigComplex {
     #[must_use]
     /// Computes the complex conjugate
     /// ```
-    /// # use shader::make_complex;
-    /// let x = make_complex!(0.0, 1.0);
-    /// assert_eq!(x.conjugate(), make_complex!(0.0, -1.0));
-    /// let z = make_complex!(12.0, 34.0);
-    /// assert_eq!(z.conjugate(), make_complex!(12.0, -34.0));
+    /// # use shader::make_bigcomplex;
+    /// let x = make_bigcomplex!(0.0, 1.0);
+    /// assert_eq!(x.conjugate(), make_bigcomplex!(0.0, -1.0));
+    /// let z = make_bigcomplex!(12.0, 34.0);
+    /// assert_eq!(z.conjugate(), make_bigcomplex!(12.0, -34.0));
     /// ```
     pub fn conjugate(mut self) -> Self {
         self.y *= dashu::base::Sign::Negative;
@@ -124,12 +124,12 @@ impl BigComplex {
 
     /// Computes the reciprocal
     /// ```
-    /// # use shader::make_complex;
-    /// let z = make_complex!(2.0, 0.0);
-    /// assert_eq!(z.recip(), make_complex!(0.5, 0.0));
-    /// let z = make_complex!(0.0, 1.0);
-    /// assert_eq!(z.recip(), make_complex!(0.0, -1.0));
-    /// let z = make_complex!(0.4, -0.2);
+    /// # use shader::make_bigcomplex;
+    /// let z = make_bigcomplex!(2.0, 0.0);
+    /// assert_eq!(z.recip(), make_bigcomplex!(0.5, 0.0));
+    /// let z = make_bigcomplex!(0.0, 1.0);
+    /// assert_eq!(z.recip(), make_bigcomplex!(0.0, -1.0));
+    /// let z = make_bigcomplex!(0.4, -0.2);
     /// let recip = z.clone().recip();
     /// assert_eq!(recip.x.to_f64().value(), 2.0);
     /// assert_eq!(recip.y.to_f64().value(), 1.0);
@@ -211,7 +211,7 @@ mod tests {
     use dashu_float::round::mode::Zero;
 
     use super::{BigVec2, FBig};
-    use crate::{BigComplex, make_bigvec2, make_complex};
+    use crate::{BigComplex, make_bigcomplex, make_bigvec2};
 
     #[test]
     fn conversions() {
@@ -226,12 +226,12 @@ mod tests {
 
     #[test]
     fn exercise() {
-        let c1 = make_complex!(1.0, 2.0);
+        let c1 = make_bigcomplex!(1.0, 2.0);
         let c2 = BigComplex::try_new(3.0, 4.0).unwrap();
         let z = c1 + &c2;
         let z = z + c2;
-        assert_eq!(z, make_complex!(7.0, 10.0));
-        let a = make_complex!(123, 456);
+        assert_eq!(z, make_bigcomplex!(7.0, 10.0));
+        let a = make_bigcomplex!(123, 456);
         let b = a.clone() - a; // these are bignums, they do not support Copy
         assert_eq!(b, BigComplex::ZERO);
         assert_eq!(z.clone() - &z, BigComplex::ZERO);
@@ -239,14 +239,14 @@ mod tests {
 
     #[test]
     fn square() {
-        let x = make_complex!(0.0, 1.0);
+        let x = make_bigcomplex!(0.0, 1.0);
         // i^2 = -1
-        assert_eq!(x.square(), make_complex!(-1.0, 0.0));
+        assert_eq!(x.square(), make_bigcomplex!(-1.0, 0.0));
     }
 
     #[test]
     fn mod_squared() {
-        let x = make_complex!(0.0, 1.0);
+        let x = make_bigcomplex!(0.0, 1.0);
         assert_eq!(x.norm_squared(), fbig!(1.0));
     }
 
@@ -260,14 +260,14 @@ mod tests {
 
     #[test]
     fn conjugate() {
-        let z = make_complex!(1.0, 2.0);
-        let expected = make_complex!(1.0, -2.0);
+        let z = make_bigcomplex!(1.0, 2.0);
+        let expected = make_bigcomplex!(1.0, -2.0);
         assert_eq!(z.conjugate(), expected);
     }
     #[test]
     fn reciprocal() {
-        let z = make_complex!(2.0, 2.0);
-        let expected = make_complex!(0.25, -0.25);
+        let z = make_bigcomplex!(2.0, 2.0);
+        let expected = make_bigcomplex!(0.25, -0.25);
         assert_eq!(z.recip(), expected);
     }
 }
