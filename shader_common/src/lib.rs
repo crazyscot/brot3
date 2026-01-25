@@ -24,6 +24,10 @@ pub use enums::{Algorithm, ColourStyle, Colourer};
 use crate::enums::Modifier;
 pub mod data;
 
+pub const ESCAPE_THRESHOLD: f32 = 10.0;
+pub const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
+pub const LOGLOG2_ESCAPE_THRESHOLD: f32 = 1.732_020_9;
+
 #[derive(Copy, Clone, Debug)]
 // We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninit on spirv builds.
 #[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
@@ -46,6 +50,8 @@ pub struct FragmentConstants {
     pub algorithm: Algorithm, // u32
     pub max_iter: u32,
     pub palette: Palette, // u32
+    // number of points in the perturbation buffer
+    pub n_reference_points: u32,
 }
 
 // compile time assertion: confirm that push constants will fit into the size that e-s-r requests
@@ -66,7 +72,7 @@ impl Default for FragmentConstants {
     fn default() -> Self {
         Self {
             flags: Flags::default(),
-            viewport_translate: vec2(0.0, 0.0),
+            viewport_translate: Vec2::ZERO,
             viewport_zoom: Self::DEFAULT_ZOOM,
             size: Self::DEFAULT_SIZE.into(),
             buffer_size: Self::DEFAULT_SIZE.into(),
@@ -75,6 +81,7 @@ impl Default for FragmentConstants {
             exponent: PushExponent::default(),
             palette: Palette::default(),
             inspector_point_pixel_address: Vec2::default(),
+            n_reference_points: 0,
         }
     }
 }
@@ -86,6 +93,7 @@ bitflags::bitflags! {
 pub struct Flags : u32 {
     const NEEDS_REITERATE = 1 << 0;
     const INSPECTOR_ACTIVE = 1 << 1;
+    const PERTURBATION_MODE = 1 << 2;
 
     const _ = !0;
 }

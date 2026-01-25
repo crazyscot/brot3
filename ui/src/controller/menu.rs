@@ -69,6 +69,18 @@ impl super::Controller {
                     checkbox!(self.show_fps, "Show FPS");
                     checkbox!(self.vsync, "vsync");
                     checkbox!(self.always_reiterate, "Always reiterate");
+                    ui.separator();
+                    if checkbox!(
+                        self.perturbation_mode,
+                        "Force perturbation mode",
+                        "",
+                        || !self.force_perturb
+                    )
+                    .clicked()
+                    {
+                        self.force_perturb = true;
+                        self.reiterate = true;
+                    }
 
                     ui.separator();
                     checkbox!(self.keyboard_help, "Show Help", "F1");

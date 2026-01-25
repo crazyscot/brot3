@@ -1,5 +1,6 @@
 //! GPU shader implementing fractal rendering.
-//! Can also be used on the host.
+//! Can also be called directly on the host (and indeed it is, for the inspector and perturbations
+//! mode).
 
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
@@ -9,7 +10,7 @@
 #![allow(missing_docs)]
 
 use spirv_std::glam::Vec4Swizzles as _;
-pub use spirv_std::glam::{DVec2, UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2};
+pub use spirv_std::glam::{DVec2, UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec4};
 #[allow(unused_imports)] // Some are reused in some configurations
 use spirv_std::spirv;
 
@@ -45,6 +46,8 @@ pub fn main_fs(
     #[spirv(storage_buffer, descriptor_set = 1, binding = 0)]
     constants: &FragmentConstants,
     #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [PointResult],
+    #[spirv(storage_buffer, descriptor_set = 0, binding = 1)]
+    perturbation_reference_points: &[Vec2],
     output: &mut Vec4,
 ) {
     // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we
@@ -57,15 +60,15 @@ pub fn main_fs(
     let pixel_spacing = constants.pixel_spacing();
 
     // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
-    let complex_coord = (coord - 0.5 * size) * pixel_spacing + constants.viewport_translate;
+    let complex_offset = (coord - 0.5 * size) * pixel_spacing;
 
     let cache = GridRef::new(constants.buffer_size.as_uvec2(), grid);
     let cacheable = cache.address_valid(coord_int);
 
     let render_data = if !cacheable {
-        fractal::render(constants, complex_coord)
+        fractal::render(constants, complex_offset, perturbation_reference_points)
     } else if constants.flags.contains(Flags::NEEDS_REITERATE) {
-        let render_data = fractal::render(constants, complex_coord);
+        let render_data = fractal::render(constants, complex_offset, perturbation_reference_points);
         let mut cache = GridRefMut::new(constants.buffer_size.as_uvec2(), grid);
         cache.set(coord_int, render_data);
         render_data
@@ -148,6 +151,7 @@ mod tests {
             exponent: PushExponent::from(2),
             palette: Palette::DEFAULT,
             inspector_point_pixel_address: Vec2::default(),
+            n_reference_points: 0,
         }
     }
 
@@ -156,6 +160,7 @@ mod tests {
         #![allow(clippy::float_cmp)]
 
         use shader_common::Flags;
+
         let mut res = Vec4::default();
         let mut grid = vec![PointResult::default(); (TEST_GRID_SIZE.x * TEST_GRID_SIZE.y) as usize];
 
@@ -164,9 +169,17 @@ mod tests {
             ..test_frag_consts()
         };
 
+        let mut empty = vec![]; // Complex
+
         // Cache starts out empty (you probably couldn't run this on an actual GPU, the NaN might
         // trigger an abort)
-        super::main_fs(vec4(0., 0., 0., 0.), &no_iterate, &mut grid, &mut res);
+        super::main_fs(
+            vec4(0., 0., 0., 0.),
+            &no_iterate,
+            &mut grid,
+            empty.as_mut(),
+            &mut res,
+        );
         assert!(res[0].is_nan());
         assert!(res[1].is_nan());
         assert!(res[2].is_nan());
@@ -177,6 +190,7 @@ mod tests {
             vec4(0., 0., 0., 0.),
             &test_frag_consts(),
             &mut grid,
+            empty.as_mut(),
             &mut res,
         );
         let expected = vec4(0.0, 1.0, 0.141_448_5, 1.0);
@@ -186,7 +200,13 @@ mod tests {
         );
 
         // Pass 2: Retrieve from cache
-        super::main_fs(vec4(0., 0., 0., 0.), &no_iterate, &mut grid, &mut res);
+        super::main_fs(
+            vec4(0., 0., 0., 0.),
+            &no_iterate,
+            &mut grid,
+            empty.as_mut(),
+            &mut res,
+        );
         assert!(
             res.abs_diff_eq(expected, 0.000_000_1),
             "mismatch: {res} vs {expected}"
@@ -207,6 +227,7 @@ mod tests {
             // 10 or more pixels out is unaltered
             ((9.0, 0.0), (0.0, 1.0, 0.141_448_5)),
         ];
+        let mut empty = vec![]; // Complex
 
         for (point, expect_rgb) in cases {
             let mut res = Vec4::default();
@@ -219,7 +240,13 @@ mod tests {
                 inspector_point_pixel_address: Vec2::from(*point),
                 ..test_frag_consts()
             };
-            super::main_fs(vec4(0., 0., 0., 0.), &inspector, &mut grid, &mut res);
+            super::main_fs(
+                vec4(0., 0., 0., 0.),
+                &inspector,
+                &mut grid,
+                empty.as_mut(),
+                &mut res,
+            );
             let expected = Vec3::from(*expect_rgb).extend(1.0);
             assert!(
                 res.abs_diff_eq(expected, 0.000_000_1),

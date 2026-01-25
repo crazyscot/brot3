@@ -1,7 +1,7 @@
 use easy_shader_runner::{UiState, egui};
+use shader_common::Algorithm;
 
 use super::{DVec2, Instant};
-use crate::controller::{MAX_ZOOM, MIN_ZOOM};
 
 impl super::Controller {
     pub(super) const EXPONENT_MAX: f32 = 20.;
@@ -9,20 +9,38 @@ impl super::Controller {
     pub(super) const EXPONENT_MIN: f32 = 0.;
     pub(super) const EXPONENT_MIN_INT: u32 = 0;
 
+    pub(super) fn perturb_implemented(&self) -> bool {
+        self.algorithm == Algorithm::Mandelbrot && self.exponent.is_two()
+    }
+
     pub(super) fn ui_impl(
         &mut self,
         ctx: &egui::Context,
         ui_state: &mut UiState,
-        _graphics_context: &easy_shader_runner::GraphicsContext,
+        graphics_context: &easy_shader_runner::GraphicsContext,
     ) {
         self.render_pass += 1;
+
+        if self.perturbation_mode && !self.perturb_implemented() {
+            #[allow(clippy::cast_precision_loss)]
+                let _ = egui::Window::new("Unimplemented")
+                    .collapsible(false)
+                    .resizable(false)
+                    .fixed_pos(egui::pos2(
+                        self.size.x as f32 / 2.0,
+                        self.size.y as f32 / 2.0,
+                    ))
+                    .frame(egui::Frame::window(&ctx.style()).fill(egui::Color32::DARK_RED).inner_margin(10.0))
+                    .show(ctx, |ui| {
+                        let _ = ui.label(
+                        "Perturbation mode is not yet implemented here. Only Mandelbrot at power 2 is currently supported.",
+                    );
+                });
+        }
 
         egui_extras::install_image_loaders(ctx);
         ui_state.vsync = self.vsync;
         self.apply_movement();
-        if self.inspector.stale {
-            self.update_inspector();
-        }
 
         self.main_menu(ctx);
 
@@ -64,6 +82,12 @@ impl super::Controller {
 
         self.resized = false;
         self.set_mouse_pointer(ctx);
+        if (self.reiterate || self.always_reiterate) && self.perturbation_mode {
+            self.recompute_perturbation(graphics_context);
+        }
+        if self.inspector.stale {
+            self.update_inspector();
+        }
     }
 
     #[allow(clippy::float_cmp, clippy::missing_panics_doc)]
@@ -73,20 +97,21 @@ impl super::Controller {
         let factor = self.modifier_key_factor();
         #[allow(clippy::cast_possible_truncation)]
         let factor32 = factor as f32;
-        let movement = &mut self.movement;
-        if movement.zoom2 != 1.0 {
-            let zoom_in = movement.zoom2.is_sign_positive();
-            let raw_zoom = movement.zoom2.abs();
+        let zoom2 = self.movement.zoom2;
+        if zoom2 != 1.0 {
+            let zoom_in = zoom2.is_sign_positive();
+            let raw_zoom = zoom2.abs();
             assert!(raw_zoom >= 1.0);
             let dfactor = (raw_zoom - 1.0) * factor * dt + 1.0;
-            if zoom_in {
-                self.viewport_zoom *= dfactor;
+            let new_zoom = if zoom_in {
+                self.viewport_zoom * dfactor
             } else {
-                self.viewport_zoom /= dfactor;
-            }
-            self.viewport_zoom = self.viewport_zoom.clamp(MIN_ZOOM, MAX_ZOOM);
+                self.viewport_zoom / dfactor
+            };
+            self.update_zoom_factor(new_zoom);
             self.reiterate = true;
         }
+        let movement = &mut self.movement;
         if movement.translate != DVec2::ZERO {
             self.viewport_translate += movement.translate * factor / self.viewport_zoom * dt;
             self.reiterate = true;
@@ -139,5 +164,21 @@ impl super::Controller {
             (false, true, true) => CTRL_ALT,
             (_, _, _) => 1.0,
         }
+    }
+
+    #[allow(clippy::missing_panics_doc)]
+    fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {
+        shader::fractal::mandelbrot_perturbed_compute_reference_iters(
+            &mut self.perturbation.points,
+            &self.viewport_translate,
+            self.algorithm,
+            self.max_iter,
+        );
+
+        graphics_context.queue.write_buffer(
+            self.perturbation.buffer.as_ref().unwrap(),
+            0,
+            bytemuck::cast_slice(&self.perturbation.points),
+        );
     }
 }

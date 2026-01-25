@@ -4,6 +4,8 @@
 use easy_shader_runner::egui;
 use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
 
+use crate::controller::MAX_MAX_ITERATIONS;
+
 #[allow(unused_results)]
 impl super::Controller {
     pub(crate) const DEFAULT_WIDTH: f32 = 130.;
@@ -120,8 +122,9 @@ impl super::Controller {
                         _ => todo!(),
                     }
 
-                    if ui.add(egui::Checkbox::new(
-                            &mut  self.exponent.real_is_negative,
+                    if ui
+                        .add(egui::Checkbox::new(
+                            &mut self.exponent.real_is_negative,
                             "Negative",
                         ))
                         .changed()
@@ -155,7 +158,7 @@ impl super::Controller {
 
                 ui.label(egui::RichText::new("Max Iterations"));
                 if ui
-                    .add(egui::Slider::new(&mut self.max_iter, 1..=100_000).logarithmic(true))
+                    .add(egui::Slider::new(&mut self.max_iter, 1..=MAX_MAX_ITERATIONS).logarithmic(true))
                     .changed()
                 {
                     self.reiterate = true;

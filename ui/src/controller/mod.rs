@@ -26,9 +26,14 @@ mod menu;
 mod small_windows;
 mod ui;
 
-const PRECISION: usize = 128;
+const BIGNUM_PRECISION: usize = 128;
 const MIN_ZOOM: f64 = 0.05;
-const MAX_ZOOM: f64 = 13000.; // TODO: implement perturbed mbrot
+const MAX_ZOOM_STANDARD: f64 = 1.0e4; // reported on UI as 40000
+const MAX_ZOOM_PERTURBATIONS_128: f64 = 1.33e35; // reported on UI as 5.32e35
+
+// N.B. This affects the perturbation buffer size. But it's only (BIGNUM_PRECISION * 2 bits) per
+// point.
+const MAX_MAX_ITERATIONS: u32 = 100_000;
 
 #[allow(clippy::struct_excessive_bools)]
 pub(crate) struct Controller {
@@ -44,6 +49,8 @@ pub(crate) struct Controller {
     max_iter: u32,
     palette: Palette,
     exponent: Exponent,
+    perturbation: PerturbationReference,
+
     // User-facing options
     show_coords_window: bool,
     show_scale_bar: bool,
@@ -65,6 +72,8 @@ pub(crate) struct Controller {
     alt_pressed: bool,
     super_pressed: bool,
     resized: bool,
+    perturbation_mode: bool,
+    force_perturb: bool,
     fullscreen_checkbox: bool,
     fullscreen_requested: Option<bool>,
     context_menu: Option<DVec2>,
@@ -88,8 +97,10 @@ impl Controller {
         Self {
             size: UVec2::ZERO,
             cache_size: options.cache_size.unwrap_or_default().into(),
-            // TODO figure out what precision is best
-            viewport_translate: BigVec2::try_new(-1., 0.).unwrap().with_precision(PRECISION),
+            // TODO figure out what precision is best; do we need to make it dynamic?
+            viewport_translate: BigVec2::try_new(-1., 0.)
+                .unwrap()
+                .with_precision(BIGNUM_PRECISION),
             viewport_zoom: FragmentConstants::DEFAULT_ZOOM.into(),
             movement: Movement::default(),
 
@@ -98,6 +109,7 @@ impl Controller {
             palette: Palette::default().with_colourer(options.colourer), /* TODO with render
                                                                           * style too */
             exponent: Exponent::default(),
+            perturbation: PerturbationReference::default(),
 
             show_coords_window: true,
             show_scale_bar: true,
@@ -118,6 +130,8 @@ impl Controller {
             alt_pressed: false,
             super_pressed: false,
             resized: true,
+            perturbation_mode: false,
+            force_perturb: false,
             fullscreen_checkbox: options.fullscreen,
             fullscreen_requested: Some(options.fullscreen),
             context_menu: None,
@@ -129,7 +143,8 @@ impl Controller {
     #[allow(clippy::cast_possible_truncation)]
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
         let flags = flag_if(reiterate || self.always_reiterate, Flags::NEEDS_REITERATE)
-            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE);
+            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
+            | flag_if(self.perturbation_mode, Flags::PERTURBATION_MODE);
         FragmentConstants {
             flags,
             viewport_translate: self.viewport_translate.as_vec2(),
@@ -143,7 +158,41 @@ impl Controller {
             inspector_point_pixel_address: self
                 .complex_point_to_pixel(&self.inspector.position)
                 .as_vec2(),
+            n_reference_points: self.perturbation.points.len() as u32,
         }
+    }
+
+    /// Maximum zoom for the current settings
+    fn zoom_max(&self) -> f64 {
+        if self.perturbation_mode || self.force_perturb {
+            MAX_ZOOM_PERTURBATIONS_128
+        } else {
+            MAX_ZOOM_STANDARD
+        }
+    }
+
+    fn apply_zoom_limits(&self, zoom: f64) -> f64 {
+        zoom.clamp(MIN_ZOOM, self.zoom_max())
+    }
+
+    /// Apply a new zoom factor, subject to the limits, perturbation state, and possibility to
+    /// auto-update the perturbation state.
+    pub(crate) fn update_zoom_factor(&mut self, new_zoom: f64) {
+        // Auto-update perturbation, if appropriate
+        if !self.force_perturb {
+            let zooming_in = new_zoom > self.viewport_zoom;
+            if !self.perturbation_mode
+                && zooming_in
+                && new_zoom > MAX_ZOOM_STANDARD
+                && self.perturb_implemented()
+            {
+                self.perturbation_mode = true;
+            } else if self.perturbation_mode && !zooming_in && new_zoom < MAX_ZOOM_STANDARD {
+                self.perturbation_mode = false;
+            }
+        }
+        // Apply the limits
+        self.viewport_zoom = self.apply_zoom_limits(new_zoom);
     }
 }
 
@@ -183,6 +232,10 @@ impl Exponent {
 
     fn is_integer(&self) -> bool {
         self.typ == NumericType::Integer
+    }
+
+    fn is_two(&self) -> bool {
+        self.is_integer() && self.int == 2
     }
 }
 impl From<Exponent> for PushExponent {
@@ -287,16 +340,28 @@ impl ControllerTrait for Controller {
 
         let device = &gfx_ctx.device;
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Storage { read_only: false },
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: false },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
                 },
-                count: None,
-            }],
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+            ],
             label: Some("bind_group_layout"),
         });
 
@@ -314,14 +379,31 @@ impl ControllerTrait for Controller {
             contents: &initial_contents,
         });
 
+        let perturbation_points_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("perturbation_points_buffer"),
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            size: std::mem::size_of::<Vec2>() as u64 * u64::from(MAX_MAX_ITERATIONS),
+            mapped_at_creation: false,
+        });
+
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: render_data_buffer.as_entire_binding(),
-            }],
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: render_data_buffer.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: perturbation_points_buffer.as_entire_binding(),
+                },
+            ],
             label: Some("fractal_bind_group"),
         });
+        self.perturbation.buffer = Some(perturbation_points_buffer);
+        self.perturbation
+            .points
+            .reserve(MAX_MAX_ITERATIONS as usize);
         (vec![layout], vec![bind_group])
     }
 
@@ -367,7 +449,7 @@ impl ControllerTrait for Controller {
             let delta =
                 BigVec2::try_from((prev_position - self.mouse_position) / f64::from(self.size.y))
                     .unwrap()
-                    .with_precision(PRECISION);
+                    .with_precision(BIGNUM_PRECISION);
             self.viewport_translate += delta * self.modifier_key_factor() / self.viewport_zoom;
             self.reiterate = true;
         }
@@ -382,10 +464,10 @@ impl ControllerTrait for Controller {
         let position = self.mouse_position;
         let size = self.size.as_dvec2();
         let prev_zoom = self.viewport_zoom;
-        let zoom = &mut self.viewport_zoom;
-        let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / *zoom / size.y;
-        *zoom = (prev_zoom * (1.0 + motion)).clamp(MIN_ZOOM, MAX_ZOOM);
-        let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / *zoom / size.y;
+        let zoom = self.viewport_zoom;
+        let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / zoom / size.y;
+        self.update_zoom_factor(prev_zoom * (1.0 + motion));
+        let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / zoom / size.y;
         self.viewport_translate += &(mouse_pos0 - &mouse_pos1);
         self.reiterate = true;
     }
@@ -440,4 +522,10 @@ impl Controller {
             * size
             + 0.5 * size
     }
+}
+
+#[derive(Default)]
+struct PerturbationReference {
+    buffer: Option<wgpu::Buffer>,
+    points: Vec<Vec2>,
 }

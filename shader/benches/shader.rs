@@ -45,8 +45,9 @@ fn fractal(alg: Algorithm) -> PointResult {
         exponent: PushExponent::from(2),
         palette: Palette::default(),
         inspector_point_pixel_address: Vec2::default(),
+        n_reference_points: 0,
     };
-    shader::fractal::render(&consts, black_box(vec2(0.5, 0.5)))
+    shader::fractal::render(&consts, black_box(vec2(0.5, 0.5)), &[Vec2::ZERO; 0])
 }
 
 #[divan::bench(args = Colourer::VARIANTS)]
@@ -62,6 +63,7 @@ fn colour(col: Colourer) -> RgbVec {
         exponent: PushExponent::from(2),
         palette: Palette::default().with_colourer(col),
         inspector_point_pixel_address: Vec2::default(),
+        n_reference_points: 0,
     };
     let data = PointResult::new_outside(3, 5.423, 0.123, 1., 2.);
     shader::colour::colour_data(black_box(data), &consts, 0.0)

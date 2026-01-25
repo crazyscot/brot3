@@ -22,6 +22,17 @@ impl super::Controller {
         ((0.0 - pixel_size.log10()).ceil() + 2.0) as usize
     }
 
+    /// Precision digits for a zoom factor
+    fn zoom_precision(v: f64) -> usize {
+        if v < 10.0 {
+            3
+        } else if v < 1000.0 {
+            2
+        } else {
+            usize::from(v < 10000.0)
+        }
+    }
+
     pub(crate) fn coords_window(&mut self, ctx: &egui::Context) {
         let precision = self.precision_digits();
         // Don't render this on the first pass before we know the window size. That gives it a bad
@@ -56,12 +67,27 @@ impl super::Controller {
                     ui.end_row();
                     ui.label("Zoom");
                     let zoom = self.viewport_zoom * f64::from(FragmentConstants::UI_ZOOM_FACTOR);
-                    if zoom < 1000. {
-                        ui.monospace(format!("{zoom:.2}"));
-                    } else if zoom < 10_000_000. {
-                        ui.monospace(format!("{zoom:.1}"));
+                    let zoom_str = {
+                        if zoom < 1_000_000. {
+                            format!("{zoom:.p$}", p = Self::zoom_precision(zoom))
+                        } else {
+                            format!("{zoom:.3e}")
+                        }
+                    };
+                    ui.monospace(zoom_str);
+                    ui.end_row();
+
+                    ui.label("Mode");
+                    if self.perturbation_mode {
+                        ui.label("Perturbation");
                     } else {
-                        ui.monospace(format!("{zoom:+.2e}"));
+                        ui.label("Standard");
+                    }
+                    ui.end_row();
+                    if self.force_perturb {
+                        ui.label("");
+                        ui.label("(Forced!)");
+                        ui.end_row();
                     }
                 });
 
@@ -127,6 +153,7 @@ impl super::Controller {
     pub(crate) fn update_inspector(&mut self) {
         self.inspector.stale = false;
         let consts = self.fragment_constants(false);
-        self.inspector.data = shader::fractal::render(&consts, self.inspector.position.as_vec2());
+        let offset = self.inspector.position.as_vec2() - consts.viewport_translate;
+        self.inspector.data = shader::fractal::render(&consts, offset, &self.perturbation.points);
     }
 }

@@ -222,6 +222,7 @@ fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
 #[allow(clippy::missing_panics_doc)]
 mod tests {
     use float_eq::float_eq;
+    use glam::Vec2;
     use shader_common::{
         FragmentConstants, Palette,
         enums::{Algorithm, ColourStyle, Colourer, Modifier},
@@ -298,8 +299,8 @@ mod tests {
         let pixel_size =
             FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
         let pt = vec2(-0.707_752, -0.353_065_3);
-        consts.viewport_translate = pt;
-        let data = crate::fractal::render(&consts, pt);
+        let data =
+            crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
@@ -325,8 +326,8 @@ mod tests {
         let pixel_size =
             FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
         let pt = Vec2::splat(0.1);
-        consts.viewport_translate = pt;
-        let data = crate::fractal::render(&consts, pt);
+        let data =
+            crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
@@ -351,8 +352,8 @@ mod tests {
         let pixel_size =
             FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
         let pt = vec2(-0.8789, -0.23563);
-        consts.viewport_translate = pt;
-        let data = crate::fractal::render(&consts, pt);
+        let data =
+            crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
@@ -377,8 +378,8 @@ mod tests {
         let pixel_size =
             FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
         let pt = vec2(0.17388, 0.80085);
-        consts.viewport_translate = pt;
-        let data = crate::fractal::render(&consts, pt);
+        let data =
+            crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");

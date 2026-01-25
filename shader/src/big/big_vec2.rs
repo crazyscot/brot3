@@ -58,6 +58,12 @@ impl BigVec2 {
         glam::uvec2(p0 as u32, p1 as u32)
     }
 
+    /// Returns the greater precision of either axis
+    #[must_use]
+    pub fn precision_larger(&self) -> usize {
+        self.x.precision().max(self.y.precision())
+    }
+
     /// Sets the precision
     #[must_use]
     pub fn with_precision(mut self, precision: usize) -> Self {
