@@ -23,7 +23,7 @@ impl Size {
     /// Calculates the aspect ratio
     ///
     /// ```
-    /// # use shader_common::Size;
+    /// # use shader::Size;
     /// let sz = Size::new(100, 200);
     /// assert_eq!(sz.aspect_ratio(), 0.5);
     /// ```
@@ -36,7 +36,7 @@ impl Size {
     /// Converts to a [`Vec2`]
     ///
     /// ```
-    /// # use shader_common::Size;
+    /// # use shader::Size;
     /// let sz = Size::new(100, 200);
     /// let v = sz.as_vec2();
     /// assert_eq!(v.x, 100.0);
@@ -50,7 +50,7 @@ impl Size {
 
     /// Converts to a [`UVec2`]
     /// ```
-    /// # use shader_common::Size;
+    /// # use shader::Size;
     /// let sz = Size::new(100, 200);
     /// let v = sz.as_uvec2();
     /// assert_eq!(v.x, 100);
@@ -64,7 +64,7 @@ impl Size {
 
 impl From<UVec2> for Size {
     /// ```
-    /// # use shader_common::Size;
+    /// # use shader::Size;
     /// # use glam::uvec2;
     /// let uv = uvec2(200, 100);
     /// let sz: Size = uv.into();

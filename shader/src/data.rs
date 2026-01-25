@@ -2,7 +2,7 @@
 
 use bytemuck::NoUninit;
 
-use crate::{ConstDefault, enums::ColourStyle};
+use crate::enums::ColourStyle;
 
 /// Raw data from a fractal invocation
 #[derive(Copy, Clone, Debug, Default, NoUninit)]
@@ -20,7 +20,7 @@ pub struct PointResult {
     pub radius_sqr: f32,
 }
 
-impl ConstDefault for PointResult {
+impl const_default::ConstDefault for PointResult {
     const DEFAULT: Self = Self {
         iters: u32::MAX,
         iters_fraction: 0.0,

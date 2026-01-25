@@ -2,7 +2,7 @@
 // (c) 2025 Ross Younger
 
 use easy_shader_runner::egui;
-use shader_common::FragmentConstants;
+use shader::push_constants::FragmentConstants;
 use util::dynfmt;
 
 #[allow(
@@ -132,7 +132,7 @@ impl super::Controller {
     }
 
     pub(crate) fn mouse_on_marker(&self) -> bool {
-        use shader_common::INSPECTOR_MARKER_SIZE;
+        use shader::INSPECTOR_MARKER_SIZE;
         self.inspector.active
             && self
                 .mouse_position

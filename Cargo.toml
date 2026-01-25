@@ -1,5 +1,5 @@
 [workspace]
-members = ["shader", "shader_builder", "shader_common", "ui", "util", "xtask"]
+members = ["shader", "shader_builder", "ui", "util", "xtask"]
 resolver = "2"
 
 [workspace.package]
@@ -39,7 +39,6 @@ paste = "1.0.15"
 pico-args = "0.5.0"
 pretty_assertions = "1.4.1"
 shader = { path = "shader" }
-shader_common = { path = "shader_common" }
 strum = { version = "0.27.2", default-features = false }
 util = { path = "util" }
 web-time = "1.1.0"

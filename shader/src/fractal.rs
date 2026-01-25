@@ -6,7 +6,7 @@
 #[cfg(not(target_arch = "spirv"))]
 const DEBUG_FRACTAL: bool = false;
 
-pub(crate) use shader_common::{ESCAPE_THRESHOLD_SQ, LOGLOG2_ESCAPE_THRESHOLD};
+pub(crate) use crate::push_constants::{ESCAPE_THRESHOLD_SQ, LOGLOG2_ESCAPE_THRESHOLD};
 
 #[clippy::format_args]
 macro_rules! deprintln {
@@ -20,13 +20,17 @@ macro_rules! deprintln {
 
 use core::marker::PhantomData;
 
-use shader_common::{Algorithm, Flags, NumericType};
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
 use super::{Complex, FragmentConstants, PointResult, Vec2};
-use crate::exponentiation::{
-    ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, Power5, Power6, RealPower,
+use crate::{
+    Algorithm, Flags,
+    exponentiation::{
+        ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, Power5, Power6,
+        RealPower,
+    },
+    push_constants::NumericType,
 };
 
 #[must_use]
@@ -35,8 +39,6 @@ pub fn render(
     offset: Vec2,
     reference_points: &[Vec2],
 ) -> PointResult {
-    use shader_common::enums::Algorithm;
-
     let point = offset + constants.viewport_translate;
     let (c, dc) = match constants.algorithm {
         Algorithm::Mandeldrop => {
@@ -77,7 +79,7 @@ pub fn render(
                 NumericType::Integer => run_it!(IntegerPower(constants.exponent.int), $alg),
                 NumericType::Float => run_it!(RealPower(constants.exponent.real), $alg),
                 NumericType::Complex => run_it!(ComplexPower::from(constants.exponent), $alg),
-                _ => unreachable!(),
+                // _ => unreachable!(),
             }
         };
     }
@@ -150,8 +152,6 @@ impl From<&FragmentConstants> for AlgorithmModifiers {
 
 impl From<Algorithm> for AlgorithmModifiers {
     fn from(algorithm: Algorithm) -> Self {
-        use shader_common::enums::Algorithm;
-
         let mut rv = AlgorithmModifiers::default();
 
         /* Point pre-modifiers:
@@ -441,10 +441,8 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
 /// Updates a vector of reference points.
 ///
 /// The vector will be cleared and rewritten.
-///
-/// # Panics
-/// Technically possible, if a const conversion somehow fails.
 #[cfg(not(target_arch = "spirv"))]
+#[allow(clippy::missing_panics_doc, reason = "it's a const conversion")]
 pub fn mandelbrot_perturbed_compute_reference_iters(
     points: &mut Vec<Vec2>,
     centre: &crate::BigVec2,
@@ -458,8 +456,7 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
 
     points.clear();
     let modifiers = AlgorithmModifiers::from(algorithm);
-    let threshold_sq =
-        FBig::<RoundingMode::Zero>::try_from(shader_common::ESCAPE_THRESHOLD_SQ).unwrap(); // XXX Rework to avoid panic
+    let threshold_sq = FBig::<RoundingMode::Zero>::try_from(ESCAPE_THRESHOLD_SQ).unwrap();
 
     // In perturbation mode, we always use the centre of the viewport as the reference
     // iteration.
@@ -500,9 +497,12 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
 mod tests {
     use const_default::ConstDefault as _;
     use pretty_assertions::assert_eq;
-    use shader_common::{Flags, NumericType, Palette, PushExponent, Size, enums::Algorithm};
 
-    use crate::{FragmentConstants, Vec2, fractal, vec2};
+    use super::{Flags, NumericType};
+    use crate::{
+        FragmentConstants, Palette, Size, Vec2, enums::Algorithm, fractal,
+        push_constants::PushExponent, vec2,
+    };
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {

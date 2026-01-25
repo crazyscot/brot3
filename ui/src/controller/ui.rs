@@ -1,5 +1,5 @@
 use easy_shader_runner::{UiState, egui};
-use shader_common::Algorithm;
+use shader::Algorithm;
 
 use super::{DVec2, Instant};
 
@@ -143,7 +143,7 @@ impl super::Controller {
             ($($id:ident), *) => {
                 $(
                     if movement.$id != 0. {
-                        self.palette.$id = (self.palette.$id + factor32 * movement.$id).clamp(shader_common::Palette::MINIMA.$id, shader_common::Palette::MAXIMA.$id);
+                        self.palette.$id = (self.palette.$id + factor32 * movement.$id).clamp(shader::Palette::MINIMA.$id, shader::Palette::MAXIMA.$id);
                         movement.$id = 0.;
                     }
                 )*

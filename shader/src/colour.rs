@@ -17,18 +17,18 @@ macro_rules! deprintln {
 
 use core::f32::consts::TAU;
 
-use shader_common::enums::Modifier;
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
 use super::{
     FragmentConstants, PointResult,
     colourspace::{Hsl, Lch, RgbVec},
+    enums::Modifier,
 };
 
 #[must_use]
 pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
-    use shader_common::enums::Colourer as C;
+    use super::enums::Colourer as C;
     let iters = data.iters(constants.palette.colour_style);
     let mut hsl = match constants.palette.colourer {
         C::LogRainbow => log_rainbow(constants, iters, &data),
@@ -39,7 +39,7 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spaci
         C::LchGradient => lch_gradient(constants, iters, &data),
         C::Monochrome => monochrome(constants, iters, &data),
         C::None => Hsl::WHITE,
-        _ => Hsl::BLACK,
+        // _ => Hsl::BLACK,
     };
     deprintln!("interim hsl: {hsl:?}");
 
@@ -60,20 +60,20 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spaci
 
 fn factor_for(input: f32, style: Modifier, pixel_spacing: f32, data: &PointResult) -> f32 {
     let factor = match style {
-        shader_common::enums::Modifier::Filaments1 => {
+        Modifier::Filaments1 => {
             if data.inside() {
                 return 100.0;
             }
             dist_value(data.distance(), pixel_spacing) /* 0..1 */
         }
-        shader_common::enums::Modifier::Filaments2 => {
+        Modifier::Filaments2 => {
             if data.inside() {
                 return 0.0;
             }
             dist_value(data.distance(), pixel_spacing) /* 0..1 */
         }
-        shader_common::enums::Modifier::FinalAngle => data.angle() / TAU + 0.5,
-        shader_common::enums::Modifier::FinalRadius => {
+        Modifier::FinalAngle => data.angle() / TAU + 0.5,
+        Modifier::FinalRadius => {
             let factor = data.radius_sqr() / crate::fractal::ESCAPE_THRESHOLD_SQ;
             deprintln!("rsqr {}, factor {factor}", data.radius_sqr());
             factor
@@ -223,13 +223,12 @@ fn lch_gradient(constants: &FragmentConstants, iters: f32, pixel: &PointResult) 
 mod tests {
     use float_eq::float_eq;
     use glam::Vec2;
-    use shader_common::{
-        FragmentConstants, Palette,
-        enums::{Algorithm, ColourStyle, Colourer, Modifier},
-    };
 
     use super::{PointResult, RgbVec};
-    use crate::Vec3;
+    use crate::{
+        FragmentConstants, Palette, Vec3,
+        enums::{Algorithm, ColourStyle, Colourer, Modifier},
+    };
 
     macro_rules! assert_rgbvec_eq {
         ($a:expr, $b:expr) => {

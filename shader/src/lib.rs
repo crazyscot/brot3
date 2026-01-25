@@ -16,14 +16,24 @@ use spirv_std::spirv;
 
 pub mod colour;
 pub mod colourspace;
+pub mod data;
+pub mod enums;
 pub mod exponentiation;
 pub mod fractal;
 pub mod grid;
+pub mod push_constants;
+mod size;
 
 use colourspace::RgbVec;
+use data::PointResult;
+pub use enums::{Algorithm, ColourStyle, Colourer};
 use grid::{GridRef, GridRefMut, GridShared};
-pub use shader_common::{Complex, INSPECTOR_MARKER_SIZE};
-use shader_common::{Flags, FragmentConstants, data::PointResult};
+use push_constants::Flags;
+pub use push_constants::{FragmentConstants, INSPECTOR_MARKER_SIZE, Palette};
+pub use size::Size;
+
+/// Complex type used throughout shader
+pub type Complex = abels_complex::Complex<f32>;
 
 #[cfg(not(target_arch = "spirv"))]
 mod big;
@@ -115,10 +125,12 @@ pub fn main_vs(
 mod tests {
     use const_default::ConstDefault as _;
     use float_eq::assert_float_eq;
-    use shader_common::{Flags, Palette, PushExponent, Size, data::PointResult, enums::Algorithm};
     use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, uvec2, vec2, vec4};
 
-    use super::{FragmentConstants, new_york_distance};
+    use super::{
+        Flags, FragmentConstants, Palette, Size, data::PointResult, enums::Algorithm,
+        new_york_distance, push_constants::PushExponent,
+    };
 
     const TEST_GRID_SIZE: UVec2 = uvec2(2560, 1440);
 
@@ -158,8 +170,6 @@ mod tests {
     #[test]
     fn render_save_retrieve() {
         #![allow(clippy::float_cmp)]
-
-        use shader_common::Flags;
 
         let mut res = Vec4::default();
         let mut grid = vec![PointResult::default(); (TEST_GRID_SIZE.x * TEST_GRID_SIZE.y) as usize];

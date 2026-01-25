@@ -1,13 +1,10 @@
 //! Structures shared between shader and UI
 
-#![cfg_attr(target_arch = "spirv", no_std)]
-#![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 #![allow(missing_docs)]
 
-/// Complex type used on shader
-pub type Complex = abels_complex::Complex<f32>;
+use spirv_std::glam::{UVec2, Vec2, uvec2};
 
-use spirv_std::glam::{UVec2, Vec2, uvec2, vec2};
+use super::Complex;
 
 /// Size of the inspector marker diamond in pixels
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
@@ -15,14 +12,10 @@ pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 use bytemuck::{NoUninit, Pod, Zeroable};
 use const_default::ConstDefault;
 
-mod size;
-pub use size::Size;
-
-pub mod enums;
-pub use enums::{Algorithm, ColourStyle, Colourer};
-
-use crate::enums::Modifier;
-pub mod data;
+use crate::{
+    ColourStyle, Colourer, Size,
+    enums::{Algorithm, Modifier},
+};
 
 pub const ESCAPE_THRESHOLD: f32 = 10.0;
 pub const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;

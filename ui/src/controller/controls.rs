@@ -2,7 +2,7 @@
 // (c) 2025 Ross Younger
 
 use easy_shader_runner::egui;
-use shader_common::enums::{Algorithm, ColourStyle, Colourer, Modifier};
+use shader::{Algorithm, ColourStyle, Colourer, enums::Modifier, push_constants::NumericType};
 
 use crate::controller::MAX_MAX_ITERATIONS;
 
@@ -31,7 +31,6 @@ impl super::Controller {
             .default_pos(pos)
             .resizable(false)
             .show(ctx, |ui| {
-                use shader_common::NumericType;
 
                 let algorithm_before = self.algorithm;
                 egui::ComboBox::from_label(egui::RichText::new("Fractal"))
@@ -209,7 +208,7 @@ impl super::Controller {
                         macro_rules! palette_slider {
                             ($($id:ident), * ) => {
                                 $(
-                                    ui.add(egui::Slider::new(&mut self.palette.$id, shader_common::Palette::MINIMA.$id ..= shader_common::Palette::MAXIMA.$id));
+                                    ui.add(egui::Slider::new(&mut self.palette.$id, shader::Palette::MINIMA.$id ..= shader::Palette::MAXIMA.$id));
                                 )*
                             };
                         }

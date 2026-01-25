@@ -25,17 +25,26 @@ harness = false
 emulate_constants = []
 
 [dependencies]
+bitflags = { workspace = true, features = ["bytemuck"] }
+bytemuck = { workspace = true, features = ["derive"] }
 const-default = { workspace = true }
 document-features = { workspace = true }
 float_eq = { workspace = true }
 paste = { workspace = true }
-shader_common = { workspace = true }
 spirv-std = { workspace = true }
+
+[target.'cfg(target_arch = "spirv")'.dependencies]
+abels-complex = { workspace = true, features = ["libm", "glam"] }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 dashu = { workspace = true }
 dashu-float = { workspace = true }
-glam = { workspace = true, features = ["std"] }
+glam = { workspace = true, features = ["std", "bytemuck"] }
+abels-complex = { workspace = true, features = ["std", "glam"] }
+clap = { workspace = true, features = ["derive"] }
+num-derive = "0.4.2"
+num-traits = { workspace = true }
+strum = { version = "0.27.2", default-features = false, features = ["derive"] }
 
 [lints]
 workspace = true
@@ -43,6 +52,7 @@ workspace = true
 [dev-dependencies]
 derive_more = { workspace = true, features = ["debug"] }
 divan = { workspace = true }
+float_eq = { workspace = true }
 glam = { workspace = true, default-features = false, features = ["std"] }
 pretty_assertions = { workspace = true }
 strum = { workspace = true }

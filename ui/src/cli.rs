@@ -5,7 +5,7 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use shader_common::enums::{Algorithm, Colourer};
+use shader::enums::{Algorithm, Colourer};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, clap::Parser, Clone, Default)]

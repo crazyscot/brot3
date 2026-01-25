@@ -4,10 +4,11 @@
 
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
-use shader::BigVec2;
-use shader_common::{
-    Flags, FragmentConstants, NumericType, Palette, PushExponent, data::PointResult,
-    enums::Algorithm, flag_if,
+use shader::{
+    BigVec2, FragmentConstants, Palette,
+    data::PointResult,
+    enums::Algorithm,
+    push_constants::{Flags, NumericType, PushExponent, flag_if},
 };
 use web_time::Instant;
 use winit::{

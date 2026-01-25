@@ -2,12 +2,11 @@
 
 #![allow(missing_docs)]
 
-//use const_default::ConstDefault;
-use shader_common::PushExponent;
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
 use super::Complex;
+use crate::push_constants::PushExponent;
 
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;

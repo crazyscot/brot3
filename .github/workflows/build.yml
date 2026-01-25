@@ -42,7 +42,7 @@ jobs:
         run: cargo run -p shader_builder --locked --release
         # Continue on error as far as possible, to provide maximum useful information
       - name: clippy (shader)
-        run: cargo clippy -p shader -p shader_common --locked --release --all-targets
+        run: cargo clippy -p shader --locked --release --all-targets
         if: ${{ !cancelled() }}
       - name: Upload SPIRV artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
