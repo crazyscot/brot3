@@ -21,10 +21,22 @@ use core::f32::consts::TAU;
 use spirv_std::num_traits::real::Real;
 
 use super::{
-    FragmentConstants, PointResult,
+    FragmentConstants, PointResult, Vec3,
     colourspace::{Hsl, Lch, RgbVec},
     enums::Modifier,
 };
+
+/// Computes the sine of all the members of a vector
+/// (syntactic sugar; glam 0.31 provides this directly)
+fn vec_sin(vec: Vec3) -> Vec3 {
+    Vec3::new(vec.x.sin(), vec.y.sin(), vec.z.sin())
+}
+
+/// Computes the cosine of all the members of a vector
+/// (syntactic sugar; glam 0.31 provides this directly)
+fn vec_cos(vec: Vec3) -> Vec3 {
+    Vec3::new(vec.x.cos(), vec.y.cos(), vec.z.cos())
+}
 
 #[must_use]
 pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
@@ -130,19 +142,18 @@ fn white_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
     if pixel.inside() {
         return Hsl::BLACK;
     }
-    let iters = iters.ln();
+    // We are using a different escape threshold to fanf, so scale the function to suit.
+    let iters = (iters - 3.0).max(0.0).ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
     if iters < 0.0 {
         Hsl::WHITE
     } else {
-        RgbVec::from([
-            (iters * 2.0 * grad + off).cos() * 0.5 + 0.5,
-            (iters * 1.5 * grad + off).cos() * 0.5 + 0.5,
-            (iters * 1.0 * grad + off).cos() * 0.5 + 0.5,
-        ])
-        .into()
+        let mut v = Vec3::new(2.0, 1.5, 1.0) * iters * grad + off;
+        v = (vec_cos(v) + Vec3::ONE) * 0.5;
+        RgbVec(v).into()
+        // TODO: Benchmark this on GPU, look for optimisations. Vector or not?
     }
 }
 
@@ -152,19 +163,18 @@ fn black_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
     if pixel.inside() {
         return Hsl::BLACK;
     }
-    let iters = iters.ln();
+    // We are using a different escape threshold to fanf, so scale the function to suit.
+    let iters = (iters - 3.0).max(0.0).ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
     if iters < 0.0 {
         Hsl::BLACK
     } else {
-        RgbVec::from([
-            0.5 - (iters * 1.0 * grad + off).cos() * 0.5,
-            0.5 - (iters * 2.0 * grad + off).cos() * 0.5,
-            0.5 - (iters * 3.0 * grad + off).cos() * 0.5,
-        ])
-        .into()
+        let mut v = Vec3::new(1.0, 2.0, 3.0) * iters * grad + off;
+        v = (Vec3::ONE - vec_cos(v)) * 0.5;
+        RgbVec(v).into()
+        // TODO: Benchmark this on GPU, look for optimisations. Vector or not?
     }
 }
 
@@ -177,6 +187,7 @@ fn one_lone_coder(constants: &FragmentConstants, iters: f32, pixel: &PointResult
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
+    // TODO: Benchmark this on GPU, consider vectorising.
     RgbVec::from([
         (0.1 * grad * iters + off).sin() * 0.5 + 0.5,
         (0.1 * grad * iters + off + 2.094).sin() * 0.5 + 0.5,
@@ -251,9 +262,9 @@ mod tests {
         let cases = [
             (Colourer::LogRainbow, 100, 0.0, [0.325, 1., 0.]),
             (Colourer::SqrtRainbow, 100, 0.0, [0.667, 0., 1.]),
-            (Colourer::WhiteFade, 10, 0.31876, [0.478, 0.032, 0.154]),
+            (Colourer::WhiteFade, 10, 0.31876, [0.166, 0.006, 0.296]),
             (Colourer::WhiteFade, 0, 0.1, [1.0, 1.0, 1.0]),
-            (Colourer::BlackFade, 100, 0.0, [0.5535, 0.9885, 0.342]),
+            (Colourer::BlackFade, 100, 0.0, [0.569, 0.981, 0.299]),
             (Colourer::BlackFade, 0, 0.1, [0.0, 0.0, 0.0]),
             (Colourer::OneLoneCoder, 100, 0.0, [0.228, 0.2725, 0.999]),
             (Colourer::LchGradient, 100, 0.0, [1.0, 0.23, 1.0]),
