@@ -153,7 +153,7 @@ impl super::Controller {
     pub(crate) fn update_inspector(&mut self) {
         self.inspector.stale = false;
         let consts = self.fragment_constants(false);
-        let offset = self.inspector.position.as_vec2() - consts.viewport_translate;
+        let offset = (self.inspector.position.clone() - &self.viewport_translate).as_vec2();
         self.inspector.data = shader::fractal::render(&consts, offset, &self.perturbation.points);
     }
 }

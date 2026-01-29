@@ -85,7 +85,7 @@ impl super::Controller {
         if (self.reiterate || self.always_reiterate) && self.perturbation_mode {
             self.recompute_perturbation(graphics_context);
         }
-        if self.inspector.stale {
+        if self.inspector.active && self.inspector.stale {
             self.update_inspector();
         }
     }
