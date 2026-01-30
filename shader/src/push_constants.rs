@@ -95,6 +95,7 @@ pub struct Flags : u32 {
     const NEEDS_REITERATE = 1 << 0;
     const INSPECTOR_ACTIVE = 1 << 1;
     const PERTURBATION_MODE = 1 << 2;
+    const ITERATION_CULL = 1<<3;
 
     const _ = !0;
 }

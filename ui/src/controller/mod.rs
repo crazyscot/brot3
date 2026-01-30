@@ -51,6 +51,7 @@ pub(crate) struct Controller {
     palette: Palette,
     exponent: Exponent,
     perturbation: PerturbationReference,
+    iteration_cull: bool,
 
     // User-facing options
     show_coords_window: bool,
@@ -111,6 +112,7 @@ impl Controller {
                                                                           * style too */
             exponent: Exponent::default(),
             perturbation: PerturbationReference::default(),
+            iteration_cull: false,
 
             show_coords_window: true,
             show_scale_bar: true,
@@ -145,7 +147,8 @@ impl Controller {
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
         let flags = flag_if(reiterate || self.always_reiterate, Flags::NEEDS_REITERATE)
             | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
-            | flag_if(self.perturbation_mode, Flags::PERTURBATION_MODE);
+            | flag_if(self.perturbation_mode, Flags::PERTURBATION_MODE)
+            | flag_if(self.iteration_cull, Flags::ITERATION_CULL);
         FragmentConstants {
             flags,
             viewport_translate: self.viewport_translate.as_vec2(),

@@ -231,6 +231,10 @@ impl super::Controller {
                             }
                             _ => (),
                         }
+                        if ui.checkbox(&mut self.iteration_cull, egui::RichText::new("Iteration cull")).clicked()
+                        {
+                            self.reiterate = true;
+                        }
                     });
             })
             .unwrap();

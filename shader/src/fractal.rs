@@ -101,11 +101,15 @@ pub fn render(
         };
     }
 
-    if constants.flags.contains(Flags::PERTURBATION_MODE) {
+    let mut result = if constants.flags.contains(Flags::PERTURBATION_MODE) {
         exponent_monomorph!(constants.exponent, run_fractal, MandelbrotPerturbed)
     } else {
         exponent_monomorph!(constants.exponent, run_fractal, MandelbrotFamily)
+    };
+    if constants.flags.contains(Flags::ITERATION_CULL) {
+        result.cull_iterations();
     }
+    result
 }
 
 struct Runner<'a, F, E>

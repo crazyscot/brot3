@@ -90,4 +90,72 @@ impl PointResult {
         assert!(self.angle().is_finite());
         assert!(self.radius_sqr().is_finite());
     }
+
+    // MUTATORS //////////////////////////////////////////////////////////////
+
+    /// Many years ago, my previous fractal plotter `brot2` had a bug where
+    /// the number of iterations was incorrectly clamped between passes.
+    ///
+    /// The effect was serendipitous: it increased the colour contrast and gradient
+    /// in some regions (close to the set, where the number of iterations > 256:
+    /// typically found at zooms of factor 1000x or more).
+    ///
+    /// This function reimplements that effect.
+    pub fn cull_iterations(&mut self) {
+        if self.iters == u32::MAX {
+            return;
+        }
+
+        let mut passcount = 0;
+        let mut this_pass_maxiter = 256;
+        let mut maxiter_scale = 256;
+
+        while self.iters > this_pass_maxiter {
+            self.iters -= this_pass_maxiter;
+            passcount += 1;
+            if passcount & 1 == 1 {
+                maxiter_scale = this_pass_maxiter / 2;
+            }
+            this_pass_maxiter += maxiter_scale;
+        }
+    }
+}
+
+#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg_attr(coverage_nightly, coverage(off))]
+#[allow(clippy::missing_panics_doc)]
+mod tests {
+    use const_default::ConstDefault;
+
+    use super::PointResult;
+
+    #[test]
+    fn cull_known_answers() {
+        let cases = [
+            (1, 1),
+            (256, 256),
+            (257, 1),
+            (640, 384),
+            (641, 1),
+            (1152, 512),
+            (1153, 1),
+            (1920, 768),
+            (1921, 1),
+            (2944, 1024),
+            (2945, 1),
+            (4480, 1536),
+            (4481, 1),
+            (6528, 2048),
+            (6529, 1),
+            (9600, 3072),
+            (9601, 1),
+        ];
+
+        let mut pr = PointResult::DEFAULT;
+        for (input, expect) in cases {
+            pr.iters = input;
+            pr.cull_iterations();
+            assert_eq!(pr.iters, expect, "input is {input}");
+        }
+    }
 }
