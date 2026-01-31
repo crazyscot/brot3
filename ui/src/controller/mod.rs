@@ -386,7 +386,7 @@ impl ControllerTrait for Controller {
         let perturbation_points_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("perturbation_points_buffer"),
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            size: std::mem::size_of::<Vec2>() as u64 * u64::from(MAX_MAX_ITERATIONS),
+            size: std::mem::size_of::<Vec2>() as u64 * u64::from(MAX_MAX_ITERATIONS + 1),
             mapped_at_creation: false,
         });
 

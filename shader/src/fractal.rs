@@ -452,7 +452,7 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     vars.ref_iter += 1;
     let z = Complex::from(consts.reference_points[vars.ref_iter]) + dz_p;
     vars.norm_sqr = z.abs_sq();
-    if vars.norm_sqr < dz_p.abs_sq() || vars.ref_iter == consts.n_reference {
+    if vars.norm_sqr < dz_p.abs_sq() || vars.ref_iter >= consts.n_reference {
         dz_p = z;
         vars.ref_iter = 0;
     }
