@@ -119,7 +119,7 @@ pub fn render(
                 algorithm: PhantomData::<$alg>,
                 consts: RunningConstants {
                     c,
-                    dc,
+                    dc: dc.into(),
                     modifiers: AlgorithmModifiers::from(constants),
                     exponentiator: $expo,
                     reference_points,
@@ -160,7 +160,7 @@ where
     c: Complex,
     /// Relative complex address of the point we are rendering (relative to the centre of the
     /// viewport). Used only in perturbation mode.
-    dc: Vec2,
+    dc: Complex,
     modifiers: AlgorithmModifiers,
     exponentiator: E,
     /// Reference points (only used in perturbation mode)
@@ -487,7 +487,7 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     // TODO: Do the maths for non-2 exponents.
     dz_p = 2.0 * dz_p * Complex::from(consts.reference_points[vars.ref_iter])
         + dz_p * dz_p
-        + Complex::from(consts.dc);
+        + consts.dc;
 
     // TODO: Non-2 exponents are not yet verified.
     if vars.boundary == BoundaryClass::Indeterminate {
