@@ -116,9 +116,8 @@ impl FragmentConstants {
 
     #[cfg(not(target_arch = "spirv"))]
     #[must_use]
-    #[allow(clippy::cast_lossless)]
     pub fn pixel_spacing_f64(height: u32, zoom: f64) -> f64 {
-        1.0 / (height as f64 * zoom)
+        1.0 / (f64::from(height) * zoom)
     }
 
     #[must_use]

@@ -114,8 +114,8 @@ impl super::Controller {
                             ));
                         }
                         ui.end_row();
-                        ui.label("Distance");
-                        ui.monospace(dynfmt!(self.inspector.data.distance()));
+                        ui.label("Boundary");
+                        ui.monospace(self.inspector.data.boundary.to_string());
                         ui.end_row();
                         ui.label("Final angle");
                         ui.monospace(dynfmt!(self.inspector.data.angle()));

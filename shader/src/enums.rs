@@ -65,8 +65,7 @@ enumdef!(
     doc = "Style modifier",
     Modifier,
     Standard,
-    Filaments1,
-    Filaments2,
+    Filaments,
     FinalAngle,
     FinalRadius
 );

@@ -27,13 +27,17 @@ mod menu;
 mod small_windows;
 mod ui;
 
-const BIGNUM_PRECISION: usize = 128;
+// dashu uses whatever actual digit size it considers necessary, up to this limit.
+// Larger limits reduce performance in deep zooms, but may improve accuracy.
+const BIGNUM_PRECISION_LIMIT: usize = 192;
+
 const MIN_ZOOM: f64 = 0.05;
 const MAX_ZOOM_STANDARD: f64 = 1.0e4; // reported on UI as 40000
-const MAX_ZOOM_PERTURBATIONS_128: f64 = 1.33e35; // reported on UI as 5.32e35
 
-// N.B. This affects the perturbation buffer size. But it's only (BIGNUM_PRECISION * 2 bits) per
-// point.
+// Around this point, f32 maths breaks down: we can no longer accurately represent pixel sizes.
+const MAX_ZOOM_PERTURBATIONS_F32: f64 = 2.5e34; // reported on UI as 1e35
+
+// N.B. This affects the perturbation buffer size. But it's only 2 * sizeof(f32) per point.
 const MAX_MAX_ITERATIONS: u32 = 100_000;
 
 #[allow(clippy::struct_excessive_bools)]
@@ -102,7 +106,7 @@ impl Controller {
             // TODO figure out what precision is best; do we need to make it dynamic?
             viewport_translate: BigVec2::try_new(-1., 0.)
                 .unwrap()
-                .with_precision(BIGNUM_PRECISION),
+                .with_precision(BIGNUM_PRECISION_LIMIT),
             viewport_zoom: FragmentConstants::DEFAULT_ZOOM.into(),
             movement: Movement::default(),
 
@@ -169,7 +173,7 @@ impl Controller {
     /// Maximum zoom for the current settings
     fn zoom_max(&self) -> f64 {
         if self.perturbation_mode || self.force_perturb {
-            MAX_ZOOM_PERTURBATIONS_128
+            MAX_ZOOM_PERTURBATIONS_F32
         } else {
             MAX_ZOOM_STANDARD
         }
@@ -453,7 +457,7 @@ impl ControllerTrait for Controller {
             let delta =
                 BigVec2::try_from((prev_position - self.mouse_position) / f64::from(self.size.y))
                     .unwrap()
-                    .with_precision(BIGNUM_PRECISION);
+                    .with_precision(BIGNUM_PRECISION_LIMIT);
             self.viewport_translate += delta * self.modifier_key_factor() / self.viewport_zoom;
             self.reiterate = true;
         }

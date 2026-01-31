@@ -2,7 +2,7 @@
 
 use bytemuck::NoUninit;
 
-use crate::enums::ColourStyle;
+use crate::{enums::ColourStyle, fractal::BoundaryClass};
 
 /// Raw data from a fractal invocation
 #[derive(Copy, Clone, Debug, Default, NoUninit, derive_more::Constructor)]
@@ -12,21 +12,21 @@ pub struct PointResult {
     iters: u32,
     /// fractional part of iteration count (range 0..1)
     iters_fraction: f32,
-    /// distance estimate from fractal
-    distance: f32,
     /// final angle (argument) (range -pi..pi)
     pub angle: f32,
     /// final complex distance, squared
     pub radius_sqr: f32,
+    /// Is this point considered to be on the boundary?
+    pub boundary: BoundaryClass,
 }
 
 impl const_default::ConstDefault for PointResult {
     const DEFAULT: Self = Self {
         iters: u32::MAX,
         iters_fraction: 0.0,
-        distance: 0.0,
         angle: 0.0,
         radius_sqr: 0.0,
+        boundary: BoundaryClass::Indeterminate,
     };
 }
 
@@ -52,12 +52,6 @@ impl PointResult {
     #[must_use]
     pub fn iters_fraction(&self) -> f32 {
         self.iters_fraction
-    }
-
-    /// Distance from fractal
-    #[must_use]
-    pub fn distance(&self) -> f32 {
-        self.distance
     }
 
     /// Final angle (-pi .. pi)
@@ -86,7 +80,6 @@ impl PointResult {
     #[cfg(not(target_arch = "spirv"))]
     pub fn assert_no_subnormals(&self) {
         assert!(self.iters_fraction().is_finite());
-        assert!(self.distance().is_finite());
         assert!(self.angle().is_finite());
         assert!(self.radius_sqr().is_finite());
     }

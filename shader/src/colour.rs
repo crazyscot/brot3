@@ -26,6 +26,7 @@ use super::{
     enums::Modifier,
     vec3,
 };
+use crate::fractal::BoundaryClass;
 
 /// Computes the sine of all the members of a vector
 /// (syntactic sugar; glam 0.31 provides this directly)
@@ -73,19 +74,14 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spaci
     hsl.into()
 }
 
-fn factor_for(input: f32, style: Modifier, pixel_spacing: f32, data: &PointResult) -> f32 {
+fn factor_for(input: f32, style: Modifier, _pixel_spacing: f32, data: &PointResult) -> f32 {
     let factor = match style {
-        Modifier::Filaments1 => {
-            if data.inside() {
-                return 100.0;
+        Modifier::Filaments => {
+            if data.boundary == BoundaryClass::NotClose {
+                1.0
+            } else {
+                0.1
             }
-            dist_value(data.distance(), pixel_spacing) /* 0..1 */
-        }
-        Modifier::Filaments2 => {
-            if data.inside() {
-                return 0.0;
-            }
-            dist_value(data.distance(), pixel_spacing) /* 0..1 */
         }
         Modifier::FinalAngle => data.angle() / TAU + 0.5,
         Modifier::FinalRadius => {
@@ -96,17 +92,6 @@ fn factor_for(input: f32, style: Modifier, pixel_spacing: f32, data: &PointResul
         _ => 1.0,
     };
     factor * input
-}
-
-fn dist_value(distance: f32, pixel_spacing: f32) -> f32 {
-    let dscale = (distance / pixel_spacing).log2();
-    if dscale > 0.0 {
-        1.0
-    } else if dscale > -8.0 {
-        (8.0 + dscale) / 8.0
-    } else {
-        0.0
-    }
 }
 
 fn log_rainbow(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
@@ -329,7 +314,13 @@ mod tests {
                 palette: Palette::default().with_colourer(colourer),
                 ..Default::default()
             };
-            let data = PointResult::new(iters, iters_fraction, 1.0, 0., 0.);
+            let data = PointResult::new(
+                iters,
+                iters_fraction,
+                0.,
+                0.,
+                crate::fractal::BoundaryClass::Indeterminate,
+            );
             let expected = RgbVec::from(expected);
             let result = super::colour_data(data, &consts, 0.0);
             println!("{colourer}: expected={expected} output={result}");
@@ -360,7 +351,7 @@ mod tests {
             max_iter: 200,
             palette: Palette::default()
                 .with_colourer(Colourer::None)
-                .with_brightness(Modifier::Filaments1),
+                .with_brightness(Modifier::Filaments),
             size: uvec2(500, 500).into(),
             ..Default::default()
         };
@@ -376,7 +367,7 @@ mod tests {
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
-        assert_eq!(result, RgbVec::BLACK);
+        assert_eq!(result, RgbVec(Vec3::splat(0.099_999_994)));
     }
 
     #[test]
@@ -386,7 +377,7 @@ mod tests {
             max_iter: 200,
             palette: Palette::default()
                 .with_colourer(Colourer::None)
-                .with_brightness(Modifier::Filaments1),
+                .with_brightness(Modifier::Filaments),
             size: uvec2(500, 500).into(),
             ..Default::default()
         };
@@ -403,7 +394,7 @@ mod tests {
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
-        assert_eq!(result, RgbVec::WHITE);
+        assert_eq!(result, RgbVec(Vec3::splat(0.099_999_994)));
     }
 
     #[test]
@@ -413,7 +404,7 @@ mod tests {
             max_iter: 200,
             palette: Palette::default()
                 .with_colourer(Colourer::None)
-                .with_brightness(Modifier::Filaments1),
+                .with_brightness(Modifier::Filaments),
             size: uvec2(500, 500).into(),
             ..Default::default()
         };
@@ -429,7 +420,7 @@ mod tests {
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");
-        assert_eq!(result, RgbVec::BLACK);
+        assert_eq!(result, RgbVec(Vec3::splat(0.099_999_994)));
     }
 
     #[test]

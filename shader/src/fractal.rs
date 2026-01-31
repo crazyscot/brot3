@@ -18,13 +18,42 @@ macro_rules! deprintln {
     };
 }
 
+#[clippy::format_args]
+#[allow(unused_macros)]
+macro_rules! xprintln {
+    ($($arg:tt)*) => {
+        #[cfg(not(target_arch = "spirv"))]
+        eprintln!($($arg)*);
+    };
+}
+
 use core::marker::PhantomData;
 
+use bytemuck::NoUninit;
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
 use super::{Complex, FragmentConstants, PointResult, Vec2};
 use crate::{Algorithm, Flags, exponentiation::Exponentiator};
+
+// *sigh* these are constants are pub(crate) in core
+const EXP_MASK_F32: u32 = 0x7F80_0000;
+const MAN_MASK_F32: u32 = 0x7F_FFFF;
+/// Infinity test lifted from `core::f32`.
+///
+/// Unfortunately, `f32::is_infinite()` relies on embedded an infinity literal, which the spirv
+/// verifier disallows.
+///
+/// Something similar could be done if we needed `f32::classify`, which relies on u8. Alas, spirv
+/// does not guarantee u8 is present.
+///
+/// So we rawdog it ourselves.
+///
+/// However, `f32::is_nan()` appears to be GPU-safe.
+fn f32_is_infinite(f: f32) -> bool {
+    let b = f.to_bits();
+    (b & EXP_MASK_F32 == EXP_MASK_F32) && (b & MAN_MASK_F32 == 0)
+}
 
 #[macro_export]
 /// Exponent dispatcher.
@@ -140,7 +169,19 @@ where
     n_reference: usize,
 }
 
-#[derive(Default)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, NoUninit)]
+#[cfg_attr(not(target_arch = "spirv"), derive(strum::Display))]
+#[repr(u32)]
+pub enum BoundaryClass {
+    #[default]
+    Indeterminate,
+    Inside,
+    VeryClose,
+    Close,
+    NotClose,
+}
+
+#[derive(Default, Debug)]
 /// These are the Runner variables that `iterate_algorithm()` is expected to keep up to date.
 ///
 /// N.B. that the iteration count is not here; it not a constant either, but `iterate_algorithm`
@@ -151,6 +192,7 @@ struct RunningVariables {
     norm_sqr: f32,
     dz_perturb: Complex,
     ref_iter: usize,
+    boundary: BoundaryClass,
 }
 
 /// Having a match expression in a hot loop hurts performance pretty badly,
@@ -241,16 +283,28 @@ where
             );
         }
 
-        // distance estimate, angle
+        // distance estimate, angle, radius
         let za = vars.z.abs();
         // special case to avoid hitting a NaN when calculating ln(0)
         let ln_za = if za == 0.0 { 0.0 } else { za.ln() };
 
-        let distance = 2.0 * ln_za * za / vars.dz_dist.abs();
-        deprintln!(
-            "za {za} zaln {ln_za} dzabs {} dist {distance}",
-            vars.dz_dist.abs()
-        );
+        if vars.boundary == BoundaryClass::Indeterminate {
+            if iters == self.frag.max_iter {
+                vars.boundary = BoundaryClass::Inside;
+            } else {
+                // abs() overflows on deeper zooms, so use geometry to calculate |dz_dist| a
+                // different way
+                let arg = vars.dz_dist.re.atan2(vars.dz_dist.im);
+                let abs = vars.dz_dist.re / arg.sin();
+                let distance = 2.0 * ln_za * za / abs;
+                let threshold = self.frag.pixel_spacing() / 4.0;
+                if distance <= threshold {
+                    vars.boundary = BoundaryClass::Close;
+                } else {
+                    vars.boundary = BoundaryClass::NotClose;
+                }
+            }
+        }
         let angle = prev_z.arg();
         let norm_sqr = vars.norm_sqr;
 
@@ -275,7 +329,7 @@ where
         // sigh! saturating_add is not currently implemented, so do it ourselves:
         let inside = norm_sqr < ESCAPE_THRESHOLD_SQ;
         iters = if inside { u32::MAX } else { iters };
-        PointResult::new(iters, smoothed_iters, distance, angle, prev_norm_sqr)
+        PointResult::new(iters, smoothed_iters, angle, prev_norm_sqr, vars.boundary)
     }
 }
 
@@ -303,8 +357,6 @@ fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     let power = exponent.power();
     let z_in = vars.z;
 
-    let dz_dist = power * z_in.powf(power - 1.0).to_rectangular() * vars.dz_dist + 1.0;
-
     // Raise z to the given power ...
     let mut z = exponent.apply_to(z_in);
 
@@ -323,8 +375,13 @@ fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
 
     // Send output
     vars.z = z;
-    vars.dz_dist = dz_dist;
     vars.norm_sqr = z.abs_sq();
+    if vars.boundary == BoundaryClass::Indeterminate {
+        vars.dz_dist = power * z_in.powf(power - 1.0).to_rectangular() * vars.dz_dist + 1.0;
+        if f32_is_infinite(vars.dz_dist.re) || f32_is_infinite(vars.dz_dist.im) {
+            vars.boundary = BoundaryClass::VeryClose;
+        }
+    }
 }
 
 fn mandelbrot_family_pre_modify_point<E: Exponentiator>(
@@ -432,9 +489,13 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
         + dz_p * dz_p
         + Complex::from(consts.dc);
 
-    // We'll add dc in just a moment.
     // TODO: Non-2 exponents are not yet verified.
-    vars.dz_dist = 2.0 * vars.z * vars.dz_dist + 1.0;
+    if vars.boundary == BoundaryClass::Indeterminate {
+        vars.dz_dist = 2.0 * vars.z * vars.dz_dist + 1.0;
+        if f32_is_infinite(vars.dz_dist.re) || f32_is_infinite(vars.dz_dist.im) {
+            vars.boundary = BoundaryClass::VeryClose;
+        }
+    }
 
     // TODO: Need to run the maths properly for the other algorithms and how they differ.
     /*
@@ -522,9 +583,9 @@ mod tests {
 
     use super::Flags;
     use crate::{
-        FragmentConstants, Palette, Size, Vec2,
+        BigVec2, FragmentConstants, Palette, Size, Vec2,
         enums::Algorithm,
-        fractal,
+        fractal::{self, BoundaryClass},
         push_constants::{NumericType, PushExponent},
         vec2,
     };
@@ -581,5 +642,54 @@ mod tests {
         // Variant has a debug_assert! consistency check
         let result = fractal::render(&consts, point - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("{result:?}");
+    }
+
+    #[test]
+    #[allow(clippy::missing_panics_doc, clippy::cast_possible_truncation)]
+    fn distance_estimator_boundary_classification() {
+        let centre = vec2(-1.5, 0.0);
+        let centre_big = BigVec2::try_new(centre.x, centre.y).unwrap();
+        let mut consts = FragmentConstants {
+            flags: Flags::PERTURBATION_MODE,
+            viewport_translate: centre,
+            viewport_zoom: 1.0,
+            size: Size::new(1000, 1000),
+            buffer_size: Size::new(1, 1),
+            max_iter: 1000,
+            ..Default::default()
+        };
+        let mut ref_points = Vec::new();
+        super::mandelbrot_perturbed_compute_reference_iters(
+            &mut ref_points,
+            &centre_big,
+            Algorithm::Mandelbrot,
+            consts.max_iter,
+        );
+        consts.n_reference_points = ref_points.len() as u32;
+
+        let mut run_case = |i| {
+            consts.viewport_zoom = 10.0f32.powi(i);
+            let offset = vec2(0.0, 1.0 / consts.viewport_zoom);
+
+            println!(
+                "\nzoom step {i}: z={zoom:e} y={y:e}",
+                zoom = consts.viewport_zoom,
+                y = offset.y,
+            );
+            let result = super::render(&consts, offset, &ref_points);
+            println!("{result:?}");
+            result.boundary == BoundaryClass::Close || result.boundary == BoundaryClass::VeryClose
+        };
+        assert!(!run_case(0));
+        assert!(!run_case(15));
+        assert!(!run_case(16));
+        assert!(!run_case(17));
+        assert!(!run_case(34));
+        // on f32, this is the point where things start to overflow and go a bit weird
+        assert!(run_case(35));
+        assert!(!run_case(36)); // sunspot
+        assert!(run_case(37));
+        assert!(run_case(38));
+        assert!(run_case(100));
     }
 }
