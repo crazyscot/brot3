@@ -9,7 +9,7 @@ fn main() {
 
     cfg_aliases! {
         wasm: { target_arch = "wasm32" },
-        we_compile: { all(
+        runtime_compile: { all(
             any(feature = "hot-reload-shader", feature = "runtime-compilation"),
             not(wasm)
         )},

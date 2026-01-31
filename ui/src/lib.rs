@@ -9,23 +9,23 @@ mod cli;
 mod controller;
 pub mod widgets;
 
-#[cfg(we_compile)]
+#[cfg(runtime_compile)]
 use std::path::PathBuf;
 
 use clap::Parser;
 
 // CAUTION: Hard-wired paths
 /// The relative path to the shader crate, from the point of view of the ui crate
-#[cfg(we_compile)]
+#[cfg(runtime_compile)]
 const CARGO_SHADER_RELATIVE_PATH: &str = "../shader";
 /// Where to look for the shader at runtime, if we're not running under cargo and no path was given
-#[cfg(we_compile)]
+#[cfg(runtime_compile)]
 const CANDIDATE_SHADER_PATHS: &[&str] = &["./shader", "../shader"];
 
 pub(crate) mod version;
 use version::version_string;
 
-#[cfg(we_compile)]
+#[cfg(runtime_compile)]
 fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
     match std::fs::metadata(path) {
         Ok(m) => m.is_dir(),
@@ -33,7 +33,7 @@ fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
     }
 }
 
-#[cfg(we_compile)]
+#[cfg(runtime_compile)]
 fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
     match std::fs::metadata(path) {
         Ok(m) => m.is_file(),
@@ -54,7 +54,7 @@ pub fn main() -> anyhow::Result<()> {
     let params = easy_shader_runner::Parameters::new(controller, version_string("brot3 "))
         .esc_key_exits(false);
     cfg_if::cfg_if! {
-        if #[cfg(we_compile)] {
+        if #[cfg(runtime_compile)] {
 
             let manifest = std::env::var("CARGO_MANIFEST_DIR");
             let relative_to_manifest = manifest.is_ok();

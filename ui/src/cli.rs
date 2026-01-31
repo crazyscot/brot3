@@ -1,7 +1,7 @@
 //! Command line argument definitions
 // (c) 2025 Ross Younger
 
-#[cfg(we_compile)]
+#[cfg(runtime_compile)]
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -13,14 +13,14 @@ pub(crate) struct Args {
     #[arg(short = 'V', long, help = "Print version")]
     pub version: bool,
 
-    #[cfg(we_compile)]
+    #[cfg(runtime_compile)]
     #[arg(long)]
     /// Specifies the path to the shader directory.
     ///
     /// This is only allowed when run standalone (not via `cargo run`).
     pub shader: Option<PathBuf>,
 
-    #[cfg(we_compile)]
+    #[cfg(runtime_compile)]
     #[arg(long)]
     /// Specifies the path to the the SPIRV tools library, if needed
     /// (`librustc_codegen_spirv.so`, `librustc_codegen_spirv.dylib`, `rustc_codegen_spirv.dll`)
@@ -29,7 +29,7 @@ pub(crate) struct Args {
     /// It works best with absolute paths.
     pub spirv_tools: Option<PathBuf>,
 
-    #[cfg(we_compile)]
+    #[cfg(runtime_compile)]
     #[arg(long)]
     /// Disables runtime shader compilation and uses the built-in shader.
     pub static_shader: bool,
