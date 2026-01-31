@@ -1,3 +1,51 @@
+## [3.3.0](https://github.com/crazyscot/brot3/releases/tag/v3.3.0) - 2026-01-31
+
+### 🚀 Features
+
+- Initial implementation of perturbation mode (for Mandelbrot, exp=2) - ([cf54c7d](https://github.com/crazyscot/brot3/commit/cf54c7d1d70a265983afe5a329810e3e297b3e16))
+- Update colourers collection - ([1340701](https://github.com/crazyscot/brot3/commit/1340701c0cbc4e3353d71b4488cf315179f38778))
+- Add iteration-culling mode - ([af91d4e](https://github.com/crazyscot/brot3/commit/af91d4e6f0ded4aace1f80d99cbd302459ea384b))
+
+### 🐛 Bug Fixes
+
+- Make WhiteFade and BlackFade look more like their originals; vectorise - ([4379bc3](https://github.com/crazyscot/brot3/commit/4379bc31c159bd1259864500e30bf7dc598edbe2))
+- Buffer limit for very high iteration limit - ([8d2f523](https://github.com/crazyscot/brot3/commit/8d2f523dbd4a763659b3f0e7599d46f2e4410375))
+- Refactor fractal distance, Filaments to work around numeric precision limits - ([e298ebf](https://github.com/crazyscot/brot3/commit/e298ebfc58b24cec35662f7b957b170ea5f27bdb))
+
+### 📚 Documentation
+
+- Update workspace structure diagram - ([47371f7](https://github.com/crazyscot/brot3/commit/47371f7a62737ae6620d127501b115552bd76ed9))
+
+### ⚡ Performance
+
+- Allow BigVec/BigComplex arithmetic taking a reference to the second argument - ([d001c14](https://github.com/crazyscot/brot3/commit/d001c146dbf6f5faf6a7ac1b7500e9facf0b3c9b))
+- Don't run inspector unless actually asked to - ([c0749d3](https://github.com/crazyscot/brot3/commit/c0749d35c8c1aef4eeb86cd592785ec1ef3f39a7))
+
+### 🚜 Refactor
+
+- Move BigComplex and BigVec2 into shader - ([2c8c5ed](https://github.com/crazyscot/brot3/commit/2c8c5ed5e63f77ac3958e6378293c6445f6a5dcb))
+- Merge shader_common into shader - ([a77fc02](https://github.com/crazyscot/brot3/commit/a77fc02e3769751103cbcd8ad96f22008b8960ef))
+- Expose exponent monomorphisation macro - ([4b8faac](https://github.com/crazyscot/brot3/commit/4b8faac2c8a84b561f175670fba5c2b285cb50a7))
+
+### 🧪 Testing
+
+- Fill in coverage gaps in BigComplex and BigVec2 - ([aa18e69](https://github.com/crazyscot/brot3/commit/aa18e69cb789d1a4b295e0da05b36bf0cf35c744))
+- Consolidate & expand colour known answer tests - ([e2a4777](https://github.com/crazyscot/brot3/commit/e2a4777897bfd44f2501597bb0afabe0f43769d4))
+- Fill in coverage in exponentiation - ([edafb80](https://github.com/crazyscot/brot3/commit/edafb80c37c1922c3197551bdf5e9174694be84b))
+
+### 🏗️  Build, packaging & CI
+
+- Add output to ui build to reduce confusion - ([e162d47](https://github.com/crazyscot/brot3/commit/e162d4702a007192d23a968f27a57edc2f9ce398))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Dependabot config - ([af6283b](https://github.com/crazyscot/brot3/commit/af6283bc8c1b719c7d8411578da8cfb735206d3f))
+- CheckableButton: add indeterminate ability - ([63f230f](https://github.com/crazyscot/brot3/commit/63f230f8f0e6867025c7bb705912190d73a24390))
+- Smarter macro use in fractal::render() - ([bc14a76](https://github.com/crazyscot/brot3/commit/bc14a76914b6b5e2230c702067d670cc02789a0d))
+- Add BigComplex conjugate(), recip(), div<FBig> - ([2f9cb5f](https://github.com/crazyscot/brot3/commit/2f9cb5f80fabd4157de03a4d1d29fb1985064cea))
+- Rename make_complex to make_bigcomplex for legibility - ([6cd92e2](https://github.com/crazyscot/brot3/commit/6cd92e2d1578b494fe49593e6c22195a6f133e94))
+- Remove dead code in PushExponent, fill in its test coverage - ([3d13bff](https://github.com/crazyscot/brot3/commit/3d13bff467122ab84b6ed48d3256dd365fcb6841))
+
 ## [3.2.0](https://github.com/crazyscot/brot3/releases/tag/v3.2.0) - 2025-12-09
 
 ### 🚀 Features
