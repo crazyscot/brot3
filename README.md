@@ -77,6 +77,8 @@ The useful feature flag combinations are:
 As you might imagine, the runtime compilation options add the cost of the spirv-builder to compile-time and binary size.
 This is only useful if you want to hack on the shader.
 
+**Note that debug builds of the spirv builder can be quite slow.** It's usually a good idea to `cargo run --release -F hot-reload-shader`.
+
 There are limited unit tests and benchmarks. More may be added later.
 
 ### Speeding up build times

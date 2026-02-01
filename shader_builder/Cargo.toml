@@ -15,6 +15,7 @@ doc = false
 
 [dependencies]
 anyhow = { workspace = true }
+build-print.workspace = true
 spirv-builder.workspace = true
 
 [lints]

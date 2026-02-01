@@ -3202,6 +3202,7 @@ name = "shader_builder"
 version = "3.3.0"
 dependencies = [
  "anyhow",
+ "build-print",
  "spirv-builder",
 ]
 

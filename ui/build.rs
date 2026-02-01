@@ -58,15 +58,18 @@ fn build_shader() {
     // rebuilding of `rustc_codegen_spirv` (likely due to common proc macro deps).
     let dir = dir.join("builder");
     #[allow(clippy::disallowed_methods)]
-    let status = std::process::Command::new("cargo")
-        .args(["run", "--release", "-p", "shader_builder"])
+    let mut cargo = std::process::Command::new("cargo");
+    #[allow(unused_results)]
+    cargo
+        .args(["run", "--release", "-p", "shader_builder", "-v"])
         .arg("--target-dir")
         .arg(dir)
         .env_remove("CARGO_ENCODED_RUSTFLAGS")
         .stderr(std::process::Stdio::inherit())
-        .stdout(std::process::Stdio::inherit())
-        .status()
-        .unwrap();
+        .stdout(std::process::Stdio::inherit());
+    let argz = cargo.get_args().collect::<Vec<_>>();
+    build_print::info!("running: cargo {argz:?}");
+    let status = cargo.status().unwrap();
     // N.B. shader_builder outputs something like:
     // cargo::rustc-env=shader.spv=/home/builder/brot3/target/spirv-builder/spirv-unknown-vulkan1.1/
     // release/deps/shader.spv
