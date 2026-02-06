@@ -20,9 +20,9 @@ checksum = "366ffbaa4442f4684d91e2cd7c5ea7c4ed8add41959a31447066e279e432b618"
 
 [[package]]
 name = "abels-complex"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74ce9a373b414b8960a6b69c9c2226aa073c91e5b055e5e68d47e450b5efc3b3"
+checksum = "b55b9129430700af5cab7fb6e5759a20f45ec0e2f58dc463f2758eaa0d718d00"
 dependencies = [
  "glam",
  "num-traits",
@@ -918,7 +918,7 @@ checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 [[package]]
 name = "easy-shader-runner"
 version = "0.0.0"
-source = "git+https://github.com/crazyscot/easy-shader-runner?rev=bfb84d6acb5f05229dbb177fb68541bc285112b7#bfb84d6acb5f05229dbb177fb68541bc285112b7"
+source = "git+https://github.com/crazyscot/easy-shader-runner?rev=3afc6a6b4b5480e790be341241f0039ab2a6afb5#3afc6a6b4b5480e790be341241f0039ab2a6afb5"
 dependencies = [
  "bytemuck",
  "cfg-if",
@@ -1401,9 +1401,9 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.30.10"
+version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19fc433e8437a212d1b6f1e68c7824af3aed907da60afa994e7f542d18d12aa9"
+checksum = "74a4d85559e2637d3d839438b5b3d75c31e655276f9544d72475c36b92fabbed"
 dependencies = [
  "bytemuck",
  "libm",
