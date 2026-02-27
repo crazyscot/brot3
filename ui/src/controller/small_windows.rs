@@ -125,10 +125,12 @@ impl super::Controller {
                 // TODO: Could set_file_name()
                 .save_file();
             let save_active = Arc::clone(&self.save_active);
+            let perturbation_points = self.perturbation.points.clone();
             let consts = self.fragment_constants(false);
             tokio::spawn(async move {
                 if let Some(file) = task.await {
-                    crate::save::do_save_image(file.path(), consts);
+                    let _ = crate::save::do_save_image(file.path(), consts, &perturbation_points)
+                        .inspect_err(|e| println!("Error saving: {e}"));
                 } // else it was cancelled
                 *save_active.lock().unwrap() = false;
             });
