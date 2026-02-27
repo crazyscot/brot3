@@ -7,6 +7,7 @@ use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
 mod cli;
 mod controller;
+pub(crate) mod save;
 pub mod widgets;
 
 #[cfg(runtime_compile)]
@@ -42,8 +43,10 @@ fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
 }
 
 /// Main CLI entrypoint
+#[tokio::main]
 #[cfg_attr(wasm, wasm_bindgen(start))]
-pub fn main() -> anyhow::Result<()> {
+#[allow(clippy::missing_panics_doc)]
+pub async fn main() -> anyhow::Result<()> {
     easy_shader_runner::setup_logging();
     let args = cli::Args::parse();
     if args.version {

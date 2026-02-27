@@ -68,6 +68,9 @@ impl super::Controller {
         if self.show_license {
             self.license_modal(ctx);
         }
+        if self.show_save {
+            let _ = self.save_image_ui(ctx);
+        }
 
         self.fullscreen_checkbox = ui_state.fullscreen_active;
 

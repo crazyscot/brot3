@@ -90,6 +90,10 @@ impl super::Controller {
                     }
                     ui.separator();
 
+                    if ui.add(item!("Save image", "Ctrl+S")).clicked() {
+                        self.show_save = true;
+                    }
+
                     if ui
                         .add(item!(
                             "Quit",

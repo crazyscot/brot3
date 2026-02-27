@@ -2,6 +2,8 @@
 //! This crate has a hidden dependency on the `png` feature of the `image` crate.
 //! </div>
 
+use std::sync::{Arc, Mutex};
+
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 use shader::{
@@ -66,6 +68,7 @@ pub(crate) struct Controller {
     keyboard_help: bool,
     show_about: bool,
     show_license: bool,
+    show_save: bool,
 
     // UI operational data
     last_instant: Instant,
@@ -85,6 +88,7 @@ pub(crate) struct Controller {
     context_menu: Option<DVec2>,
     inspector: Inspector,
     render_pass: u32,
+    save_active: Arc<Mutex<bool>>,
 }
 
 #[derive(Default)]
@@ -126,6 +130,7 @@ impl Controller {
             keyboard_help: false,
             show_about: false,
             show_license: false,
+            show_save: false,
 
             last_instant: Instant::now(),
             mouse_position: DVec2::default(),
@@ -144,6 +149,7 @@ impl Controller {
             context_menu: None,
             inspector: Inspector::default(),
             render_pass: 0,
+            save_active: Arc::new(Mutex::new(false)),
         }
     }
 

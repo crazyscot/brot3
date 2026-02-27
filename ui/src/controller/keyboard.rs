@@ -196,6 +196,7 @@ impl super::Controller {
                 'i' | 'o' => self.saturation(c == 'o', pressed),
                 'k' | 'l' => self.lightness(c == 'l', pressed),
                 'a' => self.show_about = true,
+                's' => self.show_save = true,
                 _ => {}
             }
             // Remember to add new keys to keyboard_help_window !

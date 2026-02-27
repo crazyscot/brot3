@@ -1,6 +1,9 @@
 // (c) 2025 Ross Younger
 
+use std::sync::Arc;
+
 use easy_shader_runner::{UiState, egui};
+use rfd::AsyncFileDialog;
 
 use super::DVec2;
 
@@ -102,5 +105,34 @@ impl super::Controller {
             //eprintln!("{r:?}");
             self.context_menu = None;
         }
+    }
+
+    #[allow(clippy::missing_panics_doc)]
+    pub(crate) fn save_image_ui(&mut self, _ctx: &egui::Context) -> Result<(), anyhow::Error> {
+        self.show_save = false;
+        if !*self
+            .save_active
+            .lock()
+            .map_err(|_| anyhow::anyhow!("Failed to lock save_active"))?
+        {
+            *self
+                .save_active
+                .lock()
+                .map_err(|_| anyhow::anyhow!("Failed to lock save_active"))? = true;
+            let task = AsyncFileDialog::new()
+                .add_filter("PNG image", &["png"])
+                .set_title("Save image")
+                // TODO: Could set_file_name()
+                .save_file();
+            let save_active = Arc::clone(&self.save_active);
+            let consts = self.fragment_constants(false);
+            tokio::spawn(async move {
+                if let Some(file) = task.await {
+                    crate::save::do_save_image(file.path(), consts);
+                } // else it was cancelled
+                *save_active.lock().unwrap() = false;
+            });
+        }
+        Ok(())
     }
 }
