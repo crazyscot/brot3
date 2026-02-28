@@ -8,6 +8,9 @@ use shader::{
     data::PointResult,
     push_constants::{Flags, FragmentConstants},
 };
+use util::dprintln;
+
+const DEBUG_SAVE: bool = false;
 
 pub(crate) fn do_save_image(
     path: &std::path::Path,
@@ -16,8 +19,11 @@ pub(crate) fn do_save_image(
 ) -> anyhow::Result<()> {
     constants.flags |= Flags::NEEDS_REITERATE;
     constants.buffer_size = uvec2(0, 0).into();
-    eprintln!("Saving image with constants: {constants:?}");
-    eprintln!("Would save image to {}", path.display());
+    dprintln!(
+        DEBUG_SAVE,
+        "Saving image to {} with constants: {constants:?}",
+        path.display()
+    );
 
     let start = Instant::now();
 
@@ -30,7 +36,7 @@ pub(crate) fn do_save_image(
     let flattened = lines.into_iter().flatten().collect::<Vec<_>>();
 
     let duration = start.elapsed();
-    eprintln!("Rendered image in {duration:?}");
+    dprintln!(DEBUG_SAVE, "Rendered image in {duration:?}");
 
     let pngstart = Instant::now();
     let mut encoder = png::Encoder::new(
@@ -48,7 +54,7 @@ pub(crate) fn do_save_image(
     encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));
     let mut writer = encoder.write_header()?;
     writer.write_image_data(&flattened)?;
-    println!("Converted to PNG in {:?}", pngstart.elapsed());
+    dprintln!(DEBUG_SAVE, "Converted to PNG in {:?}", pngstart.elapsed());
     // TODO parallelise.
     // Will need to refactor perturbation buffer so we have a copy here. Perhaps it needs to be an
     // Arc or a Cow; could get awkward if we're working with it but the main loop wants to

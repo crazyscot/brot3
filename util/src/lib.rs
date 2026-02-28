@@ -4,5 +4,7 @@
 
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
+mod dprintln;
+
 mod dynfmt;
 pub use dynfmt::dynamic_format;
