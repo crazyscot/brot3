@@ -89,6 +89,7 @@ pub(crate) struct Controller {
     inspector: Inspector,
     render_pass: u32,
     save_active: Arc<Mutex<bool>>,
+    last_save_dir: Arc<Mutex<Option<std::path::PathBuf>>>,
 }
 
 #[derive(Default)]
@@ -150,6 +151,7 @@ impl Controller {
             inspector: Inspector::default(),
             render_pass: 0,
             save_active: Arc::new(Mutex::new(false)),
+            last_save_dir: Arc::new(Mutex::new(None)),
         }
     }
 

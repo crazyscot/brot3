@@ -29,7 +29,9 @@ hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 anyhow = { workspace = true }
 bytemuck = { workspace = true }
 cfg-if = { workspace = true }
+chrono = { workspace = true, features = ["clock"] }
 clap = { workspace = true, features = ["derive", "wrap_help"] }
+dirs = "6.0.0"
 egui_extras = { workspace = true, features = ["image"] }
 glam = { workspace = true }
 # image is indirectly used, for unpicking PNGs

@@ -1,6 +1,6 @@
 // (c) 2025 Ross Younger
 
-use std::sync::Arc;
+use std::{path::Path, sync::Arc};
 
 use easy_shader_runner::{UiState, egui};
 use rfd::AsyncFileDialog;
@@ -119,18 +119,50 @@ impl super::Controller {
                 .save_active
                 .lock()
                 .map_err(|_| anyhow::anyhow!("Failed to lock save_active"))? = true;
+
+            let default_filename = format!(
+                "brot3_{datetime}.png",
+                datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S")
+            );
+
+            let last_save_dir = {
+                let guard = self
+                    .last_save_dir
+                    .lock()
+                    .map_err(|_| anyhow::anyhow!("Failed to lock last_save_dir"))?;
+                (*guard).clone()
+            };
+
+            let default_save_dir: Box<dyn AsRef<Path>> = match last_save_dir {
+                Some(dir) if dir.is_dir() => Box::new(dir),
+                _ => {
+                    let fallback = dirs::picture_dir()
+                        .or_else(dirs::desktop_dir)
+                        .unwrap_or_else(|| std::path::PathBuf::from("."));
+                    Box::new(fallback)
+                }
+            };
+
             let task = AsyncFileDialog::new()
                 .add_filter("PNG image", &["png"])
                 .set_title("Save image")
-                // TODO: Could set_file_name()
+                .set_directory(default_save_dir.as_ref())
+                .set_file_name(&default_filename)
                 .save_file();
             let save_active = Arc::clone(&self.save_active);
+            let save_dir = Arc::clone(&self.last_save_dir);
             let perturbation_points = self.perturbation.points.clone();
             let consts = self.fragment_constants(false);
             tokio::spawn(async move {
                 if let Some(file) = task.await {
-                    let _ = crate::save::do_save_image(file.path(), consts, &perturbation_points)
+                    let filename = file.path().to_owned();
+                    let _ = crate::save::do_save_image(&filename, consts, &perturbation_points)
                         .inspect_err(|e| println!("Error saving: {e}"));
+                    let parent = filename
+                        .parent()
+                        .unwrap_or_else(|| Path::new("."))
+                        .to_path_buf();
+                    *save_dir.lock().unwrap() = Some(parent);
                 } // else it was cancelled
                 *save_active.lock().unwrap() = false;
             });
