@@ -71,6 +71,7 @@ impl super::Controller {
         if self.show_save {
             let _ = self.save_image_ui(ctx);
         }
+        self.error_modal(ctx);
 
         self.fullscreen_checkbox = ui_state.fullscreen_active;
 

@@ -90,6 +90,7 @@ pub(crate) struct Controller {
     render_pass: u32,
     save_active: Arc<Mutex<bool>>,
     last_save_dir: Arc<Mutex<Option<std::path::PathBuf>>>,
+    error_message: Arc<Mutex<Option<String>>>,
 }
 
 #[derive(Default)]
@@ -152,6 +153,7 @@ impl Controller {
             render_pass: 0,
             save_active: Arc::new(Mutex::new(false)),
             last_save_dir: Arc::new(Mutex::new(None)),
+            error_message: Arc::new(Mutex::new(None)),
         }
     }
 

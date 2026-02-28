@@ -53,8 +53,6 @@ pub(crate) fn do_save_image(
     // Will need to refactor perturbation buffer so we have a copy here. Perhaps it needs to be an
     // Arc or a Cow; could get awkward if we're working with it but the main loop wants to
     // update.
-
-    // TODO status/error return. Wire this into the gui somehow; perhaps a modal status window.
     Ok(())
 }
 

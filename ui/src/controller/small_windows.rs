@@ -151,22 +151,53 @@ impl super::Controller {
                 .save_file();
             let save_active = Arc::clone(&self.save_active);
             let save_dir = Arc::clone(&self.last_save_dir);
+            let error_message_buffer = Arc::clone(&self.error_message);
             let perturbation_points = self.perturbation.points.clone();
             let consts = self.fragment_constants(false);
             tokio::spawn(async move {
                 if let Some(file) = task.await {
                     let filename = file.path().to_owned();
-                    let _ = crate::save::do_save_image(&filename, consts, &perturbation_points)
-                        .inspect_err(|e| println!("Error saving: {e}"));
-                    let parent = filename
-                        .parent()
-                        .unwrap_or_else(|| Path::new("."))
-                        .to_path_buf();
-                    *save_dir.lock().unwrap() = Some(parent);
+                    match crate::save::do_save_image(&filename, consts, &perturbation_points) {
+                        Ok(()) => {
+                            let parent = filename
+                                .parent()
+                                .unwrap_or_else(|| Path::new("."))
+                                .to_path_buf();
+                            *save_dir.lock().unwrap() = Some(parent);
+                        }
+                        Err(e) => {
+                            eprintln!("Error saving image: {e}");
+                            *error_message_buffer.lock().unwrap() =
+                                Some(format!("Failed to save image: {e}"));
+                        }
+                    }
                 } // else it was cancelled
                 *save_active.lock().unwrap() = false;
             });
         }
         Ok(())
+    }
+
+    pub(crate) fn error_modal(&mut self, ctx: &egui::Context) {
+        if let Some(message) = self.error_message.lock().map_or_else(
+            |e| Some(format!("Failed to lock error_message: {e}")),
+            |guard| guard.clone(),
+        ) {
+            let _ = egui::Modal::new("error".into()).show(ctx, |ui| {
+                ui.label(egui::RichText::new("Error").size(18.));
+                ui.add_space(12.);
+                ui.label(message);
+                ui.add_space(12.);
+                if ui.button("OK").clicked() {
+                    self.clear_error_modal();
+                }
+            });
+        }
+    }
+
+    pub(crate) fn clear_error_modal(&mut self) {
+        if let Ok(mut guard) = self.error_message.lock() {
+            *guard = None;
+        }
     }
 }
