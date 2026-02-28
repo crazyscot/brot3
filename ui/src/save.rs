@@ -3,7 +3,8 @@
 
 use std::time::Instant;
 
-use glam::{Vec2, Vec4, uvec2};
+use glam::{Vec2, Vec4, uvec2, vec4};
+use rayon::prelude::*;
 use shader::{
     data::PointResult,
     push_constants::{Flags, FragmentConstants},
@@ -24,16 +25,51 @@ pub(crate) fn do_save_image(
         "Saving image to {} with constants: {constants:?}",
         path.display()
     );
-
     let start = Instant::now();
 
-    let mut lines = vec![Vec::new(); constants.size.height as usize];
+    let width = constants.size.width as usize;
+    let height = constants.size.height as usize;
+    let total_bytes = width * height * 4;
+    let mut pixels = vec![0u8; total_bytes];
 
-    for (y, target) in lines.iter_mut().enumerate() {
-        let mut tmp = render_line(&constants, y, perturbation_points);
-        *target = std::mem::take(&mut tmp);
-    }
-    let flattened = lines.into_iter().flatten().collect::<Vec<_>>();
+    let chunk_pixels = 128; // by experiment, this seems to be a good balance between overhead and parallelism. It's not a multiple of typical SIMD widths, but it keeps the CPU busy without too much overhead.
+    let chunk_bytes = chunk_pixels * 4; // RGBA8
+
+    pixels
+        .par_chunks_mut(chunk_bytes)
+        .enumerate()
+        .for_each(|(chunk_idx, chunk)| {
+            let byte_offset = chunk_idx * chunk_bytes;
+            let start_pixel = byte_offset / 4;
+            let mut y = start_pixel / width;
+            let mut x = start_pixel % width;
+
+            for i in (0..chunk.len()).step_by(4) {
+                let mut grid = [PointResult::default()];
+                let mut pixel = Vec4::default();
+
+                #[allow(clippy::cast_precision_loss)]
+                let frag_coord = vec4(x as f32, y as f32, 0.0, 0.0);
+                shader::main_fs(
+                    frag_coord,
+                    &constants,
+                    &mut grid,
+                    perturbation_points,
+                    &mut pixel,
+                );
+                pixel.w = 1.; // 100% alpha
+
+                let bytes = (pixel * 255.0).as_u8vec4().to_array();
+                chunk[i..i + 4].copy_from_slice(&bytes);
+
+                // Move to next pixel
+                x += 1;
+                if x >= width {
+                    x = 0;
+                    y += 1;
+                }
+            }
+        });
 
     let duration = start.elapsed();
     dprintln!(DEBUG_SAVE, "Rendered image in {duration:?}");
@@ -51,35 +87,7 @@ pub(crate) fn do_save_image(
     // TODO, someday: get fragment constants to convert itself to/fro JSON, include that here.
     encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));
     let mut writer = encoder.write_header()?;
-    writer.write_image_data(&flattened)?;
+    writer.write_image_data(&pixels)?;
     dprintln!(DEBUG_SAVE, "Converted to PNG in {:?}", pngstart.elapsed());
-    // TODO parallelise.
-    // Will need to refactor perturbation buffer so we have a copy here. Perhaps it needs to be an
-    // Arc or a Cow; could get awkward if we're working with it but the main loop wants to
-    // update.
     Ok(())
-}
-
-/// Renders a single line of the image, returning the pixel data as RGBA values in pixel order.
-fn render_line(constants: &FragmentConstants, y: usize, perturbation_points: &[Vec2]) -> Vec<u8> {
-    let mut pixels = Vec::with_capacity(constants.size.width as usize * 4); // RGBA
-    let mut grid = [PointResult::default()];
-    let mut pixel = Vec4::default();
-
-    for x in 0..constants.size.width {
-        #[allow(clippy::cast_precision_loss)]
-        let frag_coord = Vec4::new(x as f32, y as f32, 0., 0.);
-        shader::main_fs(
-            frag_coord,
-            constants,
-            &mut grid,
-            perturbation_points,
-            &mut pixel,
-        );
-        pixel.w = 1.; // 100% alpha
-        let bytes = (pixel * 255.0).as_u8vec4().to_array();
-        // No endian issues here, at least on x86_64.
-        pixels.extend_from_slice(&bytes);
-    }
-    pixels
 }
