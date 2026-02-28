@@ -124,6 +124,26 @@ impl FragmentConstants {
     pub fn pixel_spacing(&self) -> f32 {
         Self::pixel_spacing_f32(self.size.height, self.viewport_zoom)
     }
+
+    #[cfg(not(target_arch = "spirv"))]
+    #[must_use]
+    pub fn display_string(&self) -> String {
+        format!(
+            "{alg}_({x},{y})_z{zoom:.3e}_max{max_iter}_exp{exp}_{colourer:?}",
+            alg = self.algorithm,
+            x = self.viewport_translate.x,
+            y = self.viewport_translate.y,
+            zoom = (1.0 / self.viewport_zoom) / Self::UI_ZOOM_FACTOR,
+            max_iter = self.max_iter,
+            exp = match self.exponent.typ {
+                NumericType::Integer => self.exponent.int.to_string(),
+                NumericType::Float => format!("{:.3}", self.exponent.real),
+                NumericType::Complex =>
+                    format!("{:.3}+{:.3}i", self.exponent.real, self.exponent.imag),
+            },
+            colourer = self.palette.colourer,
+        )
+    }
 }
 
 #[derive(Copy, Clone, Debug, NoUninit)]

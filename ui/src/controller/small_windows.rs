@@ -121,8 +121,9 @@ impl super::Controller {
                 .map_err(|_| anyhow::anyhow!("Failed to lock save_active"))? = true;
 
             let default_filename = format!(
-                "brot3_{datetime}.png",
-                datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S")
+                "brot3_{datetime}_{description}.png",
+                datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"),
+                description = self.fragment_constants(false).display_string(),
             );
 
             let last_save_dir = {
@@ -153,7 +154,7 @@ impl super::Controller {
             let save_dir = Arc::clone(&self.last_save_dir);
             let error_message_buffer = Arc::clone(&self.error_message);
             let perturbation_points = self.perturbation.points.clone();
-            let consts = self.fragment_constants(false);
+            let consts = self.fragment_constants(true);
             tokio::spawn(async move {
                 if let Some(file) = task.await {
                     let filename = file.path().to_owned();

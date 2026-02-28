@@ -47,10 +47,8 @@ pub(crate) fn do_save_image(
     encoder.set_color(png::ColorType::Rgba);
     encoder.set_depth(png::BitDepth::Eight);
     encoder.add_text_chunk("software".to_string(), "brot3".to_string())?;
-    /* TODO
-    let info = spec.to_string();
-    encoder.add_text_chunk("comment".to_string(), info)?;
-    */
+    encoder.add_text_chunk("comment".to_string(), constants.display_string())?;
+    // TODO, someday: get fragment constants to convert itself to/fro JSON, include that here.
     encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));
     let mut writer = encoder.write_header()?;
     writer.write_image_data(&flattened)?;
