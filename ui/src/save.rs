@@ -1,7 +1,10 @@
 //! Save Image support
 // (c) 2026 Ross Younger
 
-use std::time::Instant;
+use std::{
+    sync::atomic::{AtomicBool, Ordering},
+    time::Instant,
+};
 
 use glam::{Vec2, Vec4, uvec2, vec4};
 use rayon::prelude::*;
@@ -34,6 +37,7 @@ pub(crate) fn do_save_image(
 
     let chunk_pixels = 128; // by experiment, this seems to be a good balance between overhead and parallelism. It's not a multiple of typical SIMD widths, but it keeps the CPU busy without too much overhead.
     let chunk_bytes = chunk_pixels * 4; // RGBA8
+    let failure = AtomicBool::new(false);
 
     pixels
         .par_chunks_mut(chunk_bytes)
@@ -45,19 +49,28 @@ pub(crate) fn do_save_image(
             let mut x = start_pixel % width;
 
             for i in (0..chunk.len()).step_by(4) {
-                let mut grid = [PointResult::default()];
-                let mut pixel = Vec4::default();
+                let result = std::panic::catch_unwind(|| {
+                    let mut grid = [PointResult::default()];
+                    let mut pixel = Vec4::default();
 
-                #[allow(clippy::cast_precision_loss)]
-                let frag_coord = vec4(x as f32, y as f32, 0.0, 0.0);
-                shader::main_fs(
-                    frag_coord,
-                    &constants,
-                    &mut grid,
-                    perturbation_points,
-                    &mut pixel,
-                );
-                pixel.w = 1.; // 100% alpha
+                    #[allow(clippy::cast_precision_loss)]
+                    let frag_coord = vec4(x as f32, y as f32, 0.0, 0.0);
+                    shader::main_fs(
+                        frag_coord,
+                        &constants,
+                        &mut grid,
+                        perturbation_points,
+                        &mut pixel,
+                    );
+                    pixel
+                });
+                let pixel = if let Ok(p) = result {
+                    p
+                } else {
+                    dprintln!(DEBUG_SAVE, "Panic at pixel ({x}, {y})");
+                    failure.store(true, Ordering::Relaxed);
+                    Vec4::ZERO
+                };
 
                 let bytes = (pixel * 255.0).as_u8vec4().to_array();
                 chunk[i..i + 4].copy_from_slice(&bytes);
@@ -89,5 +102,9 @@ pub(crate) fn do_save_image(
     let mut writer = encoder.write_header()?;
     writer.write_image_data(&pixels)?;
     dprintln!(DEBUG_SAVE, "Converted to PNG in {:?}", pngstart.elapsed());
+    anyhow::ensure!(
+        !failure.load(Ordering::Relaxed),
+        "Some pixels failed to render. The saved image may have gaps where this occurred."
+    );
     Ok(())
 }
