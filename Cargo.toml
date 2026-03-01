@@ -31,7 +31,7 @@ document-features = "0.2.12"
 egui_extras = "0.33"
 flate2 = "1.1.8"
 float_eq = { version = "1.0.1", default-features = false }
-glam = { version = "0.31.0", default-features = false }
+glam = { version = "0.31.1", default-features = false }
 image = { version = "0.25.9", default-features = false }
 log = "0.4.29"
 mimalloc = "0.1.48"
@@ -50,7 +50,7 @@ rev = "b3eda4df9814b6176d3c0844eb67f70a22ebb378"
 
 [patch.'https://github.com/Rust-GPU/rust-gpu']
 # TEMP: abels-complex 0.4.1 forces glam 0.31; rust-gpu currently requires glam >=0.30.8
-glam = { version = "0.31.0" }
+glam = { version = "0.31.1" }
 
 [workspace.dependencies.spirv-builder]
 git = "https://github.com/Rust-GPU/rust-gpu"
