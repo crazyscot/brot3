@@ -76,7 +76,8 @@ impl Exponentiator for IntegerPower {
 
     #[allow(clippy::cast_precision_loss)]
     fn log2(self) -> f32 {
-        (self.0 as f32).log2()
+        // special case where exponent is less than 2, to avoid undefinedness at/below 0.
+        (self.0 as f32).max(2.0).log2()
     }
 }
 
@@ -96,7 +97,8 @@ impl Exponentiator for RealPower {
     }
 
     fn log2(self) -> f32 {
-        self.0.log2()
+        // special case where exponent is less than 2, to avoid undefinedness at/below 0.
+        self.0.max(2.0).log2()
     }
 }
 
