@@ -31,7 +31,7 @@ bytemuck = { workspace = true }
 cfg-if = { workspace = true }
 chrono = { workspace = true, features = ["clock"] }
 clap = { workspace = true, features = ["derive", "wrap_help"] }
-dirs = "6.0.0"
+dirs = { workspace = true }
 egui_extras = { workspace = true, features = ["image"] }
 glam = { workspace = true }
 # image is indirectly used, for unpicking PNGs
@@ -39,12 +39,12 @@ image = { workspace = true, features = ["png"] }
 log = { workspace = true }
 mimalloc = { workspace = true }
 num-traits = { workspace = true }
-png = "0.18.1"
-rayon = "1.11.0"
-rfd = "0.17.2"
+png = { workspace = true }
+rayon = { workspace = true }
+rfd = { workspace = true }
 shader = { workspace = true }
 strum = { workspace = true, features = ["std"] }
-tokio = { version = "1.49.0", features = ["macros", "rt", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
 util = { workspace = true }
 web-time = { workspace = true }
 
