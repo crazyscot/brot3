@@ -112,3 +112,8 @@ strip = "none"
 
 [profile.release]
 lto = "thin"
+
+[workspace.metadata.cargo-shear]
+ignored = [
+  "image", # used as a mixin, not directly referenced
+]

@@ -123,3 +123,8 @@ ignored = [
   "cfg_aliases", # used by build.rs
   "image", # used as a mixin, not directly referenced
 ]
+
+[package.metadata.cargo-shear]
+ignored = [
+  "image", # used as a mixin, not directly referenced
+]
