@@ -1,5 +1,6 @@
 use easy_shader_runner::{UiState, egui};
-use shader::{Algorithm, push_constants::NumericType};
+use shader::Algorithm;
+use util::NumericType;
 
 use super::{DVec2, Instant};
 

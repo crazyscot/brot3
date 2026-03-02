@@ -3,7 +3,8 @@
 
 use easy_shader_runner::egui;
 use num_traits::AsPrimitive;
-use shader::{Algorithm, ColourStyle, Colourer, enums::Modifier, push_constants::NumericType};
+use shader::{Algorithm, ColourStyle, Colourer, enums::Modifier};
+use util::NumericType;
 
 use crate::controller::MAX_MAX_ITERATIONS;
 

@@ -5,6 +5,7 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 use const_default::ConstDefault;
 use spirv_std::glam::{UVec2, Vec2, uvec2};
+pub(crate) use util::{NumericType, PushExponent};
 
 use crate::{
     ColourStyle, Colourer, Size,
@@ -140,6 +141,7 @@ impl FragmentConstants {
                 NumericType::Float => format!("{:.3}", self.exponent.real),
                 NumericType::Complex =>
                     format!("{:.3}+{:.3}i", self.exponent.real, self.exponent.imag),
+                _ => unimplemented!(),
             },
             colourer = self.palette.colourer,
         )
@@ -226,93 +228,15 @@ impl Palette {
     }
 }
 
-#[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
-#[non_exhaustive]
-#[repr(u32)]
-pub enum NumericType {
-    #[default]
-    Integer,
-    Float,
-    Complex,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, NoUninit)]
-#[repr(C)]
-pub struct PushExponent {
-    pub typ: NumericType,
-    /// Only used when `typ` is Integer
-    pub int: i32,
-    /// Used when `typ` is Float or Complex
-    pub real: f32,
-    /// Only used when `typ` is Complex
-    pub imag: f32,
-}
-
-impl Default for PushExponent {
-    fn default() -> Self {
-        Self {
-            typ: NumericType::Integer,
-            int: 2,
-            real: 0.,
-            imag: 0.,
-        }
-    }
-}
-
-impl From<i32> for PushExponent {
-    fn from(i: i32) -> Self {
-        Self {
-            typ: NumericType::Integer,
-            int: i,
-            ..Default::default()
-        }
-    }
-}
-
-impl From<f32> for PushExponent {
-    fn from(f: f32) -> Self {
-        Self {
-            typ: NumericType::Float,
-            real: f,
-            ..Default::default()
-        }
-    }
-}
-
-impl PushExponent {
-    #[must_use]
-    #[allow(clippy::float_cmp)]
-    pub fn is_two(&self) -> bool {
-        match self.typ {
-            NumericType::Integer => self.int == 2,
-            NumericType::Float => self.real == 2.0,
-            NumericType::Complex => self.real == 2.0 && self.imag == 0.0,
-        }
-    }
-
-    #[must_use]
-    pub fn ui_step(&self) -> f32 {
-        if self.typ == NumericType::Integer {
-            1.
-        } else {
-            0.1
-        }
-    }
-}
-
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 #[allow(clippy::missing_panics_doc)] // I shouldn't need to write this here, but rust-analyzer is confused.
 mod tests {
-    use std::assert_matches::assert_matches;
 
     use float_eq::assert_float_eq;
 
     use super::{Flags, flag_if};
-    use crate::{
-        ColourStyle, FragmentConstants, Palette,
-        push_constants::{NumericType, PushExponent},
-    };
+    use crate::{ColourStyle, FragmentConstants, Palette};
 
     #[test]
     fn flags_if() {
@@ -336,18 +260,5 @@ mod tests {
     fn construct_palette() {
         let p = Palette::default().with_style(ColourStyle::Discrete);
         assert_eq!(p.colour_style, ColourStyle::Discrete);
-    }
-
-    #[test]
-    fn construct_exponent() {
-        let pf = PushExponent::from(31.2);
-        assert_matches!(
-            pf,
-            PushExponent {
-                typ: NumericType::Float,
-                real: 31.2,
-                ..
-            }
-        );
     }
 }

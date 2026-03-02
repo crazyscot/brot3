@@ -34,6 +34,7 @@ document-features = { workspace = true }
 float_eq = { workspace = true }
 paste = { workspace = true }
 spirv-std = { workspace = true }
+util = { path = "../util" }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
 abels-complex = { workspace = true, features = ["libm", "glam"] }

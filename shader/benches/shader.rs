@@ -16,10 +16,11 @@ use shader::{
     exponentiation::{
         ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower,
     },
-    push_constants::{Flags, PushExponent},
+    push_constants::Flags,
     vec2,
 };
 use strum::VariantArray as _;
+use util::PushExponent;
 
 #[divan::bench]
 #[allow(non_upper_case_globals)]

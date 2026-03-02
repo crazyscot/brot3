@@ -90,7 +90,8 @@ macro_rules! exponent_monomorph {
             }
             $crate::push_constants::NumericType::Complex => {
                 $run_it!($crate::exponentiation::ComplexPower::from($exponent), $alg)
-            } // _ => unreachable!(),
+            }
+            _ => unreachable!(),
         }
     };
 }

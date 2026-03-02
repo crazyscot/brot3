@@ -10,8 +10,9 @@ use shader::{
     BigVec2, FragmentConstants, Palette,
     data::PointResult,
     enums::Algorithm,
-    push_constants::{Flags, PushExponent, flag_if},
+    push_constants::{Flags, flag_if},
 };
+use util::PushExponent;
 use web_time::Instant;
 use winit::{
     dpi::PhysicalSize,

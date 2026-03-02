@@ -1,6 +1,8 @@
 //! Exponent representation for fractal computation
 //! Supports integer, real, and complex exponents with range validation
 
+#![cfg(not(target_arch = "spirv"))]
+
 use std::fmt;
 
 use num_traits::AsPrimitive as _;
@@ -9,7 +11,8 @@ use serde::{
     de::{self, Deserializer, MapAccess, Visitor},
     ser::Serializer,
 };
-use shader::push_constants::{NumericType, PushExponent};
+
+use crate::push_exponent::{NumericType, PushExponent};
 
 /// A fractal exponent that can be an integer, real, or complex number.
 ///
@@ -173,10 +176,6 @@ impl Exponent {
                 real: push.real,
                 imag: push.imag,
             },
-            _ => {
-                // For any future NumericType variants, default to Real
-                Exponent::Real(push.real)
-            }
         }
     }
 }
