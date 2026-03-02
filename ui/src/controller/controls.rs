@@ -2,6 +2,7 @@
 // (c) 2025 Ross Younger
 
 use easy_shader_runner::egui;
+use num_traits::AsPrimitive;
 use shader::{Algorithm, ColourStyle, Colourer, enums::Modifier, push_constants::NumericType};
 
 use crate::controller::MAX_MAX_ITERATIONS;
@@ -59,7 +60,7 @@ impl super::Controller {
                                 self.exponent.imag = 0.0;
                             }
                             (_, NumericType::Integer) => {
-                                self.exponent.int = self.exponent.real.round() as u32;
+                                self.exponent.int = self.exponent.real.round().as_();
                                 self.exponent.real = self.exponent.int as f32;
                                 self.exponent.imag = 0.0;
                             }
@@ -73,17 +74,17 @@ impl super::Controller {
                             if previous_typ == NumericType::Integer {
                             } else {
                                 // was float, now integer
-                                self.exponent.int = self.exponent.real.round() as u32;
+                                self.exponent.int = self.exponent.real.round().as_();
                                 self.exponent.real = self.exponent.int as f32;
                             }
                             self.reiterate = true;
                         }
                     });
-                    match self.exponent.variant() {
+                    match self.exponent.typ {
                         NumericType::Integer => {
                             if ui.add(egui::Slider::new(
                                     &mut self.exponent.int,
-                                    Self::EXPONENT_MIN_INT..=Self::EXPONENT_MAX_INT,
+                                    -Self::EXPONENT_MAX_INT..=Self::EXPONENT_MAX_INT,
                                 ))
                                 .changed()
                             {
@@ -95,7 +96,7 @@ impl super::Controller {
                             if ui.add(
                                     egui::Slider::new(
                                         &mut self.exponent.real,
-                                        Self::EXPONENT_MIN..=Self::EXPONENT_MAX,
+                                        -Self::EXPONENT_MAX..=Self::EXPONENT_MAX,
                                     )
                                     .step_by(0.1),
                                 )
@@ -109,7 +110,7 @@ impl super::Controller {
                             if ui.add(
                                     egui::Slider::new(
                                         &mut self.exponent.real,
-                                        Self::EXPONENT_MIN..=Self::EXPONENT_MAX,
+                                        -Self::EXPONENT_MAX..=Self::EXPONENT_MAX,
                                     )
                                     .step_by(0.1),
                                 )
@@ -121,33 +122,15 @@ impl super::Controller {
                         _ => todo!(),
                     }
 
-                    if ui
-                        .add(egui::Checkbox::new(
-                            &mut self.exponent.real_is_negative,
-                            "Negative",
-                        ))
-                        .changed()
-                    {
-                        self.reiterate = true;
-                    }
-
-                    if self.exponent.variant() == NumericType::Complex {
+                    if self.exponent.typ == NumericType::Complex {
                         ui.label("Imaginary");
-                            if ui.add(
-                                    egui::Slider::new(
-                                        &mut self.exponent.imag,
-                                        Self::EXPONENT_MIN..=Self::EXPONENT_MAX,
-                                    )
-                                    .step_by(0.1),
+                        if ui.add(
+                                egui::Slider::new(
+                                    &mut self.exponent.imag,
+                                    -Self::EXPONENT_MAX..=Self::EXPONENT_MAX,
                                 )
-                                .changed()
-                            {
-                                self.reiterate = true;
-                            }
-                            if ui.add(egui::Checkbox::new(
-                                &mut self.exponent.imag_is_negative,
-                                "Negative",
-                            ))
+                                .step_by(0.1),
+                            )
                             .changed()
                         {
                             self.reiterate = true;

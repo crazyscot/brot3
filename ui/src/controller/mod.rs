@@ -10,7 +10,7 @@ use shader::{
     BigVec2, FragmentConstants, Palette,
     data::PointResult,
     enums::Algorithm,
-    push_constants::{Flags, NumericType, PushExponent, flag_if},
+    push_constants::{Flags, PushExponent, flag_if},
 };
 use web_time::Instant;
 use winit::{
@@ -55,7 +55,7 @@ pub(crate) struct Controller {
     algorithm: Algorithm,
     max_iter: u32,
     palette: Palette,
-    exponent: Exponent,
+    exponent: PushExponent,
     perturbation: PerturbationReference,
     iteration_cull: bool,
 
@@ -120,7 +120,7 @@ impl Controller {
             max_iter: FragmentConstants::DEFAULT_MAX_ITER,
             palette: Palette::default().with_colourer(options.colourer), /* TODO with render
                                                                           * style too */
-            exponent: Exponent::default(),
+            exponent: PushExponent::default(),
             perturbation: PerturbationReference::default(),
             iteration_cull: false,
 
@@ -171,7 +171,7 @@ impl Controller {
             buffer_size: self.cache_size.into(),
             algorithm: self.algorithm,
             max_iter: self.max_iter,
-            exponent: self.exponent.into(),
+            exponent: self.exponent,
             palette: self.palette,
             inspector_point_pixel_address: self
                 .complex_point_to_pixel(&self.inspector.position)
@@ -211,74 +211,6 @@ impl Controller {
         }
         // Apply the limits
         self.viewport_zoom = self.apply_zoom_limits(new_zoom);
-    }
-}
-
-#[derive(Copy, Clone, Debug)]
-struct Exponent {
-    pub(crate) int: u32,
-    pub(crate) real: f32,
-    pub(crate) imag: f32,
-    pub(crate) typ: NumericType,
-    pub(crate) real_is_negative: bool,
-    pub(crate) imag_is_negative: bool,
-}
-impl Default for Exponent {
-    fn default() -> Self {
-        Self {
-            int: 2,
-            real: 2.0,
-            imag: 0.0,
-            typ: NumericType::Integer,
-            real_is_negative: false,
-            imag_is_negative: false,
-        }
-    }
-}
-impl Exponent {
-    fn variant(&self) -> NumericType {
-        self.typ
-    }
-
-    fn step(&self) -> f32 {
-        if self.typ == NumericType::Integer {
-            1.
-        } else {
-            0.1
-        }
-    }
-
-    fn is_integer(&self) -> bool {
-        self.typ == NumericType::Integer
-    }
-
-    fn is_two(&self) -> bool {
-        self.is_integer() && self.int == 2
-    }
-}
-impl From<Exponent> for PushExponent {
-    // TODO: Can we merge Exponent and PushExponent?
-    #[allow(clippy::cast_possible_truncation)]
-    fn from(exp: Exponent) -> Self {
-        match exp.typ {
-            NumericType::Integer => PushExponent {
-                typ: NumericType::Integer,
-                int: exp.real as i32 * if exp.real_is_negative { -1 } else { 1 },
-                ..Default::default()
-            },
-            NumericType::Float => PushExponent {
-                typ: NumericType::Float,
-                real: exp.real * if exp.real_is_negative { -1. } else { 1. },
-                ..Default::default()
-            },
-            NumericType::Complex => PushExponent {
-                typ: NumericType::Complex,
-                real: exp.real * if exp.real_is_negative { -1. } else { 1. },
-                imag: exp.imag * if exp.imag_is_negative { -1. } else { 1. },
-                ..Default::default()
-            },
-            _ => todo!(),
-        }
     }
 }
 

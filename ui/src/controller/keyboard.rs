@@ -219,7 +219,7 @@ impl super::Controller {
 
     fn expo_re(&mut self, increase: bool, active: bool) {
         if active {
-            let magnitude = self.exponent.step();
+            let magnitude = self.exponent.ui_step();
             let sign = if increase { 1. } else { -1. };
             self.movement.exponent = sign * magnitude;
         } else {
@@ -229,7 +229,7 @@ impl super::Controller {
 
     fn expo_im(&mut self, increase: bool, active: bool) {
         if active {
-            let magnitude = self.exponent.step();
+            let magnitude = self.exponent.ui_step();
             let sign = if increase { 1. } else { -1. };
             self.movement.exponent_im = sign * magnitude;
         } else {

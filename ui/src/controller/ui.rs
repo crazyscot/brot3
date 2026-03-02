@@ -1,13 +1,15 @@
 use easy_shader_runner::{UiState, egui};
-use shader::Algorithm;
+use shader::{Algorithm, push_constants::NumericType};
 
 use super::{DVec2, Instant};
 
 impl super::Controller {
-    pub(super) const EXPONENT_MAX: f32 = 20.;
-    pub(super) const EXPONENT_MAX_INT: u32 = 20;
-    pub(super) const EXPONENT_MIN: f32 = 0.;
-    pub(super) const EXPONENT_MIN_INT: u32 = 0;
+    #[allow(clippy::cast_precision_loss)]
+    pub(super) const EXPONENT_MAX: f32 = Self::EXPONENT_MAX_INT as f32;
+    pub(super) const EXPONENT_MAX_INT: i32 = 20;
+    #[allow(clippy::cast_precision_loss)]
+    pub(super) const EXPONENT_MIN: f32 = Self::EXPONENT_MIN_INT as f32;
+    pub(super) const EXPONENT_MIN_INT: i32 = 0;
 
     pub(super) fn perturb_implemented(&self) -> bool {
         self.algorithm == Algorithm::Mandelbrot && self.exponent.is_two()
@@ -127,8 +129,8 @@ impl super::Controller {
                 self.reiterate = true;
                 self.exponent.real = new_exp;
                 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-                if self.exponent.is_integer() {
-                    self.exponent.int = self.exponent.real.round() as u32;
+                if self.exponent.typ == NumericType::Integer {
+                    self.exponent.int = self.exponent.real.round() as i32;
                 }
             }
             movement.exponent = 0.;
@@ -136,7 +138,7 @@ impl super::Controller {
         if movement.exponent_im != 0. {
             let new_exp = (self.exponent.imag + factor32 * movement.exponent_im)
                 .clamp(Self::EXPONENT_MIN, Self::EXPONENT_MAX);
-            if self.exponent.imag != new_exp && !self.exponent.is_integer() {
+            if self.exponent.imag != new_exp && self.exponent.typ != NumericType::Integer {
                 self.reiterate = true;
                 self.exponent.imag = new_exp;
             }

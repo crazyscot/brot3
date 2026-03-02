@@ -147,7 +147,10 @@ impl FragmentConstants {
 }
 
 #[derive(Copy, Clone, Debug, NoUninit)]
-#[cfg_attr(not(target_arch = "spirv"), derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    not(target_arch = "spirv"),
+    derive(serde::Serialize, serde::Deserialize)
+)]
 #[repr(C)]
 pub struct Palette {
     pub colourer: Colourer,
@@ -272,6 +275,27 @@ impl From<f32> for PushExponent {
             typ: NumericType::Float,
             real: f,
             ..Default::default()
+        }
+    }
+}
+
+impl PushExponent {
+    #[must_use]
+    #[allow(clippy::float_cmp)]
+    pub fn is_two(&self) -> bool {
+        match self.typ {
+            NumericType::Integer => self.int == 2,
+            NumericType::Float => self.real == 2.0,
+            NumericType::Complex => self.real == 2.0 && self.imag == 0.0,
+        }
+    }
+
+    #[must_use]
+    pub fn ui_step(&self) -> f32 {
+        if self.typ == NumericType::Integer {
+            1.
+        } else {
+            0.1
         }
     }
 }
