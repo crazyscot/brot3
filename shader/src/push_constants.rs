@@ -147,6 +147,7 @@ impl FragmentConstants {
 }
 
 #[derive(Copy, Clone, Debug, NoUninit)]
+#[cfg_attr(not(target_arch = "spirv"), derive(serde::Serialize, serde::Deserialize))]
 #[repr(C)]
 pub struct Palette {
     pub colourer: Colourer,

@@ -1,4 +1,4 @@
-//! Utility code used by the UI.
+//! Utility and data wrangling code used by the UI.
 //!
 //! This is a separate crate for efficiency of testing.
 
@@ -8,3 +8,6 @@ mod dprintln;
 
 mod dynfmt;
 pub use dynfmt::dynamic_format;
+
+mod exponent;
+pub use exponent::Exponent;

@@ -10,6 +10,8 @@ macro_rules! enumdef {
             not(target_arch = "spirv"),
             derive(
                 clap::ValueEnum,
+                serde::Serialize,
+                serde::Deserialize,
                 strum::Display,
                 strum::EnumIter,
                 strum::IntoStaticStr,

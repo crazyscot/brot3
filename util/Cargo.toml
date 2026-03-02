@@ -14,6 +14,10 @@ description = "Utilities used by the brot3 ui (separate crate for efficient test
 bench = false
 
 [dependencies]
+num-traits.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+shader = { path = "../shader" }
 
 [dev-dependencies]
 pretty_assertions.workspace = true
