@@ -20,7 +20,7 @@ num-traits.workspace = true
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-dashu = { workspace = true }
+dashu = { workspace = true, features = ["serde"] }
 dashu-float = { workspace = true }
 glam = { workspace = true, features = ["std", "bytemuck"] }
 num-traits = { workspace = true }

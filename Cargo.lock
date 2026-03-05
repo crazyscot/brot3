@@ -787,6 +787,7 @@ dependencies = [
  "dashu-base",
  "dashu-int",
  "rustversion",
+ "serde",
  "static_assertions",
 ]
 
@@ -800,6 +801,7 @@ dependencies = [
  "dashu-base",
  "num-modular",
  "rustversion",
+ "serde",
  "static_assertions",
 ]
 
@@ -829,6 +831,7 @@ dependencies = [
  "dashu-float",
  "dashu-int",
  "rustversion",
+ "serde",
 ]
 
 [[package]]

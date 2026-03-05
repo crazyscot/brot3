@@ -4,12 +4,38 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 use dashu::float::FBig;
 use glam::{DVec2, UVec2, Vec2};
+use serde::{Deserialize, Serialize};
+
+/// Serde helper: serialises [`FBig`] as `(significand, exponent)` where `significand` is a
+/// decimal integer string and `exponent` is the binary exponent (`value = sig * 2^exp`).
+/// This is more compact than dashu's default binary-string representation.
+mod fbig_serde {
+    use std::str::FromStr;
+
+    use dashu::{float::FBig, integer::IBig};
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    pub(super) fn serialize<S: Serializer>(value: &FBig, serializer: S) -> Result<S::Ok, S::Error> {
+        let repr = value.repr();
+        (repr.significand().to_string(), repr.exponent()).serialize(serializer)
+    }
+
+    pub(super) fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<FBig, D::Error> {
+        let (sig_str, exp): (String, isize) = Deserialize::deserialize(deserializer)?;
+        let sig = IBig::from_str(&sig_str).map_err(serde::de::Error::custom)?;
+        Ok(FBig::from_parts(sig, exp))
+    }
+}
 
 /// Arbitrary precision version of [`glam::Vec2`]
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 #[allow(missing_docs)]
 pub struct BigVec2 {
+    #[serde(with = "fbig_serde")]
     pub x: FBig,
+    #[serde(with = "fbig_serde")]
     pub y: FBig,
 }
 
@@ -37,7 +63,7 @@ impl BigVec2 {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use shader::BigVec2;
+    /// # use util::BigVec2;
     /// let z = BigVec2::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -187,7 +213,7 @@ impl MulAssign<f64> for BigVec2 {
 impl std::fmt::Display for BigVec2 {
     /// Converts to a string representation (binary)
     /// ```
-    /// # use shader::{BigVec2, make_bigvec2};
+    /// # use util::{BigVec2, make_bigvec2};
     /// let v = make_bigvec2!(15., 2.);
     /// assert_eq!(v.to_string(), "BigVec2(1111, 10)");
     /// ```
@@ -256,5 +282,34 @@ mod tests {
         let y = FBig::from(42).with_precision(192).value();
         let z = BigVec2::new(x, y);
         assert_eq!(z.precision_larger(), 192);
+    }
+
+    #[test]
+    fn serde_roundtrip() {
+        let original = make_bigvec2!(1.25, -3.5);
+        let json = serde_json::to_string(&original).expect("serialization failed");
+        println!("JSON: {json}");
+        let restored: BigVec2 = serde_json::from_str(&json).expect("deserialization failed");
+        assert_eq!(original, restored);
+    }
+
+    #[test]
+    fn serde_roundtrip_zero() {
+        let original = BigVec2::ZERO;
+        let json = serde_json::to_string(&original).expect("serialization failed");
+        println!("JSON: {json}");
+        let restored: BigVec2 = serde_json::from_str(&json).expect("deserialization failed");
+        assert_eq!(original, restored);
+    }
+
+    #[test]
+    fn serde_roundtrip_high_precision() {
+        let x = FBig::from(42).with_precision(128).value();
+        let y = FBig::from(-7).with_precision(192).value();
+        let original = BigVec2::new(x, y);
+        let json = serde_json::to_string(&original).expect("serialization failed");
+        println!("JSON: {json}");
+        let restored: BigVec2 = serde_json::from_str(&json).expect("deserialization failed");
+        assert_eq!(original, restored);
     }
 }

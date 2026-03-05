@@ -3,6 +3,7 @@
 use std::ops::{Add, Deref, DerefMut, Div, Sub};
 
 use dashu_float::FBig;
+use serde::{Deserialize, Serialize};
 
 use crate::BigVec2;
 
@@ -10,8 +11,7 @@ use crate::BigVec2;
 ///
 ///
 /// ```
-/// # use shader::BigComplex;
-/// # use shader::make_bigcomplex;
+/// # use util::{BigComplex, make_bigcomplex};
 /// let x = make_bigcomplex!(1.0, 2.0);
 /// let y = make_bigcomplex!(3.0, 4.0);
 /// let z = x + y;
@@ -20,7 +20,8 @@ use crate::BigVec2;
 /// let b = a.clone() - a; // these are bignums, they do not support Copy
 /// assert_eq!(b, BigComplex::ZERO);
 /// ```
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
+
 pub struct BigComplex(pub BigVec2);
 
 /// Roughly creates a [`BigComplex`] from a pair of inputs.
@@ -48,7 +49,7 @@ impl BigComplex {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use shader::BigComplex;
+    /// # use util::BigComplex;
     /// let z = BigComplex::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -63,7 +64,7 @@ impl BigComplex {
 
     /// Computes the square efficiently, consuming the original number.
     /// ```
-    /// # use shader::make_bigcomplex;
+    /// # use util::make_bigcomplex;
     /// let x = make_bigcomplex!(0.0, 1.0);
     /// // i^2 = -1
     /// assert_eq!(x.square(), make_bigcomplex!(-1.0, 0.0));
@@ -77,7 +78,7 @@ impl BigComplex {
     /// Computes the square of the modulus of the complex.
     ///
     /// ```
-    /// # use shader::make_bigcomplex;
+    /// # use util::make_bigcomplex;
     /// # use dashu::{fbig, float::FBig, float::round};
     /// let x = make_bigcomplex!(0.0, 1.0);
     /// assert_eq!(x.norm_squared(), fbig!(1.0));
@@ -97,7 +98,7 @@ impl BigComplex {
 
     /// Sets the precision of both parts of the underlying data storage
     /// ```
-    /// # use shader::BigComplex;
+    /// # use util::BigComplex;
     /// let z = BigComplex::ZERO.with_precision(123);
     /// let prec = z.precision();
     /// assert_eq!(prec.x, 123);
@@ -111,7 +112,7 @@ impl BigComplex {
     #[must_use]
     /// Computes the complex conjugate
     /// ```
-    /// # use shader::make_bigcomplex;
+    /// # use util::make_bigcomplex;
     /// let x = make_bigcomplex!(0.0, 1.0);
     /// assert_eq!(x.conjugate(), make_bigcomplex!(0.0, -1.0));
     /// let z = make_bigcomplex!(12.0, 34.0);
@@ -124,7 +125,7 @@ impl BigComplex {
 
     /// Computes the reciprocal
     /// ```
-    /// # use shader::make_bigcomplex;
+    /// # use util::make_bigcomplex;
     /// let z = make_bigcomplex!(2.0, 0.0);
     /// assert_eq!(z.recip(), make_bigcomplex!(0.5, 0.0));
     /// let z = make_bigcomplex!(0.0, 1.0);
@@ -269,5 +270,14 @@ mod tests {
         let z = make_bigcomplex!(2.0, 2.0);
         let expected = make_bigcomplex!(0.25, -0.25);
         assert_eq!(z.recip(), expected);
+    }
+
+    #[test]
+    fn serialise() {
+        let z = make_bigcomplex!(1.25, -3.5);
+        let json = serde_json::to_string(&z).expect("serialization failed");
+        println!("JSON: {json}");
+        let z2: BigComplex = serde_json::from_str(&json).expect("deserialization failed");
+        assert_eq!(z, z2);
     }
 }
