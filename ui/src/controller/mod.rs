@@ -50,7 +50,7 @@ pub(crate) struct Controller {
     cache_size: UVec2,
     // Viewport position and movement
     viewport_translate: BigVec2,
-    viewport_zoom: f64,
+    viewport_zoom: ViewportZoom,
     movement: Movement,
     // Fractal detail
     algorithm: Algorithm,
@@ -167,7 +167,7 @@ impl Controller {
         FragmentConstants {
             flags,
             viewport_translate: self.viewport_translate.as_vec2(),
-            viewport_zoom: self.viewport_zoom as f32,
+            viewport_zoom: self.viewport_zoom.into(),
             size: self.size.into(),
             buffer_size: self.cache_size.into(),
             algorithm: self.algorithm,
@@ -199,7 +199,7 @@ impl Controller {
     pub(crate) fn update_zoom_factor(&mut self, new_zoom: f64) {
         // Auto-update perturbation, if appropriate
         if !self.force_perturb {
-            let zooming_in = new_zoom > self.viewport_zoom;
+            let zooming_in = new_zoom > self.viewport_zoom.0;
             if !self.perturbation_mode
                 && zooming_in
                 && new_zoom > MAX_ZOOM_STANDARD
@@ -211,7 +211,7 @@ impl Controller {
             }
         }
         // Apply the limits
-        self.viewport_zoom = self.apply_zoom_limits(new_zoom);
+        self.viewport_zoom.0 = self.apply_zoom_limits(new_zoom);
     }
 }
 
@@ -401,7 +401,7 @@ impl ControllerTrait for Controller {
                 BigVec2::try_from((prev_position - self.mouse_position) / f64::from(self.size.y))
                     .unwrap()
                     .with_precision(BIGNUM_PRECISION_LIMIT);
-            self.viewport_translate += delta * self.modifier_key_factor() / self.viewport_zoom;
+            self.viewport_translate += delta * self.modifier_key_factor() / self.viewport_zoom.0;
             self.reiterate = true;
         }
     }
@@ -414,8 +414,8 @@ impl ControllerTrait for Controller {
         let motion = delta.y * 0.1 * self.modifier_key_factor();
         let position = self.mouse_position;
         let size = self.size.as_dvec2();
-        let prev_zoom = self.viewport_zoom;
-        let zoom = self.viewport_zoom;
+        let prev_zoom = self.viewport_zoom.0;
+        let zoom = self.viewport_zoom.0;
         let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / zoom / size.y;
         self.update_zoom_factor(prev_zoom * (1.0 + motion));
         let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / zoom / size.y;
@@ -453,14 +453,14 @@ impl ControllerTrait for Controller {
 impl Controller {
     pub(crate) fn pixel_complex_size(&self) -> f64 {
         // This must be the same calculation that the shader uses.
-        FragmentConstants::pixel_spacing_f64(self.size.y, self.viewport_zoom)
+        FragmentConstants::pixel_spacing_f64(self.size.y, self.viewport_zoom.0)
     }
 
     #[allow(clippy::missing_panics_doc)]
     fn pixel_address_to_complex(&self, p: DVec2) -> BigVec2 {
         let size = self.size.as_dvec2();
         BigVec2::try_from(
-            (p - 0.5 * size) * dvec2(size.x / size.y, 1.0) / self.viewport_zoom / size,
+            (p - 0.5 * size) * dvec2(size.x / size.y, 1.0) / self.viewport_zoom.0 / size,
         )
         .unwrap()
             + &self.viewport_translate
@@ -469,7 +469,7 @@ impl Controller {
     fn complex_point_to_pixel(&self, p: &BigVec2) -> DVec2 {
         let size = self.size.as_dvec2();
         (p.clone() - &self.viewport_translate).as_dvec2() / dvec2(size.x / size.y, 1.0)
-            * self.viewport_zoom
+            * self.viewport_zoom.0
             * size
             + 0.5 * size
     }
@@ -479,4 +479,53 @@ impl Controller {
 struct PerturbationReference {
     buffer: Option<wgpu::Buffer>,
     points: Vec<Vec2>,
+}
+
+/// Newtype to centralise the display formatting logic
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub(crate) struct ViewportZoom(f64);
+
+impl ViewportZoom {
+    const INITIAL_ZOOM: f64 = 4.0 / (FragmentConstants::DEFAULT_SIZE.y as f64);
+
+    /// Relate the current axis size to the nominal initial size to get a more
+    /// intuitive zoom readout.
+    pub(crate) fn display_string(self, y_axis_pixel_count: u32) -> String {
+        /*
+        let pixel_size = FragmentConstants::pixel_spacing_f64(y_axis_pixel_count, self.0);
+        // = 1.0 / (pixel count * vp_zoom)
+
+        let zoom = Self::INITIAL_ZOOM / pixel_size;
+        // = InitialZoom * pixel_size_inv
+        */
+        let zoom = Self::INITIAL_ZOOM
+            * FragmentConstants::pixel_spacing_f64_inv(y_axis_pixel_count, self.0);
+        if zoom < 1_000_000. {
+            format!("{:.p$}", zoom, p = Self::zoom_precision(zoom))
+        } else {
+            format!("{zoom:.3e}")
+        }
+    }
+
+    /// Precision digits for a zoom factor
+    pub(crate) fn zoom_precision(v: f64) -> usize {
+        match v {
+            v if v < 10.0 => 3,
+            v if v < 1000.0 => 2,
+            v if v < 10000.0 => 1,
+            _ => 0,
+        }
+    }
+}
+
+impl From<ViewportZoom> for f32 {
+    #[allow(clippy::cast_possible_truncation)]
+    fn from(value: ViewportZoom) -> Self {
+        value.0 as f32
+    }
+}
+impl From<f32> for ViewportZoom {
+    fn from(value: f32) -> Self {
+        Self(value.into())
+    }
 }

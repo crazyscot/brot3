@@ -64,8 +64,6 @@ impl FragmentConstants {
     pub const DEFAULT_MAX_ITER: u32 = 250;
     pub const DEFAULT_SIZE: UVec2 = uvec2(800, 600);
     pub const DEFAULT_ZOOM: f32 = 0.25;
-    /// Conversion factor applied to `viewport_zoom` whenever it's presented to a human
-    pub const UI_ZOOM_FACTOR: f32 = 4.0;
 }
 
 impl Default for FragmentConstants {
@@ -117,8 +115,14 @@ impl FragmentConstants {
 
     #[cfg(not(target_arch = "spirv"))]
     #[must_use]
+    pub fn pixel_spacing_f64_inv(height: u32, zoom: f64) -> f64 {
+        f64::from(height) * zoom
+    }
+
+    #[cfg(not(target_arch = "spirv"))]
+    #[must_use]
     pub fn pixel_spacing_f64(height: u32, zoom: f64) -> f64 {
-        1.0 / (f64::from(height) * zoom)
+        1.0 / Self::pixel_spacing_f64_inv(height, zoom)
     }
 
     #[must_use]
@@ -134,7 +138,7 @@ impl FragmentConstants {
             alg = self.algorithm,
             x = self.viewport_translate.x,
             y = self.viewport_translate.y,
-            zoom = (1.0 / self.viewport_zoom) / Self::UI_ZOOM_FACTOR,
+            zoom = self.viewport_zoom,
             max_iter = self.max_iter,
             exp = match self.exponent.typ {
                 NumericType::Integer => self.exponent.int.to_string(),

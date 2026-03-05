@@ -2,7 +2,6 @@
 // (c) 2025 Ross Younger
 
 use easy_shader_runner::egui;
-use shader::push_constants::FragmentConstants;
 use util::dynfmt;
 
 #[allow(
@@ -20,17 +19,6 @@ impl super::Controller {
     fn precision_digits(&self) -> usize {
         let pixel_size = self.pixel_complex_size();
         ((0.0 - pixel_size.log10()).ceil() + 2.0) as usize
-    }
-
-    /// Precision digits for a zoom factor
-    fn zoom_precision(v: f64) -> usize {
-        if v < 10.0 {
-            3
-        } else if v < 1000.0 {
-            2
-        } else {
-            usize::from(v < 10000.0)
-        }
     }
 
     pub(crate) fn coords_window(&mut self, ctx: &egui::Context) {
@@ -66,15 +54,7 @@ impl super::Controller {
                     ));
                     ui.end_row();
                     ui.label("Zoom");
-                    let zoom = self.viewport_zoom * f64::from(FragmentConstants::UI_ZOOM_FACTOR);
-                    let zoom_str = {
-                        if zoom < 1_000_000. {
-                            format!("{zoom:.p$}", p = Self::zoom_precision(zoom))
-                        } else {
-                            format!("{zoom:.3e}")
-                        }
-                    };
-                    ui.monospace(zoom_str);
+                    ui.monospace(self.viewport_zoom.display_string(self.size.y));
                     ui.end_row();
 
                     ui.label("Mode");

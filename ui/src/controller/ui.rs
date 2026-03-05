@@ -111,16 +111,16 @@ impl super::Controller {
             assert!(raw_zoom >= 1.0);
             let dfactor = (raw_zoom - 1.0) * factor * dt + 1.0;
             let new_zoom = if zoom_in {
-                self.viewport_zoom * dfactor
+                self.viewport_zoom.0 * dfactor
             } else {
-                self.viewport_zoom / dfactor
+                self.viewport_zoom.0 / dfactor
             };
             self.update_zoom_factor(new_zoom);
             self.reiterate = true;
         }
         let movement = &mut self.movement;
         if movement.translate != DVec2::ZERO {
-            self.viewport_translate += movement.translate * factor / self.viewport_zoom * dt;
+            self.viewport_translate += movement.translate * factor / self.viewport_zoom.0 * dt;
             self.reiterate = true;
         }
         if movement.exponent != 0. {
