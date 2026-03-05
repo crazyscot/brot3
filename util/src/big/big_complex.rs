@@ -20,7 +20,7 @@ use crate::BigVec2;
 /// let b = a.clone() - a; // these are bignums, they do not support Copy
 /// assert_eq!(b, BigComplex::ZERO);
 /// ```
-#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Default, Serialize, Deserialize)]
 
 pub struct BigComplex(pub BigVec2);
 
@@ -34,6 +34,27 @@ macro_rules! make_bigcomplex {
     ($x: expr, $y: expr) => {
         $crate::BigComplex::try_new($x, $y).unwrap()
     };
+}
+
+/// Creates a [`BigComplex`] from a pair of decimal strings with full precision.
+/// Intended for testing.
+///
+/// ```
+/// # use util::make_bigcomplex_str;
+/// let z = make_bigcomplex_str!("1.25", "-3.5");
+/// assert_eq!(z.x.to_f64().value(), 1.25);
+/// assert_eq!(z.y.to_f64().value(), -3.5);
+/// ```
+///
+/// # Panics
+/// If parsing fails or numeric conversion failed
+#[macro_export]
+macro_rules! make_bigcomplex_str {
+    ($x: expr, $y: expr) => {{
+        let x = $crate::fbig_from_str($x);
+        let y = $crate::fbig_from_str($y);
+        $crate::BigComplex::new(x, y)
+    }};
 }
 
 impl BigComplex {
@@ -162,6 +183,33 @@ impl From<BigVec2> for BigComplex {
     }
 }
 
+impl std::fmt::Debug for BigComplex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self, f)
+    }
+}
+
+impl std::fmt::Display for BigComplex {
+    /// Displays the complex number in `a + bi` notation using decimal representation.
+    ///
+    /// ```
+    /// # use util::make_bigcomplex;
+    /// let z = make_bigcomplex!(1.25, -3.5);
+    /// assert_eq!(z.to_string(), "1.25 - 3.5i");
+    /// let z2 = make_bigcomplex!(1.25, 3.5);
+    /// assert_eq!(z2.to_string(), "1.25 + 3.5i");
+    /// ```
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use dashu::base::Sign;
+        let re = self.x.to_decimal().value();
+        let im = self.y.to_decimal().value();
+        match self.y.sign() {
+            Sign::Negative => write!(f, "{re} - {}i", -im),
+            Sign::Positive => write!(f, "{re} + {im}i"),
+        }
+    }
+}
+
 impl Add for BigComplex {
     type Output = Self;
 
@@ -274,8 +322,9 @@ mod tests {
 
     #[test]
     fn serialise() {
-        let z = make_bigcomplex!(1.25, -3.5);
+        let z = make_bigcomplex_str!("-1.378186747593672212", "-0.0177134138869923");
         let json = serde_json::to_string(&z).expect("serialization failed");
+        println!("z: {z}");
         println!("JSON: {json}");
         let z2: BigComplex = serde_json::from_str(&json).expect("deserialization failed");
         assert_eq!(z, z2);

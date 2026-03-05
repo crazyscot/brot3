@@ -1,10 +1,27 @@
 //! Arbitrary precision version of [`Vec2`], powered by `dashu::float::FBig`
 
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::{
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+    str::FromStr,
+};
 
-use dashu::float::FBig;
+use dashu::float::{DBig, FBig, round::mode::Zero};
 use glam::{DVec2, UVec2, Vec2};
 use serde::{Deserialize, Serialize};
+
+/// Parse a decimal string into an arbitrary-precision [`FBig`].
+/// Preserves all significant digits in the string.
+///
+/// # Panics
+/// If the string is not a valid decimal number.
+#[must_use]
+pub fn fbig_from_str(s: &str) -> FBig {
+    DBig::from_str(s)
+        .expect("failed to parse decimal string")
+        .with_base::<2>()
+        .value()
+        .with_rounding::<Zero>()
+}
 
 /// Serde helper: serialises [`FBig`] as `(significand, exponent)` where `significand` is a
 /// decimal integer string and `exponent` is the binary exponent (`value = sig * 2^exp`).
@@ -49,6 +66,27 @@ macro_rules! make_bigvec2 {
     ($x: expr, $y: expr) => {
         BigVec2::try_new($x, $y).unwrap()
     };
+}
+
+/// Creates a [`BigVec2`] from a pair of decimal strings with full precision.
+/// Intended for testing.
+///
+/// ```
+/// # use util::make_bigvec2_str;
+/// let v = make_bigvec2_str!("1.25", "-3.5");
+/// assert_eq!(v.x.to_f64().value(), 1.25);
+/// assert_eq!(v.y.to_f64().value(), -3.5);
+/// ```
+///
+/// # Panics
+/// If parsing fails or numeric conversion failed
+#[macro_export]
+macro_rules! make_bigvec2_str {
+    ($x: expr, $y: expr) => {{
+        let x = $crate::fbig_from_str($x);
+        let y = $crate::fbig_from_str($y);
+        $crate::BigVec2::new(x, y)
+    }};
 }
 impl BigVec2 {
     #[allow(missing_docs)]

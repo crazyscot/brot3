@@ -10,7 +10,10 @@ mod dprintln;
 #[cfg(not(target_arch = "spirv"))]
 mod big;
 #[cfg(not(target_arch = "spirv"))]
-pub use big::{big_complex::BigComplex, big_vec2::BigVec2};
+pub use big::{
+    big_complex::BigComplex,
+    big_vec2::{BigVec2, fbig_from_str},
+};
 
 #[cfg(not(target_arch = "spirv"))]
 mod dynfmt;
