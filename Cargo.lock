@@ -4022,6 +4022,9 @@ version = "3.3.0"
 dependencies = [
  "assert_matches",
  "bytemuck",
+ "dashu",
+ "dashu-float",
+ "glam",
  "num-traits",
  "pretty_assertions",
  "serde",

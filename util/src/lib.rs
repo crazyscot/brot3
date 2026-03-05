@@ -8,6 +8,11 @@
 mod dprintln;
 
 #[cfg(not(target_arch = "spirv"))]
+mod big;
+#[cfg(not(target_arch = "spirv"))]
+pub use big::{big_complex::BigComplex, big_vec2::BigVec2};
+
+#[cfg(not(target_arch = "spirv"))]
 mod dynfmt;
 #[cfg(not(target_arch = "spirv"))]
 pub use dynfmt::dynamic_format;

@@ -7,12 +7,12 @@ use std::sync::{Arc, Mutex};
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 use shader::{
-    BigVec2, FragmentConstants, Palette,
+    FragmentConstants, Palette,
     data::PointResult,
     enums::Algorithm,
     push_constants::{Flags, flag_if},
 };
-use util::PushExponent;
+use util::{BigVec2, PushExponent};
 use web_time::Instant;
 use winit::{
     dpi::PhysicalSize,

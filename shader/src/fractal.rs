@@ -419,7 +419,7 @@ fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmMo
 ///
 /// TODO: Someday, deduplicate this with `mandelbrot_family_pre_modify_point_inner`?
 pub fn mandelbrot_family_pre_modify_point_inner_big(
-    z: &mut crate::BigComplex,
+    z: &mut util::BigComplex,
     params: AlgorithmModifiers,
 ) {
     use dashu::base::Abs;
@@ -529,14 +529,13 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
 #[allow(clippy::missing_panics_doc, reason = "it's a const conversion")]
 pub fn mandelbrot_perturbed_compute_reference_iters(
     points: &mut Vec<Vec2>,
-    centre: &crate::BigVec2,
+    centre: &util::BigVec2,
     algorithm: Algorithm,
     max_iter: u32,
 ) {
     use dashu::base::Sign;
     use dashu_float::{FBig, round::mode as RoundingMode};
-
-    use crate::BigComplex;
+    use util::BigComplex;
 
     points.clear();
     let modifiers = AlgorithmModifiers::from(algorithm);
@@ -581,10 +580,11 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
 mod tests {
     use const_default::ConstDefault as _;
     use pretty_assertions::assert_eq;
+    use util::BigVec2;
 
     use super::Flags;
     use crate::{
-        BigVec2, FragmentConstants, Palette, Size, Vec2,
+        FragmentConstants, Palette, Size, Vec2,
         enums::Algorithm,
         fractal::{self, BoundaryClass},
         push_constants::{NumericType, PushExponent},

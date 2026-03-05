@@ -20,6 +20,10 @@ num-traits.workspace = true
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+dashu = { workspace = true }
+dashu-float = { workspace = true }
+glam = { workspace = true, features = ["std", "bytemuck"] }
+num-traits = { workspace = true }
 
 [dev-dependencies]
 assert_matches = "1.5.0"
