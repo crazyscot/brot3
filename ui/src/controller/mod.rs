@@ -415,10 +415,10 @@ impl ControllerTrait for Controller {
         let position = self.mouse_position;
         let size = self.size.as_dvec2();
         let prev_zoom = self.viewport_zoom.0;
-        let zoom = self.viewport_zoom.0;
-        let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / zoom / size.y;
+        let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / prev_zoom / size.y;
         self.update_zoom_factor(prev_zoom * (1.0 + motion));
-        let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / zoom / size.y;
+        let new_zoom = self.viewport_zoom.0;
+        let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / new_zoom / size.y;
         self.viewport_translate += &(mouse_pos0 - &mouse_pos1);
         self.reiterate = true;
     }
