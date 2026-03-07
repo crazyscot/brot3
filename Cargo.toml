@@ -32,7 +32,7 @@ document-features = "0.2.12"
 egui_extras = "0.33"
 flate2 = "1.1.9"
 float_eq = { version = "1.0.1", default-features = false }
-glam = { version = "0.31.1", default-features = false }
+glam = { version = "0.32.1", default-features = false }
 image = { version = "0.25.9", default-features = false }
 log = "0.4.29"
 mimalloc = "0.1.48"
@@ -56,8 +56,9 @@ git = "https://github.com/Rust-GPU/rust-gpu"
 rev = "b3eda4df9814b6176d3c0844eb67f70a22ebb378"
 
 [patch.'https://github.com/Rust-GPU/rust-gpu']
-# TEMP: abels-complex 0.4.1 forces glam 0.31; rust-gpu currently requires glam >=0.30.8
-glam = { version = "0.31.1" }
+# TEMP: abels-complex 0.5 forces glam 0.32; rust-gpu currently requires glam >=0.30.8
+# N.B. easy-shader-runner also uses glam
+glam = { version = "0.32.1" }
 
 [workspace.dependencies.spirv-builder]
 git = "https://github.com/Rust-GPU/rust-gpu"
@@ -67,7 +68,7 @@ rev = "b3eda4df9814b6176d3c0844eb67f70a22ebb378"
 # path = "../easy-shader-runner/easy-shader-runner" # Used when working on e-s-r
 default-features = false
 git = "https://github.com/crazyscot/easy-shader-runner"
-rev = "3afc6a6b4b5480e790be341241f0039ab2a6afb5"
+rev = "318d9087427c54d7385da13fe01173fca85089fb"
 
 [workspace.lints.rust]
 dead_code = "warn"
