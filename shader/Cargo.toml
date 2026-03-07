@@ -48,7 +48,7 @@ clap = { workspace = true, features = ["derive"] }
 num-derive = "0.4.2"
 num-traits = { workspace = true }
 serde = { workspace = true }
-strum = { version = "0.27.2", default-features = false, features = ["derive"] }
+strum = { version = "0.28.0", default-features = false, features = ["derive"] }
 
 [lints]
 workspace = true
