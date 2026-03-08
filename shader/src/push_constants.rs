@@ -108,26 +108,9 @@ pub fn flag_if(condition: bool, flag: Flags) -> Flags {
 
 impl FragmentConstants {
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
-    pub fn pixel_spacing_f32(height: u32, zoom: f32) -> f32 {
-        1.0 / (height as f32 * zoom)
-    }
-
-    #[cfg(not(target_arch = "spirv"))]
-    #[must_use]
-    pub fn pixel_spacing_f64_inv(height: u32, zoom: f64) -> f64 {
-        f64::from(height) * zoom
-    }
-
-    #[cfg(not(target_arch = "spirv"))]
-    #[must_use]
-    pub fn pixel_spacing_f64(height: u32, zoom: f64) -> f64 {
-        1.0 / Self::pixel_spacing_f64_inv(height, zoom)
-    }
-
-    #[must_use]
     pub fn pixel_spacing(&self) -> f32 {
-        Self::pixel_spacing_f32(self.size.height, self.viewport_zoom)
+        use crate::PixelSpacing as _;
+        self.viewport_zoom.pixel_spacing(self.size.height)
     }
 
     #[cfg(not(target_arch = "spirv"))]
@@ -239,7 +222,7 @@ mod tests {
     use float_eq::assert_float_eq;
 
     use super::{Flags, flag_if};
-    use crate::{ColourStyle, FragmentConstants, Palette};
+    use crate::{ColourStyle, Palette};
 
     #[test]
     fn flags_if() {
@@ -252,9 +235,11 @@ mod tests {
 
     #[test]
     fn pixel_spacing() {
+        use crate::PixelSpacing as _;
+
         assert_float_eq!(
-            f64::from(FragmentConstants::pixel_spacing_f32(1920, 12345.0)),
-            FragmentConstants::pixel_spacing_f64(1920, 12345.0),
+            12345.0f64.pixel_spacing(1920),
+            12345.0f32.pixel_spacing(1920).into(),
             abs <= 0.00001
         );
     }

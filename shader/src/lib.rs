@@ -23,6 +23,7 @@ pub mod enums;
 pub mod exponentiation;
 pub mod fractal;
 pub mod grid;
+mod pixels;
 pub mod push_constants;
 mod size;
 
@@ -30,6 +31,7 @@ use colourspace::RgbVec;
 use data::PointResult;
 pub use enums::{Algorithm, ColourStyle, Colourer};
 use grid::{GridRef, GridRefMut, GridShared};
+pub use pixels::PixelSpacing;
 use push_constants::Flags;
 pub use push_constants::{FragmentConstants, INSPECTOR_MARKER_SIZE, Palette};
 pub use size::Size;

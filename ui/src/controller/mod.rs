@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 use shader::{
-    FragmentConstants, Palette,
+    FragmentConstants, Palette, PixelSpacing,
     data::PointResult,
     enums::Algorithm,
     push_constants::{Flags, flag_if},
@@ -452,8 +452,9 @@ impl ControllerTrait for Controller {
 
 impl Controller {
     pub(crate) fn pixel_complex_size(&self) -> f64 {
+        use shader::PixelSpacing as _;
         // This must be the same calculation that the shader uses.
-        FragmentConstants::pixel_spacing_f64(self.size.y, self.viewport_zoom.0)
+        self.viewport_zoom.0.pixel_spacing(self.size.y)
     }
 
     #[allow(clippy::missing_panics_doc)]
@@ -498,8 +499,7 @@ impl ViewportZoom {
         let zoom = Self::INITIAL_ZOOM / pixel_size;
         // = InitialZoom * pixel_size_inv
         */
-        let zoom = Self::INITIAL_ZOOM
-            * FragmentConstants::pixel_spacing_f64_inv(y_axis_pixel_count, self.0);
+        let zoom = Self::INITIAL_ZOOM * self.0.pixel_spacing_inv(y_axis_pixel_count);
         if zoom < 1_000_000. {
             format!("{:.p$}", zoom, p = Self::zoom_precision(zoom))
         } else {

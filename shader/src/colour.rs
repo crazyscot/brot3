@@ -274,7 +274,7 @@ mod tests {
 
     use super::{PointResult, RgbVec};
     use crate::{
-        FragmentConstants, Palette, Vec3,
+        FragmentConstants, Palette, PixelSpacing as _, Vec3,
         enums::{Algorithm, Colourer, Modifier},
     };
 
@@ -357,8 +357,7 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 0.83;
-        let pixel_size =
-            FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
+        let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = vec2(-0.707_752, -0.353_065_3);
         let data =
             crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
@@ -384,8 +383,7 @@ mod tests {
 
         // Origin (0,0), zoom 30 => the viewport is filled by the cardioid
         consts.viewport_zoom = 30.0;
-        let pixel_size =
-            FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
+        let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = Vec2::splat(0.1);
         let data =
             crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
@@ -410,8 +408,7 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 4.0;
-        let pixel_size =
-            FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
+        let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = vec2(-0.8789, -0.23563);
         let data =
             crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
@@ -436,8 +433,7 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 1.29;
-        let pixel_size =
-            FragmentConstants::pixel_spacing_f32(consts.size.height, consts.viewport_zoom);
+        let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = vec2(0.17388, 0.80085);
         let data =
             crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
