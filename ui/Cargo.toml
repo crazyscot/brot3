@@ -46,7 +46,6 @@ rfd = { workspace = true }
 shader = { workspace = true }
 strum = { workspace = true, features = ["std"] }
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
-util = { workspace = true }
 web-time = { workspace = true }
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]

@@ -1,5 +1,5 @@
 [workspace]
-members = ["base", "shader", "shader_builder", "ui", "util", "xtask"]
+members = ["base", "shader", "shader_builder", "ui", "xtask"]
 resolver = "2"
 
 [workspace.package]
@@ -49,7 +49,6 @@ serde_json = "1.0.134"
 shader = { path = "shader" }
 strum = { version = "0.28.0", default-features = false }
 tokio = "1.50.0"
-util = { path = "util" }
 web-time = "1.1.0"
 
 [workspace.dependencies.spirv-std]
