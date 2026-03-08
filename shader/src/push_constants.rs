@@ -5,7 +5,7 @@
 pub(crate) use base::{NumericType, PushExponent};
 use bytemuck::{NoUninit, Pod, Zeroable};
 use const_default::ConstDefault;
-use spirv_std::glam::{UVec2, Vec2, uvec2};
+use spirv_std::glam::Vec2;
 
 use crate::{
     ColourStyle, Colourer, Size,
@@ -55,11 +55,11 @@ const _: () = {
 #[allow(missing_docs)]
 impl FragmentConstants {
     pub const DEFAULT_MAX_ITER: u32 = 250;
-    pub const DEFAULT_SIZE: UVec2 = uvec2(800, 600);
     pub const DEFAULT_ZOOM: f32 = 0.25;
 }
 
 impl Default for FragmentConstants {
+    /// Caution: The default implementation sets both `size` and `buffer_size` to (0,0).
     fn default() -> Self {
         #[cfg(not(target_arch = "spirv"))]
         compile_time_checks();
@@ -67,8 +67,8 @@ impl Default for FragmentConstants {
             flags: Flags::default(),
             viewport_translate: Vec2::ZERO,
             viewport_zoom: Self::DEFAULT_ZOOM,
-            size: Self::DEFAULT_SIZE.into(),
-            buffer_size: Self::DEFAULT_SIZE.into(),
+            size: Size::new(0, 0),
+            buffer_size: Size::new(0, 0),
             max_iter: Self::DEFAULT_MAX_ITER,
             algorithm: Algorithm::default(),
             exponent: PushExponent::default(),

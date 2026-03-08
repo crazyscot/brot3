@@ -271,7 +271,7 @@ mod tests {
     use base::PixelSpacing as _;
     use const_default::ConstDefault;
     use float_eq::float_eq;
-    use glam::Vec2;
+    use glam::{Vec2, uvec2, vec2};
     use strum::IntoEnumIterator;
 
     use super::{PointResult, RgbVec};
@@ -347,7 +347,6 @@ mod tests {
 
     #[test]
     fn filaments() {
-        use spirv_std::glam::{uvec2, vec2};
         let mut consts = FragmentConstants {
             max_iter: 200,
             palette: Palette::default()
@@ -372,7 +371,6 @@ mod tests {
 
     #[test]
     fn filaments2() {
-        use spirv_std::glam::{Vec2, uvec2};
         let mut consts = FragmentConstants {
             max_iter: 200,
             palette: Palette::default()
@@ -398,7 +396,6 @@ mod tests {
 
     #[test]
     fn filaments3() {
-        use spirv_std::glam::{uvec2, vec2};
         let mut consts = FragmentConstants {
             max_iter: 200,
             palette: Palette::default()
@@ -423,7 +420,6 @@ mod tests {
 
     #[test]
     fn radius() {
-        use spirv_std::glam::{uvec2, vec2};
         let mut consts = FragmentConstants {
             max_iter: 200,
             palette: Palette::default()
