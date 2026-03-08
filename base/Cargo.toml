@@ -13,6 +13,7 @@ description = "Shared definitions and support code for brot3 (separate crate for
 [dependencies]
 bytemuck = { workspace = true, features = ["derive"] }
 const-default = { workspace = true }
+float_eq.workspace = true
 num-traits.workspace = true
 
 [target.'cfg(target_arch = "spirv")'.dependencies]

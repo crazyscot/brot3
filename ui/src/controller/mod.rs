@@ -4,7 +4,7 @@
 
 use std::sync::{Arc, Mutex};
 
-use base::{BigVec2, PixelSpacing as _, PushExponent, enums::Algorithm};
+use base::{BigVec2, PixelSpacing as _, PushExponent, enums::Algorithm, ui::ViewportZoom};
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 use shader::{
@@ -103,6 +103,8 @@ struct Inspector {
 }
 
 impl Controller {
+    pub(crate) const DEFAULT_FRACTAL_PLANE_SIZE: f64 = 4.0;
+
     #[allow(clippy::missing_panics_doc)]
     pub(crate) fn new(options: &Args) -> Self {
         Self {
@@ -477,52 +479,4 @@ impl Controller {
 struct PerturbationReference {
     buffer: Option<wgpu::Buffer>,
     points: Vec<Vec2>,
-}
-
-/// Newtype to centralise the display formatting logic
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub(crate) struct ViewportZoom(f64);
-
-impl ViewportZoom {
-    const INITIAL_ZOOM: f64 = 4.0 / (FragmentConstants::DEFAULT_SIZE.y as f64);
-
-    /// Relate the current axis size to the nominal initial size to get a more
-    /// intuitive zoom readout.
-    pub(crate) fn display_string(self, y_axis_pixel_count: u32) -> String {
-        /*
-        let pixel_size = FragmentConstants::pixel_spacing_f64(y_axis_pixel_count, self.0);
-        // = 1.0 / (pixel count * vp_zoom)
-
-        let zoom = Self::INITIAL_ZOOM / pixel_size;
-        // = InitialZoom * pixel_size_inv
-        */
-        let zoom = Self::INITIAL_ZOOM * self.0.pixel_spacing_inv(y_axis_pixel_count);
-        if zoom < 1_000_000. {
-            format!("{:.p$}", zoom, p = Self::zoom_precision(zoom))
-        } else {
-            format!("{zoom:.3e}")
-        }
-    }
-
-    /// Precision digits for a zoom factor
-    pub(crate) fn zoom_precision(v: f64) -> usize {
-        match v {
-            v if v < 10.0 => 3,
-            v if v < 1000.0 => 2,
-            v if v < 10000.0 => 1,
-            _ => 0,
-        }
-    }
-}
-
-impl From<ViewportZoom> for f32 {
-    #[allow(clippy::cast_possible_truncation)]
-    fn from(value: ViewportZoom) -> Self {
-        value.0 as f32
-    }
-}
-impl From<f32> for ViewportZoom {
-    fn from(value: f32) -> Self {
-        Self(value.into())
-    }
 }

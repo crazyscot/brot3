@@ -12,6 +12,12 @@ mod push_exponent;
 
 pub use push_exponent::{NumericType, PushExponent};
 
+macro_rules! float_near {
+    ($a:expr, $b:expr) => {
+        float_eq::float_eq!($a, $b, ulps <= 4, abs <= 1e-10)
+    };
+}
+
 #[cfg(not(target_arch = "spirv"))]
 mod big;
 #[cfg(not(target_arch = "spirv"))]

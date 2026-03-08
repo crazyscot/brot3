@@ -3,6 +3,7 @@
 
 use base::dynfmt;
 use easy_shader_runner::egui;
+use shader::push_constants::FragmentConstants;
 
 #[allow(
     unused_results,
@@ -54,7 +55,11 @@ impl super::Controller {
                     ));
                     ui.end_row();
                     ui.label("Zoom");
-                    ui.monospace(self.viewport_zoom.display_string(self.size.y));
+                    ui.monospace(self.viewport_zoom.display_string(
+                        Self::DEFAULT_FRACTAL_PLANE_SIZE,
+                        FragmentConstants::DEFAULT_SIZE.y,
+                        self.size.y,
+                    ));
                     ui.end_row();
 
                     ui.label("Mode");

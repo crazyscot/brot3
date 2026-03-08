@@ -235,6 +235,7 @@ dependencies = [
  "const-default",
  "dashu",
  "dashu-float",
+ "float_eq",
  "glam",
  "num-derive",
  "num-traits",

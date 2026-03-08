@@ -5,6 +5,8 @@
 
 mod dynfmt;
 mod exponent;
+mod zoom;
 
 pub use dynfmt::dynamic_format;
 pub use exponent::Exponent;
+pub use zoom::ViewportZoom;
