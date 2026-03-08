@@ -3,7 +3,7 @@
 
 use easy_shader_runner::egui;
 use num_traits::AsPrimitive;
-use shader::{Algorithm, ColourStyle, Colourer, enums::Modifier};
+use shader::enums::{Algorithm, ColourStyle, Colourer, Modifier};
 use util::NumericType;
 
 use crate::controller::MAX_MAX_ITERATIONS;
@@ -192,7 +192,7 @@ impl super::Controller {
                         macro_rules! palette_slider {
                             ($($id:ident), * ) => {
                                 $(
-                                    ui.add(egui::Slider::new(&mut self.palette.$id, shader::Palette::MINIMA.$id ..= shader::Palette::MAXIMA.$id));
+                                    ui.add(egui::Slider::new(&mut self.palette.$id, shader::push_constants::Palette::MINIMA.$id ..= shader::push_constants::Palette::MAXIMA.$id));
                                 )*
                             };
                         }

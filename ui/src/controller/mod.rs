@@ -7,10 +7,9 @@ use std::sync::{Arc, Mutex};
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 use shader::{
-    FragmentConstants, Palette, PixelSpacing,
     data::PointResult,
     enums::Algorithm,
-    push_constants::{Flags, flag_if},
+    push_constants::{Flags, FragmentConstants, Palette},
 };
 use util::{BigVec2, PushExponent};
 use web_time::Instant;
@@ -160,10 +159,10 @@ impl Controller {
 
     #[allow(clippy::cast_possible_truncation)]
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
-        let flags = flag_if(reiterate || self.always_reiterate, Flags::NEEDS_REITERATE)
-            | flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
-            | flag_if(self.perturbation_mode, Flags::PERTURBATION_MODE)
-            | flag_if(self.iteration_cull, Flags::ITERATION_CULL);
+        let flags = Flags::flag_if(reiterate || self.always_reiterate, Flags::NEEDS_REITERATE)
+            | Flags::flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
+            | Flags::flag_if(self.perturbation_mode, Flags::PERTURBATION_MODE)
+            | Flags::flag_if(self.iteration_cull, Flags::ITERATION_CULL);
         FragmentConstants {
             flags,
             viewport_translate: self.viewport_translate.as_vec2(),
@@ -492,6 +491,7 @@ impl ViewportZoom {
     /// Relate the current axis size to the nominal initial size to get a more
     /// intuitive zoom readout.
     pub(crate) fn display_string(self, y_axis_pixel_count: u32) -> String {
+        use shader::PixelSpacing as _;
         /*
         let pixel_size = FragmentConstants::pixel_spacing_f64(y_axis_pixel_count, self.0);
         // = 1.0 / (pixel count * vp_zoom)

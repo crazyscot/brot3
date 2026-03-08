@@ -12,18 +12,11 @@ use crate::{
     enums::{Algorithm, Modifier},
 };
 
-/// Size of the inspector marker diamond in pixels
-pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
-
-pub const ESCAPE_THRESHOLD: f32 = 10.0;
-pub const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
-pub const LOGLOG2_ESCAPE_THRESHOLD: f32 = 1.732_020_9;
-
 #[cfg(not(target_arch = "spirv"))]
 fn compile_time_checks() {
     build_assert::build_assert!(float_eq::float_eq!(
-        2.0f32.powf(2.0f32.powf(LOGLOG2_ESCAPE_THRESHOLD)),
-        ESCAPE_THRESHOLD,
+        2.0f32.powf(2.0f32.powf(crate::LOGLOG2_ESCAPE_THRESHOLD)),
+        crate::ESCAPE_THRESHOLD,
         abs <= 0.0001
     ));
 }
@@ -90,6 +83,7 @@ bitflags::bitflags! {
 #[derive(Copy, Clone, Debug, Default, Zeroable, Pod, PartialEq)]
 #[repr(transparent)]
 #[allow(missing_docs)]
+/// Flag bits for shader operation, packed into a u32 in the push constants
 pub struct Flags : u32 {
     const NEEDS_REITERATE = 1 << 0;
     const INSPECTOR_ACTIVE = 1 << 1;
@@ -100,10 +94,12 @@ pub struct Flags : u32 {
 }
 }
 
-/// Conditionally returns a flag value
-#[must_use]
-pub fn flag_if(condition: bool, flag: Flags) -> Flags {
-    if condition { flag } else { Flags::empty() }
+impl Flags {
+    /// Conditionally returns a flag value
+    #[must_use]
+    pub fn flag_if(condition: bool, flag: Flags) -> Flags {
+        if condition { flag } else { Flags::empty() }
+    }
 }
 
 impl FragmentConstants {
@@ -141,6 +137,7 @@ impl FragmentConstants {
     derive(serde::Serialize, serde::Deserialize)
 )]
 #[repr(C)]
+/// Colouring palette selection and parameters
 pub struct Palette {
     pub colourer: Colourer,
     pub colour_style: ColourStyle,
@@ -221,16 +218,18 @@ mod tests {
 
     use float_eq::assert_float_eq;
 
-    use super::{Flags, flag_if};
-    use crate::{ColourStyle, Palette};
+    use super::{ColourStyle, Flags, Palette};
 
     #[test]
     fn flags_if() {
         assert_eq!(
-            flag_if(true, Flags::NEEDS_REITERATE),
+            Flags::flag_if(true, Flags::NEEDS_REITERATE),
             Flags::NEEDS_REITERATE
         );
-        assert_eq!(flag_if(false, Flags::NEEDS_REITERATE), Flags::empty());
+        assert_eq!(
+            Flags::flag_if(false, Flags::NEEDS_REITERATE),
+            Flags::empty()
+        );
     }
 
     #[test]

@@ -1,17 +1,16 @@
 //! SPIR-V entrypoints
 
-use spirv_std::glam::Vec4Swizzles as _;
-pub use spirv_std::glam::{DVec2, UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec3, vec4};
-#[allow(unused_imports)] // Some are reused in some configurations
+#[allow(unused_imports)]
 use spirv_std::spirv;
 
 use crate::{
-    colour,
+    INSPECTOR_MARKER_SIZE, colour,
     colourspace::RgbVec,
     data::PointResult,
     fractal,
+    glam::{Vec2, Vec4, Vec4Swizzles as _, f32, vec2},
     grid::{GridRef, GridRefMut, GridShared},
-    push_constants::{Flags, FragmentConstants, INSPECTOR_MARKER_SIZE},
+    push_constants::{Flags, FragmentConstants},
 };
 
 fn new_york_distance(a: Vec2, b: Vec2) -> f32 {

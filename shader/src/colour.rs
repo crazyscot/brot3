@@ -20,13 +20,13 @@ use core::f32::consts::{E, PI, TAU};
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
-use super::{
+use crate::{
     FragmentConstants, PointResult, Vec3,
     colourspace::{Hsl, RgbVec},
     enums::Modifier,
+    fractal::BoundaryClass,
     vec3,
 };
-use crate::fractal::BoundaryClass;
 
 /// Computes the sine of all the members of a vector
 /// (syntactic sugar; glam 0.31 provides this directly)
@@ -41,6 +41,7 @@ fn vec_cos(vec: Vec3) -> Vec3 {
 }
 
 #[must_use]
+/// Computes the colour of a point based on the provided colouring algorithm and parameters.
 pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
     use super::enums::Colourer as C;
     let iters = data.iters(constants.palette.colour_style);
@@ -85,7 +86,7 @@ fn factor_for(input: f32, style: Modifier, _pixel_spacing: f32, data: &PointResu
         }
         Modifier::FinalAngle => data.angle() / TAU + 0.5,
         Modifier::FinalRadius => {
-            let factor = data.radius_sqr() / crate::fractal::ESCAPE_THRESHOLD_SQ;
+            let factor = data.radius_sqr() / crate::ESCAPE_THRESHOLD_SQ;
             deprintln!("rsqr {}, factor {factor}", data.radius_sqr());
             factor
         }

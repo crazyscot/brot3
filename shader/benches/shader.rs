@@ -9,15 +9,15 @@ use std::sync::LazyLock;
 
 use divan::black_box;
 use shader::{
-    Complex, FragmentConstants, Palette, Size, Vec2,
+    Complex, Size,
     colourspace::RgbVec,
     data::PointResult,
     enums::{Algorithm, Colourer},
     exponentiation::{
         ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower,
     },
-    push_constants::Flags,
-    vec2,
+    glam::{Vec2, vec2},
+    push_constants::{Flags, FragmentConstants, Palette},
 };
 use strum::VariantArray as _;
 use util::PushExponent;

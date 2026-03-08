@@ -6,7 +6,7 @@
 #[cfg(not(target_arch = "spirv"))]
 const DEBUG_FRACTAL: bool = false;
 
-pub(crate) use crate::push_constants::{ESCAPE_THRESHOLD_SQ, LOGLOG2_ESCAPE_THRESHOLD};
+use crate::{ESCAPE_THRESHOLD_SQ, LOGLOG2_ESCAPE_THRESHOLD};
 
 #[clippy::format_args]
 macro_rules! deprintln {

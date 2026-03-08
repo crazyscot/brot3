@@ -11,14 +11,15 @@
 // enable this unstable feature (used in tests):
 #![feature(assert_matches)]
 
-pub use spirv_std::glam::{DVec2, UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec3, vec4};
+use glam::{UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec3};
+pub use spirv_std::glam;
 #[allow(unused_imports)] // Some are reused in some configurations
 use spirv_std::spirv;
 
 pub mod colour;
 pub mod colourspace;
 pub mod data;
-pub mod entrypoints;
+mod entrypoints;
 pub mod enums;
 pub mod exponentiation;
 pub mod fractal;
@@ -28,13 +29,22 @@ pub mod push_constants;
 mod size;
 
 use data::PointResult;
-pub use enums::{Algorithm, ColourStyle, Colourer};
+use enums::{Algorithm, ColourStyle, Colourer};
 pub use pixels::PixelSpacing;
-pub use push_constants::{Flags, FragmentConstants, INSPECTOR_MARKER_SIZE, Palette};
+#[cfg(test)]
+use push_constants::Palette;
+use push_constants::{Flags, FragmentConstants};
 pub use size::Size;
 
 /// Complex type used throughout shader
 pub type Complex = abels_complex::Complex<f32>;
+
+/// Size of the inspector marker diamond in pixels
+pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
+
+pub const ESCAPE_THRESHOLD: f32 = 10.0;
+pub const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
+pub const LOGLOG2_ESCAPE_THRESHOLD: f32 = 1.732_020_9;
 
 /// SPIRV `fragment` entrypoint.
 /// This does the iteration and rendering work.
