@@ -116,7 +116,6 @@ impl PointResult {
 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
-#[allow(clippy::missing_panics_doc)]
 mod tests {
     use const_default::ConstDefault;
 

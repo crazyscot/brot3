@@ -526,7 +526,6 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
 ///
 /// The vector will be cleared and rewritten.
 #[cfg(not(target_arch = "spirv"))]
-#[allow(clippy::missing_panics_doc, reason = "it's a const conversion")]
 pub fn mandelbrot_perturbed_compute_reference_iters(
     points: &mut Vec<Vec2>,
     centre: &util::BigVec2,
@@ -646,7 +645,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::missing_panics_doc, clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_possible_truncation)]
     fn distance_estimator_boundary_classification() {
         let centre = vec2(-1.5, 0.0);
         let centre_big = BigVec2::try_new(centre.x, centre.y).unwrap();

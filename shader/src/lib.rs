@@ -118,7 +118,6 @@ pub fn main_vs(
 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
-#[allow(clippy::missing_panics_doc)]
 mod tests {
     use float_eq::assert_float_eq;
     use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, uvec2, vec2, vec4};

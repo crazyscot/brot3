@@ -266,7 +266,6 @@ fn icyblue(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hs
 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
-#[allow(clippy::missing_panics_doc)]
 mod tests {
     use const_default::ConstDefault;
     use float_eq::float_eq;

@@ -94,6 +94,7 @@ variant_size_differences = "deny"
 
 [workspace.lints.clippy]
 missing_errors_doc = "allow"
+missing_panics_doc = "allow"
 pedantic = { level = "deny", priority = -1 }
 
 # note: rust-cache turns off incremental builds, so we don't need a profile mod for CI.

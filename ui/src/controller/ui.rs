@@ -97,7 +97,7 @@ impl super::Controller {
         }
     }
 
-    #[allow(clippy::float_cmp, clippy::missing_panics_doc)]
+    #[allow(clippy::float_cmp)]
     fn apply_movement(&mut self) {
         let dt = self.last_instant.elapsed().as_secs_f64();
         self.last_instant = Instant::now();
@@ -173,7 +173,6 @@ impl super::Controller {
         }
     }
 
-    #[allow(clippy::missing_panics_doc)]
     fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {
         shader::fractal::mandelbrot_perturbed_compute_reference_iters(
             &mut self.perturbation.points,

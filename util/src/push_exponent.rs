@@ -86,7 +86,6 @@ impl PushExponent {
 
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
-#[allow(clippy::missing_panics_doc)] // I shouldn't need to write this here, but rust-analyzer is confused.
 mod tests {
     use assert_matches::assert_matches;
 

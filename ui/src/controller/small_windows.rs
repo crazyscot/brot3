@@ -107,7 +107,6 @@ impl super::Controller {
         }
     }
 
-    #[allow(clippy::missing_panics_doc)]
     pub(crate) fn save_image_ui(&mut self, _ctx: &egui::Context) -> Result<(), anyhow::Error> {
         self.show_save = false;
         if !*self
