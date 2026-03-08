@@ -1,9 +1,9 @@
 //! Controls window
 // (c) 2025 Ross Younger
 
+use base::enums::{Algorithm, ColourStyle, Colourer, Modifier};
 use easy_shader_runner::egui;
 use num_traits::AsPrimitive;
-use shader::enums::{Algorithm, ColourStyle, Colourer, Modifier};
 use util::NumericType;
 
 use crate::controller::MAX_MAX_ITERATIONS;

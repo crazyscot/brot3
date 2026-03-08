@@ -90,7 +90,7 @@ fn factor_for(input: f32, style: Modifier, _pixel_spacing: f32, data: &PointResu
             deprintln!("rsqr {}, factor {factor}", data.radius_sqr());
             factor
         }
-        _ => 1.0,
+        Modifier::Standard => 1.0,
     };
     factor * input
 }

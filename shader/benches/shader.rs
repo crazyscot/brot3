@@ -7,12 +7,12 @@ fn main() {
 
 use std::sync::LazyLock;
 
+use base::enums::{Algorithm, Colourer};
 use divan::black_box;
 use shader::{
     Complex, Size,
     colourspace::RgbVec,
     data::PointResult,
-    enums::{Algorithm, Colourer},
     exponentiation::{
         ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower,
     },

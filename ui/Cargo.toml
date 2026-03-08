@@ -27,6 +27,7 @@ hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 
 [dependencies]
 anyhow = { workspace = true }
+base = { workspace = true }
 bytemuck = { workspace = true }
 cfg-if = { workspace = true }
 chrono = { workspace = true, features = ["clock"] }

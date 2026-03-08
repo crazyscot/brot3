@@ -1,8 +1,9 @@
 //! Fractal data structures
 
+use base::enums::ColourStyle;
 use bytemuck::NoUninit;
 
-use crate::{enums::ColourStyle, fractal::BoundaryClass};
+use crate::fractal::BoundaryClass;
 
 /// Raw data from a fractal invocation
 #[derive(Copy, Clone, Debug, Default, NoUninit, derive_more::Constructor)]

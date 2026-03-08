@@ -1,5 +1,5 @@
+use base::enums::Algorithm;
 use easy_shader_runner::{UiState, egui};
-use shader::enums::Algorithm;
 use util::NumericType;
 
 use super::{DVec2, Instant};

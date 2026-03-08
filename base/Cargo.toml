@@ -1,0 +1,31 @@
+[package]
+name = "base"
+version.workspace = true
+authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
+categories.workspace = true
+edition.workspace = true
+keywords.workspace = true
+license = "MIT"
+publish = false
+repository.workspace = true
+description = "Shared definitions and support code for brot3 (separate crate for efficient testing)"
+
+[dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
+const-default = { workspace = true }
+
+[target.'cfg(target_arch = "spirv")'.dependencies]
+
+[target.'cfg(not(target_arch = "spirv"))'.dependencies]
+num-derive = "0.4.2"
+num-traits = { workspace = true }
+strum = { version = "0.28.0", default-features = false, features = ["derive"] }
+clap = { workspace = true, features = ["derive"] }
+serde = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }
+strum = { workspace = true }
+
+[lints]
+workspace = true

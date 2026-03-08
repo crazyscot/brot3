@@ -20,7 +20,6 @@ pub mod colour;
 pub mod colourspace;
 pub mod data;
 mod entrypoints;
-pub mod enums;
 pub mod exponentiation;
 pub mod fractal;
 pub mod grid;
@@ -28,8 +27,8 @@ mod pixels;
 pub mod push_constants;
 mod size;
 
+use base::enums::{self, Algorithm, ColourStyle, Colourer};
 use data::PointResult;
-use enums::{Algorithm, ColourStyle, Colourer};
 pub use pixels::PixelSpacing;
 #[cfg(test)]
 use push_constants::Palette;

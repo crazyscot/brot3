@@ -21,8 +21,9 @@ macro_rules! enumdef {
             )
         )]
         #[repr(u32)]
-        #[non_exhaustive]
+        //#[non_exhaustive]
         #[$attr]
+        #[allow(missing_docs)]
         pub enum $name {
             #[default]
             $first,

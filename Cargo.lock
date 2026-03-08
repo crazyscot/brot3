@@ -226,6 +226,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
+name = "base"
+version = "3.3.0"
+dependencies = [
+ "bytemuck",
+ "clap",
+ "const-default",
+ "num-derive",
+ "num-traits",
+ "pretty_assertions",
+ "serde",
+ "strum",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -285,6 +299,7 @@ name = "brot3-ui"
 version = "3.3.0"
 dependencies = [
  "anyhow",
+ "base",
  "build-print",
  "bytemuck",
  "cfg-if",
@@ -3316,10 +3331,10 @@ name = "shader"
 version = "3.3.0"
 dependencies = [
  "abels-complex",
+ "base",
  "bitflags 2.11.0",
  "build_assert",
  "bytemuck",
- "clap",
  "const-default",
  "dashu",
  "dashu-float",
@@ -3328,7 +3343,6 @@ dependencies = [
  "document-features",
  "float_eq",
  "glam",
- "num-derive",
  "num-traits",
  "paste",
  "pretty_assertions",

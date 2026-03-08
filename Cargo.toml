@@ -1,5 +1,5 @@
 [workspace]
-members = ["shader", "shader_builder", "ui", "util", "xtask"]
+members = ["base", "shader", "shader_builder", "ui", "util", "xtask"]
 resolver = "2"
 
 [workspace.package]
@@ -14,6 +14,7 @@ repository = "https://github.com/crazyscot/brot3/"
 [workspace.dependencies]
 abels-complex = { version = "0.5.0", default-features = false }
 anyhow = "1.0.102"
+base = { path = "base" }
 bitflags = "2.11.0"
 build-print = "1.0.1"
 build_assert = "0.0.1"
