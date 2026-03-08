@@ -5,7 +5,7 @@ digraph {
     ui;
     shader_builder;
     xtask [style = dashed;];
-    util;
+    base;
     shader;
     {
         rank=same;
@@ -18,9 +18,8 @@ digraph {
     easy_shader_runner;
 
     edge [fontname = "arial"; fontsize = 7;];
-    ui -> shader;
+    ui -> shader -> base;
     ui -> easy_shader_runner;
-    ui -> util;
     
     spirv_builder -> shader [style=dashed; label = "compiles"]
     

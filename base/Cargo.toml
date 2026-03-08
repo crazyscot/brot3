@@ -18,17 +18,17 @@ num-traits.workspace = true
 [target.'cfg(target_arch = "spirv")'.dependencies]
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
-num-derive = "0.4.2"
-strum = { version = "0.28.0", default-features = false, features = ["derive"] }
 clap = { workspace = true, features = ["derive"] }
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-dashu = { workspace = true, features = ["serde"] }
 dashu-float = { workspace = true }
+dashu = { workspace = true, features = ["serde"] }
 glam = { workspace = true, features = ["std", "bytemuck"] }
+num-derive = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+strum = { workspace = true, default-features = false, features = ["derive"] }
 
 [dev-dependencies]
-assert_matches = "1.5.0"
+assert_matches = { workspace = true }
 pretty_assertions = { workspace = true }
 strum = { workspace = true }
 

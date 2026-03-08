@@ -25,7 +25,7 @@ harness = false
 emulate_constants = []
 
 [dependencies]
-base = { path = "../base" }
+base = { workspace = true }
 bitflags = { workspace = true, features = ["bytemuck"] }
 build_assert = { workspace = true }
 bytemuck = { workspace = true, features = ["derive"] }
@@ -40,12 +40,12 @@ spirv-std = { workspace = true }
 abels-complex = { workspace = true, features = ["libm", "glam"] }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
-dashu = { workspace = true }
-dashu-float = { workspace = true }
-glam = { workspace = true, features = ["std", "bytemuck"] }
 abels-complex = { workspace = true, features = ["std", "glam"] }
+dashu-float = { workspace = true }
+dashu = { workspace = true }
+glam = { workspace = true, features = ["std", "bytemuck"] }
 serde = { workspace = true }
-strum = { version = "0.28.0", default-features = false, features = ["derive"] }
+strum = { workspace = true, default-features = false, features = ["derive"] }
 
 [lints]
 workspace = true
