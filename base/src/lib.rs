@@ -6,17 +6,14 @@
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 pub mod enums;
+mod float;
 mod pixels;
-pub use pixels::PixelSpacing;
 mod push_exponent;
 
+#[allow(unused)]
+pub(crate) use float::FloatIsNear;
+pub use pixels::PixelSpacing;
 pub use push_exponent::{NumericType, PushExponent};
-
-macro_rules! float_near {
-    ($a:expr, $b:expr) => {
-        float_eq::float_eq!($a, $b, ulps <= 4, abs <= 1e-10)
-    };
-}
 
 #[cfg(not(target_arch = "spirv"))]
 mod big;

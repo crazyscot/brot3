@@ -53,7 +53,8 @@ impl From<f32> for ViewportZoom {
 
 impl PartialEq for ViewportZoom {
     fn eq(&self, other: &Self) -> bool {
-        float_near!(self.0, other.0)
+        use crate::FloatIsNear as _;
+        self.0.is_near(other.0)
     }
 }
 

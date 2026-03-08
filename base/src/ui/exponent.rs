@@ -12,7 +12,7 @@ use serde::{
     ser::Serializer,
 };
 
-use crate::{NumericType, PushExponent};
+use crate::{FloatIsNear as _, NumericType, PushExponent};
 
 /// A fractal exponent that can be an integer, real, or complex number.
 ///
@@ -22,7 +22,7 @@ use crate::{NumericType, PushExponent};
 /// - `{"complex": {"real": 2.5, "imag": 1.0}}` for complex exponents
 ///
 /// All components are bounded to the range [-20, +20] by default, though bounds are configurable.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub enum Exponent {
     /// Integer exponent
     Integer(i32),
@@ -35,6 +35,20 @@ pub enum Exponent {
         /// Imaginary component of the complex exponent
         imag: f32,
     },
+}
+
+impl PartialEq for Exponent {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Exponent::Integer(a), Exponent::Integer(b)) => a == b,
+            (Exponent::Real(a), Exponent::Real(b)) => a.is_near(*b),
+            (
+                Exponent::Complex { real: ar, imag: ai },
+                Exponent::Complex { real: br, imag: bi },
+            ) => ar.is_near(*br) && ai.is_near(*bi),
+            _ => false,
+        }
+    }
 }
 
 impl Serialize for Exponent {
@@ -292,5 +306,29 @@ mod tests {
         assert_eq!(parsed["imag"], 1.0);
         let deserialized: Exponent = serde_json::from_str(&json).unwrap();
         assert_eq!(exp, deserialized);
+    }
+
+    #[test]
+    fn fp_equality() {
+        let exp1 = Exponent::Real(2.5);
+        let exp2 = Exponent::Real(2.5 + 1e-11); // Within tolerance
+        let exp3 = Exponent::Real(2.5 + 1e-5); // Outside tolerance
+        assert_eq!(exp1, exp2);
+        assert_ne!(exp1, exp3);
+
+        let exp4 = Exponent::Complex {
+            real: 2.5,
+            imag: 1.0,
+        };
+        let exp5 = Exponent::Complex {
+            real: 2.5 + 1e-11,
+            imag: 1.0 + 1e-11,
+        };
+        let exp6 = Exponent::Complex {
+            real: 2.5 + 1e-5,
+            imag: 1.0 + 1e-5,
+        };
+        assert_eq!(exp4, exp5);
+        assert_ne!(exp4, exp6);
     }
 }
