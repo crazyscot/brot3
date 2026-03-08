@@ -19,8 +19,3 @@ pub use big::{
 mod dynfmt;
 #[cfg(not(target_arch = "spirv"))]
 pub use dynfmt::dynamic_format;
-
-#[cfg(not(target_arch = "spirv"))]
-mod exponent;
-#[cfg(not(target_arch = "spirv"))]
-pub use exponent::Exponent;

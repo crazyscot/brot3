@@ -5,13 +5,14 @@
 
 use std::fmt;
 
-use base::{NumericType, PushExponent};
 use num_traits::AsPrimitive as _;
 use serde::{
     Deserialize, Serialize,
     de::{self, Deserializer, MapAccess, Visitor},
     ser::Serializer,
 };
+
+use crate::{NumericType, PushExponent};
 
 /// A fractal exponent that can be an integer, real, or complex number.
 ///

@@ -7,5 +7,7 @@
 
 pub mod enums;
 mod push_exponent;
+#[cfg(not(target_arch = "spirv"))]
+pub mod ui;
 
 pub use push_exponent::{NumericType, PushExponent};

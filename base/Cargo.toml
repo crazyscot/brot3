@@ -21,7 +21,8 @@ num-derive = "0.4.2"
 num-traits = { workspace = true }
 strum = { version = "0.28.0", default-features = false, features = ["derive"] }
 clap = { workspace = true, features = ["derive"] }
-serde = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 assert_matches = "1.5.0"
