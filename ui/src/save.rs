@@ -12,9 +12,6 @@ use shader::{
     data::PointResult,
     push_constants::{Flags, FragmentConstants},
 };
-use util::dprintln;
-
-const DEBUG_SAVE: bool = false;
 
 pub(crate) fn do_save_image(
     path: &std::path::Path,
@@ -23,8 +20,7 @@ pub(crate) fn do_save_image(
 ) -> anyhow::Result<()> {
     constants.flags |= Flags::NEEDS_REITERATE;
     constants.buffer_size = uvec2(0, 0).into();
-    dprintln!(
-        DEBUG_SAVE,
+    log::debug!(
         "Saving image to {} with constants: {constants:?}",
         path.display()
     );
@@ -67,7 +63,7 @@ pub(crate) fn do_save_image(
                 let pixel = if let Ok(p) = result {
                     p
                 } else {
-                    dprintln!(DEBUG_SAVE, "Panic at pixel ({x}, {y})");
+                    log::debug!("Panic at pixel ({x}, {y})");
                     failure.store(true, Ordering::Relaxed);
                     Vec4::ZERO
                 };
@@ -85,7 +81,7 @@ pub(crate) fn do_save_image(
         });
 
     let duration = start.elapsed();
-    dprintln!(DEBUG_SAVE, "Rendered image in {duration:?}");
+    log::debug!("Rendered image in {duration:?}");
 
     let pngstart = Instant::now();
     let mut encoder = png::Encoder::new(
@@ -101,7 +97,7 @@ pub(crate) fn do_save_image(
     encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));
     let mut writer = encoder.write_header()?;
     writer.write_image_data(&pixels)?;
-    dprintln!(DEBUG_SAVE, "Converted to PNG in {:?}", pngstart.elapsed());
+    log::debug!("Converted to PNG in {:?}", pngstart.elapsed());
     anyhow::ensure!(
         !failure.load(Ordering::Relaxed),
         "Some pixels failed to render. The saved image may have gaps where this occurred."
