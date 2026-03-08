@@ -1,10 +1,12 @@
 //! Controls window
 // (c) 2025 Ross Younger
 
-use base::enums::{Algorithm, ColourStyle, Colourer, Modifier};
+use base::{
+    NumericType,
+    enums::{Algorithm, ColourStyle, Colourer, Modifier},
+};
 use easy_shader_runner::egui;
 use num_traits::AsPrimitive;
-use util::NumericType;
 
 use crate::controller::MAX_MAX_ITERATIONS;
 
@@ -69,7 +71,6 @@ impl super::Controller {
                                 self.exponent.imag = 0.0;
                             }
                             (NumericType::Float, NumericType::Float) |  (NumericType::Complex, NumericType::Complex)=> (),
-                            _ => todo!(),
                         }
                         if self.exponent.typ != previous_typ {
                             if previous_typ == NumericType::Integer {
@@ -120,7 +121,6 @@ impl super::Controller {
                                 self.reiterate = true;
                             }
                         }
-                        _ => todo!(),
                     }
 
                     if self.exponent.typ == NumericType::Complex {

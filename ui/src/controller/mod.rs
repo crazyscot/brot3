@@ -4,14 +4,14 @@
 
 use std::sync::{Arc, Mutex};
 
-use base::enums::Algorithm;
+use base::{PushExponent, enums::Algorithm};
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 use shader::{
     data::PointResult,
     push_constants::{Flags, FragmentConstants, Palette},
 };
-use util::{BigVec2, PushExponent};
+use util::BigVec2;
 use web_time::Instant;
 use winit::{
     dpi::PhysicalSize,

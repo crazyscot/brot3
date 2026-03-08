@@ -14,7 +14,7 @@ description = "Utilities used by the brot3 ui (separate crate for efficient test
 bench = false
 
 [dependencies]
-bytemuck.workspace = true
+base.workspace = true
 num-traits.workspace = true
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
@@ -25,7 +25,6 @@ dashu-float = { workspace = true }
 glam = { workspace = true, features = ["std", "bytemuck"] }
 
 [dev-dependencies]
-assert_matches = "1.5.0"
 pretty_assertions.workspace = true
 
 [lints]

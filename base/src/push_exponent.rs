@@ -5,7 +5,6 @@ use bytemuck::NoUninit;
 
 /// The exponent type for the fractal
 #[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
-#[non_exhaustive]
 #[repr(u32)]
 #[allow(missing_docs)]
 pub enum NumericType {

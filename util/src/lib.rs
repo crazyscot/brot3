@@ -24,6 +24,3 @@ pub use dynfmt::dynamic_format;
 mod exponent;
 #[cfg(not(target_arch = "spirv"))]
 pub use exponent::Exponent;
-
-mod push_exponent;
-pub use push_exponent::{NumericType, PushExponent};

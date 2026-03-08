@@ -2,10 +2,10 @@
 
 #![allow(missing_docs)]
 
+pub(crate) use base::{NumericType, PushExponent};
 use bytemuck::{NoUninit, Pod, Zeroable};
 use const_default::ConstDefault;
 use spirv_std::glam::{UVec2, Vec2, uvec2};
-pub(crate) use util::{NumericType, PushExponent};
 
 use crate::{
     ColourStyle, Colourer, Size,
@@ -124,7 +124,6 @@ impl FragmentConstants {
                 NumericType::Float => format!("{:.3}", self.exponent.real),
                 NumericType::Complex =>
                     format!("{:.3}+{:.3}i", self.exponent.real, self.exponent.imag),
-                _ => unimplemented!(),
             },
             colourer = self.palette.colourer,
         )

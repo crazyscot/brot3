@@ -7,7 +7,10 @@ fn main() {
 
 use std::sync::LazyLock;
 
-use base::enums::{Algorithm, Colourer};
+use base::{
+    PushExponent,
+    enums::{Algorithm, Colourer},
+};
 use divan::black_box;
 use shader::{
     Complex, Size,
@@ -20,7 +23,6 @@ use shader::{
     push_constants::{Flags, FragmentConstants, Palette},
 };
 use strum::VariantArray as _;
-use util::PushExponent;
 
 #[divan::bench]
 #[allow(non_upper_case_globals)]
