@@ -72,7 +72,7 @@ macro_rules! make_bigvec2 {
 /// Intended for testing.
 ///
 /// ```
-/// # use util::make_bigvec2_str;
+/// # use base::make_bigvec2_str;
 /// let v = make_bigvec2_str!("1.25", "-3.5");
 /// assert_eq!(v.x.to_f64().value(), 1.25);
 /// assert_eq!(v.y.to_f64().value(), -3.5);
@@ -101,7 +101,7 @@ impl BigVec2 {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use util::BigVec2;
+    /// # use base::BigVec2;
     /// let z = BigVec2::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -251,7 +251,7 @@ impl MulAssign<f64> for BigVec2 {
 impl std::fmt::Display for BigVec2 {
     /// Converts to a string representation (binary)
     /// ```
-    /// # use util::{BigVec2, make_bigvec2};
+    /// # use base::{BigVec2, make_bigvec2};
     /// let v = make_bigvec2!(15., 2.);
     /// assert_eq!(v.to_string(), "BigVec2(1111, 10)");
     /// ```

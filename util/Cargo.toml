@@ -14,8 +14,6 @@ description = "Utilities used by the brot3 ui (separate crate for efficient test
 bench = false
 
 [dependencies]
-base.workspace = true
-num-traits.workspace = true
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 serde = { workspace = true, features = ["derive"] }

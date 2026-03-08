@@ -11,7 +11,7 @@ use crate::BigVec2;
 ///
 ///
 /// ```
-/// # use util::{BigComplex, make_bigcomplex};
+/// # use base::{BigComplex, make_bigcomplex};
 /// let x = make_bigcomplex!(1.0, 2.0);
 /// let y = make_bigcomplex!(3.0, 4.0);
 /// let z = x + y;
@@ -40,7 +40,7 @@ macro_rules! make_bigcomplex {
 /// Intended for testing.
 ///
 /// ```
-/// # use util::make_bigcomplex_str;
+/// # use base::make_bigcomplex_str;
 /// let z = make_bigcomplex_str!("1.25", "-3.5");
 /// assert_eq!(z.x.to_f64().value(), 1.25);
 /// assert_eq!(z.y.to_f64().value(), -3.5);
@@ -70,7 +70,7 @@ impl BigComplex {
     /// Constructor from any type that can be converted to [`FBig`]
     ///
     /// ```
-    /// # use util::BigComplex;
+    /// # use base::BigComplex;
     /// let z = BigComplex::try_new(1.2, 3.4);
     /// ```
     pub fn try_new<T>(x: T, y: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
@@ -85,7 +85,7 @@ impl BigComplex {
 
     /// Computes the square efficiently, consuming the original number.
     /// ```
-    /// # use util::make_bigcomplex;
+    /// # use base::make_bigcomplex;
     /// let x = make_bigcomplex!(0.0, 1.0);
     /// // i^2 = -1
     /// assert_eq!(x.square(), make_bigcomplex!(-1.0, 0.0));
@@ -99,7 +99,7 @@ impl BigComplex {
     /// Computes the square of the modulus of the complex.
     ///
     /// ```
-    /// # use util::make_bigcomplex;
+    /// # use base::make_bigcomplex;
     /// # use dashu::{fbig, float::FBig, float::round};
     /// let x = make_bigcomplex!(0.0, 1.0);
     /// assert_eq!(x.norm_squared(), fbig!(1.0));
@@ -119,7 +119,7 @@ impl BigComplex {
 
     /// Sets the precision of both parts of the underlying data storage
     /// ```
-    /// # use util::BigComplex;
+    /// # use base::BigComplex;
     /// let z = BigComplex::ZERO.with_precision(123);
     /// let prec = z.precision();
     /// assert_eq!(prec.x, 123);
@@ -133,7 +133,7 @@ impl BigComplex {
     #[must_use]
     /// Computes the complex conjugate
     /// ```
-    /// # use util::make_bigcomplex;
+    /// # use base::make_bigcomplex;
     /// let x = make_bigcomplex!(0.0, 1.0);
     /// assert_eq!(x.conjugate(), make_bigcomplex!(0.0, -1.0));
     /// let z = make_bigcomplex!(12.0, 34.0);
@@ -146,7 +146,7 @@ impl BigComplex {
 
     /// Computes the reciprocal
     /// ```
-    /// # use util::make_bigcomplex;
+    /// # use base::make_bigcomplex;
     /// let z = make_bigcomplex!(2.0, 0.0);
     /// assert_eq!(z.recip(), make_bigcomplex!(0.5, 0.0));
     /// let z = make_bigcomplex!(0.0, 1.0);
@@ -193,7 +193,7 @@ impl std::fmt::Display for BigComplex {
     /// Displays the complex number in `a + bi` notation using decimal representation.
     ///
     /// ```
-    /// # use util::make_bigcomplex;
+    /// # use base::make_bigcomplex;
     /// let z = make_bigcomplex!(1.25, -3.5);
     /// assert_eq!(z.to_string(), "1.25 - 3.5i");
     /// let z2 = make_bigcomplex!(1.25, 3.5);

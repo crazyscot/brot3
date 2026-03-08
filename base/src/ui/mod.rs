@@ -4,4 +4,5 @@
 #![cfg(not(target_arch = "spirv"))]
 
 mod exponent;
+
 pub use exponent::Exponent;

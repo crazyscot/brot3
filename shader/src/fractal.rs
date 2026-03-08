@@ -418,7 +418,7 @@ fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmMo
 ///
 /// TODO: Someday, deduplicate this with `mandelbrot_family_pre_modify_point_inner`?
 pub fn mandelbrot_family_pre_modify_point_inner_big(
-    z: &mut util::BigComplex,
+    z: &mut base::BigComplex,
     params: AlgorithmModifiers,
 ) {
     use dashu::base::Abs;
@@ -527,13 +527,13 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
 #[cfg(not(target_arch = "spirv"))]
 pub fn mandelbrot_perturbed_compute_reference_iters(
     points: &mut Vec<Vec2>,
-    centre: &util::BigVec2,
+    centre: &base::BigVec2,
     algorithm: Algorithm,
     max_iter: u32,
 ) {
+    use base::BigComplex;
     use dashu::base::Sign;
     use dashu_float::{FBig, round::mode as RoundingMode};
-    use util::BigComplex;
 
     points.clear();
     let modifiers = AlgorithmModifiers::from(algorithm);
@@ -576,9 +576,9 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
+    use base::BigVec2;
     use const_default::ConstDefault as _;
     use pretty_assertions::assert_eq;
-    use util::BigVec2;
 
     use super::Flags;
     use crate::{

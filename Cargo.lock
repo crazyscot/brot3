@@ -233,6 +233,9 @@ dependencies = [
  "bytemuck",
  "clap",
  "const-default",
+ "dashu",
+ "dashu-float",
+ "glam",
  "num-derive",
  "num-traits",
  "pretty_assertions",
@@ -3351,7 +3354,6 @@ dependencies = [
  "serde",
  "spirv-std",
  "strum",
- "util",
 ]
 
 [[package]]
@@ -4039,11 +4041,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 name = "util"
 version = "3.3.0"
 dependencies = [
- "base",
  "dashu",
  "dashu-float",
  "glam",
- "num-traits",
  "pretty_assertions",
  "serde",
  "serde_json",
