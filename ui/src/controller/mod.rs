@@ -4,7 +4,7 @@
 
 use std::sync::{Arc, Mutex};
 
-use base::{BigVec2, PushExponent, enums::Algorithm};
+use base::{BigVec2, PixelSpacing as _, PushExponent, enums::Algorithm};
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 use shader::{
@@ -450,7 +450,6 @@ impl ControllerTrait for Controller {
 
 impl Controller {
     pub(crate) fn pixel_complex_size(&self) -> f64 {
-        use shader::PixelSpacing as _;
         // This must be the same calculation that the shader uses.
         self.viewport_zoom.0.pixel_spacing(self.size.y)
     }
@@ -490,7 +489,6 @@ impl ViewportZoom {
     /// Relate the current axis size to the nominal initial size to get a more
     /// intuitive zoom readout.
     pub(crate) fn display_string(self, y_axis_pixel_count: u32) -> String {
-        use shader::PixelSpacing as _;
         /*
         let pixel_size = FragmentConstants::pixel_spacing_f64(y_axis_pixel_count, self.0);
         // = 1.0 / (pixel count * vp_zoom)

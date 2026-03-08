@@ -6,7 +6,11 @@
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 pub mod enums;
+mod pixels;
+pub use pixels::PixelSpacing;
 mod push_exponent;
+
+pub use push_exponent::{NumericType, PushExponent};
 
 #[cfg(not(target_arch = "spirv"))]
 mod big;
@@ -18,4 +22,3 @@ pub use big::{
     big_complex::BigComplex,
     big_vec2::{BigVec2, fbig_from_str},
 };
-pub use push_exponent::{NumericType, PushExponent};

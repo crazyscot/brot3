@@ -268,6 +268,7 @@ fn icyblue(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hs
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
+    use base::PixelSpacing as _;
     use const_default::ConstDefault;
     use float_eq::float_eq;
     use glam::Vec2;
@@ -275,7 +276,7 @@ mod tests {
 
     use super::{PointResult, RgbVec};
     use crate::{
-        FragmentConstants, Palette, PixelSpacing as _, Vec3,
+        FragmentConstants, Palette, Vec3,
         enums::{Algorithm, Colourer, Modifier},
     };
 

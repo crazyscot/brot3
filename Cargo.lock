@@ -3347,7 +3347,6 @@ dependencies = [
  "document-features",
  "float_eq",
  "glam",
- "num-traits",
  "paste",
  "pretty_assertions",
  "serde",

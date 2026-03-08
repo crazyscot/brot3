@@ -105,7 +105,7 @@ impl Flags {
 impl FragmentConstants {
     #[must_use]
     pub fn pixel_spacing(&self) -> f32 {
-        use crate::PixelSpacing as _;
+        use base::PixelSpacing as _;
         self.viewport_zoom.pixel_spacing(self.size.height)
     }
 
@@ -233,7 +233,7 @@ mod tests {
 
     #[test]
     fn pixel_spacing() {
-        use crate::PixelSpacing as _;
+        use base::PixelSpacing as _;
 
         assert_float_eq!(
             12345.0f64.pixel_spacing(1920),

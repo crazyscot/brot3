@@ -33,7 +33,6 @@ const-default = { workspace = true }
 derive_more = { workspace = true, default-features = false, features = ["constructor", "display"] }
 document-features = { workspace = true }
 float_eq = { workspace = true }
-num-traits.workspace = true
 paste = { workspace = true }
 spirv-std = { workspace = true }
 
@@ -45,7 +44,6 @@ dashu = { workspace = true }
 dashu-float = { workspace = true }
 glam = { workspace = true, features = ["std", "bytemuck"] }
 abels-complex = { workspace = true, features = ["std", "glam"] }
-num-traits = { workspace = true }
 serde = { workspace = true }
 strum = { version = "0.28.0", default-features = false, features = ["derive"] }
 
