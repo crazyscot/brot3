@@ -27,7 +27,6 @@ emulate_constants = []
 [dependencies]
 base = { workspace = true }
 bitflags = { workspace = true, features = ["bytemuck"] }
-build_assert = { workspace = true }
 bytemuck = { workspace = true, features = ["derive"] }
 const-default = { workspace = true }
 derive_more = { workspace = true, default-features = false, features = ["constructor", "display"] }

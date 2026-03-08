@@ -12,14 +12,11 @@ use crate::{
     enums::{Algorithm, Modifier},
 };
 
-#[cfg(not(target_arch = "spirv"))]
-fn compile_time_checks() {
-    build_assert::build_assert!(float_eq::float_eq!(
-        2.0f32.powf(2.0f32.powf(crate::LOGLOG2_ESCAPE_THRESHOLD)),
-        crate::ESCAPE_THRESHOLD,
-        abs <= 0.0001
-    ));
-}
+/// Size of the inspector marker diamond in pixels
+pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
+
+pub(crate) const ESCAPE_THRESHOLD: f32 = 10.0;
+pub(crate) const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
 
 #[derive(Copy, Clone, Debug)]
 // We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninit on spirv builds.
@@ -61,8 +58,6 @@ impl FragmentConstants {
 impl Default for FragmentConstants {
     /// Caution: The default implementation sets both `size` and `buffer_size` to (0,0).
     fn default() -> Self {
-        #[cfg(not(target_arch = "spirv"))]
-        compile_time_checks();
         Self {
             flags: Flags::default(),
             viewport_translate: Vec2::ZERO,

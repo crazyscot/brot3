@@ -6,7 +6,7 @@
 #[cfg(not(target_arch = "spirv"))]
 const DEBUG_FRACTAL: bool = false;
 
-use crate::{ESCAPE_THRESHOLD_SQ, LOGLOG2_ESCAPE_THRESHOLD};
+pub(crate) use crate::push_constants::{ESCAPE_THRESHOLD, ESCAPE_THRESHOLD_SQ};
 
 #[clippy::format_args]
 macro_rules! deprintln {
@@ -124,6 +124,7 @@ pub fn render(
                     exponentiator: $expo,
                     reference_points,
                     n_reference: constants.n_reference_points as usize,
+                    loglog2_escape_threshold: ESCAPE_THRESHOLD.log2().log2(),
                 },
             }
             .run()
@@ -167,6 +168,9 @@ where
     reference_points: &'a [Vec2],
     /// Number of reference points (only used in perturbation mode)
     n_reference: usize,
+    /// `ESCAPE_THRESHOLD.log2().log2()`, precomputed for efficiency in the smoothed iteration
+    /// count formula.
+    loglog2_escape_threshold: f32,
 }
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, NoUninit)]
@@ -323,8 +327,8 @@ where
             (norm_sqr.log2() * 0.5).log2()
         };
 
-        let smoothed_iters =
-            1. + LOGLOG2_ESCAPE_THRESHOLD - log_log_zn / self.consts.exponentiator.log2();
+        let smoothed_iters = 1. + self.consts.loglog2_escape_threshold
+            - log_log_zn / self.consts.exponentiator.log2();
 
         // sigh! saturating_add is not currently implemented, so do it ourselves:
         let inside = norm_sqr < ESCAPE_THRESHOLD_SQ;
