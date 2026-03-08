@@ -6,8 +6,3 @@
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 mod dprintln;
-
-#[cfg(not(target_arch = "spirv"))]
-mod dynfmt;
-#[cfg(not(target_arch = "spirv"))]
-pub use dynfmt::dynamic_format;

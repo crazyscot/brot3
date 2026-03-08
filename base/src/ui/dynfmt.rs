@@ -17,7 +17,7 @@ fn strip_trailers(s: &str) -> &str {
 ///
 /// # Example
 /// ```
-/// use util::dynamic_format;
+/// use base::ui::dynamic_format;
 /// let v = 1.234_567_8;
 /// assert_eq!(dynamic_format(v, 6), "1.234568");
 /// assert_eq!(dynamic_format(v, 0), "1.2");
@@ -54,7 +54,7 @@ where
 ///
 /// # Examples
 /// ```
-/// use util::dynfmt;
+/// use base::dynfmt;
 /// let v = 1.234_567_8;
 /// assert_eq!(dynfmt!(v), "1.234568");
 /// assert_eq!(dynfmt!(v, 0), "1.2");
@@ -62,10 +62,10 @@ where
 #[macro_export]
 macro_rules! dynfmt {
     ($val:expr) => {
-        $crate::dynamic_format($val, 6)
+        $crate::ui::dynamic_format($val, 6)
     };
     ($val: expr, $prec: expr) => {
-        $crate::dynamic_format($val, $prec)
+        $crate::ui::dynamic_format($val, $prec)
     };
 }
 

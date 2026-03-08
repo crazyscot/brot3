@@ -1,8 +1,8 @@
 //! Co-ordinates readout, inspector and wrangling
 // (c) 2025 Ross Younger
 
+use base::dynfmt;
 use easy_shader_runner::egui;
-use util::dynfmt;
 
 #[allow(
     unused_results,
