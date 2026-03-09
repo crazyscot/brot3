@@ -5,7 +5,7 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use base::data::enums::{Algorithm, Colourer};
+use brot3_lib::data::{Algorithm, Colourer};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, clap::Parser, Clone, Default)]

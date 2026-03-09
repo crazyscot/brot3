@@ -4,21 +4,14 @@
 
 #![allow(missing_docs)]
 
-pub(crate) use base::{NumericType, PushExponent};
 use bytemuck::{NoUninit, Pod, Zeroable};
 use const_default::ConstDefault;
 use spirv_std::glam::Vec2;
 
-use crate::{
-    ColourStyle, Colourer, Size,
-    enums::{Algorithm, Modifier},
-};
-
-/// Size of the inspector marker diamond in pixels
-pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
-
-pub(crate) const ESCAPE_THRESHOLD: f32 = 10.0;
-pub(crate) const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
+#[cfg(not(target_arch = "spirv"))]
+use super::NumericType;
+use super::{Algorithm, ColourStyle, Colourer, Modifier, PushExponent};
+use crate::util::Size;
 
 #[derive(Copy, Clone, Debug)]
 // We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninit on spirv builds.
@@ -102,7 +95,7 @@ impl Flags {
 impl FragmentConstants {
     #[must_use]
     pub fn pixel_spacing(&self) -> f32 {
-        use base::PixelSpacing as _;
+        use crate::engine::PixelSpacing as _;
         self.viewport_zoom.pixel_spacing(self.size.height)
     }
 
@@ -230,7 +223,7 @@ mod tests {
 
     #[test]
     fn pixel_spacing() {
-        use base::PixelSpacing as _;
+        use crate::engine::PixelSpacing as _;
 
         assert_float_eq!(
             12345.0f64.pixel_spacing(1920),

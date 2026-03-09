@@ -4,7 +4,7 @@
 
 #![allow(missing_debug_implementations)]
 
-use super::UVec2;
+use crate::UVec2;
 
 /// Common operations (shared code) between `GridRef` and `GridRefMut`
 pub trait GridShared<'a, T> {
@@ -57,7 +57,7 @@ impl<'a, T: Copy + Default> GridRef<'a, T> {
     ///
     /// The length of storage `buffer` must be at least `size.x * size.y`.
     /// ```
-    /// # use shader::grid::GridRef;
+    /// # use brot3_lib::util::GridRef;
     /// use glam::uvec2;
     /// let buf = vec![0, 0, 0, 42];
     /// let gr = GridRef::new(uvec2(2, 2), &buf);
@@ -70,7 +70,7 @@ impl<'a, T: Copy + Default> GridRef<'a, T> {
     /// items.
     ///
     /// ```should_panic
-    /// # use shader::grid::GridRef;
+    /// # use brot3_lib::util::GridRef;
     /// use glam::uvec2;
     /// let buf = vec![0];
     /// let _gr = GridRef::new(uvec2(2, 2), &buf); // PANIC: storage not large enough
@@ -93,7 +93,7 @@ impl<'a, T: Copy + Default> GridRef<'a, T> {
     ///
     ///
     /// ```
-    /// # use shader::grid::GridRef;
+    /// # use brot3_lib::util::GridRef;
     /// use glam::uvec2;
     /// let buf = vec![1, 2, 3, 42];
     /// let gr = GridRef::new(uvec2(2, 2), &buf);
@@ -133,7 +133,7 @@ impl<'a, T: Copy + Default> GridRefMut<'a, T> {
     /// Note that coordinates are mapped to the array in (y,x) order.
     ///
     /// ```
-    /// # use shader::grid::GridRefMut;
+    /// # use brot3_lib::util::GridRefMut;
     /// use glam::uvec2;
     /// let mut buf = [42, 43, 44, 45];
     /// let gr = GridRefMut::new(uvec2(2, 2), &mut buf);
@@ -146,7 +146,7 @@ impl<'a, T: Copy + Default> GridRefMut<'a, T> {
     /// items.
     ///
     /// ```should_panic
-    /// # use shader::grid::GridRefMut;
+    /// # use brot3_lib::util::GridRefMut;
     /// use glam::uvec2;
     /// let mut buf = [0; 1];
     /// let _gr = GridRefMut::new(uvec2(2, 2), &mut buf); // PANIC: storage not large enough
@@ -163,7 +163,7 @@ impl<'a, T: Copy + Default> GridRefMut<'a, T> {
     /// Creates a read-only copy borrowing this struct's buffer
     ///
     /// ```
-    /// # use shader::grid::{GridRef, GridRefMut};
+    /// # use brot3_lib::util::{GridRef, GridRefMut};
     /// use glam::uvec2;
     /// let mut buf = vec![42; 4];
     /// let mut grm = GridRefMut::new(uvec2(2, 2), &mut buf);
@@ -210,7 +210,7 @@ impl<'a, T: Copy + Default> GridRefMut<'a, T> {
     ///
     /// If either of the requested co-ordinates are outside of the underlying storage
     /// ```
-    /// # use shader::grid::GridRefMut;
+    /// # use brot3_lib::util::GridRefMut;
     /// use glam::uvec2;
     /// let mut buf = [0, 1, 2, 3];
     /// let c00 = uvec2(0, 0);
@@ -275,7 +275,7 @@ where
     /// The elements are renumbered linearly for the changed dimensions, but bear in mind
     /// that they are mapped in (y,x) coordinate order.
     /// ```
-    /// # use shader::grid::Grid;
+    /// # use brot3_lib::util::Grid;
     /// use glam::uvec2;
     /// let c00 = uvec2(0, 0);
     /// let c11 = uvec2(1, 1);
@@ -320,7 +320,7 @@ where
     /// If either of the requested co-ordinates are outside of the underlying storage
     ///
     /// ```
-    /// # use shader::grid::Grid;
+    /// # use brot3_lib::util::Grid;
     /// use glam::uvec2;
     /// let c00 = uvec2(0, 0);
     /// let c01 = uvec2(0, 1);

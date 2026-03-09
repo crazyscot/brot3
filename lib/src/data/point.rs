@@ -2,10 +2,9 @@
 //!
 //! (c) 2025-6 Ross Younger
 
-use base::data::enums::ColourStyle;
 use bytemuck::NoUninit;
 
-use crate::fractal::BoundaryClass;
+use super::{BoundaryClass, ColourStyle};
 
 /// Raw data from a fractal invocation
 #[derive(Copy, Clone, Debug, Default, NoUninit, derive_more::Constructor)]

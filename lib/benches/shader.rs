@@ -7,21 +7,14 @@ fn main() {
 
 use std::sync::LazyLock;
 
-use base::{
-    PushExponent,
-    data::enums::{Algorithm, Colourer},
+use brot3_lib::{
+    Complex,
+    data::{Algorithm, Colourer, Flags, FragmentConstants, Palette, PointResult, PushExponent},
+    glam::{Vec2, vec2},
+    maths::{ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower},
+    util::{RgbVec, Size},
 };
 use divan::black_box;
-use shader::{
-    Complex, Size,
-    colourspace::RgbVec,
-    data::PointResult,
-    exponentiation::{
-        ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower,
-    },
-    glam::{Vec2, vec2},
-    push_constants::{Flags, FragmentConstants, Palette},
-};
 use strum::VariantArray as _;
 
 #[divan::bench]
@@ -48,7 +41,7 @@ fn fractal(alg: Algorithm) -> PointResult {
         inspector_point_pixel_address: Vec2::default(),
         n_reference_points: 0,
     };
-    shader::fractal::render(&consts, black_box(vec2(0.5, 0.5)), &[Vec2::ZERO; 0])
+    brot3_lib::engine::render(&consts, black_box(vec2(0.5, 0.5)), &[Vec2::ZERO; 0])
 }
 
 #[divan::bench(args = Colourer::VARIANTS)]
@@ -71,9 +64,9 @@ fn colour(col: Colourer) -> RgbVec {
         5.423,
         1.,
         2.,
-        shader::fractal::BoundaryClass::Indeterminate,
+        brot3_lib::data::BoundaryClass::Indeterminate,
     );
-    shader::colour::colour_data(black_box(data), &consts, 0.0)
+    brot3_lib::engine::colour_data(black_box(data), &consts, 0.0)
 }
 
 #[derive(Copy, Clone, derive_more::Debug)]

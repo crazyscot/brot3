@@ -5,12 +5,10 @@ digraph {
     ui;
     shader_builder;
     xtask [style = dashed;];
-    base;
-    shader;
     {
         rank=same;
-        shader;
-        shader_spv [shape = cylinder;label = "shader.spv";];
+        shader [label="lib"];
+        shader_spv [shape = cylinder;label = "brot3_lib.spv";];
     }
 
     node [shape = box3d; style = filled;];
@@ -18,7 +16,7 @@ digraph {
     easy_shader_runner;
 
     edge [fontname = "arial"; fontsize = 7;];
-    ui -> shader -> base;
+    ui -> shader;
     ui -> easy_shader_runner;
     
     spirv_builder -> shader [style=dashed; label = "compiles"]

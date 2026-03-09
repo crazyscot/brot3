@@ -6,12 +6,9 @@ use std::{
     time::Instant,
 };
 
+use brot3_lib::data::{Flags, FragmentConstants, PointResult};
 use glam::{Vec2, Vec4, uvec2, vec4};
 use rayon::prelude::*;
-use shader::{
-    data::PointResult,
-    push_constants::{Flags, FragmentConstants},
-};
 
 pub(crate) fn do_save_image(
     path: &std::path::Path,
@@ -51,7 +48,7 @@ pub(crate) fn do_save_image(
 
                     #[allow(clippy::cast_precision_loss)]
                     let frag_coord = vec4(x as f32, y as f32, 0.0, 0.0);
-                    shader::main_fs(
+                    brot3_lib::main_fs(
                         frag_coord,
                         &constants,
                         &mut grid,

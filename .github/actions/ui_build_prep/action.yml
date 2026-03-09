@@ -36,7 +36,7 @@ runs:
     - name: Download shader
       uses: actions/download-artifact@v5
       with:
-        name: shader.spv
+        name: brot3_lib.spv
         path: ${{ github.workspace }}/target/prebuilt-shader
 # Notably, this action does NOT:
 # - use rust-cache

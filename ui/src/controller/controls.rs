@@ -1,10 +1,7 @@
 //! Controls window
 // (c) 2025 Ross Younger
 
-use base::{
-    NumericType,
-    data::enums::{Algorithm, ColourStyle, Colourer, Modifier},
-};
+use brot3_lib::data::{Algorithm, ColourStyle, Colourer, Modifier, NumericType, Palette};
 use easy_shader_runner::egui;
 use num_traits::AsPrimitive;
 
@@ -192,7 +189,7 @@ impl super::Controller {
                         macro_rules! palette_slider {
                             ($($id:ident), * ) => {
                                 $(
-                                    ui.add(egui::Slider::new(&mut self.palette.$id, shader::push_constants::Palette::MINIMA.$id ..= shader::push_constants::Palette::MAXIMA.$id));
+                                    ui.add(egui::Slider::new(&mut self.palette.$id, Palette::MINIMA.$id ..= Palette::MAXIMA.$id));
                                 )*
                             };
                         }

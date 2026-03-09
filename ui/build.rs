@@ -26,7 +26,7 @@ fn main() {
     if let Ok(shader_path) = env::var("BROT3_PREBUILT_SHADER") {
         // CAUTION: This must match what shader_builder main.rs outputs.
         build_print::info!("Using prebuilt shader at {shader_path}");
-        println!("cargo::rustc-env=shader.spv={shader_path}");
+        println!("cargo::rustc-env=BROT3_SHADER={shader_path}");
     } else {
         // If not, go build it.
         build_print::note!("Running shader builder...");
@@ -40,7 +40,7 @@ fn build_shader() {
     // CAUTION: Hard-wired paths !
     println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=../shader_builder/");
-    println!("cargo:rerun-if-changed=../shader/");
+    println!("cargo:rerun-if-changed=../lib/");
     println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
 
     // While OUT_DIR is set for both build.rs and compiling the crate, PROFILE is only set in
@@ -76,8 +76,8 @@ fn build_shader() {
     build_print::info!("running: cargo {argz:?}");
     let status = cargo.status().unwrap();
     // N.B. shader_builder outputs something like:
-    // cargo::rustc-env=shader.spv=/home/builder/brot3/target/spirv-builder/spirv-unknown-vulkan1.1/
-    // release/deps/shader.spv
+    // `cargo::rustc-env=BROT3_SHADER=/home/builder/brot3/target/spirv-builder/
+    // spirv-unknown-vulkan1.1/release/deps/brot3_lib.spv`
     if !status.success() {
         if let Some(code) = status.code() {
             std::process::exit(code);

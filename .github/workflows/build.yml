@@ -41,14 +41,14 @@ jobs:
       - name: build shader
         run: cargo run -p shader_builder --locked --release
         # Continue on error as far as possible, to provide maximum useful information
-      - name: clippy (shader)
-        run: cargo clippy -p shader --locked --release --all-targets
+      - name: clippy (lib)
+        run: cargo clippy -p brot3-lib --locked --release --all-targets
         if: ${{ !cancelled() }}
       - name: Upload SPIRV artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: shader.spv
-          path: target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/shader.spv
+          name: brot3_lib.spv
+          path: target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/brot3_lib.spv
         if: ${{ !cancelled() }}
 
   define-matrix:
@@ -131,7 +131,7 @@ jobs:
       RAW_OR_BINARY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '-binary' }}
       RAW_OR_EMPTY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '' }}
       # Downloaded artifact from an earlier job - set up by ui_build_prep action
-      BROT3_PREBUILT_SHADER: ${{ github.workspace }}/target/prebuilt-shader/shader.spv
+      BROT3_PREBUILT_SHADER: ${{ github.workspace }}/target/prebuilt-shader/brot3_lib.spv
     steps:
       - uses: actions/checkout@v6
       - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2
@@ -207,7 +207,7 @@ jobs:
         # Run clippy only on the Linux build
         # !cancelled() because we want this to run even if a previous step failed
         if: ${{ matrix.platform == 'linux' && !cancelled() }}
-        run: cargo clippy -p brot3-ui -p shader_builder -p base -p xtask --locked --release --no-default-features --all-targets
+        run: cargo clippy -p brot3-ui -p shader_builder -p xtask --locked --release --no-default-features --all-targets
 
       - name: create mac Info.plist
         if: ${{ matrix.platform == 'mac' }}

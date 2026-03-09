@@ -5,8 +5,8 @@ fn main() {
     divan::main();
 }
 
+use brot3_lib::util::{Hsl, RgbVec};
 use divan::black_box;
-use shader::colourspace::{Hsl, RgbVec};
 
 #[divan::bench]
 fn ___warm_up() -> RgbVec {

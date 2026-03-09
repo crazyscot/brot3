@@ -6,13 +6,12 @@
 use spirv_std::spirv;
 
 use crate::{
-    INSPECTOR_MARKER_SIZE, colour,
-    colourspace::RgbVec,
-    data::PointResult,
-    fractal,
-    glam::{Vec2, Vec4, Vec4Swizzles as _, f32, vec2},
-    grid::{GridRef, GridRefMut, GridShared},
-    push_constants::{Flags, FragmentConstants},
+    INSPECTOR_MARKER_SIZE, Vec2, Vec4,
+    data::{Flags, FragmentConstants, PointResult},
+    engine::{colour, fractal},
+    glam::Vec4Swizzles as _,
+    util::{GridRef, GridRefMut, GridShared, RgbVec},
+    vec2,
 };
 
 fn new_york_distance(a: Vec2, b: Vec2) -> f32 {
@@ -100,12 +99,10 @@ mod tests {
     use float_eq::assert_float_eq;
     use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, uvec2, vec2, vec4};
 
-    use super::new_york_distance;
+    use super::{Flags, FragmentConstants, new_york_distance};
     use crate::{
-        Flags, FragmentConstants, Palette, Size,
-        data::PointResult,
-        enums::{Algorithm, Colourer},
-        push_constants::PushExponent,
+        data::{Algorithm, Colourer, Palette, PointResult, PushExponent},
+        util::Size,
     };
 
     const TEST_GRID_SIZE: UVec2 = uvec2(2560, 1440);

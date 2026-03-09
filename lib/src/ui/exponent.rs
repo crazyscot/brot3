@@ -14,7 +14,10 @@ use serde::{
     ser::Serializer,
 };
 
-use crate::{NumericType, PushExponent, maths::FloatIsNear as _};
+use crate::{
+    data::{NumericType, PushExponent},
+    maths::FloatIsNear as _,
+};
 
 /// A fractal exponent that can be an integer, real, or complex number.
 ///

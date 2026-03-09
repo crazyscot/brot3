@@ -6,7 +6,7 @@ use float_eq::float_eq;
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
-use super::Vec3;
+use crate::Vec3;
 
 /// RGB colour space.
 ///

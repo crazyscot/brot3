@@ -23,10 +23,9 @@ use core::f32::consts::{E, PI, TAU};
 use spirv_std::num_traits::real::Real;
 
 use crate::{
-    FragmentConstants, PointResult, Vec3,
-    colourspace::{Hsl, RgbVec},
-    enums::Modifier,
-    fractal::BoundaryClass,
+    Vec3,
+    data::{BoundaryClass, FragmentConstants, Modifier, PointResult},
+    util::{Hsl, RgbVec},
     vec3,
 };
 
@@ -45,7 +44,7 @@ fn vec_cos(vec: Vec3) -> Vec3 {
 #[must_use]
 /// Computes the colour of a point based on the provided colouring algorithm and parameters.
 pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
-    use super::enums::Colourer as C;
+    use crate::data::Colourer as C;
     let iters = data.iters(constants.palette.colour_style);
     let mut hsl = match constants.palette.colourer {
         C::LogRainbow => log_rainbow(constants, iters, &data),
@@ -270,16 +269,16 @@ fn icyblue(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hs
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use base::PixelSpacing as _;
     use const_default::ConstDefault;
     use float_eq::float_eq;
-    use glam::{Vec2, uvec2, vec2};
     use strum::IntoEnumIterator;
 
     use super::{PointResult, RgbVec};
     use crate::{
-        FragmentConstants, Palette, Vec3,
-        enums::{Algorithm, Colourer, Modifier},
+        Vec2, Vec3,
+        data::{Algorithm, Colourer, FragmentConstants, Modifier, Palette},
+        engine::PixelSpacing as _,
+        uvec2, vec2,
     };
 
     macro_rules! assert_rgbvec_near {
@@ -322,7 +321,7 @@ mod tests {
                 iters_fraction,
                 0.,
                 0.,
-                crate::fractal::BoundaryClass::Indeterminate,
+                crate::data::BoundaryClass::Indeterminate,
             );
             let expected = RgbVec::from(expected);
             let result = super::colour_data(data, &consts, 0.0);
@@ -362,8 +361,7 @@ mod tests {
         consts.viewport_zoom = 0.83;
         let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = vec2(-0.707_752, -0.353_065_3);
-        let data =
-            crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
+        let data = crate::engine::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
@@ -387,8 +385,7 @@ mod tests {
         consts.viewport_zoom = 30.0;
         let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = Vec2::splat(0.1);
-        let data =
-            crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
+        let data = crate::engine::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
@@ -411,8 +408,7 @@ mod tests {
         consts.viewport_zoom = 4.0;
         let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = vec2(-0.8789, -0.23563);
-        let data =
-            crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
+        let data = crate::engine::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts, pixel_size);
@@ -435,8 +431,7 @@ mod tests {
         consts.viewport_zoom = 1.29;
         let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = vec2(0.17388, 0.80085);
-        let data =
-            crate::fractal::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
+        let data = crate::engine::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         let result = super::colour_data(data, &consts, pixel_size);
         eprintln!("result: {result:?}");

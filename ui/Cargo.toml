@@ -27,7 +27,7 @@ hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 
 [dependencies]
 anyhow = { workspace = true }
-base = { package = "brot3-lib", path = "../lib" }
+brot3-lib = { workspace = true }
 bytemuck = { workspace = true }
 cfg-if = { workspace = true }
 chrono = { workspace = true, features = ["clock"] }
@@ -43,7 +43,6 @@ num-traits = { workspace = true }
 png = { workspace = true }
 rayon = { workspace = true }
 rfd = { workspace = true }
-shader = { workspace = true }
 strum = { workspace = true, features = ["std"] }
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
 web-time = { workspace = true }

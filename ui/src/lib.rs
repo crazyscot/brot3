@@ -18,10 +18,10 @@ use clap::Parser;
 // CAUTION: Hard-wired paths
 /// The relative path to the shader crate, from the point of view of the ui crate
 #[cfg(runtime_compile)]
-const CARGO_SHADER_RELATIVE_PATH: &str = "../shader";
+const CARGO_SHADER_RELATIVE_PATH: &str = "../lib";
 /// Where to look for the shader at runtime, if we're not running under cargo and no path was given
 #[cfg(runtime_compile)]
-const CANDIDATE_SHADER_PATHS: &[&str] = &["./shader", "../shader"];
+const CANDIDATE_SHADER_PATHS: &[&str] = &["./lib", "../lib"];
 
 pub(crate) mod version;
 use version::version_string;
@@ -125,14 +125,14 @@ pub async fn main() -> anyhow::Result<()> {
             } else {
                 easy_shader_runner::run_with_prebuilt_shader(
                     params,
-                    include_bytes!(env!("shader.spv")),
+                    include_bytes!(env!("BROT3_SHADER")),
                 )?;
             }
         } else {
             // Runtime compilation disabled by feature flag
             easy_shader_runner::run_with_prebuilt_shader(
                 params,
-                include_bytes!(env!("shader.spv")),
+                include_bytes!(env!("BROT3_SHADER")),
             )?;
         }
     }

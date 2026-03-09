@@ -7,13 +7,14 @@
 
 use std::sync::{Arc, Mutex};
 
-use base::{BigVec2, PixelSpacing as _, PushExponent, data::enums::Algorithm, ui::ViewportZoom};
+use brot3_lib::{
+    BigVec2,
+    data::{Algorithm, Flags, FragmentConstants, Palette, PointResult, PushExponent},
+    engine::PixelSpacing as _,
+    ui::ViewportZoom,
+};
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
-use shader::{
-    data::PointResult,
-    push_constants::{Flags, FragmentConstants, Palette},
-};
 use web_time::Instant;
 use winit::{
     dpi::PhysicalSize,

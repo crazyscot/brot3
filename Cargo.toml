@@ -1,5 +1,5 @@
 [workspace]
-members = ["lib", "shader", "shader_builder", "ui", "xtask"]
+members = ["lib", "shader_builder", "ui", "xtask"]
 resolver = "2"
 
 [workspace.package]
@@ -47,7 +47,6 @@ rayon = "1.11.0"
 rfd = "0.17.2"
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.134"
-shader = { path = "shader" }
 strum = { version = "0.28.0", default-features = false }
 tokio = "1.50.0"
 web-time = "1.1.0"

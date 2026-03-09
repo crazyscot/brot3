@@ -8,7 +8,7 @@
 #[cfg(not(target_arch = "spirv"))]
 const DEBUG_FRACTAL: bool = false;
 
-pub(crate) use crate::push_constants::{ESCAPE_THRESHOLD, ESCAPE_THRESHOLD_SQ};
+pub(crate) use crate::{ESCAPE_THRESHOLD, ESCAPE_THRESHOLD_SQ};
 
 #[clippy::format_args]
 macro_rules! deprintln {
@@ -31,12 +31,14 @@ macro_rules! xprintln {
 
 use core::marker::PhantomData;
 
-use bytemuck::NoUninit;
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
-use super::{Complex, FragmentConstants, PointResult, Vec2};
-use crate::{Algorithm, Flags, exponentiation::Exponentiator};
+use crate::{
+    Complex, Vec2,
+    data::{Algorithm, BoundaryClass, Flags, FragmentConstants, PointResult},
+    maths::Exponentiator,
+};
 
 // *sigh* these are constants are pub(crate) in core
 const EXP_MASK_F32: u32 = 0x7F80_0000;
@@ -69,29 +71,29 @@ fn f32_is_infinite(f: f32) -> bool {
 macro_rules! exponent_monomorph {
     ($exponent: expr, $run_it: ident, $alg:ty) => {
         match $exponent.typ {
-            $crate::push_constants::NumericType::Integer if $exponent.int == 2 => {
-                $run_it!($crate::exponentiation::Power2 {}, $alg)
+            $crate::data::NumericType::Integer if $exponent.int == 2 => {
+                $run_it!($crate::maths::Power2 {}, $alg)
             }
-            $crate::push_constants::NumericType::Integer if $exponent.int == 3 => {
-                $run_it!($crate::exponentiation::Power3 {}, $alg)
+            $crate::data::NumericType::Integer if $exponent.int == 3 => {
+                $run_it!($crate::maths::Power3 {}, $alg)
             }
-            $crate::push_constants::NumericType::Integer if $exponent.int == 4 => {
-                $run_it!($crate::exponentiation::Power4 {}, $alg)
+            $crate::data::NumericType::Integer if $exponent.int == 4 => {
+                $run_it!($crate::maths::Power4 {}, $alg)
             }
-            $crate::push_constants::NumericType::Integer if $exponent.int == 5 => {
-                $run_it!($crate::exponentiation::Power5 {}, $alg)
+            $crate::data::NumericType::Integer if $exponent.int == 5 => {
+                $run_it!($crate::maths::Power5 {}, $alg)
             }
-            $crate::push_constants::NumericType::Integer if $exponent.int == 6 => {
-                $run_it!($crate::exponentiation::Power6 {}, $alg)
+            $crate::data::NumericType::Integer if $exponent.int == 6 => {
+                $run_it!($crate::maths::Power6 {}, $alg)
             }
-            $crate::push_constants::NumericType::Integer => {
-                $run_it!($crate::exponentiation::IntegerPower($exponent.int), $alg)
+            $crate::data::NumericType::Integer => {
+                $run_it!($crate::maths::IntegerPower($exponent.int), $alg)
             }
-            $crate::push_constants::NumericType::Float => {
-                $run_it!($crate::exponentiation::RealPower($exponent.real), $alg)
+            $crate::data::NumericType::Float => {
+                $run_it!($crate::maths::RealPower($exponent.real), $alg)
             }
-            $crate::push_constants::NumericType::Complex => {
-                $run_it!($crate::exponentiation::ComplexPower::from($exponent), $alg)
+            $crate::data::NumericType::Complex => {
+                $run_it!($crate::maths::ComplexPower::from($exponent), $alg)
             }
         }
     };
@@ -173,18 +175,6 @@ where
     /// `ESCAPE_THRESHOLD.log2().log2()`, precomputed for efficiency in the smoothed iteration
     /// count formula.
     loglog2_escape_threshold: f32,
-}
-
-#[derive(Clone, Copy, Default, Debug, PartialEq, NoUninit)]
-#[cfg_attr(not(target_arch = "spirv"), derive(strum::Display))]
-#[repr(u32)]
-pub enum BoundaryClass {
-    #[default]
-    Indeterminate,
-    Inside,
-    VeryClose,
-    Close,
-    NotClose,
 }
 
 #[derive(Default, Debug)]
@@ -424,7 +414,7 @@ fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmMo
 ///
 /// TODO: Someday, deduplicate this with `mandelbrot_family_pre_modify_point_inner`?
 pub fn mandelbrot_family_pre_modify_point_inner_big(
-    z: &mut base::BigComplex,
+    z: &mut crate::BigComplex,
     params: AlgorithmModifiers,
 ) {
     use dashu::base::Abs;
@@ -533,13 +523,14 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
 #[cfg(not(target_arch = "spirv"))]
 pub fn mandelbrot_perturbed_compute_reference_iters(
     points: &mut Vec<Vec2>,
-    centre: &base::BigVec2,
+    centre: &crate::BigVec2,
     algorithm: Algorithm,
     max_iter: u32,
 ) {
-    use base::BigComplex;
     use dashu::base::Sign;
     use dashu_float::{FBig, round::mode as RoundingMode};
+
+    use crate::BigComplex;
 
     points.clear();
     let modifiers = AlgorithmModifiers::from(algorithm);
@@ -582,16 +573,15 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use base::BigVec2;
     use const_default::ConstDefault as _;
     use pretty_assertions::assert_eq;
 
     use super::Flags;
     use crate::{
-        FragmentConstants, Palette, Size, Vec2,
-        enums::Algorithm,
-        fractal::{self, BoundaryClass},
-        push_constants::{NumericType, PushExponent},
+        BigVec2, Vec2,
+        data::{Algorithm, BoundaryClass, FragmentConstants, NumericType, Palette, PushExponent},
+        engine,
+        util::Size,
         vec2,
     };
 
@@ -616,7 +606,7 @@ mod tests {
         #![allow(clippy::float_cmp)]
         let point = crate::vec2(-0.75, 0.75);
         eprintln!("{:#?}", test_frag_consts());
-        let result = fractal::render(
+        let result = engine::render(
             &test_frag_consts(),
             point - test_frag_consts().viewport_translate,
             &[Vec2::ZERO; 0],
@@ -634,7 +624,7 @@ mod tests {
         consts.exponent.real = 2.0;
         consts.exponent.imag = 0.0;
         eprintln!("{consts:#?}");
-        let result = fractal::render(&consts, point - consts.viewport_translate, &[Vec2::ZERO; 0]);
+        let result = engine::render(&consts, point - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("{result:?}");
         assert_eq!(result.iters_fraction(), 0.522_014_6);
     }
@@ -645,7 +635,7 @@ mod tests {
         let mut consts = test_frag_consts();
         consts.algorithm = Algorithm::Variant;
         // Variant has a debug_assert! consistency check
-        let result = fractal::render(&consts, point - consts.viewport_translate, &[Vec2::ZERO; 0]);
+        let result = engine::render(&consts, point - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("{result:?}");
     }
 

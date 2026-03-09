@@ -2,7 +2,7 @@
 //!
 //! (c) 2026 Ross Younger
 
-pub(crate) trait FloatIsNear {
+pub trait FloatIsNear {
     #[allow(clippy::wrong_self_convention)]
     fn is_near(self, other: Self) -> bool;
 }

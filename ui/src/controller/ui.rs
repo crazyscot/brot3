@@ -2,7 +2,10 @@
 //!
 //! Portions of this file are based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
 
-use base::{NumericType, data::enums::Algorithm};
+use brot3_lib::{
+    data::{Algorithm, NumericType, Palette},
+    engine::fractal,
+};
 use easy_shader_runner::{UiState, egui};
 
 use super::{DVec2, Instant};
@@ -153,7 +156,7 @@ impl super::Controller {
             ($($id:ident), *) => {
                 $(
                     if movement.$id != 0. {
-                        self.palette.$id = (self.palette.$id + factor32 * movement.$id).clamp(shader::push_constants::Palette::MINIMA.$id, shader::push_constants::Palette::MAXIMA.$id);
+                        self.palette.$id = (self.palette.$id + factor32 * movement.$id).clamp(Palette::MINIMA.$id, Palette::MAXIMA.$id);
                         movement.$id = 0.;
                     }
                 )*
@@ -177,7 +180,7 @@ impl super::Controller {
     }
 
     fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {
-        shader::fractal::mandelbrot_perturbed_compute_reference_iters(
+        fractal::mandelbrot_perturbed_compute_reference_iters(
             &mut self.perturbation.points,
             &self.viewport_translate,
             self.algorithm,

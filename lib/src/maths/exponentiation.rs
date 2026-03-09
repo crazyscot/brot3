@@ -7,8 +7,7 @@
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::real::Real;
 
-use super::Complex;
-use crate::push_constants::PushExponent;
+use crate::{Complex, data::PushExponent};
 
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;
@@ -149,8 +148,9 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::{
-        exponentiation::{Complex, ComplexPower, Exponentiator, IntegerPower, Power2, RealPower},
-        push_constants::PushExponent,
+        Complex,
+        data::PushExponent,
+        maths::{ComplexPower, Exponentiator, IntegerPower, Power2, RealPower},
     };
 
     macro_rules! assert_complex_eq {
@@ -184,7 +184,7 @@ mod tests {
         for i in 2..=7 {
             let (z, pow, log2) = crate::exponent_monomorph!(
                 PushExponent {
-                    typ: crate::push_constants::NumericType::Integer,
+                    typ: crate::data::NumericType::Integer,
                     int: i,
                     ..Default::default()
                 },

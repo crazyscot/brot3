@@ -1,7 +1,7 @@
 //! Co-ordinates readout, inspector and wrangling
 // (c) 2025 Ross Younger
 
-use base::dynfmt;
+use brot3_lib::dynfmt;
 use easy_shader_runner::egui;
 
 #[allow(
@@ -116,7 +116,7 @@ impl super::Controller {
     }
 
     pub(crate) fn mouse_on_marker(&self) -> bool {
-        use shader::INSPECTOR_MARKER_SIZE;
+        use brot3_lib::INSPECTOR_MARKER_SIZE;
         self.inspector.active
             && self
                 .mouse_position
@@ -138,6 +138,6 @@ impl super::Controller {
         self.inspector.stale = false;
         let consts = self.fragment_constants(false);
         let offset = (self.inspector.position.clone() - &self.viewport_translate).as_vec2();
-        self.inspector.data = shader::fractal::render(&consts, offset, &self.perturbation.points);
+        self.inspector.data = brot3_lib::engine::render(&consts, offset, &self.perturbation.points);
     }
 }

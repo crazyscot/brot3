@@ -1,6 +1,12 @@
 //! Pixel-related calculations (generic by type)
 // (c) 2025-6 Ross Younger
 
+mod colour;
+pub(crate) mod entrypoints;
+pub mod fractal;
+pub use colour::colour_data;
+pub use fractal::render;
+
 /// Helper trait for calculating the size of a pixel in the complex plane, given the current zoom
 /// and viewport size.
 pub trait PixelSpacing

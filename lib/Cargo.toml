@@ -8,17 +8,41 @@ keywords.workspace = true
 license = "MIT"
 publish = false
 repository.workspace = true
-description = "Shared definitions and support code for brot3 (separate crate for efficient testing)"
+description = "brot3's engine"
+
+# TODO: It would be nice to build dylib only on spirv and rlib on host builds.
+# This is not currently supported by cargo; https://github.com/rust-lang/cargo/issues/12260 refers.
+[lib]
+crate-type = ["dylib", "rlib"]
+
+[[bench]]
+name = "shader"
+harness = false
+
+[[bench]]
+name = "colour_conversion"
+harness = false
+
+[features]
+## Emulate push constants. Useful if the GPU does not support PUSH_CONSTANTS.
+emulate_constants = []
 
 [dependencies]
+bitflags = { workspace = true, features = ["bytemuck"] }
 bytemuck = { workspace = true, features = ["derive"] }
 const-default = { workspace = true }
+derive_more = { workspace = true, default-features = false, features = ["constructor", "display"] }
+document-features = { workspace = true }
 float_eq.workspace = true
 num-traits.workspace = true
+paste = { workspace = true }
+spirv-std = { workspace = true }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
+abels-complex = { workspace = true, features = ["libm", "glam"] }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
+abels-complex = { workspace = true, features = ["std", "glam"] }
 clap = { workspace = true, features = ["derive"] }
 dashu-float = { workspace = true }
 dashu = { workspace = true, features = ["serde"] }
@@ -30,6 +54,8 @@ strum = { workspace = true, default-features = false, features = ["derive"] }
 
 [dev-dependencies]
 assert_matches = { workspace = true }
+derive_more = { workspace = true, features = ["debug"] }
+divan = { workspace = true }
 pretty_assertions = { workspace = true }
 strum = { workspace = true }
 

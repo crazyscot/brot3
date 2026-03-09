@@ -103,6 +103,18 @@ macro_rules! incrementable {
 incrementable!(Colourer);
 incrementable!(Algorithm);
 
+#[derive(Clone, Copy, Default, Debug, PartialEq, NoUninit)]
+#[cfg_attr(not(target_arch = "spirv"), derive(strum::Display))]
+#[repr(u32)]
+pub enum BoundaryClass {
+    #[default]
+    Indeterminate,
+    Inside,
+    VeryClose,
+    Close,
+    NotClose,
+}
+
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {

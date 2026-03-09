@@ -4,7 +4,7 @@
 
 use bytemuck::NoUninit;
 
-use super::{UVec2, Vec2, uvec2, vec2};
+use crate::{UVec2, Vec2, uvec2, vec2};
 
 /// GPU-friendly representation of a two-dimensional `u32` vector
 #[derive(Copy, Clone, Debug, Default, NoUninit)]
@@ -25,7 +25,7 @@ impl Size {
     /// Calculates the aspect ratio
     ///
     /// ```
-    /// # use shader::Size;
+    /// # use brot3_lib::util::Size;
     /// let sz = Size::new(100, 200);
     /// assert_eq!(sz.aspect_ratio(), 0.5);
     /// ```
@@ -38,7 +38,7 @@ impl Size {
     /// Converts to a [`Vec2`]
     ///
     /// ```
-    /// # use shader::Size;
+    /// # use brot3_lib::util::Size;
     /// let sz = Size::new(100, 200);
     /// let v = sz.as_vec2();
     /// assert_eq!(v.x, 100.0);
@@ -52,7 +52,7 @@ impl Size {
 
     /// Converts to a [`UVec2`]
     /// ```
-    /// # use shader::Size;
+    /// # use brot3_lib::util::Size;
     /// let sz = Size::new(100, 200);
     /// let v = sz.as_uvec2();
     /// assert_eq!(v.x, 100);
@@ -66,7 +66,7 @@ impl Size {
 
 impl From<UVec2> for Size {
     /// ```
-    /// # use shader::Size;
+    /// # use brot3_lib::util::Size;
     /// # use glam::uvec2;
     /// let uv = uvec2(200, 100);
     /// let sz: Size = uv.into();
