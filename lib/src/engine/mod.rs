@@ -7,6 +7,8 @@ pub mod fractal;
 pub use colour::colour_data;
 pub use fractal::render;
 
+use crate::Vec2;
+
 /// Helper trait for calculating the size of a pixel in the complex plane, given the current zoom
 /// and viewport size.
 pub trait PixelSpacing
@@ -39,3 +41,7 @@ impl PixelSpacing for f32 {}
 /// This trait impl is not useful on spirv unless your GPU supports it and you declare it as a
 /// required feature.
 impl PixelSpacing for f64 {}
+
+pub(crate) fn new_york_distance(a: Vec2, b: Vec2) -> f32 {
+    (a.x - b.x).abs() + (a.y - b.y).abs()
+}

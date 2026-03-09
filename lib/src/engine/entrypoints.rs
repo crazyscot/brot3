@@ -1,97 +1,6 @@
-//! SPIR-V entrypoints
+//! SPIR-V entrypoints (testing)
 //!
 //! (c) 2025-6 Ross Younger, with inspiration from earlier work by Abel <abel465@gmail.com>; see <https://github.com/abel465/mandelbrot>
-
-#[allow(unused_imports)]
-use spirv_std::spirv;
-
-use crate::{
-    INSPECTOR_MARKER_SIZE, Vec2, Vec4,
-    data::{Flags, FragmentConstants, PointResult},
-    engine::{colour, fractal},
-    glam::Vec4Swizzles as _,
-    util::{GridRef, GridRefMut, GridShared, RgbVec},
-    vec2,
-};
-
-fn new_york_distance(a: Vec2, b: Vec2) -> f32 {
-    (a.x - b.x).abs() + (a.y - b.y).abs()
-}
-
-/// SPIRV `fragment` entrypoint.
-/// This does the iteration and rendering work.
-#[spirv(fragment)]
-pub(crate) fn main_fs(
-    #[spirv(frag_coord)] frag_coord: Vec4,
-    #[cfg(not(feature = "emulate_constants"))]
-    #[spirv(push_constant)]
-    constants: &FragmentConstants,
-    #[cfg(feature = "emulate_constants")]
-    #[spirv(storage_buffer, descriptor_set = 1, binding = 0)]
-    constants: &FragmentConstants,
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [PointResult],
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 1)]
-    perturbation_reference_points: &[Vec2],
-    output: &mut Vec4,
-) {
-    // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we
-    // ignore depth & 1/w
-    let coord = frag_coord.xy();
-    let coord_int = coord.as_uvec2();
-
-    // viewport pixel size e.g. 1920x1080
-    let size = constants.size.as_vec2();
-    let pixel_spacing = constants.pixel_spacing();
-
-    // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
-    let complex_offset = (coord - 0.5 * size) * pixel_spacing;
-
-    let cache = GridRef::new(constants.buffer_size.as_uvec2(), grid);
-    let cacheable = cache.address_valid(coord_int);
-
-    let render_data = if !cacheable {
-        fractal::render(constants, complex_offset, perturbation_reference_points)
-    } else if constants.flags.contains(Flags::NEEDS_REITERATE) {
-        let render_data = fractal::render(constants, complex_offset, perturbation_reference_points);
-        let mut cache = GridRefMut::new(constants.buffer_size.as_uvec2(), grid);
-        cache.set(coord_int, render_data);
-        render_data
-    } else {
-        // it's cacheable and cached
-        cache.get(coord_int)
-    };
-
-    let mut colour = colour::colour_data(render_data, constants, pixel_spacing);
-
-    // Draw the inspector marker
-    if constants.flags.contains(Flags::INSPECTOR_ACTIVE) {
-        // New York distance from the reference point draws a diamond shape
-        let dist = new_york_distance(constants.inspector_point_pixel_address, coord);
-        if dist < INSPECTOR_MARKER_SIZE * 0.667 {
-            // TODO Do something better here? Change pixels underneath?
-            colour = RgbVec::BLACK;
-        } else if dist < INSPECTOR_MARKER_SIZE {
-            colour = RgbVec::WHITE;
-        }
-    }
-
-    *output = colour.0.extend(1.0);
-}
-
-/// SPIRV `vertex` entrypoint.
-#[spirv(vertex)]
-pub(crate) fn main_vs(
-    #[spirv(vertex_index)] vert_id: i32,
-    #[spirv(position, invariant)] out_pos: &mut Vec4,
-) {
-    #[allow(clippy::cast_precision_loss)]
-    let uv = vec2(((vert_id << 1) & 2) as f32, (vert_id & 2) as f32);
-    // uv expresses the cycle: (0,0) (2,0) (0,2) (2,2)
-    let pos = 2.0 * uv - Vec2::ONE;
-    // pos expresses the cycle: (-1,-1) (3,-1) (-1,3) (3,3)
-
-    *out_pos = pos.extend(0.0).extend(1.0);
-}
 
 #[cfg(all(test, not(target_arch = "spirv")))]
 #[cfg_attr(coverage_nightly, coverage(off))]
@@ -99,9 +8,9 @@ mod tests {
     use float_eq::assert_float_eq;
     use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, uvec2, vec2, vec4};
 
-    use super::{Flags, FragmentConstants, new_york_distance};
     use crate::{
-        data::{Algorithm, Colourer, Palette, PointResult, PushExponent},
+        data::{Algorithm, Colourer, Flags, FragmentConstants, Palette, PointResult, PushExponent},
+        engine::new_york_distance,
         util::Size,
     };
 
@@ -119,7 +28,7 @@ mod tests {
 
         for (id, expected) in cases {
             let mut res = Vec4::default();
-            super::main_vs(*id, &mut res);
+            crate::main_vs(*id, &mut res);
             assert_eq!(&res, expected, "failing case: {id}");
         }
     }
@@ -159,7 +68,7 @@ mod tests {
 
         // Cache starts out empty (you probably couldn't run this on an actual GPU, the NaN might
         // trigger an abort)
-        super::main_fs(
+        crate::main_fs(
             vec4(0., 0., 0., 0.),
             &no_iterate,
             &mut grid,
@@ -172,7 +81,7 @@ mod tests {
         assert_eq!(res[3], 1.0);
 
         // Pass 1 populates cache
-        super::main_fs(
+        crate::main_fs(
             vec4(0., 0., 0., 0.),
             &test_frag_consts(),
             &mut grid,
@@ -186,7 +95,7 @@ mod tests {
         );
 
         // Pass 2: Retrieve from cache
-        super::main_fs(
+        crate::main_fs(
             vec4(0., 0., 0., 0.),
             &no_iterate,
             &mut grid,
@@ -226,7 +135,7 @@ mod tests {
                 inspector_point_pixel_address: Vec2::from(*point),
                 ..test_frag_consts()
             };
-            super::main_fs(
+            crate::main_fs(
                 vec4(0., 0., 0., 0.),
                 &inspector,
                 &mut grid,
