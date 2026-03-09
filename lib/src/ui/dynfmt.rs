@@ -17,7 +17,7 @@ fn strip_trailers(s: &str) -> &str {
 ///
 /// # Example
 /// ```
-/// use base::ui::dynamic_format;
+/// use brot3_lib::ui::dynamic_format;
 /// let v = 1.234_567_8;
 /// assert_eq!(dynamic_format(v, 6), "1.234568");
 /// assert_eq!(dynamic_format(v, 0), "1.2");
@@ -54,7 +54,7 @@ where
 ///
 /// # Examples
 /// ```
-/// use base::dynfmt;
+/// use brot3_lib::dynfmt;
 /// let v = 1.234_567_8;
 /// assert_eq!(dynfmt!(v), "1.234568");
 /// assert_eq!(dynfmt!(v, 0), "1.2");

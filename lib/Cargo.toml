@@ -1,5 +1,5 @@
 [package]
-name = "base"
+name = "brot3-lib"
 version.workspace = true
 authors.workspace = true
 categories.workspace = true

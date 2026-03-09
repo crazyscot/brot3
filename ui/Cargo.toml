@@ -27,7 +27,7 @@ hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 
 [dependencies]
 anyhow = { workspace = true }
-base = { workspace = true }
+base = { package = "brot3-lib", path = "../lib" }
 bytemuck = { workspace = true }
 cfg-if = { workspace = true }
 chrono = { workspace = true, features = ["clock"] }
