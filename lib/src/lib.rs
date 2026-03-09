@@ -16,12 +16,12 @@ pub use pixels::PixelSpacing;
 pub use push_exponent::{NumericType, PushExponent};
 
 #[cfg(not(target_arch = "spirv"))]
-mod big;
+mod bignum;
 #[cfg(not(target_arch = "spirv"))]
 pub mod ui;
 
 #[cfg(not(target_arch = "spirv"))]
-pub use big::{
+pub use bignum::{
     big_complex::BigComplex,
     big_vec2::{BigVec2, fbig_from_str},
 };
