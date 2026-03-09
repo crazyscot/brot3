@@ -1,4 +1,6 @@
 //! Colouring algorithms
+//!
+//! These implementations are (c) 2025-6 Ross Younger, with original authors as noted.
 
 #![allow(missing_docs)]
 

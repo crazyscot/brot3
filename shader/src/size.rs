@@ -1,4 +1,6 @@
 //! GPU-friendly representation of a two-dimensional `u32` vector
+//!
+//! Based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
 
 use bytemuck::NoUninit;
 

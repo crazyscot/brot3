@@ -9,6 +9,7 @@ use crate::BigVec2;
 
 /// Arbitrary precision complex number using `dashu_float::FBig` as the underlying data type
 ///
+/// Based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
 ///
 /// ```
 /// # use base::{BigComplex, make_bigcomplex};

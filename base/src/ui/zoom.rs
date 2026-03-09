@@ -1,3 +1,5 @@
+// (c) 2026 Ross Younger
+
 /// Newtype to centralise the display formatting logic
 #[derive(Copy, Clone, Debug)]
 #[repr(transparent)]

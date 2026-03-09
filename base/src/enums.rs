@@ -1,4 +1,6 @@
 //! enum definitions for the brot3 shader
+//!
+//! (c) 2025 Ross Younger
 
 use bytemuck::NoUninit;
 use const_default::ConstDefault;

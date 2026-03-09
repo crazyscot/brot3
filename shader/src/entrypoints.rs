@@ -1,4 +1,6 @@
 //! SPIR-V entrypoints
+//!
+//! (c) 2025-6 Ross Younger, with inspiration from earlier work by Abel <abel465@gmail.com>; see <https://github.com/abel465/mandelbrot>
 
 #[allow(unused_imports)]
 use spirv_std::spirv;

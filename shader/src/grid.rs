@@ -1,4 +1,6 @@
 //! Two dimensional array types
+//!
+//! Based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
 
 #![allow(missing_debug_implementations)]
 

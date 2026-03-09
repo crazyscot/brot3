@@ -1,5 +1,7 @@
 //! Exponent representation for fractal computation
 //! Supports integer, real, and complex exponents with range validation
+//!
+//! (c) 2026 Ross Younger
 
 #![cfg(not(target_arch = "spirv"))]
 

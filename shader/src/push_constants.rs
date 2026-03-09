@@ -1,4 +1,6 @@
 //! Structures shared between shader and UI
+//!
+//! (c) 2025-6 Ross Younger
 
 #![allow(missing_docs)]
 

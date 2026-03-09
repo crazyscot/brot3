@@ -1,4 +1,6 @@
 //! Floating-point utilities
+//!
+//! (c) 2026 Ross Younger
 
 pub(crate) trait FloatIsNear {
     #[allow(clippy::wrong_self_convention)]

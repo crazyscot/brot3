@@ -1,3 +1,6 @@
+//! Controller that plugs into the [`easy_shader_runner`] framework.
+//! It manages the application state and UI.
+//!
 //! <div class="warning">
 //! This crate has a hidden dependency on the `png` feature of the `image` crate.
 //! </div>

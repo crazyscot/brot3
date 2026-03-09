@@ -1,3 +1,7 @@
+//! Keyboard input handling
+//!
+//! Portions of this file are based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
+
 #![allow(unused_results)]
 
 use easy_shader_runner::{

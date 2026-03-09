@@ -1,3 +1,5 @@
+//! Main entry point for the GUI application
+
 #![allow(missing_docs)]
 #![windows_subsystem = "windows"]
 

@@ -1,4 +1,6 @@
 //! Exponentiation strategies for fractals, as a trait to allow monomorphisation and inlining
+//!
+//! (c) 2025-6 Ross Younger
 
 #![allow(missing_docs)]
 

@@ -1,4 +1,6 @@
-//! Fractal data structures
+//! Fractal data representation
+//!
+//! (c) 2025-6 Ross Younger
 
 use base::enums::ColourStyle;
 use bytemuck::NoUninit;

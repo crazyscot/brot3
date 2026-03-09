@@ -47,6 +47,8 @@ mod fbig_serde {
 }
 
 /// Arbitrary precision version of [`glam::Vec2`]
+///
+/// Based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 #[allow(missing_docs)]
 pub struct BigVec2 {

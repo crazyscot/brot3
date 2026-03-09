@@ -1,3 +1,7 @@
+//! A utility crate that builds the SPIR-V shader binary.
+//!
+//! Based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
+
 #![allow(missing_docs, clippy::missing_panics_doc)]
 
 use std::{env, path::Path};

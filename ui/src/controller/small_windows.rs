@@ -1,3 +1,4 @@
+//! Minor windows
 // (c) 2025 Ross Younger
 
 use std::{path::Path, sync::Arc};

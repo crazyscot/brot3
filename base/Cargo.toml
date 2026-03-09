@@ -1,7 +1,7 @@
 [package]
 name = "base"
 version.workspace = true
-authors = ["Ross Younger <crazyscot@gmail.com>", "Abel <abel465@gmail.com>"]
+authors.workspace = true
 categories.workspace = true
 edition.workspace = true
 keywords.workspace = true

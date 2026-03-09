@@ -1,4 +1,6 @@
 //! GPU-friendly colour space representations and conversions
+//!
+//! (c) 2025-6 Ross Younger
 
 use float_eq::float_eq;
 #[cfg(target_arch = "spirv")]

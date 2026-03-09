@@ -1,5 +1,7 @@
-//! Fractal algorithms.
+//! Fractal algorithm implementations
 //! Can also be called on the host.
+//!
+//! (c) 2025-6 Ross Younger
 
 #![allow(missing_docs)]
 
