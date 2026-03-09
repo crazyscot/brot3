@@ -5,15 +5,12 @@
 #![cfg_attr(target_arch = "spirv", no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
-pub mod enums;
-mod float;
-mod pixels;
-mod push_exponent;
+pub mod data;
+mod engine;
+mod maths;
 
-#[allow(unused)]
-pub(crate) use float::FloatIsNear;
-pub use pixels::PixelSpacing;
-pub use push_exponent::{NumericType, PushExponent};
+pub use data::push_exponent::{NumericType, PushExponent};
+pub use engine::PixelSpacing;
 
 #[cfg(not(target_arch = "spirv"))]
 mod bignum;

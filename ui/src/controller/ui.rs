@@ -2,7 +2,7 @@
 //!
 //! Portions of this file are based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
 
-use base::{NumericType, enums::Algorithm};
+use base::{NumericType, data::enums::Algorithm};
 use easy_shader_runner::{UiState, egui};
 
 use super::{DVec2, Instant};

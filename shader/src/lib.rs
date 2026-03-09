@@ -26,7 +26,7 @@ pub mod grid;
 pub mod push_constants;
 mod size;
 
-use base::enums::{self, Algorithm, ColourStyle, Colourer};
+use base::data::enums::{self, Algorithm, ColourStyle, Colourer};
 use data::PointResult;
 #[cfg(test)]
 use push_constants::Palette;

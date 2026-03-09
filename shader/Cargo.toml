@@ -27,7 +27,6 @@ emulate_constants = []
 [dependencies]
 base = { package = "brot3-lib", path = "../lib" }
 bitflags = { workspace = true, features = ["bytemuck"] }
-# brot3-lib = { workspace = true }
 bytemuck = { workspace = true, features = ["derive"] }
 const-default = { workspace = true }
 derive_more = { workspace = true, default-features = false, features = ["constructor", "display"] }

@@ -2,7 +2,7 @@
 //!
 //! (c) 2025-6 Ross Younger
 
-use base::enums::ColourStyle;
+use base::data::enums::ColourStyle;
 use bytemuck::NoUninit;
 
 use crate::fractal::BoundaryClass;

@@ -3,7 +3,7 @@
 
 use base::{
     NumericType,
-    enums::{Algorithm, ColourStyle, Colourer, Modifier},
+    data::enums::{Algorithm, ColourStyle, Colourer, Modifier},
 };
 use easy_shader_runner::egui;
 use num_traits::AsPrimitive;

@@ -16,7 +16,7 @@ impl ViewportZoom {
         default_y_axis_pixel_size: u32,
         y_axis_pixel_count: u32,
     ) -> String {
-        use crate::PixelSpacing as _;
+        use crate::engine::PixelSpacing as _;
 
         let initial_zoom = fractal_plane_size / f64::from(default_y_axis_pixel_size);
         // let zoom = initial_zoom / pixel_size;
@@ -55,7 +55,7 @@ impl From<f32> for ViewportZoom {
 
 impl PartialEq for ViewportZoom {
     fn eq(&self, other: &Self) -> bool {
-        use crate::FloatIsNear as _;
+        use crate::maths::FloatIsNear as _;
         self.0.is_near(other.0)
     }
 }

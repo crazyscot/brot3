@@ -9,7 +9,7 @@ use std::sync::LazyLock;
 
 use base::{
     PushExponent,
-    enums::{Algorithm, Colourer},
+    data::enums::{Algorithm, Colourer},
 };
 use divan::black_box;
 use shader::{
