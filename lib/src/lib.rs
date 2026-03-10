@@ -12,7 +12,8 @@
 // enable this unstable feature (used in tests):
 #![feature(assert_matches)]
 
-pub use spirv_std::glam::{self, DVec2, UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec3, vec4};
+/// Local glam re-exports for convenience
+pub(crate) use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec3};
 #[allow(unused_imports)] // Some are reused in some configurations
 use spirv_std::spirv;
 
@@ -43,9 +44,8 @@ pub type Complex = abels_complex::Complex<f32>;
 /// Size of the inspector marker diamond in pixels
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 
-pub const ESCAPE_THRESHOLD: f32 = 10.0;
-pub const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
-pub const LOGLOG2_ESCAPE_THRESHOLD: f32 = 1.732_020_9;
+const ESCAPE_THRESHOLD: f32 = 10.0;
+const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
 
 /// SPIRV `fragment` entrypoint.
 /// This does the iteration and rendering work.

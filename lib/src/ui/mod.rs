@@ -1,6 +1,6 @@
-//! Base items used by the UI (not the shader).
+//! Items used by the UI, but not the shader.
 //!
-//! These are in the base crate for efficiency of testing.
+//! These are in the lib crate to allow efficient unit testing.
 #![cfg(not(target_arch = "spirv"))]
 
 mod dynfmt;

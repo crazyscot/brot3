@@ -106,6 +106,7 @@ incrementable!(Algorithm);
 #[derive(Clone, Copy, Default, Debug, PartialEq, NoUninit)]
 #[cfg_attr(not(target_arch = "spirv"), derive(strum::Display))]
 #[repr(u32)]
+/// How close is this point to the edge of the fractal?
 pub enum BoundaryClass {
     #[default]
     Indeterminate,

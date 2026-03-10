@@ -3,9 +3,11 @@
 
 mod colour;
 pub(crate) mod entrypoints;
-pub mod fractal;
+pub(crate) mod fractal;
 pub use colour::colour_data;
-pub use fractal::render;
+#[cfg(not(target_arch = "spirv"))]
+pub use fractal::mandelbrot_perturbed_compute_reference_iters;
+pub use fractal::{AlgorithmModifiers, render};
 
 use crate::Vec2;
 

@@ -410,10 +410,10 @@ fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmMo
 }
 
 #[cfg(not(target_arch = "spirv"))]
-/// Pre modification is exposed so that ui can use it.
+/// Part of the high-precision perturbation-mode calculations on CPU.
 ///
 /// TODO: Someday, deduplicate this with `mandelbrot_family_pre_modify_point_inner`?
-pub fn mandelbrot_family_pre_modify_point_inner_big(
+fn mandelbrot_family_pre_modify_point_inner_big(
     z: &mut crate::BigComplex,
     params: AlgorithmModifiers,
 ) {

@@ -10,11 +10,11 @@ use std::sync::LazyLock;
 use brot3_lib::{
     Complex,
     data::{Algorithm, Colourer, Flags, FragmentConstants, Palette, PointResult, PushExponent},
-    glam::{Vec2, vec2},
     maths::{ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, RealPower},
     util::{RgbVec, Size},
 };
 use divan::black_box;
+use glam::{Vec2, vec2};
 use strum::VariantArray as _;
 
 #[divan::bench]

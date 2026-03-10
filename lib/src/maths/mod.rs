@@ -1,7 +1,7 @@
 //! Mathematical operations
 
 mod float;
-pub use float::FloatIsNear;
+pub(crate) use float::FloatIsNear;
 
 mod exponentiation;
 pub use exponentiation::{

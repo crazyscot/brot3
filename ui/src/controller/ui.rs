@@ -4,7 +4,7 @@
 
 use brot3_lib::{
     data::{Algorithm, NumericType, Palette},
-    engine::fractal,
+    engine,
 };
 use easy_shader_runner::{UiState, egui};
 
@@ -180,7 +180,7 @@ impl super::Controller {
     }
 
     fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {
-        fractal::mandelbrot_perturbed_compute_reference_iters(
+        engine::mandelbrot_perturbed_compute_reference_iters(
             &mut self.perturbation.points,
             &self.viewport_translate,
             self.algorithm,
