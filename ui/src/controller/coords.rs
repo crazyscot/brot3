@@ -43,18 +43,18 @@ impl super::Controller {
                     ui.end_row();
                     ui.label("Fractal X (Re)");
                     ui.monospace(dynfmt!(
-                        self.viewport_translate.x.to_f64().value(),
+                        self.state.viewport_translate.x.to_f64().value(),
                         precision
                     ));
                     ui.end_row();
                     ui.label("Fractal Y (Im)");
                     ui.monospace(dynfmt!(
-                        self.viewport_translate.y.to_f64().value(),
+                        self.state.viewport_translate.y.to_f64().value(),
                         precision
                     ));
                     ui.end_row();
                     ui.label("Zoom");
-                    ui.monospace(self.viewport_zoom.display_string(
+                    ui.monospace(self.state.viewport_zoom.display_string(
                         Self::DEFAULT_FRACTAL_PLANE_SIZE,
                         Self::NOMINAL_WINDOW_SIZE.y,
                         self.size.y,
@@ -93,7 +93,7 @@ impl super::Controller {
                         } else {
                             // We only need to report in standard precision for iterations
                             ui.monospace(dynfmt!(
-                                self.inspector.data.iters(self.palette.colour_style),
+                                self.inspector.data.iters(self.state.palette.colour_style),
                                 6
                             ));
                         }
@@ -137,7 +137,7 @@ impl super::Controller {
     pub(crate) fn update_inspector(&mut self) {
         self.inspector.stale = false;
         let consts = self.fragment_constants(false);
-        let offset = (self.inspector.position.clone() - &self.viewport_translate).as_vec2();
+        let offset = (self.inspector.position.clone() - &self.state.viewport_translate).as_vec2();
         self.inspector.data = brot3_lib::engine::render(&consts, offset, &self.perturbation.points);
     }
 }

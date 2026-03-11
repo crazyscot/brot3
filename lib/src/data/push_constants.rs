@@ -46,8 +46,8 @@ const _: () = {
 
 #[allow(missing_docs)]
 impl FragmentConstants {
-    pub const DEFAULT_MAX_ITER: u32 = 250;
-    pub const DEFAULT_ZOOM: f32 = 0.25;
+    pub(crate) const DEFAULT_MAX_ITER: u32 = 250;
+    pub(crate) const DEFAULT_ZOOM: f32 = 0.25;
 }
 
 impl Default for FragmentConstants {
@@ -120,7 +120,7 @@ impl FragmentConstants {
     }
 }
 
-#[derive(Copy, Clone, Debug, NoUninit)]
+#[derive(Copy, Clone, Debug, NoUninit, PartialEq)]
 #[cfg_attr(
     not(target_arch = "spirv"),
     derive(serde::Serialize, serde::Deserialize)
@@ -140,7 +140,7 @@ pub struct Palette {
 }
 impl ConstDefault for Palette {
     const DEFAULT: Self = Self {
-        colourer: Colourer::DEFAULT,
+        colourer: Colourer::Neon,
         colour_style: ColourStyle::DEFAULT,
         brightness_style: Modifier::DEFAULT,
         saturation_style: Modifier::DEFAULT,

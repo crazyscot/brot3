@@ -43,6 +43,7 @@ num-traits = { workspace = true }
 png = { workspace = true }
 rayon = { workspace = true }
 rfd = { workspace = true }
+serde_json.workspace = true
 strum = { workspace = true, features = ["std"] }
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
 web-time = { workspace = true }

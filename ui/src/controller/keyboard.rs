@@ -223,7 +223,7 @@ impl super::Controller {
 
     fn expo_re(&mut self, increase: bool, active: bool) {
         if active {
-            let magnitude = self.exponent.ui_step();
+            let magnitude = self.state.exponent.ui_step();
             let sign = if increase { 1. } else { -1. };
             self.movement.exponent = sign * magnitude;
         } else {
@@ -233,7 +233,7 @@ impl super::Controller {
 
     fn expo_im(&mut self, increase: bool, active: bool) {
         if active {
-            let magnitude = self.exponent.ui_step();
+            let magnitude = self.state.exponent.ui_step();
             let sign = if increase { 1. } else { -1. };
             self.movement.exponent_im = sign * magnitude;
         } else {
@@ -243,13 +243,13 @@ impl super::Controller {
 
     fn fractal(&mut self, increment: bool) {
         let delta = if increment { 1 } else { -1 };
-        self.algorithm += delta;
+        self.state.algorithm += delta;
         self.reiterate = true;
     }
 
     fn palette(&mut self, increment: bool) {
         let delta = if increment { 1 } else { -1 };
-        self.palette.colourer += delta;
+        self.state.palette.colourer += delta;
     }
 }
 

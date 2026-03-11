@@ -19,7 +19,7 @@ impl super::Controller {
     pub(super) const EXPONENT_MIN_INT: i32 = 0;
 
     pub(super) fn perturb_implemented(&self) -> bool {
-        self.algorithm == Algorithm::Mandelbrot && self.exponent.is_two()
+        self.state.algorithm == Algorithm::Mandelbrot && self.state.exponent.is_two()
     }
 
     pub(super) fn ui_impl(
@@ -117,37 +117,40 @@ impl super::Controller {
             assert!(raw_zoom >= 1.0);
             let dfactor = (raw_zoom - 1.0) * factor * dt + 1.0;
             let new_zoom = if zoom_in {
-                self.viewport_zoom.0 * dfactor
+                self.state.viewport_zoom.0 * dfactor
             } else {
-                self.viewport_zoom.0 / dfactor
+                self.state.viewport_zoom.0 / dfactor
             };
             self.update_zoom_factor(new_zoom);
             self.reiterate = true;
         }
         let movement = &mut self.movement;
         if movement.translate != DVec2::ZERO {
-            self.viewport_translate += movement.translate * factor / self.viewport_zoom.0 * dt;
+            self.state.viewport_translate +=
+                movement.translate * factor / self.state.viewport_zoom.0 * dt;
             self.reiterate = true;
         }
         if movement.exponent != 0. {
-            let new_exp = (self.exponent.real + factor32 * movement.exponent)
+            let new_exp = (self.state.exponent.real + factor32 * movement.exponent)
                 .clamp(Self::EXPONENT_MIN, Self::EXPONENT_MAX);
-            if self.exponent.real != new_exp {
+            if self.state.exponent.real != new_exp {
                 self.reiterate = true;
-                self.exponent.real = new_exp;
+                self.state.exponent.real = new_exp;
                 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-                if self.exponent.typ == NumericType::Integer {
-                    self.exponent.int = self.exponent.real.round() as i32;
+                if self.state.exponent.typ == NumericType::Integer {
+                    self.state.exponent.int = self.state.exponent.real.round() as i32;
                 }
             }
             movement.exponent = 0.;
         }
         if movement.exponent_im != 0. {
-            let new_exp = (self.exponent.imag + factor32 * movement.exponent_im)
+            let new_exp = (self.state.exponent.imag + factor32 * movement.exponent_im)
                 .clamp(Self::EXPONENT_MIN, Self::EXPONENT_MAX);
-            if self.exponent.imag != new_exp && self.exponent.typ != NumericType::Integer {
+            if self.state.exponent.imag != new_exp
+                && self.state.exponent.typ != NumericType::Integer
+            {
                 self.reiterate = true;
-                self.exponent.imag = new_exp;
+                self.state.exponent.imag = new_exp;
             }
             movement.exponent_im = 0.;
         }
@@ -156,7 +159,7 @@ impl super::Controller {
             ($($id:ident), *) => {
                 $(
                     if movement.$id != 0. {
-                        self.palette.$id = (self.palette.$id + factor32 * movement.$id).clamp(Palette::MINIMA.$id, Palette::MAXIMA.$id);
+                        self.state.palette.$id = (self.state.palette.$id + factor32 * movement.$id).clamp(Palette::MINIMA.$id, Palette::MAXIMA.$id);
                         movement.$id = 0.;
                     }
                 )*
@@ -182,9 +185,9 @@ impl super::Controller {
     fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {
         engine::mandelbrot_perturbed_compute_reference_iters(
             &mut self.perturbation.points,
-            &self.viewport_translate,
-            self.algorithm,
-            self.max_iter,
+            &self.state.viewport_translate,
+            self.state.algorithm,
+            self.state.max_iter,
         );
 
         graphics_context.queue.write_buffer(

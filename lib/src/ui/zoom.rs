@@ -1,7 +1,11 @@
 // (c) 2026 Ross Younger
 
+#[cfg(not(target_arch = "spirv"))]
+use serde::{Deserialize, Serialize};
+
 /// Newtype to centralise the display formatting logic
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(not(target_arch = "spirv"), derive(Serialize, Deserialize))]
 #[repr(transparent)]
 pub struct ViewportZoom(pub f64);
 

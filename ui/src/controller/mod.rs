@@ -9,9 +9,9 @@ use std::sync::{Arc, Mutex};
 
 use brot3_lib::{
     BigVec2,
-    data::{Algorithm, Flags, FragmentConstants, Palette, PointResult, PushExponent},
+    data::{Flags, FragmentConstants, Palette, PointResult},
     engine::PixelSpacing as _,
-    ui::ViewportZoom,
+    ui::{BIGNUM_PRECISION_LIMIT, UiState as BrotUiState},
 };
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
@@ -32,10 +32,6 @@ mod menu;
 mod small_windows;
 mod ui;
 
-// dashu uses whatever actual digit size it considers necessary, up to this limit.
-// Larger limits reduce performance in deep zooms, but may improve accuracy.
-const BIGNUM_PRECISION_LIMIT: usize = 192;
-
 const MIN_ZOOM: f64 = 0.05;
 const MAX_ZOOM_STANDARD: f64 = 1.0e4; // reported on UI as 40000
 
@@ -47,20 +43,15 @@ const MAX_MAX_ITERATIONS: u32 = 100_000;
 
 #[allow(clippy::struct_excessive_bools)]
 pub(crate) struct Controller {
+    /// primary loadable/saveable state
+    state: BrotUiState,
     /// viewport size in pixels
     size: UVec2,
     cache_size: UVec2,
-    // Viewport position and movement
-    viewport_translate: BigVec2,
-    viewport_zoom: ViewportZoom,
+    // Viewport movement
     movement: Movement,
     // Fractal detail
-    algorithm: Algorithm,
-    max_iter: u32,
-    palette: Palette,
-    exponent: PushExponent,
     perturbation: PerturbationReference,
-    iteration_cull: bool,
 
     // User-facing options
     show_coords_window: bool,
@@ -107,33 +98,29 @@ struct Inspector {
 }
 
 impl Controller {
-    /// The size of the complex plane that you see from [`FragmentConstants::DEFAULT_ZOOM`] with the
-    /// default window size
+    /// The size of the complex plane that you see at the default zoom level with the
+    /// nominal window size
     pub(crate) const DEFAULT_FRACTAL_PLANE_SIZE: f64 = 4.0;
     /// The window size that defines a zoom factor of 1.0.
     ///
     /// This happens to be what we get by default from winit on Linux.
     pub(crate) const NOMINAL_WINDOW_SIZE: UVec2 = uvec2(800, 600);
 
-    #[allow(clippy::missing_panics_doc)]
+    //#[allow(clippy::missing_panics_doc)]
     pub(crate) fn new(options: &Args) -> Self {
         Self {
+            state: BrotUiState {
+                algorithm: options.fractal,
+                palette: Palette::default().with_colourer(options.colourer),
+                /* TODO with render style too */
+                ..BrotUiState::default()
+            },
             size: UVec2::ZERO,
             cache_size: options.cache_size.unwrap_or_default().into(),
             // TODO figure out what precision is best; do we need to make it dynamic?
-            viewport_translate: BigVec2::try_new(-1., 0.)
-                .unwrap()
-                .with_precision(BIGNUM_PRECISION_LIMIT),
-            viewport_zoom: FragmentConstants::DEFAULT_ZOOM.into(),
             movement: Movement::default(),
 
-            algorithm: options.fractal,
-            max_iter: FragmentConstants::DEFAULT_MAX_ITER,
-            palette: Palette::default().with_colourer(options.colourer), /* TODO with render
-                                                                          * style too */
-            exponent: PushExponent::default(),
             perturbation: PerturbationReference::default(),
-            iteration_cull: false,
 
             show_coords_window: true,
             show_scale_bar: true,
@@ -173,17 +160,17 @@ impl Controller {
         let flags = Flags::flag_if(reiterate || self.always_reiterate, Flags::NEEDS_REITERATE)
             | Flags::flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
             | Flags::flag_if(self.perturbation_mode, Flags::PERTURBATION_MODE)
-            | Flags::flag_if(self.iteration_cull, Flags::ITERATION_CULL);
+            | Flags::flag_if(self.state.iteration_cull, Flags::ITERATION_CULL);
         FragmentConstants {
             flags,
-            viewport_translate: self.viewport_translate.as_vec2(),
-            viewport_zoom: self.viewport_zoom.into(),
+            viewport_translate: self.state.viewport_translate.as_vec2(),
+            viewport_zoom: self.state.viewport_zoom.into(),
             size: self.size.into(),
             buffer_size: self.cache_size.into(),
-            algorithm: self.algorithm,
-            max_iter: self.max_iter,
-            exponent: self.exponent,
-            palette: self.palette,
+            algorithm: self.state.algorithm,
+            max_iter: self.state.max_iter,
+            exponent: self.state.exponent,
+            palette: self.state.palette,
             inspector_point_pixel_address: self
                 .complex_point_to_pixel(&self.inspector.position)
                 .as_vec2(),
@@ -209,7 +196,7 @@ impl Controller {
     pub(crate) fn update_zoom_factor(&mut self, new_zoom: f64) {
         // Auto-update perturbation, if appropriate
         if !self.force_perturb {
-            let zooming_in = new_zoom > self.viewport_zoom.0;
+            let zooming_in = new_zoom > self.state.viewport_zoom.0;
             if !self.perturbation_mode
                 && zooming_in
                 && new_zoom > MAX_ZOOM_STANDARD
@@ -221,7 +208,7 @@ impl Controller {
             }
         }
         // Apply the limits
-        self.viewport_zoom.0 = self.apply_zoom_limits(new_zoom);
+        self.state.viewport_zoom.0 = self.apply_zoom_limits(new_zoom);
     }
 }
 
@@ -411,7 +398,8 @@ impl ControllerTrait for Controller {
                 BigVec2::try_from((prev_position - self.mouse_position) / f64::from(self.size.y))
                     .unwrap()
                     .with_precision(BIGNUM_PRECISION_LIMIT);
-            self.viewport_translate += delta * self.modifier_key_factor() / self.viewport_zoom.0;
+            self.state.viewport_translate +=
+                delta * self.modifier_key_factor() / self.state.viewport_zoom.0;
             self.reiterate = true;
         }
     }
@@ -424,12 +412,12 @@ impl ControllerTrait for Controller {
         let motion = delta.y * 0.1 * self.modifier_key_factor();
         let position = self.mouse_position;
         let size = self.size.as_dvec2();
-        let prev_zoom = self.viewport_zoom.0;
+        let prev_zoom = self.state.viewport_zoom.0;
         let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / prev_zoom / size.y;
         self.update_zoom_factor(prev_zoom * (1.0 + motion));
-        let new_zoom = self.viewport_zoom.0;
+        let new_zoom = self.state.viewport_zoom.0;
         let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / new_zoom / size.y;
-        self.viewport_translate += &(mouse_pos0 - &mouse_pos1);
+        self.state.viewport_translate += &(mouse_pos0 - &mouse_pos1);
         self.reiterate = true;
     }
 
@@ -463,23 +451,23 @@ impl ControllerTrait for Controller {
 impl Controller {
     pub(crate) fn pixel_complex_size(&self) -> f64 {
         // This must be the same calculation that the shader uses.
-        self.viewport_zoom.0.pixel_spacing(self.size.y)
+        self.state.viewport_zoom.0.pixel_spacing(self.size.y)
     }
 
     #[allow(clippy::missing_panics_doc)]
     fn pixel_address_to_complex(&self, p: DVec2) -> BigVec2 {
         let size = self.size.as_dvec2();
         BigVec2::try_from(
-            (p - 0.5 * size) * dvec2(size.x / size.y, 1.0) / self.viewport_zoom.0 / size,
+            (p - 0.5 * size) * dvec2(size.x / size.y, 1.0) / self.state.viewport_zoom.0 / size,
         )
         .unwrap()
-            + &self.viewport_translate
+            + &self.state.viewport_translate
     }
 
     fn complex_point_to_pixel(&self, p: &BigVec2) -> DVec2 {
         let size = self.size.as_dvec2();
-        (p.clone() - &self.viewport_translate).as_dvec2() / dvec2(size.x / size.y, 1.0)
-            * self.viewport_zoom.0
+        (p.clone() - &self.state.viewport_translate).as_dvec2() / dvec2(size.x / size.y, 1.0)
+            * self.state.viewport_zoom.0
             * size
             + 0.5 * size
     }
