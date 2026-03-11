@@ -43,6 +43,7 @@ abels-complex = { workspace = true, features = ["libm", "glam"] }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 abels-complex = { workspace = true, features = ["std", "glam"] }
+anyhow = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 dashu-float = { workspace = true }
 dashu = { workspace = true, features = ["serde"] }

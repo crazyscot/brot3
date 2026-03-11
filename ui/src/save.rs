@@ -2,11 +2,15 @@
 // (c) 2026 Ross Younger
 
 use std::{
+    fs::File,
     sync::atomic::{AtomicBool, Ordering},
     time::Instant,
 };
 
-use brot3_lib::data::{Flags, FragmentConstants, PointResult};
+use brot3_lib::{
+    data::{Flags, FragmentConstants, PointResult},
+    ui::{UiState, UiStateSaveFile},
+};
 use glam::{Vec2, Vec4, uvec2, vec4};
 use rayon::prelude::*;
 
@@ -82,7 +86,7 @@ pub(crate) fn do_save_image(
 
     let pngstart = Instant::now();
     let mut encoder = png::Encoder::new(
-        std::fs::File::create(path)?,
+        File::create(path)?,
         constants.size.width,
         constants.size.height,
     );
@@ -99,5 +103,12 @@ pub(crate) fn do_save_image(
         !failure.load(Ordering::Relaxed),
         "Some pixels failed to render. The saved image may have gaps where this occurred."
     );
+    Ok(())
+}
+
+pub(crate) fn do_save_state(path: &std::path::Path, state: UiState) -> anyhow::Result<()> {
+    let data = UiStateSaveFile::from(state);
+    let file = File::create(path)?;
+    serde_json::to_writer_pretty(file, &data)?;
     Ok(())
 }

@@ -3,6 +3,7 @@
 
 use std::{path::Path, sync::Arc};
 
+use anyhow::Result;
 use easy_shader_runner::{UiState, egui};
 use rfd::AsyncFileDialog;
 
@@ -108,75 +109,119 @@ impl super::Controller {
         }
     }
 
-    pub(crate) fn save_image_ui(&mut self, _ctx: &egui::Context) -> Result<(), anyhow::Error> {
-        self.show_save = false;
-        if !*self
+    /// Lock the mutex, test and set the flag within.
+    ///
+    /// Returns true if the flag was clear and we set it.
+    /// Returns false if the flag was set.
+    /// Returns an error if the mutex was poisoned.
+    fn try_set_save_active(&self) -> Result<bool> {
+        let mut guard = self
             .save_active
             .lock()
-            .map_err(|_| anyhow::anyhow!("Failed to lock save_active"))?
-        {
-            *self
-                .save_active
-                .lock()
-                .map_err(|_| anyhow::anyhow!("Failed to lock save_active"))? = true;
+            .map_err(|_| anyhow::anyhow!("Failed to lock save_active"))?;
+        if *guard {
+            return Ok(false);
+        }
+        *guard = true;
+        Ok(true)
+    }
 
+    fn last_save_dir(&self) -> Option<std::path::PathBuf> {
+        self.last_save_dir
+            .lock()
+            .ok()
+            .and_then(|guard| guard.clone())
+    }
+
+    fn default_save_dir(
+        &self,
+        default: impl FnOnce() -> Option<std::path::PathBuf>,
+    ) -> std::path::PathBuf {
+        self.last_save_dir()
+            .filter(|dir| dir.is_dir())
+            .unwrap_or_else(|| {
+                default()
+                    .or_else(dirs::desktop_dir)
+                    .unwrap_or_else(|| std::path::PathBuf::from("."))
+            })
+    }
+
+    pub(crate) fn save_image_ui(&mut self, _ctx: &egui::Context) -> Result<()> {
+        self.show_save = false;
+        if self.try_set_save_active()? {
             let default_filename = format!(
                 "brot3_{datetime}_{description}.png",
                 datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"),
                 description = self.fragment_constants(false).display_string(),
             );
+            let default_save_dir = self.default_save_dir(dirs::picture_dir);
 
-            let last_save_dir = {
-                let guard = self
-                    .last_save_dir
-                    .lock()
-                    .map_err(|_| anyhow::anyhow!("Failed to lock last_save_dir"))?;
-                (*guard).clone()
-            };
-
-            let default_save_dir: Box<dyn AsRef<Path>> = match last_save_dir {
-                Some(dir) if dir.is_dir() => Box::new(dir),
-                _ => {
-                    let fallback = dirs::picture_dir()
-                        .or_else(dirs::desktop_dir)
-                        .unwrap_or_else(|| std::path::PathBuf::from("."));
-                    Box::new(fallback)
-                }
-            };
-
-            let task = AsyncFileDialog::new()
+            let save_dialog = AsyncFileDialog::new()
                 .add_filter("PNG image", &["png"])
                 .set_title("Save image")
-                .set_directory(default_save_dir.as_ref())
-                .set_file_name(&default_filename)
-                .save_file();
-            let save_active = Arc::clone(&self.save_active);
-            let save_dir = Arc::clone(&self.last_save_dir);
-            let error_message_buffer = Arc::clone(&self.error_message);
+                .set_directory(default_save_dir)
+                .set_file_name(&default_filename);
+
             let perturbation_points = self.perturbation.points.clone();
             let consts = self.fragment_constants(true);
-            tokio::spawn(async move {
-                if let Some(file) = task.await {
-                    let filename = file.path().to_owned();
-                    match crate::save::do_save_image(&filename, consts, &perturbation_points) {
-                        Ok(()) => {
-                            let parent = filename
-                                .parent()
-                                .unwrap_or_else(|| Path::new("."))
-                                .to_path_buf();
-                            *save_dir.lock().unwrap() = Some(parent);
-                        }
-                        Err(e) => {
-                            eprintln!("Error saving image: {e}");
-                            *error_message_buffer.lock().unwrap() =
-                                Some(format!("Failed to save image: {e}"));
-                        }
-                    }
-                } // else it was cancelled
-                *save_active.lock().unwrap() = false;
+            self.save_something(save_dialog, move |filename| {
+                crate::save::do_save_image(filename, consts, &perturbation_points)
             });
         }
         Ok(())
+    }
+
+    pub(crate) fn save_position_ui(&mut self, _ctx: &egui::Context) -> Result<()> {
+        self.show_save_position = false;
+        if self.try_set_save_active()? {
+            let default_filename = format!(
+                "brot3_{datetime}.json",
+                datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"),
+            );
+            let default_save_dir = self.default_save_dir(dirs::document_dir);
+
+            let save_dialog = AsyncFileDialog::new()
+                .add_filter("JSON file", &["json"])
+                .set_title("Save position")
+                .set_directory(default_save_dir)
+                .set_file_name(&default_filename);
+
+            let state = self.state.clone();
+            self.save_something(save_dialog, move |filename| {
+                crate::save::do_save_state(filename, state)
+            });
+        }
+        Ok(())
+    }
+
+    fn save_something<F>(&self, dialog: AsyncFileDialog, do_save: F)
+    where
+        F: Send + FnOnce(&Path) -> Result<()> + 'static,
+    {
+        // ...
+        let save_active = Arc::clone(&self.save_active);
+        let save_dir = Arc::clone(&self.last_save_dir);
+        let error_message_buffer = Arc::clone(&self.error_message);
+        tokio::spawn(async move {
+            if let Some(file) = dialog.save_file().await {
+                let filename = file.path().to_owned();
+                match do_save(&filename) {
+                    Ok(()) => {
+                        let parent = filename
+                            .parent()
+                            .unwrap_or_else(|| Path::new("."))
+                            .to_path_buf();
+                        *save_dir.lock().unwrap() = Some(parent);
+                    }
+                    Err(e) => {
+                        eprintln!("Error saving: {e}");
+                        *error_message_buffer.lock().unwrap() =
+                            Some(format!("Failed to save: {e}"));
+                    }
+                }
+            } // else it was cancelled
+            *save_active.lock().unwrap() = false;
+        });
     }
 
     pub(crate) fn error_modal(&mut self, ctx: &egui::Context) {

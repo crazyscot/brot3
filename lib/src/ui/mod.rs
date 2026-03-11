@@ -10,7 +10,7 @@ mod zoom;
 
 pub use dynfmt::dynamic_format;
 pub use exponent::Exponent;
-pub use state::UiState;
+pub use state::{UiState, UiStateSaveFile};
 pub use zoom::ViewportZoom;
 
 /// The maximum precision to use for `BigVec2` and `BigComplex`.

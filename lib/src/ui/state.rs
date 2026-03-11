@@ -48,6 +48,35 @@ impl Default for UiState {
     }
 }
 
+#[cfg(not(target_arch = "spirv"))]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct UiStateSaveFile {
+    /// The version of the save file format. This can be used to handle breaking changes in the
+    /// future.
+    pub version: u32,
+    /// The actual UI state.
+    pub state: UiState,
+}
+
+impl From<UiState> for UiStateSaveFile {
+    fn from(state: UiState) -> Self {
+        Self { version: 1, state }
+    }
+}
+
+impl TryFrom<UiStateSaveFile> for UiState {
+    type Error = anyhow::Error;
+
+    fn try_from(value: UiStateSaveFile) -> anyhow::Result<Self> {
+        anyhow::ensure!(
+            value.version == 1,
+            "Unsupported save file version {}",
+            value.version
+        );
+        Ok(value.state)
+    }
+}
+
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod serde_tests {
@@ -338,5 +367,28 @@ mod serde_tests {
             err.contains(r"missing field"),
             "Failure message not as expected: {err}"
         );
+    }
+
+    // ============================================================================
+    // JSON file versioning
+    // ============================================================================
+
+    #[test]
+    fn wrapper() {
+        let original = create_test_state();
+        let item = UiStateSaveFile::from(original.clone());
+        let json = serde_json::to_string(&item).expect("serialization failed");
+        println!("Serialized JSON: {json}");
+        let deserialized: UiStateSaveFile =
+            serde_json::from_str(&json).expect("deserialization failed");
+        assert_eq!(original, deserialized.try_into().unwrap());
+    }
+    #[test]
+    fn convert_unknown_version() {
+        let f = UiStateSaveFile {
+            version: 999_999,
+            state: UiState::default(),
+        };
+        let _ = UiState::try_from(f).expect_err("unknown version");
     }
 }

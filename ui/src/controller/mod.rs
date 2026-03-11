@@ -63,6 +63,7 @@ pub(crate) struct Controller {
     show_about: bool,
     show_license: bool,
     show_save: bool,
+    show_save_position: bool,
 
     // UI operational data
     last_instant: Instant,
@@ -133,6 +134,7 @@ impl Controller {
             show_about: false,
             show_license: false,
             show_save: false,
+            show_save_position: false,
 
             last_instant: Instant::now(),
             mouse_position: DVec2::default(),

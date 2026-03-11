@@ -285,6 +285,7 @@ name = "brot3-lib"
 version = "3.3.0"
 dependencies = [
  "abels-complex",
+ "anyhow",
  "assert_matches",
  "bitflags 2.11.0",
  "bytemuck",
