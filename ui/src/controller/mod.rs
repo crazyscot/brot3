@@ -111,8 +111,10 @@ impl Controller {
         Self {
             state: BrotUiState {
                 algorithm: options.fractal,
-                palette: Palette::default().with_colourer(options.colourer),
-                /* TODO with render style too */
+                palette: Palette::default()
+                    .with_colourer(options.colourer)
+                    .with_style(options.colour_style)
+                    .with_brightness(options.brightness_style),
                 ..BrotUiState::default()
             },
             size: UVec2::ZERO,

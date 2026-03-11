@@ -5,7 +5,7 @@
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use brot3_lib::data::{Algorithm, Colourer};
+use brot3_lib::data::{Algorithm, ColourStyle, Colourer, Modifier};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, clap::Parser, Clone, Default)]
@@ -61,6 +61,24 @@ pub(crate) struct Args {
         default_value = "neon"
     )]
     pub colourer: Colourer,
+
+    /// Selects the initial colour style to use
+    #[arg(
+        long,
+        alias = "color-style",
+        value_name = "NAME",
+        default_value = "continuous"
+    )]
+    pub colour_style: ColourStyle,
+
+    /// Selects the initial brightness rendering style to use
+    #[arg(
+        long,
+        alias = "color-brightness-style",
+        value_name = "NAME",
+        default_value = "standard"
+    )]
+    pub brightness_style: Modifier,
 
     /// Overrides the point cache size autodetection, in the format "x,y" (e.g. "1920,1080")
     ///
