@@ -3,7 +3,7 @@
 
 #[cfg(runtime_compile)]
 use std::path::PathBuf;
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
 
 use brot3_lib::data::{Algorithm, ColourStyle, Colourer, Modifier};
 
@@ -88,6 +88,12 @@ pub(crate) struct Args {
     /// The maximum available cache size is determined at runtime by the GPU driver.
     #[arg(long, value_name = "WIDTH,HEIGHT")]
     pub cache_size: Option<LocalUVec2>,
+
+    /// Uses parameters in the given file on startup, instead of the default.
+    ///
+    /// Using this option causes --fractal and styling options to be ignored.
+    #[arg(short = 'i', long, value_name = "FILENAME")]
+    pub input: Option<PathBuf>,
 }
 
 // A simple tuple struct to represent a 2D u32 vector.

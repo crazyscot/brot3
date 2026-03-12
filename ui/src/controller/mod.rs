@@ -98,15 +98,30 @@ struct Inspector {
 
 impl Controller {
     pub(crate) fn new(options: &Args) -> Self {
-        Self {
-            state: BrotUiState {
-                algorithm: options.fractal,
-                palette: Palette::default()
-                    .with_colourer(options.colourer)
-                    .with_style(options.colour_style)
-                    .with_brightness(options.brightness_style),
-                ..BrotUiState::default()
-            },
+        let mut state = BrotUiState {
+            algorithm: options.fractal,
+            palette: Palette::default()
+                .with_colourer(options.colourer)
+                .with_style(options.colour_style)
+                .with_brightness(options.brightness_style),
+            ..BrotUiState::default()
+        };
+        // Save file overrides CLI options
+        if let Some(path) = options.input.as_ref() {
+            match crate::save::load_state(path) {
+                Ok(s) => {
+                    log::info!("Loaded position file '{}'", path.display());
+                    state = s;
+                }
+                Err(e) => {
+                    log::error!("Failed to load position file '{}': {e}", path.display());
+                    // Fall back to the default state
+                }
+            }
+        }
+
+        let mut c = Self {
+            state,
             cache_size: options.cache_size.unwrap_or_default().into(),
             // TODO figure out what precision is best; do we need to make it dynamic?
             movement: Movement::default(),
@@ -144,7 +159,10 @@ impl Controller {
             save_active: Arc::new(Mutex::new(false)),
             last_save_dir: Arc::new(Mutex::new(None)),
             error_message: Arc::new(Mutex::new(None)),
-        }
+        };
+        // If we just loaded from a file, we may need to enable perturbation mode.
+        c.update_zoom_factor(c.state.viewport_zoom.0);
+        c
     }
 
     #[allow(clippy::cast_possible_truncation)]

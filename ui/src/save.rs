@@ -1,4 +1,4 @@
-//! Save Image support
+//! Save and Load support
 // (c) 2026 Ross Younger
 
 use std::{
@@ -120,4 +120,14 @@ pub(crate) fn do_save_state(path: &std::path::Path, state: UiState) -> anyhow::R
     let file = File::create(path)?;
     serde_json::to_writer_pretty(file, &data)?;
     Ok(())
+}
+
+/// Loads the state from the given file.
+///
+/// *NOTE:* Caller is responsible for figuring out whether to enable perturbation mode or other
+/// flags based on the new state.
+pub(crate) fn load_state(path: &std::path::Path) -> anyhow::Result<UiState> {
+    let file = File::open(path)?;
+    let data: UiStateSaveFile = serde_json::from_reader(file)?;
+    data.try_into()
 }
