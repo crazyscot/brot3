@@ -9,7 +9,16 @@ pub use colour::colour_data;
 pub use fractal::mandelbrot_perturbed_compute_reference_iters;
 pub use fractal::{AlgorithmModifiers, render};
 
-use crate::Vec2;
+use crate::{UVec2, Vec2, uvec2};
+
+/// The size of the complex plane that you see at the default zoom level, at the
+/// [`NOMINAL_WINDOW_SIZE`].
+pub const DEFAULT_FRACTAL_PLANE_SIZE: f64 = 4.0;
+
+/// The window size that defines a zoom factor of 1.0.
+///
+/// This happens to be what we get by default from winit on Linux.
+pub const NOMINAL_WINDOW_SIZE: UVec2 = uvec2(800, 600);
 
 /// Helper trait for calculating the size of a pixel in the complex plane, given the current zoom
 /// and viewport size.
