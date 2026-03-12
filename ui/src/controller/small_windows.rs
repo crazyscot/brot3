@@ -155,7 +155,7 @@ impl super::Controller {
             let default_filename = format!(
                 "brot3_{datetime}_{description}.png",
                 datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"),
-                description = self.fragment_constants(false).display_string(),
+                description = self.state.display_string('_'),
             );
             let default_save_dir = self.default_save_dir(dirs::picture_dir);
 

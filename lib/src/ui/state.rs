@@ -55,6 +55,32 @@ impl Default for UiState {
     }
 }
 
+impl UiState {
+    /// Converts the UI state to a string for display purposes. This is used in the metadata
+    /// and default filename of saved images.
+    #[cfg(not(target_arch = "spirv"))]
+    #[must_use]
+    pub fn display_string(&self, separator: char) -> String {
+        use crate::{engine::DEFAULT_FRACTAL_PLANE_SIZE, ui::Exponent};
+
+        format!(
+            "{alg}{sep}@({x},{y}){sep}z{zoom}{sep}max{max_iter}{sep}exp{exp}{sep}{colourer:?}",
+            alg = self.algorithm,
+            x = self.viewport_translate.x,
+            y = self.viewport_translate.y,
+            zoom = self.viewport_zoom.display_string(
+                DEFAULT_FRACTAL_PLANE_SIZE,
+                NOMINAL_WINDOW_SIZE.y,
+                self.viewport_size.y
+            ),
+            max_iter = self.max_iter,
+            sep = separator,
+            exp = Exponent::from(self.exponent).display_string(),
+            colourer = self.palette.colourer,
+        )
+    }
+}
+
 #[cfg(not(target_arch = "spirv"))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UiStateSaveFile {

@@ -97,7 +97,7 @@ pub(crate) fn do_save_image(
     encoder.set_color(png::ColorType::Rgba);
     encoder.set_depth(png::BitDepth::Eight);
     encoder.add_text_chunk("software".to_string(), "brot3".to_string())?;
-    encoder.add_text_chunk("comment".to_string(), constants.display_string())?;
+    encoder.add_text_chunk("comment".to_string(), state.display_string(' '))?;
     serde_json::to_string(&state)
         .ok()
         .and_then(|s| encoder.add_text_chunk("uistate".to_string(), s).ok())

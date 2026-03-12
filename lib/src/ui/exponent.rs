@@ -197,6 +197,15 @@ impl Exponent {
             },
         }
     }
+
+    #[must_use]
+    pub fn display_string(&self) -> String {
+        match self {
+            Exponent::Integer(i) => format!("{i}"),
+            Exponent::Real(r) => format!("{r:.3}"),
+            Exponent::Complex { real, imag } => format!("{real:.3}+{imag:.3}i"),
+        }
+    }
 }
 
 impl Default for Exponent {

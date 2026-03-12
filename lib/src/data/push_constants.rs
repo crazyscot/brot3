@@ -8,8 +8,6 @@ use bytemuck::{NoUninit, Pod, Zeroable};
 use const_default::ConstDefault;
 use spirv_std::glam::Vec2;
 
-#[cfg(not(target_arch = "spirv"))]
-use super::NumericType;
 use super::{Algorithm, ColourStyle, Colourer, Modifier, PushExponent};
 use crate::util::Size;
 
@@ -97,26 +95,6 @@ impl FragmentConstants {
     pub fn pixel_spacing(&self) -> f32 {
         use crate::engine::PixelSpacing as _;
         self.viewport_zoom.pixel_spacing(self.size.height)
-    }
-
-    #[cfg(not(target_arch = "spirv"))]
-    #[must_use]
-    pub fn display_string(&self) -> String {
-        format!(
-            "{alg}_({x},{y})_z{zoom:.3e}_max{max_iter}_exp{exp}_{colourer:?}",
-            alg = self.algorithm,
-            x = self.viewport_translate.x,
-            y = self.viewport_translate.y,
-            zoom = self.viewport_zoom,
-            max_iter = self.max_iter,
-            exp = match self.exponent.typ {
-                NumericType::Integer => self.exponent.int.to_string(),
-                NumericType::Float => format!("{:.3}", self.exponent.real),
-                NumericType::Complex =>
-                    format!("{:.3}+{:.3}i", self.exponent.real, self.exponent.imag),
-            },
-            colourer = self.palette.colourer,
-        )
     }
 }
 
