@@ -164,8 +164,9 @@ impl super::Controller {
 
             let perturbation_points = self.perturbation.points.clone();
             let consts = self.fragment_constants(true);
+            let state = self.state.clone();
             self.save_something(save_dialog, move |filename| {
-                crate::save::do_save_image(filename, consts, &perturbation_points)
+                crate::save::do_save_image(filename, consts, &state, &perturbation_points)
             });
         }
         Ok(())

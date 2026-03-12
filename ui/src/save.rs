@@ -17,8 +17,12 @@ use rayon::prelude::*;
 pub(crate) fn do_save_image(
     path: &std::path::Path,
     mut constants: FragmentConstants,
+    state: &UiState,
     perturbation_points: &[Vec2],
 ) -> anyhow::Result<()> {
+    // TODO: We shouldn't need to pass in both state and constants?
+    // But they don't quite match up right now. Would have to refactor more of Controller into
+    // UiState.
     constants.flags |= Flags::NEEDS_REITERATE;
     constants.buffer_size = uvec2(0, 0).into();
     log::debug!(
@@ -94,7 +98,12 @@ pub(crate) fn do_save_image(
     encoder.set_depth(png::BitDepth::Eight);
     encoder.add_text_chunk("software".to_string(), "brot3".to_string())?;
     encoder.add_text_chunk("comment".to_string(), constants.display_string())?;
-    // TODO, someday: get fragment constants to convert itself to/fro JSON, include that here.
+    serde_json::to_string(&state)
+        .ok()
+        .and_then(|s| encoder.add_text_chunk("uistate".to_string(), s).ok())
+        .unwrap_or_else(|| {
+            log::warn!("Failed to serialize UI state for embedding in PNG metadata");
+        });
     encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));
     let mut writer = encoder.write_header()?;
     writer.write_image_data(&pixels)?;
