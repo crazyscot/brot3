@@ -16,12 +16,15 @@ impl super::Controller {
 
         // Don't render this on the first pass before we know the window size. That gives it a bad
         // default position.
-        if self.size.y == 0 {
+        if self.state.viewport_size.y == 0 {
             return;
         }
         // Bottom centre of window
         #[allow(clippy::cast_precision_loss)]
-        let pos = ((self.size.x / 2) as f32, (self.size.y - 10) as f32);
+        let pos = (
+            (self.state.viewport_size.x / 2) as f32,
+            (self.state.viewport_size.y - 10) as f32,
+        );
 
         let mut bar = egui::Area::new(egui::Id::new("scalebar"))
             .pivot(egui::Align2::CENTER_BOTTOM)

@@ -5,12 +5,12 @@ use serde::{Deserialize, Serialize};
 
 use super::ViewportZoom;
 use crate::{
-    BigVec2,
+    BigVec2, UVec2,
     data::{Algorithm, FragmentConstants, Palette, PushExponent},
+    engine::NOMINAL_WINDOW_SIZE,
 };
 
-#[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(not(target_arch = "spirv"), derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, derive_more::PartialEq, Serialize, Deserialize)]
 /// The state of the UI, which can be saved and loaded
 pub struct UiState {
     /// Viewport translation offset, in the complex plane. This is the point that the center of the
@@ -31,6 +31,12 @@ pub struct UiState {
     pub exponent: PushExponent,
     /// Set to enable iteration cull mode. This affects the colouring.
     pub iteration_cull: bool,
+    /// The size of the viewport (window), in pixels.
+    ///
+    /// **This is a runtime parameter. It is not serialised, nor checked by [`PartialEq`].**
+    #[serde(skip)]
+    #[partial_eq(skip)]
+    pub viewport_size: UVec2,
 }
 impl Default for UiState {
     fn default() -> Self {
@@ -44,6 +50,7 @@ impl Default for UiState {
             palette: Palette::default(),
             exponent: PushExponent::default(),
             iteration_cull: false,
+            viewport_size: NOMINAL_WINDOW_SIZE,
         }
     }
 }
@@ -95,6 +102,7 @@ mod serde_tests {
             palette: Palette::default(),
             exponent: PushExponent::from(2),
             iteration_cull: true,
+            viewport_size: NOMINAL_WINDOW_SIZE,
         }
     }
 

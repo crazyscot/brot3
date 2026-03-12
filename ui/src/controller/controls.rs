@@ -21,11 +21,11 @@ impl super::Controller {
     pub(super) fn controls_window(&mut self, ctx: &egui::Context) {
         // Don't render this on the first pass before we know the window size. That gives it a bad
         // default position.
-        if self.size.y == 0 {
+        if self.state.viewport_size.y == 0 {
             return;
         }
         // Centre left of window
-        let pos = (10.0, (self.size.y / 2) as f32);
+        let pos = (10.0, (self.state.viewport_size.y / 2) as f32);
 
         egui::Window::new("Controls")
             .default_width(Self::DEFAULT_WIDTH)

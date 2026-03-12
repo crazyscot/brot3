@@ -45,8 +45,6 @@ const MAX_MAX_ITERATIONS: u32 = 100_000;
 pub(crate) struct Controller {
     /// primary loadable/saveable state
     state: BrotUiState,
-    /// viewport size in pixels
-    size: UVec2,
     cache_size: UVec2,
     // Viewport movement
     movement: Movement,
@@ -109,7 +107,6 @@ impl Controller {
                     .with_brightness(options.brightness_style),
                 ..BrotUiState::default()
             },
-            size: UVec2::ZERO,
             cache_size: options.cache_size.unwrap_or_default().into(),
             // TODO figure out what precision is best; do we need to make it dynamic?
             movement: Movement::default(),
@@ -160,7 +157,7 @@ impl Controller {
             flags,
             viewport_translate: self.state.viewport_translate.as_vec2(),
             viewport_zoom: self.state.viewport_zoom.into(),
-            size: self.size.into(),
+            size: self.state.viewport_size.into(),
             buffer_size: self.cache_size.into(),
             algorithm: self.state.algorithm,
             max_iter: self.state.max_iter,
@@ -238,7 +235,7 @@ impl Default for Movement {
 
 impl ControllerTrait for Controller {
     fn resize(&mut self, size: UVec2) {
-        self.size = size;
+        self.state.viewport_size = size;
         self.reiterate = true;
         self.resized = true;
     }
@@ -389,10 +386,11 @@ impl ControllerTrait for Controller {
                 - &self.pixel_address_to_complex(prev_position);
             self.inspector.stale = true;
         } else if self.dragging {
-            let delta =
-                BigVec2::try_from((prev_position - self.mouse_position) / f64::from(self.size.y))
-                    .unwrap()
-                    .with_precision(BIGNUM_PRECISION_LIMIT);
+            let delta = BigVec2::try_from(
+                (prev_position - self.mouse_position) / f64::from(self.state.viewport_size.y),
+            )
+            .unwrap()
+            .with_precision(BIGNUM_PRECISION_LIMIT);
             self.state.viewport_translate +=
                 delta * self.modifier_key_factor() / self.state.viewport_zoom.0;
             self.reiterate = true;
@@ -406,7 +404,7 @@ impl ControllerTrait for Controller {
 
         let motion = delta.y * 0.1 * self.modifier_key_factor();
         let position = self.mouse_position;
-        let size = self.size.as_dvec2();
+        let size = self.state.viewport_size.as_dvec2();
         let prev_zoom = self.state.viewport_zoom.0;
         let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / prev_zoom / size.y;
         self.update_zoom_factor(prev_zoom * (1.0 + motion));
@@ -446,12 +444,15 @@ impl ControllerTrait for Controller {
 impl Controller {
     pub(crate) fn pixel_complex_size(&self) -> f64 {
         // This must be the same calculation that the shader uses.
-        self.state.viewport_zoom.0.pixel_spacing(self.size.y)
+        self.state
+            .viewport_zoom
+            .0
+            .pixel_spacing(self.state.viewport_size.y)
     }
 
     #[allow(clippy::missing_panics_doc)]
     fn pixel_address_to_complex(&self, p: DVec2) -> BigVec2 {
-        let size = self.size.as_dvec2();
+        let size = self.state.viewport_size.as_dvec2();
         BigVec2::try_from(
             (p - 0.5 * size) * dvec2(size.x / size.y, 1.0) / self.state.viewport_zoom.0 / size,
         )
@@ -460,7 +461,7 @@ impl Controller {
     }
 
     fn complex_point_to_pixel(&self, p: &BigVec2) -> DVec2 {
-        let size = self.size.as_dvec2();
+        let size = self.state.viewport_size.as_dvec2();
         (p.clone() - &self.state.viewport_translate).as_dvec2() / dvec2(size.x / size.y, 1.0)
             * self.state.viewport_zoom.0
             * size

@@ -7,7 +7,7 @@ use bytemuck::NoUninit;
 use crate::{UVec2, Vec2, uvec2, vec2};
 
 /// GPU-friendly representation of a two-dimensional `u32` vector
-#[derive(Copy, Clone, Debug, Default, NoUninit)]
+#[derive(Copy, Clone, Debug, Default, NoUninit, PartialEq, Eq)]
 #[repr(C)]
 #[allow(missing_docs)] // self-explanatory !
 pub struct Size {

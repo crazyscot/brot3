@@ -28,11 +28,11 @@ impl super::Controller {
         let precision = self.precision_digits();
         // Don't render this on the first pass before we know the window size. That gives it a bad
         // default position.
-        if self.size.y == 0 {
+        if self.state.viewport_size.y == 0 {
             return;
         }
         // Top right of window
-        let pos = ((self.size.x - 10) as f32, 10.0);
+        let pos = ((self.state.viewport_size.x - 10) as f32, 10.0);
 
         egui::Window::new("coords")
             .title_bar(false)
@@ -60,7 +60,7 @@ impl super::Controller {
                     ui.monospace(self.state.viewport_zoom.display_string(
                         DEFAULT_FRACTAL_PLANE_SIZE,
                         NOMINAL_WINDOW_SIZE.y,
-                        self.size.y,
+                        self.state.viewport_size.y,
                     ));
                     ui.end_row();
 

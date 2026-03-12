@@ -36,8 +36,8 @@ impl super::Controller {
                     .collapsible(false)
                     .resizable(false)
                     .fixed_pos(egui::pos2(
-                        self.size.x as f32 / 2.0,
-                        self.size.y as f32 / 2.0,
+                        self.state.viewport_size.x as f32 / 2.0,
+                        self.state.viewport_size.y as f32 / 2.0,
                     ))
                     .frame(egui::Frame::window(&ctx.style()).fill(egui::Color32::DARK_RED).inner_margin(10.0))
                     .show(ctx, |ui| {
@@ -89,7 +89,7 @@ impl super::Controller {
 
         // Don't action initial-fullscreen requests on the first four passes. They get lost.
         if let Some(_s) = self.fullscreen_requested
-            && self.size.y != 0
+            && self.state.viewport_size.y != 0
             && self.render_pass > 4
         {
             ui_state.fullscreen_requested = self.fullscreen_requested;

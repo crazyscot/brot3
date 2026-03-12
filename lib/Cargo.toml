@@ -31,7 +31,7 @@ emulate_constants = []
 bitflags = { workspace = true, features = ["bytemuck"] }
 bytemuck = { workspace = true, features = ["derive"] }
 const-default = { workspace = true }
-derive_more = { workspace = true, default-features = false, features = ["constructor", "display"] }
+derive_more = { workspace = true, default-features = false, features = ["constructor", "display", "eq"] }
 document-features = { workspace = true }
 float_eq.workspace = true
 num-traits.workspace = true
