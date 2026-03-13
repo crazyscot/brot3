@@ -106,15 +106,17 @@ impl Controller {
                 .with_brightness(options.brightness_style),
             ..BrotUiState::default()
         };
+        let mut error_message = None;
         // Save file overrides CLI options
         if let Some(path) = options.input.as_ref() {
             match crate::save::load_state(path) {
                 Ok(s) => {
-                    log::info!("Loaded position file '{}'", path.display());
+                    log::info!("Loaded position from '{}'", path.display());
                     state = s;
                 }
                 Err(e) => {
-                    log::error!("Failed to load position file '{}': {e}", path.display());
+                    log::error!("Failed to load position from '{}': {e}", path.display());
+                    error_message = Some(format!("Failed to load position: {e}"));
                     // Fall back to the default state
                 }
             }
@@ -158,7 +160,7 @@ impl Controller {
             render_pass: 0,
             save_active: Arc::new(Mutex::new(false)),
             last_save_dir: Arc::new(Mutex::new(None)),
-            error_message: Arc::new(Mutex::new(None)),
+            error_message: Arc::new(Mutex::new(error_message)),
         };
         // If we just loaded from a file, we may need to enable perturbation mode.
         c.update_zoom_factor(c.state.viewport_zoom.0);
