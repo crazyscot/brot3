@@ -64,10 +64,8 @@ impl UiState {
         use crate::{engine::DEFAULT_FRACTAL_PLANE_SIZE, ui::Exponent};
 
         format!(
-            "{alg}{sep}@({x},{y}){sep}z{zoom}{sep}max{max_iter}{sep}exp{exp}{sep}{colourer:?}",
+            "{alg}{sep}z{zoom}{sep}max{max_iter}{sep}exp{exp}{sep}{colourer:?}",
             alg = self.algorithm,
-            x = self.viewport_translate.x,
-            y = self.viewport_translate.y,
             zoom = self.viewport_zoom.display_string(
                 DEFAULT_FRACTAL_PLANE_SIZE,
                 NOMINAL_WINDOW_SIZE.y,
