@@ -62,6 +62,7 @@ pub(crate) struct Controller {
     show_license: bool,
     show_save: bool,
     show_save_position: bool,
+    show_open: bool,
 
     // UI operational data
     last_instant: Instant,
@@ -81,9 +82,10 @@ pub(crate) struct Controller {
     context_menu: Option<DVec2>,
     inspector: Inspector,
     render_pass: u32,
-    save_active: Arc<Mutex<bool>>,
+    load_save_active: Arc<Mutex<bool>>,
     last_save_dir: Arc<Mutex<Option<std::path::PathBuf>>>,
     error_message: Arc<Mutex<Option<String>>>,
+    loading_task: Option<tokio::task::JoinHandle<Option<BrotUiState>>>,
 }
 
 #[derive(Default)]
@@ -140,6 +142,7 @@ impl Controller {
             show_license: false,
             show_save: false,
             show_save_position: false,
+            show_open: false,
 
             last_instant: Instant::now(),
             mouse_position: DVec2::default(),
@@ -158,13 +161,19 @@ impl Controller {
             context_menu: None,
             inspector: Inspector::default(),
             render_pass: 0,
-            save_active: Arc::new(Mutex::new(false)),
+            load_save_active: Arc::new(Mutex::new(false)),
             last_save_dir: Arc::new(Mutex::new(None)),
             error_message: Arc::new(Mutex::new(error_message)),
+            loading_task: None,
         };
-        // If we just loaded from a file, we may need to enable perturbation mode.
-        c.update_zoom_factor(c.state.viewport_zoom.0);
+        c.just_loaded();
         c
+    }
+
+    /// If we just loaded from a file, we may need to enable perturbation mode.
+    pub(crate) fn just_loaded(&mut self) {
+        self.update_zoom_factor(self.state.viewport_zoom.0);
+        self.reiterate = true;
     }
 
     #[allow(clippy::cast_possible_truncation)]

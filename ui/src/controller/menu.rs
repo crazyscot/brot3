@@ -96,10 +96,17 @@ impl super::Controller {
                     }
                     ui.separator();
 
-                    if ui.add(item!("Save image", "Ctrl+S")).clicked() {
+                    if ui
+                        .add(item!("Open position or image...", "Ctrl+O"))
+                        .clicked()
+                    {
+                        self.show_open = true;
+                    }
+                    ui.separator();
+                    if ui.add(item!("Save image...", "Ctrl+S")).clicked() {
                         self.show_save = true;
                     }
-                    if ui.add(item!("Save position", "Ctrl+Shift+S")).clicked() {
+                    if ui.add(item!("Save position...", "Ctrl+Shift+S")).clicked() {
                         self.show_save_position = true;
                     }
                     ui.separator();

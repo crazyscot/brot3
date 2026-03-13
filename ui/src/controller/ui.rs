@@ -28,7 +28,7 @@ impl super::Controller {
         ui_state: &mut UiState,
         graphics_context: &easy_shader_runner::GraphicsContext,
     ) {
-        self.render_pass += 1;
+        self.render_pass = self.render_pass.wrapping_add(1);
 
         if self.perturbation_mode && !self.perturb_implemented() {
             #[allow(clippy::cast_precision_loss)]
@@ -45,6 +45,22 @@ impl super::Controller {
                         "Perturbation mode is not yet implemented here. Only Mandelbrot at power 2 is currently supported.",
                     );
                 });
+        }
+
+        let task = self.loading_task.as_ref();
+        if task.is_some_and(tokio::task::JoinHandle::is_finished) {
+            use futures::FutureExt as _;
+            let task = self.loading_task.take().unwrap();
+            match task.now_or_never() {
+                Some(Err(e)) => log::warn!("task join error: {e}"),
+                Some(Ok(None)) => (),
+                Some(Ok(Some(s))) => {
+                    log::info!("Loaded state: {s:#?}");
+                    self.state.merge(s);
+                    self.just_loaded();
+                }
+                None => unreachable!(),
+            }
         }
 
         egui_extras::install_image_loaders(ctx);
@@ -82,6 +98,9 @@ impl super::Controller {
         }
         if self.show_save_position {
             let _ = self.save_position_ui(ctx);
+        }
+        if self.show_open {
+            let _ = self.open_ui(ctx);
         }
         self.error_modal(ctx);
 

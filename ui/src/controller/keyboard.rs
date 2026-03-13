@@ -197,7 +197,9 @@ impl super::Controller {
                 'y' | 'u' => self.gradient(c == 'u', pressed),
                 'h' | 'j' => self.offset(c == 'j', pressed),
                 'n' | 'm' => self.gamma(c == 'm', pressed),
-                'i' | 'o' => self.saturation(c == 'o', pressed),
+                'i' => self.saturation(false, pressed),
+                'o' if pressed && self.ctrl_pressed => self.show_open = true,
+                'o' => self.saturation(true, pressed),
                 'k' | 'l' => self.lightness(c == 'l', pressed),
                 'a' => self.show_about = true,
                 's' if pressed && self.ctrl_pressed => {

@@ -56,6 +56,14 @@ impl Default for UiState {
 }
 
 impl UiState {
+    /// Replaces this struct with the other, except for the unserialised fields (which are
+    /// preserved).
+    pub fn merge(&mut self, other: Self) {
+        let vp_size = self.viewport_size;
+        *self = other;
+        self.viewport_size = vp_size;
+    }
+
     /// Converts the UI state to a string for display purposes. This is used in the metadata
     /// and default filename of saved images.
     #[cfg(not(target_arch = "spirv"))]

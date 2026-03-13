@@ -7,7 +7,7 @@ use easy_shader_runner::{UiState, egui};
 use rfd::AsyncFileDialog;
 
 use super::DVec2;
-use crate::save::LoadSaveError;
+use crate::save::{LoadSaveError, load_state};
 
 #[allow(unused_results)]
 impl super::Controller {
@@ -117,11 +117,11 @@ impl super::Controller {
     /// Returns true if the flag was clear and we set it.
     /// Returns false if the flag was set.
     /// Returns an error if the mutex was poisoned.
-    fn try_set_save_active(&self) -> Result<bool, LoadSaveError> {
+    fn try_set_load_save_active(&self) -> Result<bool, LoadSaveError> {
         let mut guard = self
-            .save_active
+            .load_save_active
             .lock()
-            .map_err(|_| LoadSaveError::Internal("Failed to lock save_active".to_string()))?;
+            .map_err(|_| LoadSaveError::Internal("Failed to lock load_save_active".to_string()))?;
         if *guard {
             return Ok(false);
         }
@@ -151,7 +151,7 @@ impl super::Controller {
 
     pub(crate) fn save_image_ui(&mut self, _ctx: &egui::Context) -> Result<(), LoadSaveError> {
         self.show_save = false;
-        if self.try_set_save_active()? {
+        if self.try_set_load_save_active()? {
             let default_filename = format!(
                 "brot3_{datetime}_{description}.png",
                 datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"),
@@ -177,7 +177,7 @@ impl super::Controller {
 
     pub(crate) fn save_position_ui(&mut self, _ctx: &egui::Context) -> Result<(), LoadSaveError> {
         self.show_save_position = false;
-        if self.try_set_save_active()? {
+        if self.try_set_load_save_active()? {
             let default_filename = format!(
                 "brot3_{datetime}.json",
                 datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"),
@@ -202,13 +202,13 @@ impl super::Controller {
     where
         F: Send + FnOnce(&Path) -> Result<(), LoadSaveError> + 'static,
     {
-        // ...
-        let save_active = Arc::clone(&self.save_active);
+        let save_active = Arc::clone(&self.load_save_active);
         let save_dir = Arc::clone(&self.last_save_dir);
         let error_message_buffer = Arc::clone(&self.error_message);
         tokio::spawn(async move {
             if let Some(file) = dialog.save_file().await {
                 let filename = file.path().to_owned();
+                // TODO: do_save is blocking, needs to be async closure
                 match do_save(&filename) {
                     Ok(()) => {
                         let parent = filename
@@ -225,6 +225,41 @@ impl super::Controller {
             } // else it was cancelled
             *save_active.lock().unwrap() = false;
         });
+    }
+
+    pub(crate) fn open_ui(&mut self, _ctx: &egui::Context) -> Result<(), LoadSaveError> {
+        self.show_open = false;
+        if self.try_set_load_save_active()? {
+            let default_save_dir = self.default_save_dir(|| Some(".".into()));
+
+            let open_dialog = AsyncFileDialog::new()
+                .add_filter("JSON file", &["json"])
+                .add_filter("PNG image", &["png"])
+                .set_title("Open position or image")
+                .set_directory(default_save_dir);
+
+            let load_active = Arc::clone(&self.load_save_active);
+            let error_message_buffer = Arc::clone(&self.error_message);
+
+            let jh = tokio::spawn(async move {
+                let result = open_dialog.pick_file().await.and_then(|file| {
+                    let path = file.path();
+                    // TODO: Save the directory for next time
+                    // TODO: load_state is blocking, needs to be async
+                    load_state(path)
+                        .inspect_err(|e| {
+                            log::error!("Error loading: {e}");
+                            *error_message_buffer.lock().unwrap() =
+                                Some(format!("Error loading: {e}"));
+                        })
+                        .ok()
+                }); // else it was cancelled
+                *load_active.lock().unwrap() = false;
+                result
+            });
+            self.loading_task = Some(jh);
+        }
+        Ok(())
     }
 
     pub(crate) fn error_modal(&mut self, ctx: &egui::Context) {
