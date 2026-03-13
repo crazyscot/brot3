@@ -9,17 +9,37 @@ use std::{
 
 use brot3_lib::{
     data::{Flags, FragmentConstants, PointResult},
-    ui::{UiState, UiStateSaveFile},
+    ui::{Error as LibError, UiState, UiStateSaveFile},
 };
 use glam::{Vec2, Vec4, uvec2, vec4};
 use rayon::prelude::*;
+use thiserror::Error;
+
+/// The error type used by this module
+#[derive(Error, Debug)]
+pub(crate) enum LoadSaveError {
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("PNG encoding error: {0}")]
+    PngEncode(#[from] png::EncodingError),
+    #[error("PNG decoding error: {0}")]
+    PngDecode(#[from] png::DecodingError),
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+    #[error("{0}")]
+    Lib(#[from] LibError),
+    #[error("Some pixels failed to render. The saved image may have gaps where this occurred.")]
+    PartialRenderFailure,
+    #[error("Internal error: {0}")]
+    Internal(String),
+}
 
 pub(crate) fn do_save_image(
     path: &std::path::Path,
     mut constants: FragmentConstants,
     state: &UiState,
     perturbation_points: &[Vec2],
-) -> anyhow::Result<()> {
+) -> Result<(), LoadSaveError> {
     // TODO: We shouldn't need to pass in both state and constants?
     // But they don't quite match up right now. Would have to refactor more of Controller into
     // UiState.
@@ -108,14 +128,13 @@ pub(crate) fn do_save_image(
     let mut writer = encoder.write_header()?;
     writer.write_image_data(&pixels)?;
     log::debug!("Converted to PNG in {:?}", pngstart.elapsed());
-    anyhow::ensure!(
-        !failure.load(Ordering::Relaxed),
-        "Some pixels failed to render. The saved image may have gaps where this occurred."
-    );
+    if failure.load(Ordering::Relaxed) {
+        return Err(LoadSaveError::PartialRenderFailure);
+    }
     Ok(())
 }
 
-pub(crate) fn do_save_state(path: &std::path::Path, state: UiState) -> anyhow::Result<()> {
+pub(crate) fn do_save_state(path: &std::path::Path, state: UiState) -> Result<(), LoadSaveError> {
     let data = UiStateSaveFile::from(state);
     let file = File::create(path)?;
     serde_json::to_writer_pretty(file, &data)?;
@@ -126,8 +145,8 @@ pub(crate) fn do_save_state(path: &std::path::Path, state: UiState) -> anyhow::R
 ///
 /// *NOTE:* Caller is responsible for figuring out whether to enable perturbation mode or other
 /// flags based on the new state.
-pub(crate) fn load_state(path: &std::path::Path) -> anyhow::Result<UiState> {
+pub(crate) fn load_state(path: &std::path::Path) -> Result<UiState, LoadSaveError> {
     let file = File::open(path)?;
     let data: UiStateSaveFile = serde_json::from_reader(file)?;
-    data.try_into()
+    data.try_into().map_err(Into::into)
 }

@@ -42,11 +42,26 @@ fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
     }
 }
 
+#[derive(thiserror::Error, Debug)]
+#[allow(missing_docs)]
+pub enum MainError {
+    #[error("Shader directory cannot be specified when CARGO_MANIFEST_DIR is set")]
+    ManifestShaderConflict,
+    #[error("Missing shader directory in CARGO_MANIFEST_DIR mode (manifest={mp}, shader={shader})")]
+    MissingShaderDirectory { mp: String, shader: String },
+    #[error("Shader directory {0} not found")]
+    ShaderDirectoryNotFound(String),
+    #[error("SPIRV tools {0} not found")]
+    SpirvToolsNotFound(String),
+    #[error(transparent)]
+    EasyShaderRunner(#[from] easy_shader_runner::Error),
+}
+
 /// Main CLI entrypoint
 #[tokio::main]
 #[cfg_attr(wasm, wasm_bindgen(start))]
 #[allow(clippy::missing_panics_doc)]
-pub async fn main() -> anyhow::Result<()> {
+pub async fn main() -> Result<(), MainError> {
     easy_shader_runner::setup_logging();
     let args = cli::Args::parse();
     if args.version {
@@ -67,14 +82,15 @@ pub async fn main() -> anyhow::Result<()> {
             if let Ok(mp) = manifest {
                 // We're running under cargo
                 if args.shader.is_some() {
-                    anyhow::bail!(
-                        "Shader directory cannot be specified when CARGO_MANIFEST_DIR is set"
-                    );
+                    return Err(MainError::ManifestShaderConflict);
                 }
                 let mut pb = PathBuf::from(&mp);
                 pb.push(CARGO_SHADER_RELATIVE_PATH);
                 if !is_directory(&pb) {
-                    anyhow::bail!("Missing shader directory in CARGO_MANIFEST_DIR mode (manifest={mp}, shader={CARGO_SHADER_RELATIVE_PATH})");
+                    return Err(MainError::MissingShaderDirectory {
+                        mp,
+                        shader: CARGO_SHADER_RELATIVE_PATH.to_string(),
+                    });
                 }
                 shader_path = Some(PathBuf::from(CARGO_SHADER_RELATIVE_PATH));
             } else {
@@ -82,7 +98,7 @@ pub async fn main() -> anyhow::Result<()> {
                 if let Some(path) = args.shader.as_ref() {
                     if !is_directory(path) {
                         // If given, an explicit shader directory must be present
-                        anyhow::bail!("Shader directory {} not found", path.display());
+                        return Err(MainError::ShaderDirectoryNotFound(path.display()));
                     }
                     shader_path = args.shader;
                 } else if !args.static_shader {
@@ -102,7 +118,7 @@ pub async fn main() -> anyhow::Result<()> {
             if let Some(ref tp) = args.spirv_tools
                 && !is_file(tp)
             {
-                anyhow::bail!("SPIRV tools {} not found", tp.display());
+                return Err(MainError::SpirvToolsNotFound(tp.display().to_string()));
             }
             if let Some(path) = shader_path
                 && !args.static_shader

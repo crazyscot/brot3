@@ -7,8 +7,17 @@
 use std::{env, path::Path};
 
 use spirv_builder::{MetadataPrintout, SpirvBuilder};
+use thiserror::Error;
 
-fn build_shader(path_to_crate: &str) -> anyhow::Result<()> {
+#[derive(Error, Debug)]
+enum BuildError {
+    #[error(transparent)]
+    SpirvBuilder(#[from] spirv_builder::SpirvBuilderError),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
+}
+
+fn build_shader(path_to_crate: &str) -> Result<(), BuildError> {
     build_print::info!("Building shader...");
     let builder_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path_to_crate = builder_dir.join(path_to_crate);
@@ -24,7 +33,7 @@ fn build_shader(path_to_crate: &str) -> anyhow::Result<()> {
 
     let compile_result = builder.build()?;
     #[allow(clippy::disallowed_methods)]
-    let shader_path = std::fs::canonicalize(compile_result.module.unwrap_single()).unwrap();
+    let shader_path = std::fs::canonicalize(compile_result.module.unwrap_single())?;
     // sample output:
     // `cargo::rustc-env=BROT3_SHADER=/home/builder/brot3/target/spirv-builder/
     // spirv-unknown-vulkan1.1/` release/deps/brot3_lib.spv
@@ -34,7 +43,7 @@ fn build_shader(path_to_crate: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<(), BuildError> {
     // CAUTION: Hard-wired path !
     build_shader("../lib")
 }

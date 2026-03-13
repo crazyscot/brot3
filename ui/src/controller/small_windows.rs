@@ -3,11 +3,11 @@
 
 use std::{path::Path, sync::Arc};
 
-use anyhow::Result;
 use easy_shader_runner::{UiState, egui};
 use rfd::AsyncFileDialog;
 
 use super::DVec2;
+use crate::save::LoadSaveError;
 
 #[allow(unused_results)]
 impl super::Controller {
@@ -117,11 +117,11 @@ impl super::Controller {
     /// Returns true if the flag was clear and we set it.
     /// Returns false if the flag was set.
     /// Returns an error if the mutex was poisoned.
-    fn try_set_save_active(&self) -> Result<bool> {
+    fn try_set_save_active(&self) -> Result<bool, LoadSaveError> {
         let mut guard = self
             .save_active
             .lock()
-            .map_err(|_| anyhow::anyhow!("Failed to lock save_active"))?;
+            .map_err(|_| LoadSaveError::Internal("Failed to lock save_active".to_string()))?;
         if *guard {
             return Ok(false);
         }
@@ -149,7 +149,7 @@ impl super::Controller {
             })
     }
 
-    pub(crate) fn save_image_ui(&mut self, _ctx: &egui::Context) -> Result<()> {
+    pub(crate) fn save_image_ui(&mut self, _ctx: &egui::Context) -> Result<(), LoadSaveError> {
         self.show_save = false;
         if self.try_set_save_active()? {
             let default_filename = format!(
@@ -175,7 +175,7 @@ impl super::Controller {
         Ok(())
     }
 
-    pub(crate) fn save_position_ui(&mut self, _ctx: &egui::Context) -> Result<()> {
+    pub(crate) fn save_position_ui(&mut self, _ctx: &egui::Context) -> Result<(), LoadSaveError> {
         self.show_save_position = false;
         if self.try_set_save_active()? {
             let default_filename = format!(
@@ -200,7 +200,7 @@ impl super::Controller {
 
     fn save_something<F>(&self, dialog: AsyncFileDialog, do_save: F)
     where
-        F: Send + FnOnce(&Path) -> Result<()> + 'static,
+        F: Send + FnOnce(&Path) -> Result<(), LoadSaveError> + 'static,
     {
         // ...
         let save_active = Arc::clone(&self.save_active);
@@ -218,9 +218,8 @@ impl super::Controller {
                         *save_dir.lock().unwrap() = Some(parent);
                     }
                     Err(e) => {
-                        eprintln!("Error saving: {e}");
-                        *error_message_buffer.lock().unwrap() =
-                            Some(format!("Failed to save: {e}"));
+                        log::error!("Error saving: {e}");
+                        *error_message_buffer.lock().unwrap() = Some(format!("Error saving: {e}"));
                     }
                 }
             } // else it was cancelled

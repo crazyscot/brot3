@@ -285,7 +285,6 @@ name = "brot3-lib"
 version = "3.3.0"
 dependencies = [
  "abels-complex",
- "anyhow",
  "assert_matches",
  "bitflags 2.11.0",
  "bytemuck",
@@ -306,13 +305,13 @@ dependencies = [
  "serde_json",
  "spirv-std",
  "strum",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "brot3-ui"
 version = "3.3.0"
 dependencies = [
- "anyhow",
  "brot3-lib",
  "build-print",
  "bytemuck",
@@ -333,6 +332,7 @@ dependencies = [
  "rfd",
  "serde_json",
  "strum",
+ "thiserror 2.0.18",
  "tokio",
  "web-time",
 ]
@@ -3324,9 +3324,9 @@ dependencies = [
 name = "shader_builder"
 version = "3.3.0"
 dependencies = [
- "anyhow",
  "build-print",
  "spirv-builder",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

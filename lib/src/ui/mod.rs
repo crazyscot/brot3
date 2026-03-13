@@ -3,6 +3,8 @@
 //! These are in the lib crate to allow efficient unit testing.
 #![cfg(not(target_arch = "spirv"))]
 
+use thiserror::Error;
+
 mod dynfmt;
 mod exponent;
 mod state;
@@ -19,3 +21,10 @@ pub use zoom::ViewportZoom;
 /// Larger limits reduce performance in deep zooms, but may improve accuracy.
 // TODO figure out what precision is best; do we need to make it dynamic?
 pub const BIGNUM_PRECISION_LIMIT: usize = 192;
+
+#[derive(Error, Debug, Copy, Clone, PartialEq, Eq)]
+/// The error type used by [`brot3_lib::ui`]
+pub enum Error {
+    #[error("Unsupported save file version {0}")]
+    UnsupportedVersion(u32),
+}

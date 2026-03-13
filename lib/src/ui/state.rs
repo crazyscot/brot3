@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::ViewportZoom;
+use super::{Error as LibError, ViewportZoom};
 use crate::{
     BigVec2, UVec2,
     data::{Algorithm, FragmentConstants, Palette, PushExponent},
@@ -98,14 +98,12 @@ impl From<UiState> for UiStateSaveFile {
 }
 
 impl TryFrom<UiStateSaveFile> for UiState {
-    type Error = anyhow::Error;
+    type Error = LibError;
 
-    fn try_from(value: UiStateSaveFile) -> anyhow::Result<Self> {
-        anyhow::ensure!(
-            value.version == 1,
-            "Unsupported save file version {}",
-            value.version
-        );
+    fn try_from(value: UiStateSaveFile) -> Result<Self, Self::Error> {
+        if value.version != 1 {
+            return Err(LibError::UnsupportedVersion(value.version));
+        }
         Ok(value.state)
     }
 }
