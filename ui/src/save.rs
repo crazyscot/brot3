@@ -18,7 +18,7 @@ use rayon::prelude::*;
 use thiserror::Error;
 
 /// The error type used by this module
-#[derive(Error, Debug)]
+#[derive(Error, Debug, strum::EnumIs)]
 pub(crate) enum LoadSaveError {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
@@ -36,8 +36,6 @@ pub(crate) enum LoadSaveError {
     PartialRenderFailure,
     #[error("PNG file did not contain usable state data")]
     PngHadNoStateData,
-    #[error("Internal error: {0}")]
-    Internal(String),
 }
 
 pub(crate) fn do_save_image(
@@ -144,6 +142,7 @@ pub(crate) fn do_save_state(path: &Path, state: UiState) -> Result<(), LoadSaveE
     let data = UiStateSaveFile::from(state);
     let file = File::create(path)?;
     serde_json::to_writer_pretty(file, &data)?;
+    log::info!("Saved state to {}", path.display());
     Ok(())
 }
 
@@ -155,7 +154,10 @@ pub(crate) fn load_state(path: &Path) -> Result<UiState, LoadSaveError> {
     // Some errors are fatal (e.g. file not found), but if the file is there and it's just not valid
     // JSON, we want to try loading as a PNG before giving up.
     match load_state_json(path) {
-        Ok(state) => Ok(state),
+        Ok(state) => {
+            log::info!("Loaded from {}", path.display());
+            Ok(state)
+        }
         Err(LoadSaveError::Json(j)) => {
             if j.is_syntax() {
                 // It's not valid JSON, so try PNG

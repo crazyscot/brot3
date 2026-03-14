@@ -331,6 +331,7 @@ dependencies = [
  "png",
  "rayon",
  "rfd",
+ "scopeguard",
  "serde_json",
  "strum",
  "thiserror 2.0.18",

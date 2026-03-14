@@ -55,7 +55,7 @@ impl super::Controller {
                 Some(Err(e)) => log::warn!("task join error: {e}"),
                 Some(Ok(None)) => (),
                 Some(Ok(Some(s))) => {
-                    log::info!("Loaded state: {s:#?}");
+                    log::debug!("Loaded state: {s:#?}");
                     self.state.merge(s);
                     self.just_loaded();
                 }
@@ -94,13 +94,13 @@ impl super::Controller {
             self.license_modal(ctx);
         }
         if self.show_save {
-            let _ = self.save_image_ui(ctx);
+            self.save_image_ui(ctx);
         }
         if self.show_save_position {
-            let _ = self.save_position_ui(ctx);
+            self.save_position_ui(ctx);
         }
         if self.show_open {
-            let _ = self.open_ui(ctx);
+            self.open_ui(ctx);
         }
         self.error_modal(ctx);
 

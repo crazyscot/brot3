@@ -5,7 +5,7 @@
 //! This crate has a hidden dependency on the `png` feature of the `image` crate.
 //! </div>
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, atomic::AtomicBool};
 
 use brot3_lib::{
     BigVec2,
@@ -82,7 +82,7 @@ pub(crate) struct Controller {
     context_menu: Option<DVec2>,
     inspector: Inspector,
     render_pass: u32,
-    load_save_active: Arc<Mutex<bool>>,
+    load_save_active: Arc<AtomicBool>,
     last_save_dir: Arc<Mutex<Option<std::path::PathBuf>>>,
     error_message: Arc<Mutex<Option<String>>>,
     loading_task: Option<tokio::task::JoinHandle<Option<BrotUiState>>>,
@@ -161,7 +161,7 @@ impl Controller {
             context_menu: None,
             inspector: Inspector::default(),
             render_pass: 0,
-            load_save_active: Arc::new(Mutex::new(false)),
+            load_save_active: Arc::new(AtomicBool::new(false)),
             last_save_dir: Arc::new(Mutex::new(None)),
             error_message: Arc::new(Mutex::new(error_message)),
             loading_task: None,

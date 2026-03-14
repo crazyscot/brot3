@@ -1,13 +1,17 @@
 //! Minor windows
 // (c) 2025 Ross Younger
 
-use std::{path::Path, sync::Arc};
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
-use easy_shader_runner::{UiState, egui};
-use rfd::AsyncFileDialog;
+use easy_shader_runner::{UiState as EsrUiState, egui};
+use rfd::FileDialog;
+use tokio::task::JoinHandle;
 
 use super::DVec2;
-use crate::save::{LoadSaveError, load_state};
+use crate::save::LoadSaveError;
 
 #[allow(unused_results)]
 impl super::Controller {
@@ -76,7 +80,7 @@ impl super::Controller {
         });
     }
 
-    pub(crate) fn fps_window(ctx: &egui::Context, ui_state: &UiState) {
+    pub(crate) fn fps_window(ctx: &egui::Context, ui_state: &EsrUiState) {
         egui::Window::new("fps")
             .title_bar(false)
             .resizable(false)
@@ -112,154 +116,148 @@ impl super::Controller {
         }
     }
 
-    /// Lock the mutex, test and set the flag within.
+    /// Atomically check if a load/save operation is active, and if not, set it to active.
+    /// We use this to prevent multiple save/load operations from happening at once, which would
+    /// make for a confusing UX.
     ///
     /// Returns true if the flag was clear and we set it.
-    /// Returns false if the flag was set.
-    /// Returns an error if the mutex was poisoned.
-    fn try_set_load_save_active(&self) -> Result<bool, LoadSaveError> {
-        let mut guard = self
-            .load_save_active
-            .lock()
-            .map_err(|_| LoadSaveError::Internal("Failed to lock load_save_active".to_string()))?;
-        if *guard {
-            return Ok(false);
-        }
-        *guard = true;
-        Ok(true)
+    /// Returns false if the flag was already set.
+    fn try_set_load_save_active(&self) -> bool {
+        self.load_save_active
+            .compare_exchange(
+                false,
+                true,
+                std::sync::atomic::Ordering::Acquire,
+                std::sync::atomic::Ordering::Relaxed,
+            )
+            .is_ok()
     }
 
-    fn last_save_dir(&self) -> Option<std::path::PathBuf> {
+    /// Determine the default directory to open the load/save dialog in,
+    /// based on the last used directory (if we have one) or a provided default.
+    /// As a final fallback, we use the current directory.
+    ///
+    /// `default` is a closure which returns Some(directory) if it can provide a
+    /// reasonable default, or None if it can't.
+    fn default_load_save_dir(&self, default: impl FnOnce() -> Option<PathBuf>) -> PathBuf {
         self.last_save_dir
             .lock()
             .ok()
             .and_then(|guard| guard.clone())
-    }
-
-    fn default_save_dir(
-        &self,
-        default: impl FnOnce() -> Option<std::path::PathBuf>,
-    ) -> std::path::PathBuf {
-        self.last_save_dir()
             .filter(|dir| dir.is_dir())
             .unwrap_or_else(|| {
                 default()
                     .or_else(dirs::desktop_dir)
-                    .unwrap_or_else(|| std::path::PathBuf::from("."))
+                    .unwrap_or_else(|| PathBuf::from("."))
             })
     }
 
-    pub(crate) fn save_image_ui(&mut self, _ctx: &egui::Context) -> Result<(), LoadSaveError> {
+    pub(crate) fn save_image_ui(&mut self, _ctx: &egui::Context) {
         self.show_save = false;
-        if self.try_set_load_save_active()? {
+        if self.try_set_load_save_active() {
             let default_filename = format!(
                 "brot3_{datetime}_{description}.png",
                 datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"),
                 description = self.state.display_string('_'),
             );
-            let default_save_dir = self.default_save_dir(dirs::picture_dir);
 
-            let save_dialog = AsyncFileDialog::new()
+            let save_dialog = FileDialog::new()
                 .add_filter("PNG image", &["png"])
                 .set_title("Save image")
-                .set_directory(default_save_dir)
+                .set_directory(self.default_load_save_dir(dirs::picture_dir))
                 .set_file_name(&default_filename);
 
             let perturbation_points = self.perturbation.points.clone();
             let consts = self.fragment_constants(true);
             let state = self.state.clone();
-            self.save_something(save_dialog, move |filename| {
-                crate::save::do_save_image(filename, consts, &state, &perturbation_points)
-            });
+            self.load_save_generic_workflow(
+                || save_dialog.save_file(),
+                move |filename| {
+                    crate::save::do_save_image(filename, consts, &state, &perturbation_points)
+                },
+                "saving image",
+            );
+            // N.B. load_save_active is cleared by save_something's async task
         }
-        Ok(())
     }
 
-    pub(crate) fn save_position_ui(&mut self, _ctx: &egui::Context) -> Result<(), LoadSaveError> {
+    pub(crate) fn save_position_ui(&mut self, _ctx: &egui::Context) {
         self.show_save_position = false;
-        if self.try_set_load_save_active()? {
+        if self.try_set_load_save_active() {
             let default_filename = format!(
                 "brot3_{datetime}.json",
                 datetime = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"),
             );
-            let default_save_dir = self.default_save_dir(dirs::document_dir);
 
-            let save_dialog = AsyncFileDialog::new()
+            let save_dialog = FileDialog::new()
                 .add_filter("JSON file", &["json"])
                 .set_title("Save position")
-                .set_directory(default_save_dir)
+                .set_directory(self.default_load_save_dir(dirs::document_dir))
                 .set_file_name(&default_filename);
 
             let state = self.state.clone();
-            self.save_something(save_dialog, move |filename| {
-                crate::save::do_save_state(filename, state)
-            });
+            self.load_save_generic_workflow(
+                || save_dialog.save_file(),
+                move |filename| crate::save::do_save_state(filename, state),
+                "saving state",
+            );
         }
-        Ok(())
     }
 
-    fn save_something<F>(&self, dialog: AsyncFileDialog, do_save: F)
+    fn load_save_generic_workflow<DialogFn, ActionFn, R>(
+        &self,
+        run_dialog: DialogFn,
+        do_action: ActionFn,
+        action_verbing: &str,
+    ) -> JoinHandle<Option<R>>
     where
-        F: Send + FnOnce(&Path) -> Result<(), LoadSaveError> + 'static,
+        DialogFn: FnOnce() -> Option<PathBuf> + Send + 'static,
+        ActionFn: FnOnce(&Path) -> Result<R, LoadSaveError> + Send + 'static,
+        R: Send + 'static,
     {
-        let save_active = Arc::clone(&self.load_save_active);
+        let load_save_active = Arc::clone(&self.load_save_active);
         let save_dir = Arc::clone(&self.last_save_dir);
         let error_message_buffer = Arc::clone(&self.error_message);
-        tokio::spawn(async move {
-            if let Some(file) = dialog.save_file().await {
-                let filename = file.path().to_owned();
-                // TODO: do_save is blocking, needs to be async closure
-                match do_save(&filename) {
-                    Ok(()) => {
-                        let parent = filename
-                            .parent()
-                            .unwrap_or_else(|| Path::new("."))
-                            .to_path_buf();
-                        *save_dir.lock().unwrap() = Some(parent);
+        let what = action_verbing.to_owned();
+        tokio::task::spawn_blocking(move || {
+            scopeguard::defer! {
+                load_save_active.store(false, std::sync::atomic::Ordering::Release);
+            }
+
+            let Some(path) = run_dialog() else {
+                log::info!("{what}: file dialog cancelled by user");
+                return None;
+            };
+            match do_action(&path) {
+                Ok(res) => {
+                    if let Some(parent) = path.parent() {
+                        *save_dir.lock().unwrap() = Some(parent.to_path_buf());
                     }
-                    Err(e) => {
-                        log::error!("Error saving: {e}");
-                        *error_message_buffer.lock().unwrap() = Some(format!("Error saving: {e}"));
-                    }
+                    Some(res)
                 }
-            } // else it was cancelled
-            *save_active.lock().unwrap() = false;
-        });
+                Err(err) => {
+                    log::error!("{err}");
+                    *error_message_buffer.lock().unwrap() = Some(format!("Error {what}: {err}"));
+                    None
+                }
+            }
+        })
     }
 
-    pub(crate) fn open_ui(&mut self, _ctx: &egui::Context) -> Result<(), LoadSaveError> {
+    pub(crate) fn open_ui(&mut self, _ctx: &egui::Context) {
         self.show_open = false;
-        if self.try_set_load_save_active()? {
-            let default_save_dir = self.default_save_dir(|| Some(".".into()));
-
-            let open_dialog = AsyncFileDialog::new()
-                .add_filter("JSON file", &["json"])
-                .add_filter("PNG image", &["png"])
+        if self.try_set_load_save_active() {
+            let open_dialog = FileDialog::new()
+                .add_filter("JSON file or PNG image", &["json", "png"])
                 .set_title("Open position or image")
-                .set_directory(default_save_dir);
+                .set_directory(self.default_load_save_dir(|| Some(".".into())));
 
-            let load_active = Arc::clone(&self.load_save_active);
-            let error_message_buffer = Arc::clone(&self.error_message);
-
-            let jh = tokio::spawn(async move {
-                let result = open_dialog.pick_file().await.and_then(|file| {
-                    let path = file.path();
-                    // TODO: Save the directory for next time
-                    // TODO: load_state is blocking, needs to be async
-                    load_state(path)
-                        .inspect_err(|e| {
-                            log::error!("Error loading: {e}");
-                            *error_message_buffer.lock().unwrap() =
-                                Some(format!("Error loading: {e}"));
-                        })
-                        .ok()
-                }); // else it was cancelled
-                *load_active.lock().unwrap() = false;
-                result
-            });
-            self.loading_task = Some(jh);
+            self.loading_task = Some(self.load_save_generic_workflow(
+                || open_dialog.pick_file(),
+                crate::save::load_state,
+                "loading",
+            ));
         }
-        Ok(())
     }
 
     pub(crate) fn error_modal(&mut self, ctx: &egui::Context) {
