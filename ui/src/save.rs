@@ -4,6 +4,7 @@
 use std::{
     fs::File,
     io::BufReader,
+    path::Path,
     sync::atomic::{AtomicBool, Ordering},
     time::Instant,
 };
@@ -40,7 +41,7 @@ pub(crate) enum LoadSaveError {
 }
 
 pub(crate) fn do_save_image(
-    path: &std::path::Path,
+    path: &Path,
     mut constants: FragmentConstants,
     state: &UiState,
     perturbation_points: &[Vec2],
@@ -139,7 +140,7 @@ pub(crate) fn do_save_image(
     Ok(())
 }
 
-pub(crate) fn do_save_state(path: &std::path::Path, state: UiState) -> Result<(), LoadSaveError> {
+pub(crate) fn do_save_state(path: &Path, state: UiState) -> Result<(), LoadSaveError> {
     let data = UiStateSaveFile::from(state);
     let file = File::create(path)?;
     serde_json::to_writer_pretty(file, &data)?;
@@ -150,7 +151,7 @@ pub(crate) fn do_save_state(path: &std::path::Path, state: UiState) -> Result<()
 ///
 /// *NOTE:* Caller is responsible for figuring out whether to enable perturbation mode or other
 /// flags based on the new state.
-pub(crate) fn load_state(path: &std::path::Path) -> Result<UiState, LoadSaveError> {
+pub(crate) fn load_state(path: &Path) -> Result<UiState, LoadSaveError> {
     // Some errors are fatal (e.g. file not found), but if the file is there and it's just not valid
     // JSON, we want to try loading as a PNG before giving up.
     match load_state_json(path) {
@@ -168,13 +169,13 @@ pub(crate) fn load_state(path: &std::path::Path) -> Result<UiState, LoadSaveErro
     }
 }
 
-fn load_state_json(path: &std::path::Path) -> Result<UiState, LoadSaveError> {
+fn load_state_json(path: &Path) -> Result<UiState, LoadSaveError> {
     let file = File::open(path)?;
     let data: UiStateSaveFile = serde_json::from_reader(file)?;
     data.try_into().map_err(Into::into)
 }
 
-fn load_state_png(path: &std::path::Path) -> Result<UiState, LoadSaveError> {
+fn load_state_png(path: &Path) -> Result<UiState, LoadSaveError> {
     let decoder = png::Decoder::new(BufReader::new(File::open(path)?));
     let reader = decoder.read_info().map_err(|e| {
         if let png::DecodingError::Format(_) = e {

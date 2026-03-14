@@ -11,7 +11,7 @@ pub(crate) mod save;
 pub mod widgets;
 
 #[cfg(runtime_compile)]
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::Parser;
 
@@ -27,7 +27,7 @@ pub(crate) mod version;
 use version::version_string;
 
 #[cfg(runtime_compile)]
-fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
+fn is_directory<P: AsRef<Path>>(path: P) -> bool {
     match std::fs::metadata(path) {
         Ok(m) => m.is_dir(),
         Err(_) => false,
@@ -35,7 +35,7 @@ fn is_directory<P: AsRef<std::path::Path>>(path: P) -> bool {
 }
 
 #[cfg(runtime_compile)]
-fn is_file<P: AsRef<std::path::Path>>(path: P) -> bool {
+fn is_file<P: AsRef<Path>>(path: P) -> bool {
     match std::fs::metadata(path) {
         Ok(m) => m.is_file(),
         Err(_) => false,
