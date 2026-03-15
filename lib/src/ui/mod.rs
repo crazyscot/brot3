@@ -7,11 +7,13 @@ use thiserror::Error;
 
 mod dynfmt;
 mod exponent;
+mod messaging;
 mod state;
 mod zoom;
 
 pub use dynfmt::dynamic_format;
 pub use exponent::Exponent;
+pub use messaging::*;
 pub use state::{UiState, UiStateSaveFile};
 pub use zoom::ViewportZoom;
 

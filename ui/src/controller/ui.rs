@@ -29,6 +29,7 @@ impl super::Controller {
         graphics_context: &easy_shader_runner::GraphicsContext,
     ) {
         self.render_pass = self.render_pass.wrapping_add(1);
+        self.service_channels();
 
         if self.perturbation_mode && !self.perturb_implemented() {
             #[allow(clippy::cast_precision_loss)]

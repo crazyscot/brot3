@@ -5,13 +5,13 @@
 //! This crate has a hidden dependency on the `png` feature of the `image` crate.
 //! </div>
 
-use std::sync::{Arc, Mutex, atomic::AtomicBool};
+use std::sync::{Arc, atomic::AtomicBool};
 
 use brot3_lib::{
     BigVec2,
     data::{Flags, FragmentConstants, Palette, PointResult},
     engine::PixelSpacing as _,
-    ui::{BIGNUM_PRECISION_LIMIT, UiState as BrotUiState},
+    ui::{BIGNUM_PRECISION_LIMIT, Channel, UiState as BrotUiState},
 };
 use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
@@ -82,9 +82,18 @@ pub(crate) struct Controller {
     context_menu: Option<DVec2>,
     inspector: Inspector,
     render_pass: u32,
+
+    // Loading & saving
     load_save_active: Arc<AtomicBool>,
-    last_save_dir: Arc<Mutex<Option<std::path::PathBuf>>>,
-    error_message: Arc<Mutex<Option<String>>>,
+    // The last directory we used for a save or load operation.
+    last_save_dir: Option<std::path::PathBuf>,
+    // Spawned UI tasks use this channel to communicate their last used directory
+    save_dir_channel: Channel<std::path::PathBuf>,
+    // The error message to display, if any. This is wrapped in Arc to enable efficient cloning,
+    // which happens at 60fps.
+    error_message: Option<Arc<String>>,
+    // Spawned UI tasks use this channel to pass error messages
+    error_message_channel: Channel<String>,
     loading_task: Option<tokio::task::JoinHandle<Option<BrotUiState>>>,
 }
 
@@ -162,8 +171,10 @@ impl Controller {
             inspector: Inspector::default(),
             render_pass: 0,
             load_save_active: Arc::new(AtomicBool::new(false)),
-            last_save_dir: Arc::new(Mutex::new(None)),
-            error_message: Arc::new(Mutex::new(error_message)),
+            last_save_dir: None,
+            save_dir_channel: Channel::default(),
+            error_message: error_message.map(Arc::new),
+            error_message_channel: Channel::default(),
             loading_task: None,
         };
         c.just_loaded();

@@ -141,10 +141,9 @@ impl super::Controller {
     /// reasonable default, or None if it can't.
     fn default_load_save_dir(&self, default: impl FnOnce() -> Option<PathBuf>) -> PathBuf {
         self.last_save_dir
-            .lock()
-            .ok()
-            .and_then(|guard| guard.clone())
+            .as_ref()
             .filter(|dir| dir.is_dir())
+            .cloned()
             .unwrap_or_else(|| {
                 default()
                     .or_else(dirs::desktop_dir)
@@ -216,8 +215,8 @@ impl super::Controller {
         R: Send + 'static,
     {
         let load_save_active = Arc::clone(&self.load_save_active);
-        let save_dir = Arc::clone(&self.last_save_dir);
-        let error_message_buffer = Arc::clone(&self.error_message);
+        let save_dir_channel = self.save_dir_channel.sender();
+        let error_message_channel = self.error_message_channel.sender();
         let what = action_verbing.to_owned();
         tokio::task::spawn_blocking(move || {
             scopeguard::defer! {
@@ -231,13 +230,15 @@ impl super::Controller {
             match do_action(&path) {
                 Ok(res) => {
                     if let Some(parent) = path.parent() {
-                        *save_dir.lock().unwrap() = Some(parent.to_path_buf());
+                        save_dir_channel.send(parent.to_path_buf()).ok();
                     }
                     Some(res)
                 }
                 Err(err) => {
                     log::error!("{err}");
-                    *error_message_buffer.lock().unwrap() = Some(format!("Error {what}: {err}"));
+                    error_message_channel
+                        .send(format!("Error {what}: {err}"))
+                        .ok();
                     None
                 }
             }
@@ -261,25 +262,23 @@ impl super::Controller {
     }
 
     pub(crate) fn error_modal(&mut self, ctx: &egui::Context) {
-        if let Some(message) = self.error_message.lock().map_or_else(
-            |e| Some(format!("Failed to lock error_message: {e}")),
-            |guard| guard.clone(),
-        ) {
+        if let Some(message) = &self.error_message {
+            let message = message.clone();
             let _ = egui::Modal::new("error".into()).show(ctx, |ui| {
                 ui.label(egui::RichText::new("Error").size(18.));
                 ui.add_space(12.);
-                ui.label(message);
+                ui.label(message.as_ref());
                 ui.add_space(12.);
                 if ui.button("OK").clicked() {
-                    self.clear_error_modal();
+                    self.error_message = None;
                 }
             });
         }
     }
 
-    pub(crate) fn clear_error_modal(&mut self) {
-        if let Ok(mut guard) = self.error_message.lock() {
-            *guard = None;
-        }
+    pub(crate) fn service_channels(&mut self) {
+        use brot3_lib::ui::update_field_from_channel as uffc;
+        uffc(&self.error_message_channel, &mut self.error_message);
+        uffc(&self.save_dir_channel, &mut self.last_save_dir);
     }
 }
