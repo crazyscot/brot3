@@ -33,8 +33,6 @@ pub struct FragmentConstants {
     pub algorithm: Algorithm, // u32
     pub max_iter: u32,
     pub palette: Palette, // u32
-    // number of points in the perturbation buffer
-    pub n_reference_points: u32,
 }
 
 // compile time assertion: confirm that push constants will fit into the size that e-s-r requests
@@ -62,7 +60,6 @@ impl Default for FragmentConstants {
             exponent: PushExponent::default(),
             palette: Palette::default(),
             inspector_point_pixel_address: Vec2::default(),
-            n_reference_points: 0,
         }
     }
 }

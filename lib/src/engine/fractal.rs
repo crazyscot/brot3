@@ -127,7 +127,7 @@ pub fn render(
                     modifiers: AlgorithmModifiers::from(constants),
                     exponentiator: $expo,
                     reference_points,
-                    n_reference: constants.n_reference_points as usize,
+                    n_reference: reference_points.len(),
                     loglog2_escape_threshold: ESCAPE_THRESHOLD.log2().log2(),
                 },
             }
@@ -597,7 +597,6 @@ mod tests {
             exponent: PushExponent::from(2),
             palette: Palette::DEFAULT,
             inspector_point_pixel_address: Vec2::default(),
-            n_reference_points: 0,
         }
     }
 
@@ -660,7 +659,6 @@ mod tests {
             Algorithm::Mandelbrot,
             consts.max_iter,
         );
-        consts.n_reference_points = ref_points.len() as u32;
 
         let mut run_case = |i| {
             consts.viewport_zoom = 10.0f32.powi(i);

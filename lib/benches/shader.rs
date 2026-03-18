@@ -39,7 +39,6 @@ fn fractal(alg: Algorithm) -> PointResult {
         exponent: PushExponent::from(2),
         palette: Palette::default(),
         inspector_point_pixel_address: Vec2::default(),
-        n_reference_points: 0,
     };
     brot3_lib::engine::render(&consts, black_box(vec2(0.5, 0.5)), &[Vec2::ZERO; 0])
 }
@@ -57,7 +56,6 @@ fn colour(col: Colourer) -> RgbVec {
         exponent: PushExponent::from(2),
         palette: Palette::default().with_colourer(col),
         inspector_point_pixel_address: Vec2::default(),
-        n_reference_points: 0,
     };
     let data = PointResult::new(
         3,

@@ -206,7 +206,6 @@ impl Controller {
             inspector_point_pixel_address: self
                 .complex_point_to_pixel(&self.inspector.position)
                 .as_vec2(),
-            n_reference_points: self.perturbation.points.len() as u32,
         }
     }
 
@@ -381,9 +380,6 @@ impl ControllerTrait for Controller {
             label: Some("fractal_bind_group"),
         });
         self.perturbation.buffer = Some(perturbation_points_buffer);
-        self.perturbation
-            .points
-            .reserve(MAX_MAX_ITERATIONS as usize);
         (vec![layout], vec![bind_group])
     }
 
@@ -511,6 +507,8 @@ impl Controller {
 
 #[derive(Default)]
 struct PerturbationReference {
+    /// Live GPU buffer containing the reference points for perturbation rendering
     buffer: Option<wgpu::Buffer>,
+    /// Local copy of the reference points, used by host-side rendering (PNGs and the inspector)
     points: Vec<Vec2>,
 }

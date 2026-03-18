@@ -48,7 +48,6 @@ mod tests {
                 ..Default::default()
             },
             inspector_point_pixel_address: Vec2::default(),
-            n_reference_points: 0,
         }
     }
 

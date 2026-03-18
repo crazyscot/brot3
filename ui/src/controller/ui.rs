@@ -206,17 +206,19 @@ impl super::Controller {
     }
 
     fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {
+        let mut dest = Vec::with_capacity(super::MAX_MAX_ITERATIONS as usize);
+
         engine::mandelbrot_perturbed_compute_reference_iters(
-            &mut self.perturbation.points,
+            &mut dest,
             &self.state.viewport_translate,
             self.state.algorithm,
             self.state.max_iter,
         );
-
         graphics_context.queue.write_buffer(
             self.perturbation.buffer.as_ref().unwrap(),
             0,
-            bytemuck::cast_slice(&self.perturbation.points),
+            bytemuck::cast_slice(&dest),
         );
+        self.perturbation.points = std::mem::take(&mut dest);
     }
 }
