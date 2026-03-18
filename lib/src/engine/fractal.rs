@@ -306,7 +306,7 @@ where
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // The log(exponent) term is necessary for powers other than 2.
-        // Note that the log of theexponent is not allowed to be 0 or subnormal (we divide by
+        // Note that the log of the exponent is not allowed to be 0 or subnormal (we divide by
         // it below), so we special case those regions (in Exponentiator).
 
         // take two logs, avoiding NaN

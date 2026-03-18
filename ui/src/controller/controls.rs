@@ -4,6 +4,7 @@
 use brot3_lib::data::{Algorithm, ColourStyle, Colourer, Modifier, NumericType, Palette};
 use easy_shader_runner::egui;
 use num_traits::AsPrimitive;
+use strum::EnumMessage as _;
 
 use crate::controller::MAX_MAX_ITERATIONS;
 
@@ -40,7 +41,8 @@ impl super::Controller {
                         use strum::IntoEnumIterator as _;
                         for it in Algorithm::iter() {
                             let label: &'static str = it.into();
-                            ui.selectable_value(&mut self.state.algorithm, it, label);
+                            ui.selectable_value(&mut self.state.algorithm, it, label)
+                                .on_hover_text(it.get_documentation().unwrap_or_default());
                         }
                     });
                 if self.state.algorithm != algorithm_before {
@@ -152,7 +154,8 @@ impl super::Controller {
                         use strum::IntoEnumIterator as _;
                         for it in Colourer::iter() {
                             let label: &'static str = it.into();
-                            ui.selectable_value(&mut self.state.palette.colourer, it, label);
+                            ui.selectable_value(&mut self.state.palette.colourer, it, label)
+                                .on_hover_text(it.get_documentation().unwrap_or_default());
                         }
                     });
                 egui::CollapsingHeader::new("Palette controls")
@@ -164,7 +167,8 @@ impl super::Controller {
                                 use strum::IntoEnumIterator as _;
                                 for it in ColourStyle::iter() {
                                     let label: &'static str = it.into();
-                                    ui.selectable_value(&mut self.state.palette.colour_style, it, label);
+                                    ui.selectable_value(&mut self.state.palette.colour_style, it, label)
+                                        .on_hover_text(it.get_documentation().unwrap_or_default());
                                 }
                             });
                         egui::ComboBox::from_label("Brightness Style")
@@ -173,7 +177,8 @@ impl super::Controller {
                                 use strum::IntoEnumIterator as _;
                                 for it in Modifier::iter() {
                                     let label: &'static str = it.into();
-                                    ui.selectable_value(&mut self.state.palette.brightness_style, it, label);
+                                    ui.selectable_value(&mut self.state.palette.brightness_style, it, label)
+                                        .on_hover_text(it.get_documentation().unwrap_or_default());
                                 }
                             });
                         egui::ComboBox::from_label("Saturation Style")
@@ -182,7 +187,8 @@ impl super::Controller {
                                 use strum::IntoEnumIterator as _;
                                 for it in Modifier::iter() {
                                     let label: &'static str = it.into();
-                                    ui.selectable_value(&mut self.state.palette.saturation_style, it, label);
+                                    ui.selectable_value(&mut self.state.palette.saturation_style, it, label)
+                                        .on_hover_text(it.get_documentation().unwrap_or_default());
                                 }
                             });
 

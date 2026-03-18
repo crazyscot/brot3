@@ -25,6 +25,7 @@ macro_rules! enumdef {
                 serde::Deserialize,
                 strum::Display,
                 strum::EnumIter,
+                strum::EnumMessage,
                 strum::IntoStaticStr,
                 strum::VariantArray,
                 num_derive::FromPrimitive,
