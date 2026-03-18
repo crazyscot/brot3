@@ -31,14 +31,10 @@ impl super::Controller {
         if self.state.viewport_size.y == 0 {
             return;
         }
-        // Top right of window
-        let pos = ((self.state.viewport_size.x - 10) as f32, 10.0);
-
         egui::Window::new("coords")
             .title_bar(false)
             .resizable(false)
-            .pivot(egui::Align2::RIGHT_TOP)
-            .default_pos(pos)
+            .anchor(egui::Align2::RIGHT_TOP, [-10.0, 10.0])
             .show(ctx, |ui| {
                 ui.set_width(10.); // hack: ensures the separator doesn't inflate the window
                 egui::Grid::new("coords_position").show(ui, |ui| {
