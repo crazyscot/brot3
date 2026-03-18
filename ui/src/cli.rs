@@ -6,9 +6,15 @@ use std::path::PathBuf;
 use std::{path::PathBuf, str::FromStr};
 
 use brot3_lib::data::{Algorithm, ColourStyle, Colourer, Modifier};
+use clap::builder::{
+    Styles,
+    styling::{AnsiColor, Color, Style},
+};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, clap::Parser, Clone, Default)]
+#[command(styles=CLAP_STYLES)]
+/// Yet Another Fractal Plotter
 pub(crate) struct Args {
     #[arg(short = 'V', long, help = "Print version")]
     pub version: bool,
@@ -132,3 +138,37 @@ impl From<LocalUVec2> for glam::UVec2 {
         }
     }
 }
+
+// CLI styling for clap.
+// We don't need to make this conditional, as clap already reads the CLICOLOR environment variables.
+pub(crate) const CLAP_STYLES: Styles = Styles::styled()
+    .usage(
+        Style::new()
+            .bold()
+            .underline()
+            .fg_color(Some(Color::Ansi(AnsiColor::Yellow))),
+    )
+    .header(
+        Style::new()
+            .bold()
+            .underline()
+            .fg_color(Some(Color::Ansi(AnsiColor::Yellow))),
+    )
+    .literal(Style::new().fg_color(Some(Color::Ansi(AnsiColor::Green))))
+    .invalid(
+        Style::new()
+            .bold()
+            .fg_color(Some(Color::Ansi(AnsiColor::Red))),
+    )
+    .error(
+        Style::new()
+            .bold()
+            .fg_color(Some(Color::Ansi(AnsiColor::Red))),
+    )
+    .valid(
+        Style::new()
+            .bold()
+            .underline()
+            .fg_color(Some(Color::Ansi(AnsiColor::Green))),
+    )
+    .placeholder(Style::new().fg_color(Some(Color::Ansi(AnsiColor::Cyan))));
