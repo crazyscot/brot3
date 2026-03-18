@@ -6,7 +6,16 @@ use bytemuck::NoUninit;
 use const_default::ConstDefault;
 
 macro_rules! enumdef {
-    ($attr: meta, $name:ident, $first:ident, $($variant:ident), +) => {
+    (
+        $(#[$attr:meta])*
+        $ident:ident
+        $(#[$first_attr:meta])*
+        $first:ident,
+        $(
+            $(#[$var_attr:meta])*
+            $variant:ident
+        ), +
+    ) => {
         #[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
         #[cfg_attr(
             not(target_arch = "spirv"),
@@ -23,55 +32,100 @@ macro_rules! enumdef {
             )
         )]
         #[repr(u32)]
-        //#[non_exhaustive]
-        #[$attr]
-        #[allow(missing_docs)]
-        pub enum $name {
+        $(#[$attr])*
+        pub enum $ident {
             #[default]
+            $(#[$first_attr])*
             $first,
-            $($variant,)+
+            $(
+                $(#[$var_attr])*
+                $variant,
+            )+
         }
-        impl ConstDefault for $name {
+        impl ConstDefault for $ident {
             const DEFAULT: Self = Self::$first;
         }
     };
 }
 
 enumdef!(
-    doc = "Fractal algorithm selection",
-    Algorithm,
+    /// Fractal algorithm selection
+    Algorithm
+    /// The original Mandelbrot set, `z := z^2+c`
     Mandelbrot,
+    /// The inverted set, `z:=z^2+c` using `1/z0` as the value of `c`
     Mandeldrop,
+    /// Mandelbar aka Tricorn: `z:=(z*)^2+c`
     Mandelbar,
+    /// `z:=(|Re(z)|+i|Im(z)|)^2+c`
     BurningShip,
+    /// Generalised Celtic `z:= (|Re(z^2)| + i.Im(z^2) + c)`
     Celtic,
+     /// `z:=z^2+c with Re(z):=|Re(z)|` on odd iterations
     Variant,
+    /// `z:=(Re(z)+i|Im(z)|)^2+c`
     BirdOfPrey
 );
 
 enumdef!(
-    doc = "Colouring algorithm selection",
-    Colourer,
+    /// Colouring algorithm selection
+    Colourer
+    /// Fades in from black, then a bright colorful gradient.
+    ///
+    /// Based on Tony Finch's "Black Fade" colourer
+    /// <https://dotat.at/prog/mandelbrot/>
     BlackFade,
+    /// A cool appearance with shades of blue.
+    ///
+    /// Inspired by the `iceblue` theme by David Bau <https://github.com/davidbau/mandelbrot/blob/main/index.html>
     IcyBlue,
+    /// Rainbow gradient with logarithmic scaling
     LogRainbow,
+    /// Gradient from white, through pulsing deep hues
+    ///
+    /// Based on Richard Kettlewell's "mandy". <http://www.greenend.org.uk/rjk/mandy/>
     Mandy,
+    /// Colourless, with a gradient from black to white.
     Monochrome,
+    /// Colourless, with a gradient from white to black to white.
     Monochrome2,
+    /// Bright colours with high contrast and saturation
     Neon,
+    /// Slightly muted gradient
+    ///
+    /// Based on the colouring algorithm by `OneLoneCoder.com`
+    /// <https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_Mandelbrot.cpp>
     OneLoneCoder,
+    /// Fades in from white, then a bright colorful gradient.
+    ///
+    /// Based on Tony Finch's "White Fade" colourer
+    /// <https://dotat.at/prog/mandelbrot/>
     WhiteFade,
+    /// No colouration; all pixels are white. This is useful in conjunction with a non-standard brightness modifier.
     None
 );
 
-enumdef!(doc = "Colouring style", ColourStyle, Continuous, Discrete);
+enumdef!(
+    /// Colouring style
+    ColourStyle
+    /// A smooth gradient that computes a fractional escape count, based on the double logarithm of the escape time.
+    ///
+    /// See <http://linas.org/art-gallery/escape/escape.html>
+    Continuous,
+    /// Each point is coloured according to the number of iterations before escape, rounded down.
+    Discrete
+);
 
 enumdef!(
-    doc = "Style modifier",
-    Modifier,
+    /// Style modifier for brightness and saturation
+    Modifier
+    /// No modification
     Standard,
+    /// Modifies the pixel using proximity to the edge of the fractal
     Filaments,
+    /// Modifies the pixel using the final angle of the point
     FinalAngle,
+    /// Modifies the pixel using the final radius of the point
     FinalRadius
 );
 

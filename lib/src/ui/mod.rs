@@ -25,7 +25,7 @@ pub use zoom::ViewportZoom;
 pub const BIGNUM_PRECISION_LIMIT: usize = 192;
 
 #[derive(Error, Debug, Copy, Clone, PartialEq, Eq)]
-/// The error type used by [`brot3_lib::ui`]
+/// The error type used by [`crate::ui`]
 pub enum Error {
     #[error("Unsupported save file version {0}")]
     UnsupportedVersion(u32),
