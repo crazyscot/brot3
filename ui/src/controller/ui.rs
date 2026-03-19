@@ -16,7 +16,7 @@ impl super::Controller {
     pub(super) const EXPONENT_MAX_INT: i32 = 20;
     #[allow(clippy::cast_precision_loss)]
     pub(super) const EXPONENT_MIN: f32 = Self::EXPONENT_MIN_INT as f32;
-    pub(super) const EXPONENT_MIN_INT: i32 = 0;
+    pub(super) const EXPONENT_MIN_INT: i32 = -Self::EXPONENT_MAX_INT;
 
     pub(super) fn perturb_implemented(&self) -> bool {
         self.state.algorithm == Algorithm::Mandelbrot && self.state.exponent.is_two()

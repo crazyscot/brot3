@@ -23,8 +23,7 @@ macro_rules! field_fn {
                 if active {
                     let sign = if increase { 1. } else { -1. };
                     self.movement.$id = sign * 0.1;
-                } else {
-                    minimax(&mut self.movement.$id, 0., 0., increase);
+                    // The slider clamps the value, so we don't need to worry about it here.
                 }
             }
         )*
@@ -234,8 +233,7 @@ impl super::Controller {
             let magnitude = self.state.exponent.ui_step();
             let sign = if increase { 1. } else { -1. };
             self.movement.exponent = sign * magnitude;
-        } else {
-            minimax(&mut self.movement.exponent, 0., 0., increase);
+            // no need to clamp the value; the slider does it for us
         }
     }
 
@@ -244,8 +242,7 @@ impl super::Controller {
             let magnitude = self.state.exponent.ui_step();
             let sign = if increase { 1. } else { -1. };
             self.movement.exponent_im = sign * magnitude;
-        } else {
-            minimax(&mut self.movement.exponent_im, 0., 0., increase);
+            // no need to clamp the value; the slider does it for us
         }
     }
 
@@ -258,17 +255,5 @@ impl super::Controller {
     fn palette(&mut self, increment: bool) {
         let delta = if increment { 1 } else { -1 };
         self.state.palette.colourer += delta;
-    }
-}
-
-/// Clamps a value with either a minimum or a maximum.
-fn minimax<T>(value: &mut T, min: T, max: T, clamp_max: bool)
-where
-    T: Copy + core::cmp::PartialOrd,
-{
-    if clamp_max {
-        *value = num_traits::clamp_max(*value, max);
-    } else {
-        *value = num_traits::clamp_min(*value, min);
     }
 }
