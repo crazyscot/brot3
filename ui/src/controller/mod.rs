@@ -204,28 +204,20 @@ impl Controller {
         }
     }
 
-    fn apply_zoom_limits(&self, zoom: f64) -> f64 {
-        zoom.clamp(MIN_ZOOM, self.zoom_max())
-    }
-
     /// Apply a new zoom factor, subject to the limits, perturbation state, and possibility to
     /// auto-update the perturbation state.
     pub(crate) fn update_zoom_factor(&mut self, new_zoom: f64) {
         // Auto-update perturbation, if appropriate
         if !self.force_perturb {
-            let zooming_in = new_zoom > self.state.viewport_zoom.0;
-            if !self.perturbation_mode
-                && zooming_in
-                && new_zoom > MAX_ZOOM_STANDARD
-                && self.perturb_implemented()
+            if !self.perturbation_mode && new_zoom > MAX_ZOOM_STANDARD && self.perturb_implemented()
             {
                 self.perturbation_mode = true;
-            } else if self.perturbation_mode && !zooming_in && new_zoom < MAX_ZOOM_STANDARD {
+            } else if self.perturbation_mode && new_zoom < MAX_ZOOM_STANDARD {
                 self.perturbation_mode = false;
             }
         }
         // Apply the limits
-        self.state.viewport_zoom.0 = self.apply_zoom_limits(new_zoom);
+        self.state.viewport_zoom.0 = new_zoom.clamp(MIN_ZOOM, self.zoom_max());
     }
 }
 
