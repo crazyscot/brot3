@@ -322,6 +322,7 @@ dependencies = [
  "dirs",
  "easy-shader-runner",
  "egui_extras",
+ "env_logger",
  "futures",
  "glam",
  "image",

@@ -19,7 +19,7 @@ use thiserror::Error;
 
 /// The error type used by this module
 #[derive(Error, Debug, strum::EnumIs)]
-pub(crate) enum LoadSaveError {
+pub enum LoadSaveError {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("PNG encoding error: {0}")]

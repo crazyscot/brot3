@@ -5,7 +5,11 @@
 use std::path::PathBuf;
 use std::{path::PathBuf, str::FromStr};
 
-use brot3_lib::data::{Algorithm, ColourStyle, Colourer, Modifier};
+use brot3_lib::{
+    data::{Algorithm, ColourStyle, Colourer, Modifier, Palette},
+    ui::UiState,
+    util::Size,
+};
 use clap::builder::{
     Styles,
     styling::{AnsiColor, Color, Style},
@@ -100,6 +104,19 @@ pub(crate) struct Args {
     /// Using this option causes --fractal and styling options to be ignored.
     #[arg(short = 'i', long, value_name = "FILENAME")]
     pub input: Option<PathBuf>,
+
+    /// Renders the fractal to an image file instead of showing the UI.
+    /// This option specifies the output file.
+    ///
+    /// This currently requires --input to be set, and will render the same image that would be
+    /// shown in the UI.
+    #[arg(short = 'o', long, value_name = "FILENAME", requires = "input")]
+    pub output: Option<PathBuf>,
+
+    /// The size of the output image when using --output. This is in the format "WIDTH,HEIGHT"
+    /// (e.g. "1920,1080").
+    #[arg(long, value_name = "WIDTH,HEIGHT", requires = "output")]
+    pub size: Option<Size>,
 }
 
 // A simple tuple struct to represent a 2D u32 vector.
@@ -135,6 +152,19 @@ impl From<LocalUVec2> for glam::UVec2 {
         Self {
             x: value.0,
             y: value.1,
+        }
+    }
+}
+
+impl From<&Args> for UiState {
+    fn from(args: &Args) -> Self {
+        UiState {
+            algorithm: args.fractal,
+            palette: Palette::default()
+                .with_colourer(args.colourer)
+                .with_style(args.colour_style)
+                .with_brightness(args.brightness_style),
+            ..UiState::default()
         }
     }
 }

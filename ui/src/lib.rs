@@ -7,6 +7,7 @@ use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
 mod cli;
 mod controller;
+mod render;
 pub(crate) mod save;
 pub mod widgets;
 
@@ -55,6 +56,8 @@ pub enum MainError {
     SpirvToolsNotFound(String),
     #[error(transparent)]
     EasyShaderRunner(#[from] easy_shader_runner::Error),
+    #[error(transparent)]
+    Render(#[from] render::RenderError),
 }
 
 /// Main CLI entrypoint
@@ -62,13 +65,21 @@ pub enum MainError {
 #[cfg_attr(wasm, wasm_bindgen(start))]
 #[allow(clippy::missing_panics_doc)]
 pub async fn main() -> Result<(), MainError> {
-    easy_shader_runner::setup_logging();
     let args = cli::Args::parse();
     if args.version {
         println!("{}", version_string("brot3 "));
         return Ok(());
     }
-    let controller = controller::Controller::new(&args);
+    if args.output.is_some() {
+        render::main(&args)
+    } else {
+        ui_main(&args)
+    }
+}
+
+fn ui_main(args: &cli::Args) -> Result<(), MainError> {
+    easy_shader_runner::setup_logging();
+    let controller = controller::Controller::new(args);
     let params = easy_shader_runner::Parameters::new(controller, version_string("brot3 "))
         .esc_key_exits(false);
     cfg_if::cfg_if! {

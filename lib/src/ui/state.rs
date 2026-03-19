@@ -5,9 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use super::{Error as LibError, ViewportZoom};
 use crate::{
-    BigVec2, UVec2,
-    data::{Algorithm, FragmentConstants, Palette, PushExponent},
+    BigVec2, UVec2, Vec2,
+    data::{Algorithm, Flags, FragmentConstants, Palette, PushExponent},
     engine::NOMINAL_WINDOW_SIZE,
+    util::Size,
 };
 
 #[derive(Clone, Debug, derive_more::PartialEq, Serialize, Deserialize)]
@@ -51,6 +52,23 @@ impl Default for UiState {
             exponent: PushExponent::default(),
             iteration_cull: false,
             viewport_size: NOMINAL_WINDOW_SIZE,
+        }
+    }
+}
+
+impl From<&UiState> for FragmentConstants {
+    fn from(state: &UiState) -> Self {
+        Self {
+            flags: Flags::flag_if(state.iteration_cull, Flags::ITERATION_CULL),
+            viewport_translate: state.viewport_translate.as_vec2(),
+            viewport_zoom: state.viewport_zoom.into(),
+            size: state.viewport_size.into(),
+            buffer_size: Size::ZERO,
+            algorithm: state.algorithm,
+            max_iter: state.max_iter,
+            exponent: state.exponent,
+            palette: state.palette,
+            inspector_point_pixel_address: Vec2::ZERO,
         }
     }
 }

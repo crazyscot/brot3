@@ -9,7 +9,7 @@ use std::sync::{Arc, atomic::AtomicBool};
 
 use brot3_lib::{
     BigVec2,
-    data::{Flags, FragmentConstants, Palette, PointResult},
+    data::{Flags, FragmentConstants, PointResult},
     engine::PixelSpacing as _,
     ui::{BIGNUM_PRECISION_LIMIT, Channel, UiState as BrotUiState},
 };
@@ -33,7 +33,7 @@ mod small_windows;
 mod ui;
 
 const MIN_ZOOM: f64 = 0.05;
-const MAX_ZOOM_STANDARD: f64 = 1.0e4; // reported on UI as 40000
+pub(crate) const MAX_ZOOM_STANDARD: f64 = 1.0e4; // reported on UI as 40000
 
 // Around this point, f32 maths breaks down: we can no longer accurately represent pixel sizes.
 const MAX_ZOOM_PERTURBATIONS_F32: f64 = 2.5e34; // reported on UI as 1e35
@@ -109,20 +109,12 @@ struct Inspector {
 
 impl Controller {
     pub(crate) fn new(options: &Args) -> Self {
-        let mut state = BrotUiState {
-            algorithm: options.fractal,
-            palette: Palette::default()
-                .with_colourer(options.colourer)
-                .with_style(options.colour_style)
-                .with_brightness(options.brightness_style),
-            ..BrotUiState::default()
-        };
+        let mut state = BrotUiState::from(options);
         let mut error_message = None;
         // Save file overrides CLI options
         if let Some(path) = options.input.as_ref() {
             match crate::save::load_state(path) {
                 Ok(s) => {
-                    log::info!("Loaded position from '{}'", path.display());
                     state = s;
                 }
                 Err(e) => {
@@ -195,17 +187,11 @@ impl Controller {
             | Flags::flag_if(self.state.iteration_cull, Flags::ITERATION_CULL);
         FragmentConstants {
             flags,
-            viewport_translate: self.state.viewport_translate.as_vec2(),
-            viewport_zoom: self.state.viewport_zoom.into(),
-            size: self.state.viewport_size.into(),
             buffer_size: self.cache_size.into(),
-            algorithm: self.state.algorithm,
-            max_iter: self.state.max_iter,
-            exponent: self.state.exponent,
-            palette: self.state.palette,
             inspector_point_pixel_address: self
                 .complex_point_to_pixel(&self.inspector.position)
                 .as_vec2(),
+            ..FragmentConstants::from(&self.state)
         }
     }
 
@@ -509,6 +495,6 @@ impl Controller {
 struct PerturbationReference {
     /// Live GPU buffer containing the reference points for perturbation rendering
     buffer: Option<wgpu::Buffer>,
-    /// Local copy of the reference points, used by host-side rendering (PNGs and the inspector)
+    /// Local copy of the reference points, used by host-side rendering
     points: Vec<Vec2>,
 }
