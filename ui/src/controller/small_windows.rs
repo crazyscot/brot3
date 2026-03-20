@@ -172,7 +172,7 @@ impl super::Controller {
             self.load_save_generic_workflow(
                 || save_dialog.save_file(),
                 move |filename| {
-                    crate::save::do_save_image(filename, consts, &state, &perturbation_points)
+                    crate::save::do_save_image(filename, consts, &state, &perturbation_points, true)
                 },
                 "saving image",
             );

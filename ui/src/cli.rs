@@ -117,6 +117,11 @@ pub(crate) struct Args {
     /// (e.g. "1920,1080").
     #[arg(long, value_name = "WIDTH,HEIGHT", requires = "output")]
     pub size: Option<Size>,
+
+    /// Disables parallel rendering when using --output. This may be useful for benchmarking or
+    /// other analytical runs.
+    #[arg(long, default_value_t = false, requires = "output")]
+    pub no_parallel_render: bool,
 }
 
 // A simple tuple struct to represent a 2D u32 vector.

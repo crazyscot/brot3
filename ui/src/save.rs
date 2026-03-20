@@ -43,6 +43,7 @@ pub(crate) fn do_save_image(
     mut constants: FragmentConstants,
     state: &UiState,
     perturbation_points: &[Vec2],
+    parallel: bool,
 ) -> Result<(), LoadSaveError> {
     // TODO: We shouldn't need to pass in both state and constants?
     // But they don't quite match up right now. Would have to refactor more of Controller into
@@ -64,50 +65,59 @@ pub(crate) fn do_save_image(
     let chunk_bytes = chunk_pixels * 4; // RGBA8
     let failure = AtomicBool::new(false);
 
-    pixels
-        .par_chunks_mut(chunk_bytes)
-        .enumerate()
-        .for_each(|(chunk_idx, chunk)| {
-            let byte_offset = chunk_idx * chunk_bytes;
-            let start_pixel = byte_offset / 4;
-            let mut y = start_pixel / width;
-            let mut x = start_pixel % width;
+    let render_chunk = |(chunk_idx, chunk): (usize, &mut [u8])| {
+        let byte_offset = chunk_idx * chunk_bytes;
+        let start_pixel = byte_offset / 4;
+        let mut y = start_pixel / width;
+        let mut x = start_pixel % width;
 
-            for i in (0..chunk.len()).step_by(4) {
-                let result = std::panic::catch_unwind(|| {
-                    let mut grid = [PointResult::default()];
-                    let mut pixel = Vec4::default();
+        for i in (0..chunk.len()).step_by(4) {
+            let result = std::panic::catch_unwind(|| {
+                let mut grid = [PointResult::default()];
+                let mut pixel = Vec4::default();
 
-                    #[allow(clippy::cast_precision_loss)]
-                    let frag_coord = vec4(x as f32, y as f32, 0.0, 0.0);
-                    brot3_lib::main_fs(
-                        frag_coord,
-                        &constants,
-                        &mut grid,
-                        perturbation_points,
-                        &mut pixel,
-                    );
-                    pixel
-                });
-                let pixel = if let Ok(p) = result {
-                    p
-                } else {
-                    log::debug!("Panic at pixel ({x}, {y})");
-                    failure.store(true, Ordering::Relaxed);
-                    Vec4::ZERO
-                };
+                #[allow(clippy::cast_precision_loss)]
+                let frag_coord = vec4(x as f32, y as f32, 0.0, 0.0);
+                brot3_lib::main_fs(
+                    frag_coord,
+                    &constants,
+                    &mut grid,
+                    perturbation_points,
+                    &mut pixel,
+                );
+                pixel
+            });
+            let pixel = if let Ok(p) = result {
+                p
+            } else {
+                log::debug!("Panic at pixel ({x}, {y})");
+                failure.store(true, Ordering::Relaxed);
+                Vec4::ZERO
+            };
 
-                let bytes = (pixel * 255.0).as_u8vec4().to_array();
-                chunk[i..i + 4].copy_from_slice(&bytes);
+            let bytes = (pixel * 255.0).as_u8vec4().to_array();
+            chunk[i..i + 4].copy_from_slice(&bytes);
 
-                // Move to next pixel
-                x += 1;
-                if x >= width {
-                    x = 0;
-                    y += 1;
-                }
+            // Move to next pixel
+            x += 1;
+            if x >= width {
+                x = 0;
+                y += 1;
             }
-        });
+        }
+    };
+
+    if parallel {
+        pixels
+            .par_chunks_mut(chunk_bytes)
+            .enumerate()
+            .for_each(render_chunk);
+    } else {
+        pixels
+            .chunks_mut(chunk_bytes)
+            .enumerate()
+            .for_each(&render_chunk);
+    }
 
     let duration = start.elapsed();
     log::debug!("Rendered image in {duration:?}");
