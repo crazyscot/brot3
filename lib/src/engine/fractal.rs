@@ -156,7 +156,9 @@ where
 }
 
 /// This struct is created once for each [`Runner`] and is constant for that run.
-struct RunningConstants<'a, E>
+#[allow(missing_debug_implementations)] // pub only in cfg(test)
+#[derive(Clone, Copy)]
+pub struct RunningConstants<'a, E>
 where
     E: Exponentiator,
 {
@@ -168,20 +170,56 @@ where
     modifiers: AlgorithmModifiers,
     exponentiator: E,
     /// Reference points (only used in perturbation mode)
-    reference_points: &'a [Vec2],
+    #[doc(hidden)]
+    pub reference_points: &'a [Vec2],
     /// Number of reference points (only used in perturbation mode)
-    n_reference: usize,
+    #[doc(hidden)]
+    pub n_reference: usize,
     /// `ESCAPE_THRESHOLD.log2().log2()`, precomputed for efficiency in the smoothed iteration
     /// count formula.
     loglog2_escape_threshold: f32,
 }
 
-#[derive(Default, Debug)]
+impl<E: Exponentiator> RunningConstants<'_, E> {
+    #[doc(hidden)]
+    pub fn standard_with(c: Complex, exponentiator: E, algorithm: Algorithm) -> Self {
+        Self {
+            c,
+            dc: Complex::ZERO,
+            modifiers: AlgorithmModifiers::from(algorithm),
+            exponentiator,
+            reference_points: &[],
+            n_reference: 0,
+            loglog2_escape_threshold: ESCAPE_THRESHOLD.log2().log2(),
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn perturbed_with(
+        c: Complex,
+        exponentiator: E,
+        algorithm: Algorithm,
+        dc: Complex,
+    ) -> RunningConstants<'static, E> {
+        RunningConstants {
+            c,
+            dc,
+            modifiers: AlgorithmModifiers::from(algorithm),
+            exponentiator,
+            reference_points: &[],
+            n_reference: 0,
+            loglog2_escape_threshold: ESCAPE_THRESHOLD.log2().log2(),
+        }
+    }
+}
+
+#[derive(Default, Debug, Copy, Clone)]
 /// These are the Runner variables that `iterate_algorithm()` is expected to keep up to date.
 ///
 /// N.B. that the iteration count is not here; it not a constant either, but `iterate_algorithm`
 /// may not modify it.
-struct RunningVariables {
+#[allow(missing_debug_implementations)]
+pub struct RunningVariables {
     z: Complex,
     dz_dist: Complex,
     norm_sqr: f32,
@@ -342,7 +380,7 @@ trait AlgorithmDetail<'a, E: Exponentiator> {
     fn iterate_algorithm(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables, iters: u32);
 }
 
-fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
+pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     vars: &mut RunningVariables,
     iters: u32,
@@ -464,7 +502,8 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
     }
 }
 
-fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
+#[doc(hidden)]
+pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     vars: &mut RunningVariables,
     _iter: u32,

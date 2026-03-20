@@ -8,6 +8,12 @@ pub use colour::colour_data;
 #[cfg(not(spirv))]
 pub use fractal::mandelbrot_perturbed_compute_reference_iters;
 pub use fractal::{AlgorithmModifiers, render};
+// Expose internals for use by benchmarks
+#[doc(hidden)]
+pub use fractal::{
+    RunningConstants, RunningVariables, mandelbrot_family_iterate_algorithm,
+    mandelbrot_perturbed_iterate_algorithm,
+};
 
 use crate::{UVec2, Vec2, uvec2};
 

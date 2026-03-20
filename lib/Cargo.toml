@@ -23,6 +23,10 @@ harness = false
 name = "colour_conversion"
 harness = false
 
+[[bench]]
+name = "cycles"
+harness = false
+
 [features]
 ## Emulate push constants. Useful if the GPU does not support PUSH_CONSTANTS.
 emulate_constants = []
@@ -59,6 +63,7 @@ thiserror = { workspace = true }
 assert_matches = { workspace = true }
 derive_more = { workspace = true, features = ["debug"] }
 divan = { workspace = true }
+gungraun = { workspace = true }
 pretty_assertions = { workspace = true }
 strum = { workspace = true }
 

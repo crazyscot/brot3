@@ -137,6 +137,12 @@ impl From<PushExponent> for ComplexPower {
         })
     }
 }
+impl ComplexPower {
+    #[must_use]
+    pub fn new(real: f32, imag: f32) -> Self {
+        Self(Complex { re: real, im: imag })
+    }
+}
 
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]

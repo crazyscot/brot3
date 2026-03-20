@@ -44,7 +44,8 @@ pub type Complex = abels_complex::Complex<f32>;
 /// Size of the inspector marker diamond in pixels
 pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 
-const ESCAPE_THRESHOLD: f32 = 10.0;
+#[doc(hidden)]
+pub const ESCAPE_THRESHOLD: f32 = 10.0;
 const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
 
 /// SPIRV `fragment` entrypoint.
