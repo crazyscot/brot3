@@ -348,12 +348,11 @@ fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     iters: u32,
 ) {
     let params = &consts.modifiers;
-    let exponent = &consts.exponentiator;
-    let power = exponent.power();
+    let power = consts.exponentiator.power();
     let z_in = vars.z;
 
     // Raise z to the given power ...
-    let mut z = exponent.apply_to(z_in);
+    let mut z = consts.exponentiator.apply_to(z_in);
 
     // Algorithm difference here:
     // Celtic uses z_re_abs instead of z_re.
