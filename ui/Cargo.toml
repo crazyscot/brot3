@@ -33,7 +33,7 @@ chrono = { workspace = true, features = ["clock"] }
 clap = { workspace = true, features = ["derive", "wrap_help"] }
 dirs = { workspace = true }
 egui_extras = { workspace = true, features = ["image"] }
-env_logger = "0.11.9"
+env_logger = { workspace = true }
 futures = { workspace = true }
 glam = { workspace = true }
 # image is indirectly used, for unpicking PNGs
@@ -44,7 +44,7 @@ num-traits = { workspace = true }
 png = { workspace = true }
 rayon = { workspace = true }
 rfd = { workspace = true }
-scopeguard = "1.2.0"
+scopeguard = { workspace = true }
 serde_json.workspace = true
 strum = { workspace = true, features = ["std"] }
 thiserror.workspace = true
