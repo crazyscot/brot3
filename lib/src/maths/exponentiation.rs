@@ -4,9 +4,8 @@
 
 #![allow(missing_docs)]
 
-#[cfg(target_arch = "spirv")]
-use spirv_std::num_traits::real::Real;
-
+#[cfg(spirv)]
+use crate::Real;
 use crate::{Complex, data::PushExponent};
 
 pub trait Exponentiator: Copy + Clone {
@@ -139,7 +138,7 @@ impl From<PushExponent> for ComplexPower {
     }
 }
 
-#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     #![allow(clippy::cognitive_complexity)]

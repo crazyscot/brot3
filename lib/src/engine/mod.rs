@@ -5,7 +5,7 @@ mod colour;
 pub(crate) mod entrypoints;
 pub(crate) mod fractal;
 pub use colour::colour_data;
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 pub use fractal::mandelbrot_perturbed_compute_reference_iters;
 pub use fractal::{AlgorithmModifiers, render};
 

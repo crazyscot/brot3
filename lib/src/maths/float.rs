@@ -2,6 +2,8 @@
 //!
 //! (c) 2026 Ross Younger
 
+#![cfg(not(spirv))]
+
 pub(crate) trait FloatIsNear {
     #[allow(clippy::wrong_self_convention)]
     fn is_near(self, other: Self) -> bool;

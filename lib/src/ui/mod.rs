@@ -1,7 +1,7 @@
 //! Items used by the UI, but not the shader.
 //!
 //! These are in the lib crate to allow efficient unit testing.
-#![cfg(not(target_arch = "spirv"))]
+#![cfg(not(spirv))]
 
 use thiserror::Error;
 

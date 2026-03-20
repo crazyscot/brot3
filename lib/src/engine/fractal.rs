@@ -5,7 +5,7 @@
 
 #![allow(missing_docs)]
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 const DEBUG_FRACTAL: bool = false;
 
 pub(crate) use crate::{ESCAPE_THRESHOLD, ESCAPE_THRESHOLD_SQ};
@@ -13,7 +13,7 @@ pub(crate) use crate::{ESCAPE_THRESHOLD, ESCAPE_THRESHOLD_SQ};
 #[clippy::format_args]
 macro_rules! deprintln {
     ($($arg:tt)*) => {
-        #[cfg(not(target_arch = "spirv"))]
+        #[cfg(not(spirv))]
         if DEBUG_FRACTAL {
             eprintln!($($arg)*);
         }
@@ -24,16 +24,15 @@ macro_rules! deprintln {
 #[allow(unused_macros)]
 macro_rules! xprintln {
     ($($arg:tt)*) => {
-        #[cfg(not(target_arch = "spirv"))]
+        #[cfg(not(spirv))]
         eprintln!($($arg)*);
     };
 }
 
 use core::marker::PhantomData;
 
-#[cfg(target_arch = "spirv")]
-use spirv_std::num_traits::real::Real;
-
+#[cfg(spirv)]
+use crate::Real;
 use crate::{
     Complex, Vec2,
     data::{Algorithm, BoundaryClass, Flags, FragmentConstants, PointResult},
@@ -409,7 +408,7 @@ fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmMo
     };
 }
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 /// Part of the high-precision perturbation-mode calculations on CPU.
 ///
 /// TODO: Someday, deduplicate this with `mandelbrot_family_pre_modify_point_inner`?
@@ -523,7 +522,7 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
 /// Updates a vector of reference points.
 ///
 /// The vector will be cleared and rewritten.
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 pub fn mandelbrot_perturbed_compute_reference_iters(
     points: &mut Vec<Vec2>,
     centre: &crate::BigVec2,
@@ -573,7 +572,7 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
     }
 }
 
-#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use const_default::ConstDefault as _;

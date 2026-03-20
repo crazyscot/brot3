@@ -96,7 +96,7 @@ impl From<UVec2> for Size {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 impl FromStr for Size {
     type Err = String;
 
@@ -117,7 +117,7 @@ impl FromStr for Size {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 impl std::fmt::Display for Size {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{},{}", self.width, self.height)

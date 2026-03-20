@@ -4,13 +4,13 @@
 
 #![allow(missing_docs)]
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 const DEBUG_COLOUR: bool = false;
 
 #[clippy::format_args]
 macro_rules! deprintln {
     ($($arg:tt)*) => {
-        #[cfg(not(target_arch = "spirv"))]
+        #[cfg(not(spirv))]
         if DEBUG_COLOUR {
             eprintln!($($arg)*);
         }
@@ -19,9 +19,8 @@ macro_rules! deprintln {
 
 use core::f32::consts::{E, PI, TAU};
 
-#[cfg(target_arch = "spirv")]
-use spirv_std::num_traits::real::Real;
-
+#[cfg(spirv)]
+use crate::Real;
 use crate::{
     Vec3,
     data::{BoundaryClass, FragmentConstants, Modifier, PointResult},
@@ -266,7 +265,7 @@ fn icyblue(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hs
     Hsl::new(240., 100. * (1.0 - shade / 2.0), shade * 100.0)
 }
 
-#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use const_default::ConstDefault;

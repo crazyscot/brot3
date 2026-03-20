@@ -18,7 +18,7 @@ macro_rules! enumdef {
     ) => {
         #[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
         #[cfg_attr(
-            not(target_arch = "spirv"),
+            not(spirv),
             derive(
                 clap::ValueEnum,
                 serde::Serialize,
@@ -132,7 +132,7 @@ enumdef!(
 
 macro_rules! incrementable {
     ($enum:ty) => {
-        #[cfg(not(target_arch = "spirv"))]
+        #[cfg(not(spirv))]
         impl core::ops::Add<i32> for $enum {
             type Output = Self;
 
@@ -146,7 +146,7 @@ macro_rules! incrementable {
                 Self::from_i32(i).unwrap()
             }
         }
-        #[cfg(not(target_arch = "spirv"))]
+        #[cfg(not(spirv))]
         impl core::ops::AddAssign<i32> for $enum {
             fn add_assign(&mut self, delta: i32) {
                 let t = *self + delta;
@@ -159,7 +159,7 @@ incrementable!(Colourer);
 incrementable!(Algorithm);
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, NoUninit)]
-#[cfg_attr(not(target_arch = "spirv"), derive(strum::Display))]
+#[cfg_attr(not(spirv), derive(strum::Display))]
 #[repr(u32)]
 /// How close is this point to the edge of the fractal?
 pub enum BoundaryClass {
@@ -171,7 +171,7 @@ pub enum BoundaryClass {
     NotClose,
 }
 
-#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use pretty_assertions::assert_eq;

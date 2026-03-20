@@ -1,6 +1,7 @@
 //! Mathematical operations
 
 mod float;
+#[cfg(not(spirv))]
 pub(crate) use float::FloatIsNear;
 
 mod exponentiation;

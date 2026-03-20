@@ -84,7 +84,7 @@ impl UiState {
 
     /// Converts the UI state to a string for display purposes. This is used in the metadata
     /// and default filename of saved images.
-    #[cfg(not(target_arch = "spirv"))]
+    #[cfg(not(spirv))]
     #[must_use]
     pub fn display_string(&self, separator: char) -> String {
         use crate::{engine::DEFAULT_FRACTAL_PLANE_SIZE, ui::Exponent};
@@ -105,7 +105,7 @@ impl UiState {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UiStateSaveFile {
     /// The version of the save file format. This can be used to handle breaking changes in the

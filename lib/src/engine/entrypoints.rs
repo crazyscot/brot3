@@ -2,7 +2,7 @@
 //!
 //! (c) 2025-6 Ross Younger, with inspiration from earlier work by Abel <abel465@gmail.com>; see <https://github.com/abel465/mandelbrot>
 
-#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use float_eq::assert_float_eq;

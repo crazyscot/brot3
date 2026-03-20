@@ -228,7 +228,7 @@ impl<'a, T: Copy + Default> GridRefMut<'a, T> {
     }
 }
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 /// A two-dimensional array that uses an owned [`Vec`] as storage.
 /// **Not available in `no_std` (GPU) environments.**
 ///
@@ -240,7 +240,7 @@ pub struct Grid<T> {
     pub buffer: Vec<T>,
 }
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 impl<T> Grid<T>
 where
     T: Default + Clone + Copy,

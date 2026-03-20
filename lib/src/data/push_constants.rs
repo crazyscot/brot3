@@ -13,7 +13,7 @@ use crate::util::Size;
 
 #[derive(Copy, Clone, Debug)]
 // We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninit on spirv builds.
-#[cfg_attr(not(target_arch = "spirv"), derive(NoUninit))]
+#[cfg_attr(not(spirv), derive(NoUninit))]
 #[repr(C)]
 /// Shader push constants
 #[allow(missing_docs)]
@@ -96,10 +96,7 @@ impl FragmentConstants {
 }
 
 #[derive(Copy, Clone, Debug, NoUninit, PartialEq)]
-#[cfg_attr(
-    not(target_arch = "spirv"),
-    derive(serde::Serialize, serde::Deserialize)
-)]
+#[cfg_attr(not(spirv), derive(serde::Serialize, serde::Deserialize))]
 #[repr(C)]
 /// Colouring palette selection and parameters
 pub struct Palette {

@@ -3,7 +3,7 @@
 //! This is a separate crate for efficiency of unit testing, without having to incur
 //! the penalty of building spirv-builder and the shader for spirv.
 
-#![cfg_attr(target_arch = "spirv", no_std)]
+#![cfg_attr(spirv, no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 //! ## Feature flags
@@ -14,19 +14,19 @@
 
 /// Local glam re-exports for convenience
 pub(crate) use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec3};
+#[cfg(spirv)]
+use spirv_std::num_traits::real::Real;
 #[allow(unused_imports)] // Some are reused in some configurations
 use spirv_std::spirv;
 
-#[cfg(not(target_arch = "spirv"))]
 mod bignum;
 pub mod data;
 pub mod engine;
 pub mod maths;
-#[cfg(not(target_arch = "spirv"))]
 pub mod ui;
 pub mod util;
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 pub use bignum::{
     big_complex::BigComplex,
     big_vec2::{BigVec2, fbig_from_str},

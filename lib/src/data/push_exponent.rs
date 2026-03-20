@@ -2,17 +2,17 @@
 // (c) 2025-26 Ross Younger
 
 use bytemuck::NoUninit;
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 use serde::{Deserialize, Serialize};
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 use crate::ui::Exponent;
 
 /// The exponent type for the fractal
 #[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
 #[repr(u32)]
 #[allow(missing_docs)]
-#[cfg_attr(not(target_arch = "spirv"), derive(Serialize, Deserialize))]
+#[cfg_attr(not(spirv), derive(Serialize, Deserialize))]
 pub enum NumericType {
     #[default]
     Integer,
@@ -24,11 +24,8 @@ pub enum NumericType {
 /// a complex number.
 #[derive(Copy, Clone, Debug, PartialEq, NoUninit)]
 #[repr(C)]
-#[cfg_attr(not(target_arch = "spirv"), derive(Serialize, Deserialize))]
-#[cfg_attr(
-    not(target_arch = "spirv"),
-    serde(into = "Exponent", from = "Exponent")
-)]
+#[cfg_attr(not(spirv), derive(Serialize, Deserialize))]
+#[cfg_attr(not(spirv), serde(into = "Exponent", from = "Exponent"))]
 pub struct PushExponent {
     /// The type of the exponent, which determines which of the other fields are used.
     pub typ: NumericType,

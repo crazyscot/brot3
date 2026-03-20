@@ -79,7 +79,7 @@ impl PointResult {
     ///
     /// # Panics
     /// If any of the checked conditions are not met
-    #[cfg(not(target_arch = "spirv"))]
+    #[cfg(not(spirv))]
     pub fn assert_no_subnormals(&self) {
         assert!(self.iters_fraction().is_finite());
         assert!(self.angle().is_finite());
@@ -116,7 +116,7 @@ impl PointResult {
     }
 }
 
-#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use const_default::ConstDefault;

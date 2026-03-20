@@ -1,18 +1,18 @@
 // (c) 2026 Ross Younger
 
-#[cfg(not(target_arch = "spirv"))]
+#[cfg(not(spirv))]
 use serde::{Deserialize, Serialize};
 
 /// Newtype to centralise the display formatting logic
 #[derive(Copy, Clone, Debug)]
-#[cfg_attr(not(target_arch = "spirv"), derive(Serialize, Deserialize))]
+#[cfg_attr(not(spirv), derive(Serialize, Deserialize))]
 #[repr(transparent)]
 pub struct ViewportZoom(pub f64);
 
 impl ViewportZoom {
     /// Relate the current axis size to the nominal initial size to get a more
     /// intuitive zoom readout.
-    #[cfg(not(target_arch = "spirv"))]
+    #[cfg(not(spirv))]
     #[must_use]
     pub fn display_string(
         self,
@@ -64,7 +64,7 @@ impl PartialEq for ViewportZoom {
     }
 }
 
-#[cfg(all(test, not(target_arch = "spirv")))]
+#[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::*;

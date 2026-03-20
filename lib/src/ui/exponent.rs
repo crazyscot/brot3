@@ -3,7 +3,7 @@
 //!
 //! (c) 2026 Ross Younger
 
-#![cfg(not(target_arch = "spirv"))]
+#![cfg(not(spirv))]
 
 use std::fmt;
 
