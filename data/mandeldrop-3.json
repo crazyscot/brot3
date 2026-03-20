@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "state": {
+    "viewport_translate": {
+      "x": [
+        "-397676840151361712471768077016646047343258064696426281127",
+        -190
+      ],
+      "y": [
+        "237518964666641358826445191884460980578171005160421335047",
+        -189
+      ]
+    },
+    "viewport_zoom": 0.16821857831125211,
+    "algorithm": "Mandeldrop",
+    "max_iter": 250,
+    "palette": {
+      "colourer": "WhiteFade",
+      "colour_style": "Continuous",
+      "brightness_style": "Standard",
+      "saturation_style": "Standard",
+      "gradient": 1.0,
+      "offset": 0.0,
+      "saturation": 100.0,
+      "lightness": 50.738907,
+      "gamma": 1.9
+    },
+    "exponent": {
+      "integer": 3
+    },
+    "iteration_cull": false
+  }
+}

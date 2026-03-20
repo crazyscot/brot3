@@ -1,7 +1,9 @@
 *~
 *.swp
 .temp
-
+/flamegraph.svg
+/perf.data
+/perf.data.old
 
 # Added by cargo
 
