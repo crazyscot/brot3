@@ -6,6 +6,7 @@ use std::{
     sync::Arc,
 };
 
+use brot3_lib::ui::UiState;
 use easy_shader_runner::{UiState as EsrUiState, egui};
 use rfd::FileDialog;
 use tokio::task::JoinHandle;
@@ -197,7 +198,7 @@ impl super::Controller {
             let state = self.state.clone();
             self.load_save_generic_workflow(
                 || save_dialog.save_file(),
-                move |filename| crate::save::do_save_state(filename, state),
+                move |filename| state.save(filename).map_err(LoadSaveError::Lib),
                 "saving state",
             );
         }
@@ -255,7 +256,7 @@ impl super::Controller {
 
             self.loading_task = Some(self.load_save_generic_workflow(
                 || open_dialog.pick_file(),
-                crate::save::load_state,
+                |path| UiState::load_magic(path).map_err(LoadSaveError::Lib),
                 "loading",
             ));
         }

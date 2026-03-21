@@ -13,7 +13,9 @@ use brot3_lib::{
     engine::PixelSpacing as _,
     ui::{BIGNUM_PRECISION_LIMIT, Channel, UiState as BrotUiState},
 };
-use easy_shader_runner::{ControllerTrait, GraphicsContext, UiState, egui, wgpu, winit};
+use easy_shader_runner::{
+    ControllerTrait, GraphicsContext, UiState as ESRUiState, egui, wgpu, winit,
+};
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 use web_time::Instant;
 use winit::{
@@ -113,7 +115,7 @@ impl Controller {
         let mut error_message = None;
         // Save file overrides CLI options
         if let Some(path) = options.input.as_ref() {
-            match crate::save::load_state(path) {
+            match BrotUiState::load_magic(path) {
                 Ok(s) => {
                     state = s;
                 }
@@ -366,7 +368,7 @@ impl ControllerTrait for Controller {
         self.reiterate = true;
     }
 
-    fn ui(&mut self, ctx: &egui::Context, ui_state: &mut UiState, gfx_ctx: &GraphicsContext) {
+    fn ui(&mut self, ctx: &egui::Context, ui_state: &mut ESRUiState, gfx_ctx: &GraphicsContext) {
         self.ui_impl(ctx, ui_state, gfx_ctx);
     }
 

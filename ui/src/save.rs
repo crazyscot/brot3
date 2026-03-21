@@ -3,7 +3,6 @@
 
 use std::{
     fs::File,
-    io::BufReader,
     path::Path,
     sync::atomic::{AtomicBool, Ordering},
     time::Instant,
@@ -11,7 +10,7 @@ use std::{
 
 use brot3_lib::{
     data::{Flags, FragmentConstants, PointResult},
-    ui::{Error as LibError, UiState, UiStateSaveFile},
+    ui::{Error as LibError, UiState},
 };
 use glam::{Vec2, Vec4, uvec2, vec4};
 use rayon::prelude::*;
@@ -19,23 +18,16 @@ use thiserror::Error;
 
 /// The error type used by this module
 #[derive(Error, Debug, strum::EnumIs)]
+#[allow(missing_docs)]
 pub enum LoadSaveError {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("PNG encoding error: {0}")]
     PngEncode(#[from] png::EncodingError),
-    #[error("PNG decoding error: {0}")]
-    PngDecode(#[from] png::DecodingError),
-    #[error("Unrecognised file format")]
-    UnrecognisedFormat,
-    #[error("JSON error: {0}")]
-    Json(#[from] serde_json::Error),
     #[error("{0}")]
     Lib(#[from] LibError),
     #[error("Some pixels failed to render. The saved image may have gaps where this occurred.")]
     PartialRenderFailure,
-    #[error("PNG file did not contain usable state data")]
-    PngHadNoStateData,
 }
 
 pub(crate) fn do_save_image(
@@ -146,62 +138,4 @@ pub(crate) fn do_save_image(
         return Err(LoadSaveError::PartialRenderFailure);
     }
     Ok(())
-}
-
-pub(crate) fn do_save_state(path: &Path, state: UiState) -> Result<(), LoadSaveError> {
-    let data = UiStateSaveFile::from(state);
-    let file = File::create(path)?;
-    serde_json::to_writer_pretty(file, &data)?;
-    log::info!("Saved state to {}", path.display());
-    Ok(())
-}
-
-/// Loads the state from the given file.
-///
-/// *NOTE:* Caller is responsible for figuring out whether to enable perturbation mode or other
-/// flags based on the new state.
-pub(crate) fn load_state(path: &Path) -> Result<UiState, LoadSaveError> {
-    // Some errors are fatal (e.g. file not found), but if the file is there and it's just not valid
-    // JSON, we want to try loading as a PNG before giving up.
-    match load_state_json(path) {
-        Ok(state) => {
-            log::info!("Loaded from {}", path.display());
-            Ok(state)
-        }
-        Err(LoadSaveError::Json(j)) => {
-            if j.is_syntax() {
-                // It's not valid JSON, so try PNG
-                load_state_png(path)
-            } else {
-                // I/O error, valid JSON that couldn't deserialize, premature EOF: all fatal
-                Err(LoadSaveError::Json(j))
-            }
-        }
-        Err(e) => Err(e),
-    }
-}
-
-fn load_state_json(path: &Path) -> Result<UiState, LoadSaveError> {
-    let file = File::open(path)?;
-    let data: UiStateSaveFile = serde_json::from_reader(file)?;
-    data.try_into().map_err(Into::into)
-}
-
-fn load_state_png(path: &Path) -> Result<UiState, LoadSaveError> {
-    let decoder = png::Decoder::new(BufReader::new(File::open(path)?));
-    let reader = decoder.read_info().map_err(|e| {
-        if let png::DecodingError::Format(_) = e {
-            // It's probably not a PNG at all
-            LoadSaveError::UnrecognisedFormat
-        } else {
-            LoadSaveError::PngDecode(e)
-        }
-    })?;
-    for chunk in &reader.info().uncompressed_latin1_text {
-        if chunk.keyword == "uistate" {
-            // Woo-hoo! It's for us!
-            return serde_json::from_str(&chunk.text).map_err(Into::into);
-        }
-    }
-    Err(LoadSaveError::PngHadNoStateData)
 }

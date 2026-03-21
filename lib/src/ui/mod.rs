@@ -24,9 +24,19 @@ pub use zoom::ViewportZoom;
 // TODO figure out what precision is best; do we need to make it dynamic?
 pub const BIGNUM_PRECISION_LIMIT: usize = 192;
 
-#[derive(Error, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Error, Debug)]
 /// The error type used by [`crate::ui`]
 pub enum Error {
     #[error("Unsupported save file version {0}")]
     UnsupportedVersion(u32),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+    #[error("PNG decoding error: {0}")]
+    PngDecode(#[from] png::DecodingError),
+    #[error("Unrecognised file format")]
+    UnrecognisedFormat,
+    #[error("PNG file did not contain usable state data")]
+    PngHadNoStateData,
 }

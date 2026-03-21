@@ -78,6 +78,13 @@ impl super::Controller {
                     ui.separator();
                     ui.label(egui::RichText::new("Marked position").italics());
                     egui::Grid::new("inspect_position").show(ui, |ui| {
+                        let pixel_address = self
+                            .complex_point_to_pixel(&self.inspector.position)
+                            .as_uvec2();
+                        ui.label("Pixel");
+                        ui.monospace(format!("{}, {}", pixel_address.x, pixel_address.y));
+                        ui.end_row();
+
                         let complex_pos = &self.inspector.position;
                         ui.label("X (Re)");
                         ui.monospace(dynfmt!(complex_pos.x.to_f64().value(), precision));

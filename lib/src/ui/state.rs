@@ -1,6 +1,8 @@
 //! UI saveable state
 // (c) 2026 Ross Younger
 
+use std::path::Path;
+
 use serde::{Deserialize, Serialize};
 
 use super::{Error as LibError, ViewportZoom};
@@ -103,8 +105,74 @@ impl UiState {
             colourer = self.palette.colourer,
         )
     }
-}
 
+    #[cfg(not(spirv))]
+    /// Saves this state object to a JSON save file (via the `UiStateSaveFile` intermediate type,
+    /// for a version check)
+    pub fn save(&self, path: &Path) -> Result<(), LibError> {
+        UiStateSaveFile::from(self.clone()).save(&path)
+    }
+
+    #[cfg(not(spirv))]
+    /// Loads a state object from a JSON save file (via the `UiStateSaveFile` intermediate type,
+    /// for a version check)
+    pub fn load_json(path: &impl AsRef<Path>) -> Result<Self, LibError> {
+        UiStateSaveFile::load(path)
+    }
+
+    #[cfg(not(spirv))]
+    /// Loads a state object from a PNG file containing a `uistate` chunk, which is expected to
+    /// contain a JSON serialization of a `UiState`.
+    ///
+    /// This allows us to embed the state in the image file itself, which is useful for sharing
+    /// and for exploring near an interesting point.
+    pub fn load_png(path: &impl AsRef<Path>) -> Result<Self, LibError> {
+        use std::{fs::File, io::BufReader};
+
+        let decoder = png::Decoder::new(BufReader::new(File::open(path.as_ref())?));
+        let reader = decoder.read_info().map_err(|e| {
+            if let png::DecodingError::Format(_) = e {
+                // It's probably not a PNG at all
+                LibError::UnrecognisedFormat
+            } else {
+                LibError::PngDecode(e)
+            }
+        })?;
+        for chunk in &reader.info().uncompressed_latin1_text {
+            if chunk.keyword == "uistate" {
+                // Woo-hoo! It's for us!
+                return serde_json::from_str(&chunk.text).map_err(Into::into);
+            }
+        }
+        Err(LibError::PngHadNoStateData)
+    }
+
+    #[cfg(not(spirv))]
+    /// Loads the state from the given file, of any supported type (currently JSON or PNG).
+    ///
+    /// *NOTE:* Caller is responsible for figuring out whether to enable perturbation mode or other
+    /// flags based on the new state.
+    pub fn load_magic(path: &Path) -> Result<UiState, LibError> {
+        // Some errors are fatal (e.g. file not found), but if the file is there and it's just not
+        // valid JSON, we want to try loading as a PNG before giving up.
+        match UiState::load_json(&path) {
+            Ok(state) => {
+                log::info!("Loaded from {}", path.display());
+                Ok(state)
+            }
+            Err(LibError::Json(j)) => {
+                if j.is_syntax() {
+                    // It's not valid JSON, so try PNG
+                    Ok(UiState::load_png(&path)?)
+                } else {
+                    // I/O error, valid JSON that couldn't deserialize, premature EOF: all fatal
+                    Err(LibError::Json(j))
+                }
+            }
+            Err(e) => Err(e),
+        }
+    }
+}
 #[cfg(not(spirv))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UiStateSaveFile {
@@ -129,6 +197,20 @@ impl TryFrom<UiStateSaveFile> for UiState {
             return Err(LibError::UnsupportedVersion(value.version));
         }
         Ok(value.state)
+    }
+}
+
+impl UiStateSaveFile {
+    pub fn save(&self, path: &impl AsRef<Path>) -> Result<(), LibError> {
+        let json = serde_json::to_string_pretty(self)?;
+        std::fs::write(path, json)?;
+        Ok(())
+    }
+
+    pub fn load(path: &impl AsRef<Path>) -> Result<UiState, LibError> {
+        let data = std::fs::read_to_string(path.as_ref())?;
+        let save_file: UiStateSaveFile = serde_json::from_str(&data)?;
+        save_file.try_into()
     }
 }
 
