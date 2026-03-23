@@ -177,8 +177,12 @@ impl super::Controller {
                                 use strum::IntoEnumIterator as _;
                                 for it in Modifier::iter() {
                                     let label: &'static str = it.into();
-                                    ui.selectable_value(&mut self.state.palette.brightness_style, it, label)
-                                        .on_hover_text(it.get_documentation().unwrap_or_default());
+                                    if ui.selectable_value(&mut self.state.palette.brightness_style, it, label)
+                                        .on_hover_text(it.get_documentation().unwrap_or_default())
+                                        .clicked() {
+                                            self.reiterate = true;
+                                            self.inspector.stale = true;
+                                        }
                                 }
                             });
                         egui::ComboBox::from_label("Saturation Style")
@@ -187,8 +191,11 @@ impl super::Controller {
                                 use strum::IntoEnumIterator as _;
                                 for it in Modifier::iter() {
                                     let label: &'static str = it.into();
-                                    ui.selectable_value(&mut self.state.palette.saturation_style, it, label)
-                                        .on_hover_text(it.get_documentation().unwrap_or_default());
+                                    if ui.selectable_value(&mut self.state.palette.saturation_style, it, label)
+                                        .on_hover_text(it.get_documentation().unwrap_or_default()).clicked() {
+                                            self.reiterate = true;
+                                            self.inspector.stale = true;
+                                        }
                                 }
                             });
 

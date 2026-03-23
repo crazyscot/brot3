@@ -44,7 +44,7 @@ const EXP_MASK_F32: u32 = 0x7F80_0000;
 const MAN_MASK_F32: u32 = 0x7F_FFFF;
 /// Infinity test lifted from `core::f32`.
 ///
-/// Unfortunately, `f32::is_infinite()` relies on embedded an infinity literal, which the spirv
+/// Unfortunately, `f32::is_infinite()` relies on an embedded infinity literal, which the spirv
 /// verifier disallows.
 ///
 /// Something similar could be done if we needed `f32::classify`, which relies on u8. Alas, spirv
@@ -294,6 +294,9 @@ where
     fn run(self) -> PointResult {
         let mut iters = 0;
         let mut vars = RunningVariables::default();
+        if !self.frag.flags.contains(Flags::DISTANCE_ESTIMATE) {
+            vars.boundary = BoundaryClass::Ignored;
+        }
 
         let mut prev_z = Complex::ZERO;
         let mut prev_norm_sqr = 0.0;
@@ -686,7 +689,7 @@ mod tests {
         let centre = vec2(-1.5, 0.0);
         let centre_big = BigVec2::try_new(centre.x, centre.y).unwrap();
         let mut consts = FragmentConstants {
-            flags: Flags::PERTURBATION_MODE,
+            flags: Flags::PERTURBATION_MODE | Flags::DISTANCE_ESTIMATE,
             viewport_translate: centre,
             viewport_zoom: 1.0,
             size: Size::new(1000, 1000),

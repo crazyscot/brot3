@@ -9,7 +9,7 @@ use std::sync::{Arc, atomic::AtomicBool};
 
 use brot3_lib::{
     BigVec2,
-    data::{Flags, FragmentConstants, PointResult},
+    data::{Flags, FragmentConstants, Modifier, PointResult},
     engine::PixelSpacing as _,
     ui::{BIGNUM_PRECISION_LIMIT, Channel, UiState as BrotUiState},
 };
@@ -186,7 +186,12 @@ impl Controller {
         let flags = Flags::flag_if(reiterate || self.always_reiterate, Flags::NEEDS_REITERATE)
             | Flags::flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
             | Flags::flag_if(self.perturbation_mode, Flags::PERTURBATION_MODE)
-            | Flags::flag_if(self.state.iteration_cull, Flags::ITERATION_CULL);
+            | Flags::flag_if(self.state.iteration_cull, Flags::ITERATION_CULL)
+            | Flags::flag_if(
+                self.state.palette.brightness_style == Modifier::Filaments
+                    || self.state.palette.saturation_style == Modifier::Filaments,
+                Flags::DISTANCE_ESTIMATE,
+            );
         FragmentConstants {
             flags,
             buffer_size: self.cache_size.into(),

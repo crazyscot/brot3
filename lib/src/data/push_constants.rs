@@ -74,6 +74,8 @@ pub struct Flags : u32 {
     const INSPECTOR_ACTIVE = 1 << 1;
     const PERTURBATION_MODE = 1 << 2;
     const ITERATION_CULL = 1<<3;
+    /// Set if we want to calculate distance estimation information (which is moderately expensive)
+    const DISTANCE_ESTIMATE = 1<<4;
 
     const _ = !0;
 }

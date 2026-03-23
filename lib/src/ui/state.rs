@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use super::{Error as LibError, ViewportZoom};
 use crate::{
     BigVec2, UVec2, Vec2,
-    data::{Algorithm, Flags, FragmentConstants, Palette, PushExponent},
+    data::{Algorithm, Flags, FragmentConstants, Modifier, Palette, PushExponent},
     engine::NOMINAL_WINDOW_SIZE,
     util::Size,
 };
@@ -60,8 +60,13 @@ impl Default for UiState {
 
 impl From<&UiState> for FragmentConstants {
     fn from(state: &UiState) -> Self {
+        let dist_est_required = state.palette.brightness_style == Modifier::Filaments
+            || state.palette.saturation_style == Modifier::Filaments;
         Self {
-            flags: Flags::flag_if(state.iteration_cull, Flags::ITERATION_CULL),
+            // caution; this flags value is overridden by Controller::fragment_constants() if we've
+            // come that way
+            flags: Flags::flag_if(state.iteration_cull, Flags::ITERATION_CULL)
+                | Flags::flag_if(dist_est_required, Flags::DISTANCE_ESTIMATE),
             viewport_translate: state.viewport_translate.as_vec2(),
             viewport_zoom: state.viewport_zoom.into(),
             size: state.viewport_size.into(),
