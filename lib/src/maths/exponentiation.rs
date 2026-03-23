@@ -24,9 +24,11 @@ macro_rules! power_unrolled {
             #[derive(Copy, Clone, Debug)]
             pub struct [<Power $pow>] {}
             impl Exponentiator for [<Power $pow>] {
+                #[inline]
                 fn apply_to(self, z: Complex) -> Complex {
                     $unroll(z)
                 }
+                #[inline]
                 fn apply_power_minus_1_to(self, z: Complex) -> Complex {
                     match $pow {
                         2 => z,
@@ -67,6 +69,7 @@ int_powers!(
 #[derive(Copy, Clone, Debug)]
 pub struct IntegerPower(pub i32);
 impl Exponentiator for IntegerPower {
+    #[inline]
     fn apply_to(self, z: Complex) -> Complex {
         match self.0 {
             0 => {
@@ -80,6 +83,7 @@ impl Exponentiator for IntegerPower {
         }
     }
 
+    #[inline]
     fn apply_power_minus_1_to(self, z: Complex) -> Complex {
         match self.0 {
             1 => {
@@ -108,6 +112,7 @@ impl Exponentiator for IntegerPower {
 #[derive(Copy, Clone, Debug)]
 pub struct RealPower(pub f32);
 impl Exponentiator for RealPower {
+    #[inline]
     fn apply_to(self, z: Complex) -> Complex {
         if self.0 == 0.0 && z == Complex::ZERO {
             Complex::ZERO
@@ -117,6 +122,7 @@ impl Exponentiator for RealPower {
     }
 
     #[allow(clippy::float_cmp)]
+    #[inline]
     fn apply_power_minus_1_to(self, z: Complex) -> Complex {
         if self.0 == 1.0 && z == Complex::ZERO {
             Complex::ZERO
@@ -138,6 +144,7 @@ impl Exponentiator for RealPower {
 #[derive(Copy, Clone, Debug)]
 pub struct ComplexPower(pub Complex);
 impl Exponentiator for ComplexPower {
+    #[inline]
     fn apply_to(self, z: Complex) -> Complex {
         // special case as ln(0) is undefined
         if z == Complex::ZERO {
@@ -151,6 +158,7 @@ impl Exponentiator for ComplexPower {
         (self.0 * z.ln()).exp().to_rectangular()
     }
 
+    #[inline]
     fn apply_power_minus_1_to(self, z: Complex) -> Complex {
         // special case as ln(0) is undefined
         if z == Complex::ZERO {

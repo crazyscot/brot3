@@ -374,7 +374,6 @@ trait AlgorithmDetail<'a, E: Exponentiator> {
     /// Pre-modifies a point before applying the algorithm.
     ///
     /// Override as necessary.
-    #[inline(always)]
     fn pre_modify_point(_consts: &RunningConstants<'a, E>, _vars: &mut RunningVariables) {}
 
     /// One iteration of the fractal algorithm.
@@ -384,6 +383,7 @@ trait AlgorithmDetail<'a, E: Exponentiator> {
     fn iterate_algorithm(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables, iters: u32);
 }
 
+#[inline]
 pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     vars: &mut RunningVariables,
@@ -421,6 +421,7 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     }
 }
 
+#[inline]
 fn mandelbrot_family_pre_modify_point<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     vars: &mut RunningVariables,
@@ -429,6 +430,7 @@ fn mandelbrot_family_pre_modify_point<E: Exponentiator>(
 }
 
 /// TODO: Someday, deduplicate this with `mandelbrot_family_pre_modify_point_inner_big`?
+#[inline]
 fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmModifiers) {
     let abs_im = z.im.abs();
     let conj_im = -z.im;
@@ -479,10 +481,12 @@ fn mandelbrot_family_pre_modify_point_inner_big(
 
 struct MandelbrotFamily {}
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
+    #[inline]
     fn pre_modify_point(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables) {
         mandelbrot_family_pre_modify_point(consts, vars);
     }
 
+    #[inline]
     fn iterate_algorithm(
         consts: &RunningConstants<'a, E>,
         vars: &mut RunningVariables,
@@ -494,10 +498,12 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
 
 struct MandelbrotPerturbed {}
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
+    #[inline]
     fn pre_modify_point(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables) {
         mandelbrot_family_pre_modify_point(consts, vars);
     }
 
+    #[inline]
     fn iterate_algorithm(
         consts: &RunningConstants<'a, E>,
         vars: &mut RunningVariables,
@@ -508,6 +514,7 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
 }
 
 #[doc(hidden)]
+#[inline]
 pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     vars: &mut RunningVariables,
