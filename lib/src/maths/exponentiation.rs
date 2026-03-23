@@ -10,6 +10,7 @@ use crate::{Complex, data::PushExponent};
 
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;
+    fn apply_power_minus_1_to(self, z: Complex) -> Complex;
     /// For the function z := z^k + c, what is the real power k so that we can compute the
     /// derivative?
     fn power(self) -> f32;
@@ -25,6 +26,16 @@ macro_rules! power_unrolled {
             impl Exponentiator for [<Power $pow>] {
                 fn apply_to(self, z: Complex) -> Complex {
                     $unroll(z)
+                }
+                fn apply_power_minus_1_to(self, z: Complex) -> Complex {
+                    match $pow {
+                        2 => z,
+                        3 => z * z,
+                        4 => z * z * z,
+                        5 => z * z * z * z,
+                        6 => z * z * z * z * z,
+                        _ => unreachable!(),
+                    }
                 }
                 #[allow(clippy::cast_precision_loss)]
                 fn power(self) -> f32 {
@@ -69,6 +80,19 @@ impl Exponentiator for IntegerPower {
         }
     }
 
+    fn apply_power_minus_1_to(self, z: Complex) -> Complex {
+        match self.0 {
+            1 => {
+                if z == Complex::ZERO {
+                    Complex::ZERO
+                } else {
+                    z
+                }
+            }
+            _ => z.powi(self.0 - 1).to_rectangular(),
+        }
+    }
+
     #[allow(clippy::cast_precision_loss)]
     fn power(self) -> f32 {
         self.0 as f32
@@ -89,6 +113,15 @@ impl Exponentiator for RealPower {
             Complex::ZERO
         } else {
             z.powf(self.0).to_rectangular()
+        }
+    }
+
+    #[allow(clippy::float_cmp)]
+    fn apply_power_minus_1_to(self, z: Complex) -> Complex {
+        if self.0 == 1.0 && z == Complex::ZERO {
+            Complex::ZERO
+        } else {
+            z.powf(self.0 - 1.0).to_rectangular()
         }
     }
 
@@ -116,6 +149,19 @@ impl Exponentiator for ComplexPower {
         }
         // function: z^p = e^(p ln(z))
         (self.0 * z.ln()).exp().to_rectangular()
+    }
+
+    fn apply_power_minus_1_to(self, z: Complex) -> Complex {
+        // special case as ln(0) is undefined
+        if z == Complex::ZERO {
+            return Complex::ZERO;
+        }
+        // special case to avoid breaking at 0^0 (undefined)
+        if self.0 == Complex::ONE {
+            return z;
+        }
+        // function: z^(p-1) = e^((p-1) ln(z))
+        ((self.0 - Complex::ONE) * z.ln()).exp().to_rectangular()
     }
 
     fn power(self) -> f32 {

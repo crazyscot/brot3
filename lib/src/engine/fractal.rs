@@ -410,7 +410,8 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     vars.z = z;
     vars.norm_sqr = z.abs_sq();
     if vars.boundary == BoundaryClass::Indeterminate {
-        vars.dz_dist = power * z_in.powf(power - 1.0).to_rectangular() * vars.dz_dist + 1.0;
+        vars.dz_dist =
+            consts.exponentiator.apply_power_minus_1_to(z_in) * vars.dz_dist * power + 1.0;
         if f32_is_infinite(vars.dz_dist.re) || f32_is_infinite(vars.dz_dist.im) {
             vars.boundary = BoundaryClass::VeryClose;
         }
