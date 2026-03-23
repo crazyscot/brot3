@@ -16,14 +16,6 @@ description = "brot3's engine"
 crate-type = ["dylib", "rlib"]
 
 [[bench]]
-name = "shader"
-harness = false
-
-[[bench]]
-name = "colour_conversion"
-harness = false
-
-[[bench]]
 name = "cycles"
 harness = false
 
@@ -67,7 +59,6 @@ thiserror = { workspace = true }
 assert_matches = { workspace = true }
 criterion = { workspace = true, features = ["html_reports"] }
 derive_more = { workspace = true, features = ["debug"] }
-divan = { workspace = true }
 gungraun = { workspace = true }
 pretty_assertions = { workspace = true }
 strum = { workspace = true }

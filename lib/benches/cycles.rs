@@ -180,15 +180,24 @@ static COLOUR_DATA: LazyLock<PointResult> = LazyLock::new(|| {
 #[bench::mono(col(Colourer::Monochrome), &COLOUR_DATA)]
 #[bench::icyblue(col(Colourer::IcyBlue), &COLOUR_DATA)]
 #[bench::olc(col(Colourer::OneLoneCoder), &COLOUR_DATA)]
+#[bench::log_rainbow(col(Colourer::LogRainbow), &COLOUR_DATA)]
 #[bench::neon(col(Colourer::Neon), &COLOUR_DATA)]
+#[bench::blackfade(col(Colourer::BlackFade), &COLOUR_DATA)]
 #[bench::whitefade(col(Colourer::WhiteFade), &COLOUR_DATA)]
+#[bench::mandy(col(Colourer::Mandy), &COLOUR_DATA)]
 fn colour_pt(consts: FragmentConstants, data: &PointResult) {
     let spacing = consts.pixel_spacing();
     let colour = engine::colour_data(black_box(*data), black_box(&consts), black_box(spacing));
     let _ = black_box(colour);
 }
 
-library_benchmark_group!(name = colour, benchmarks = [colour_pt,]);
+#[library_benchmark]
+fn hsl_to_rgb() {
+    let hsl = brot3_lib::util::Hsl::new(128.0, 100.0, 100.0);
+    let _ = black_box(brot3_lib::util::RgbVec::from(black_box(hsl)));
+}
+
+library_benchmark_group!(name = colour, benchmarks = [colour_pt, hsl_to_rgb]);
 
 // ..........................................................
 

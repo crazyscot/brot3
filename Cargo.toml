@@ -29,7 +29,6 @@ dashu = { version = "0.4.2", default-features = false }
 dashu-float = { version = "0.4.3", default-features = false }
 derive_more = { version = "2.1.1", default-features = false }
 dirs = "6.0.0"
-divan = "0.1.21"
 document-features = "0.2.12"
 egui_extras = "0.33"
 env_logger = "0.11.9"
