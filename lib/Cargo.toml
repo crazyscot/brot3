@@ -27,6 +27,10 @@ harness = false
 name = "cycles"
 harness = false
 
+[[bench]]
+name = "criterion"
+harness = false
+
 [features]
 ## Emulate push constants. Useful if the GPU does not support PUSH_CONSTANTS.
 emulate_constants = []
@@ -61,6 +65,7 @@ thiserror = { workspace = true }
 
 [dev-dependencies]
 assert_matches = { workspace = true }
+criterion = { workspace = true, features = ["html_reports"] }
 derive_more = { workspace = true, features = ["debug"] }
 divan = { workspace = true }
 gungraun = { workspace = true }

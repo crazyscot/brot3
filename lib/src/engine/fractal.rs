@@ -222,7 +222,8 @@ impl<E: Exponentiator> RunningConstants<'_, E> {
 pub struct RunningVariables {
     z: Complex,
     dz_dist: Complex,
-    norm_sqr: f32,
+    #[doc(hidden)]
+    pub norm_sqr: f32,
     dz_perturb: Complex,
     ref_iter: usize,
     boundary: BoundaryClass,
