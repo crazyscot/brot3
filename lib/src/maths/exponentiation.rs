@@ -18,32 +18,52 @@ pub trait Exponentiator: Copy + Clone {
     fn log2(self) -> f32;
 }
 
+macro_rules! unroll_int {
+    ($pow:expr, $z:ident) => {
+        match $pow {
+            1 => $z,
+            2 => $z * $z,
+            3 => $z * $z * $z,
+            4 => {
+                let z2 = $z * $z;
+                z2 * z2
+            }
+            5 => {
+                let z2 = $z * $z;
+                let z4 = z2 * z2;
+                z4 * $z
+            }
+            6 => {
+                let z2 = $z * $z;
+                let z4 = z2 * z2;
+                z4 * z2
+            }
+            _ => unreachable!(),
+        }
+    };
+}
+
 macro_rules! power_unrolled {
-    ($pow:literal, $unroll:expr) => {
+    ($pow:literal) => {
         paste::paste! {
             #[derive(Copy, Clone, Debug)]
             pub struct [<Power $pow>] {}
             impl Exponentiator for [<Power $pow>] {
-                #[inline]
+                #[inline(always)]
                 fn apply_to(self, z: Complex) -> Complex {
-                    $unroll(z)
+                    unroll_int!($pow, z)
                 }
-                #[inline]
+                #[inline(always)]
                 fn apply_power_minus_1_to(self, z: Complex) -> Complex {
-                    match $pow {
-                        2 => z,
-                        3 => z * z,
-                        4 => z * z * z,
-                        5 => z * z * z * z,
-                        6 => z * z * z * z * z,
-                        _ => unreachable!(),
-                    }
+                    unroll_int!($pow - 1, z)
                 }
                 #[allow(clippy::cast_precision_loss)]
+                #[inline(always)]
                 fn power(self) -> f32 {
                     $pow as f32
                 }
                 #[allow(clippy::cast_precision_loss)]
+                #[inline(always)]
                 fn log2(self) -> f32 {
                     ($pow as f32).log2()
                 }
@@ -53,18 +73,12 @@ macro_rules! power_unrolled {
 }
 
 macro_rules! int_powers {
-    ($(($pow:literal, $unroll:expr)),+) => {
-        $(power_unrolled!($pow, $unroll);)+
+    ($($pow:literal),+) => {
+        $(power_unrolled!($pow);)+
     }
 }
 
-int_powers!(
-    (2, |z| z * z),
-    (3, |z| z * z * z),
-    (4, |z| z * z * z * z),
-    (5, |z| z * z * z * z * z),
-    (6, |z| z * z * z * z * z * z)
-);
+int_powers!(2, 3, 4, 5, 6);
 
 /*
  * We used to have separate IntegerPower and RealPower structs.
