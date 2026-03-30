@@ -306,7 +306,71 @@ where
         let mut prev_norm_sqr = 0.0;
 
         deprintln!("DBG: run for c={:?}", self.consts.c);
-        // TODO: Cardoid and period-2 bulb checks in original?
+
+        // Boundary to use for analytically-determined inside pixels.
+        // Uniform branch: DISTANCE_ESTIMATE is a push-constant flag.
+        let inside_boundary = if self.frag.flags.contains(Flags::DISTANCE_ESTIMATE) {
+            BoundaryClass::Inside
+        } else {
+            BoundaryClass::Ignored
+        };
+
+        // Power-zero short-circuit: for f(z) = z^0 + c (no modifiers), the orbit is:
+        //   z₀=0, z₁=c, z₂=1+c, z₃=1+c, ...  (fixed point from iteration 2 onward)
+        // This is analytically solvable; no iteration loop is needed.
+        // `power()` is a push constant → the outer check is a *uniform* branch (no warp
+        // divergence cost). Only valid when no algorithm modifiers alter the orbit.
+        #[allow(clippy::float_cmp)]
+        if self.consts.exponentiator.power() == 0.0
+            && !self.consts.modifiers.premod_re_abs
+            && !self.consts.modifiers.premod_im_abs
+            && !self.consts.modifiers.premod_im_conjugate
+            && !self.consts.modifiers.iter_re_abs
+            && !self.consts.modifiers.iter_re_variant
+        {
+            let fixed_point = Complex::ONE + self.consts.c;
+            let fp_norm_sq = fixed_point.abs_sq();
+            if fp_norm_sq >= ESCAPE_THRESHOLD_SQ {
+                // Orbit escapes at iteration 2.
+                // prev_z=c, prev_norm_sqr=|c|² (values just before the escaping iteration).
+                let log_log_zn = (fp_norm_sq.log2() * 0.5).log2();
+                let smoothed = 1.0 + self.consts.loglog2_escape_threshold
+                    - log_log_zn / self.consts.exponentiator.log2();
+                return PointResult::new(
+                    2,
+                    smoothed,
+                    self.consts.c.arg(),
+                    self.consts.c.abs_sq(),
+                    BoundaryClass::Ignored,
+                );
+            }
+            return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, inside_boundary);
+        }
+
+        // Cardioid and period-2 bulb short-circuit for standard Mandelbrot (power=2, no
+        // modifiers). Points in these regions are analytically guaranteed to be inside the
+        // set; no iteration is required at all.
+        // The exponent check is a uniform branch; the per-pixel geometric tests are cheap
+        // arithmetic that avoids running max_iter iterations for a large fraction of pixels.
+        //   Main cardioid:    q·(q + (re-¼)) ≤ ¼·im²,  where q = (re-¼)² + im²
+        //   Period-2 bulb:    (re+1)² + im² < 1/16
+        #[allow(clippy::float_cmp)]
+        if self.consts.exponentiator.power() == 2.0
+            && !self.consts.modifiers.premod_re_abs
+            && !self.consts.modifiers.premod_im_abs
+            && !self.consts.modifiers.premod_im_conjugate
+            && !self.consts.modifiers.iter_re_abs
+            && !self.consts.modifiers.iter_re_variant
+        {
+            let c = self.consts.c;
+            let cr14 = c.re - 0.25;
+            let im2 = c.im * c.im;
+            let q = cr14 * cr14 + im2;
+            let cr1 = c.re + 1.0;
+            if q * (q + cr14) <= 0.25 * im2 || cr1 * cr1 + im2 < 0.0625 {
+                return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, inside_boundary);
+            }
+        }
 
         //let iterate_params = AlgorithmModifiers::from(self.constants);
 
@@ -451,8 +515,9 @@ fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmMo
     // BirdOfPrey applies abs() to the imaginary part
     // Burning Ship applies abs() to both parts
 
+    let zr_abs = z.re.abs();
     if params.premod_re_abs {
-        z.re = z.re.abs();
+        z.re = zr_abs;
     }
     z.im = if params.premod_im_abs {
         abs_im
