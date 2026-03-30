@@ -326,26 +326,38 @@ where
 
         // distance estimate, angle, radius
         let za = vars.z.abs();
-        // special case to avoid hitting a NaN when calculating ln(0)
-        let ln_za = if za == 0.0 { 0.0 } else { za.ln() };
+        // Branchless ln(za): when za==0, iters==max_iter (escape requires norm_sqr >= threshold),
+        // so ln_za is never used in the final boundary result; .max() keeps all lanes finite
+        // and avoids the 0*(-inf)=NaN that the old conditional guarded against.
+        let ln_za = za.max(f32::MIN_POSITIVE).ln();
 
-        if vars.boundary == BoundaryClass::Indeterminate {
-            if iters == self.frag.max_iter {
-                vars.boundary = BoundaryClass::Inside;
-            } else {
-                // abs() overflows on deeper zooms, so use geometry to calculate |dz_dist| a
-                // different way
-                let arg = vars.dz_dist.re.atan2(vars.dz_dist.im);
-                let abs = vars.dz_dist.re / arg.sin();
-                let distance = 2.0 * ln_za * za / abs;
-                let threshold = self.frag.pixel_spacing() / 4.0;
-                if distance <= threshold {
-                    vars.boundary = BoundaryClass::Close;
-                } else {
-                    vars.boundary = BoundaryClass::NotClose;
-                }
-            }
-        }
+        // This section used to be three nested branches, which caused warp divergence on GPU.
+        // This way round, all lanes execute the same instructions and there is no warp divergence.
+        //
+        // Lanes with boundary==VeryClose or Ignored have their computed indeterminate_class
+        // unconditionally discarded by the outermost select, so computing it for them is safe.
+
+        // abs() overflows on deeper zooms, so use geometry to calculate |dz_dist| differently.
+        let arg = vars.dz_dist.re.atan2(vars.dz_dist.im);
+        let abs_dz = vars.dz_dist.re / arg.sin();
+        let distance = 2.0 * ln_za * za / abs_dz;
+        let threshold = self.frag.pixel_spacing() / 4.0;
+
+        let dist_class = if distance <= threshold {
+            BoundaryClass::Close
+        } else {
+            BoundaryClass::NotClose
+        };
+        let indeterminate_class = if iters == self.frag.max_iter {
+            BoundaryClass::Inside
+        } else {
+            dist_class
+        };
+        vars.boundary = if vars.boundary == BoundaryClass::Indeterminate {
+            indeterminate_class
+        } else {
+            vars.boundary
+        };
         let angle = prev_z.arg();
         let norm_sqr = vars.norm_sqr;
 
@@ -354,15 +366,10 @@ where
         // Note that the log of the exponent is not allowed to be 0 or subnormal (we divide by
         // it below), so we special case those regions (in Exponentiator).
 
-        // take two logs, avoiding NaN
-        let log_log_zn = if norm_sqr <= 1.0 {
-            // special case: log2(log2(1+epsilon)) tends to -inf
-            -1000.0
-        } else {
-            // by the logarithm of a power law,
-            // z.norm().log() === z.norm_sqr().log() * 0.5
-            (norm_sqr.log2() * 0.5).log2()
-        };
+        // take two logs, avoiding NaN.
+        // by the logarithm of a power law,
+        // z.norm().log() === z.norm_sqr().log() * 0.5
+        let log_log_zn = (norm_sqr.max(1.0 + f32::MIN_POSITIVE).log2() * 0.5).log2();
 
         let smoothed_iters = 1. + self.consts.loglog2_escape_threshold
             - log_log_zn / self.consts.exponentiator.log2();
