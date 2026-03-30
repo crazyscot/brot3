@@ -11,10 +11,7 @@ use brot3_lib::{
         self, RunningConstants, RunningVariables, mandelbrot_family_iterate_algorithm,
         mandelbrot_perturbed_iterate_algorithm,
     },
-    maths::{
-        ComplexPower, Exponentiator, IntegerPower, Power2, Power3, Power4, Power5, Power6,
-        RealPower,
-    },
+    maths::{ComplexPower, Exponentiator, Power2, Power3, Power4, Power5, Power6},
     ui::UiState,
     util::Size,
 };
@@ -33,15 +30,16 @@ fn it_alg_setup(algorithm: Algorithm) -> RunningConstants<'static, Power2> {
 }
 
 #[library_benchmark]
-#[bench::m2(&it_setup(Power2{}))]
-#[bench::m3(&it_setup(Power3{}))]
-#[bench::int2(&it_setup(IntegerPower(2)))]
-#[bench::int3(&it_setup(IntegerPower(3)))]
-#[bench::int20(&it_setup(IntegerPower(20)))]
-#[bench::real2(&it_setup(RealPower(2.0)))]
-#[bench::real20(&it_setup(RealPower(20.0)))]
+#[bench::special2(&it_setup(Power2{}))]
+#[bench::special3(&it_setup(Power3{}))]
+#[bench::special6(&it_setup(Power6{}))]
 #[bench::complex2(&it_setup(ComplexPower::new(2.0, 0.0)))]
+#[bench::complex3(&it_setup(ComplexPower::new(3.0, 0.0)))]
+#[bench::complex20(&it_setup(ComplexPower::new(20.0, 0.0)))]
 #[bench::complex2101i(&it_setup(ComplexPower::new(2.1, 0.1)))]
+#[bench::minus2(&it_setup(ComplexPower::new(-2.0, 0.0)))]
+#[bench::minus1(&it_setup(ComplexPower::new(-1.0, 0.0)))]
+#[bench::zero(&it_setup(ComplexPower::new(0.0, 0.0)))]
 #[bench::mbar(&it_alg_setup(Algorithm::Mandelbar))] // same result as m2
 //#[bench::bird(&it_alg_setup(Algorithm::BirdOfPrey))] // same result as m2
 fn iterate_std<E: Exponentiator>(consts: &RunningConstants<'_, E>) {
@@ -207,18 +205,18 @@ library_benchmark_group!(name = colour, benchmarks = [colour_pt, hsl_to_rgb]);
 #[bench::p4(Power4{})]
 #[bench::p5(Power5{})]
 #[bench::p6(Power6{})]
-#[bench::int2(IntegerPower(2))]
-#[bench::int3(IntegerPower(3))]
-#[bench::int10(IntegerPower(10))]
-#[bench::int20(IntegerPower(20))]
-#[bench::int_m2(IntegerPower(-2))]
-#[bench::int_m20(IntegerPower(-20))]
-#[bench::real2(RealPower(2.0))]
-#[bench::real20(RealPower(20.0))]
-#[bench::real_m20(RealPower(-20.0))]
 #[bench::comp2(ComplexPower::new(2.0, 0.0))]
+#[bench::comp3(ComplexPower::new(3.0, 0.0))]
+#[bench::comp6(ComplexPower::new(6.0, 0.0))]
+#[bench::comp10(ComplexPower::new(10.0, 0.0))]
+#[bench::comp20(ComplexPower::new(20.0, 0.0))]
 #[bench::comp2101i(ComplexPower::new(2.1, 0.1))]
 #[bench::comp2020(ComplexPower::new(20.0, 20.0))]
+#[bench::comp_m2(ComplexPower::new(-2.0, 0.0))]
+#[bench::comp_m1(ComplexPower::new(-1.0, 0.0))]
+#[bench::comp_zero(ComplexPower::new(0.0, 0.0))]
+#[bench::comp1(ComplexPower::new(1.0, 0.0))]
+#[bench::comp_m20(ComplexPower::new(-20.0, 0.0))]
 #[bench::comp_m2020(ComplexPower::new(-20.0, 20.0))]
 #[bench::comp_m20m20(ComplexPower::new(-20.0, -20.0))]
 fn exponent<E: Exponentiator>(e: E) {

@@ -66,110 +66,40 @@ int_powers!(
     (6, |z| z * z * z * z * z * z)
 );
 
-#[derive(Copy, Clone, Debug)]
-pub struct IntegerPower(pub i32);
-impl Exponentiator for IntegerPower {
-    #[inline]
-    fn apply_to(self, z: Complex) -> Complex {
-        match self.0 {
-            0 => {
-                if z == Complex::ZERO {
-                    Complex::ZERO
-                } else {
-                    Complex::ONE
-                }
-            }
-            _ => z.powi(self.0).to_rectangular(),
-        }
-    }
-
-    #[inline]
-    fn apply_power_minus_1_to(self, z: Complex) -> Complex {
-        match self.0 {
-            1 => {
-                if z == Complex::ZERO {
-                    Complex::ZERO
-                } else {
-                    z
-                }
-            }
-            _ => z.powi(self.0 - 1).to_rectangular(),
-        }
-    }
-
-    #[allow(clippy::cast_precision_loss)]
-    fn power(self) -> f32 {
-        self.0 as f32
-    }
-
-    #[allow(clippy::cast_precision_loss)]
-    fn log2(self) -> f32 {
-        // special case where exponent is less than 2, to avoid undefinedness at/below 0.
-        (self.0 as f32).max(2.0).log2()
-    }
-}
-
-#[derive(Copy, Clone, Debug)]
-pub struct RealPower(pub f32);
-impl Exponentiator for RealPower {
-    #[inline]
-    fn apply_to(self, z: Complex) -> Complex {
-        if self.0 == 0.0 && z == Complex::ZERO {
-            Complex::ZERO
-        } else {
-            z.powf(self.0).to_rectangular()
-        }
-    }
-
-    #[allow(clippy::float_cmp)]
-    #[inline]
-    fn apply_power_minus_1_to(self, z: Complex) -> Complex {
-        if self.0 == 1.0 && z == Complex::ZERO {
-            Complex::ZERO
-        } else {
-            z.powf(self.0 - 1.0).to_rectangular()
-        }
-    }
-
-    fn power(self) -> f32 {
-        self.0
-    }
-
-    fn log2(self) -> f32 {
-        // special case where exponent is less than 2, to avoid undefinedness at/below 0.
-        self.0.max(2.0).log2()
-    }
-}
+/*
+ * We used to have separate IntegerPower and RealPower structs.
+ * Integer benchmarked much slower than ComplexPower on both CPU and GPU.
+ * This appears to be because `powi` becomes a software loop, whereas RealPower uses hardware
+ * powf instructions. RealPower benchmarked about the same, but there was no point in keeping it
+ * separately.
+ */
 
 #[derive(Copy, Clone, Debug)]
 pub struct ComplexPower(pub Complex);
-impl Exponentiator for ComplexPower {
+impl ComplexPower {
     #[inline]
-    fn apply_to(self, z: Complex) -> Complex {
+    fn apply(power: Complex, z: Complex) -> Complex {
         // special case as ln(0) is undefined
         if z == Complex::ZERO {
             return Complex::ZERO;
         }
         // special case to avoid breaking at 0^0 (undefined)
-        if self.0 == Complex::ZERO {
+        if power == Complex::ZERO {
             return Complex::ONE;
         }
         // function: z^p = e^(p ln(z))
-        (self.0 * z.ln()).exp().to_rectangular()
+        (power * z.ln()).exp().to_rectangular()
+    }
+}
+impl Exponentiator for ComplexPower {
+    #[inline]
+    fn apply_to(self, z: Complex) -> Complex {
+        Self::apply(self.0, z)
     }
 
     #[inline]
     fn apply_power_minus_1_to(self, z: Complex) -> Complex {
-        // special case as ln(0) is undefined
-        if z == Complex::ZERO {
-            return Complex::ZERO;
-        }
-        // special case to avoid breaking at 0^0 (undefined)
-        if self.0 == Complex::ONE {
-            return z;
-        }
-        // function: z^(p-1) = e^((p-1) ln(z))
-        ((self.0 - Complex::ONE) * z.ln()).exp().to_rectangular()
+        Self::apply(self.0 - Complex::ONE, z)
     }
 
     fn power(self) -> f32 {
@@ -209,7 +139,7 @@ mod tests {
     use crate::{
         Complex,
         data::PushExponent,
-        maths::{ComplexPower, Exponentiator, IntegerPower, Power2, RealPower},
+        maths::{ComplexPower, Exponentiator, Power2},
     };
 
     macro_rules! assert_complex_eq {
@@ -260,7 +190,7 @@ mod tests {
     #[test]
     #[allow(clippy::float_cmp, clippy::cast_precision_loss)]
     fn real_basics() {
-        let rp = RealPower(2.5);
+        let rp = ComplexPower::new(2.5, 0.0);
         let z = Complex::new(1.0, 1.0);
         let z1 = rp.apply_to(z);
         assert_float_eq!(z1.re, -0.91018, abs <= 0.000_1);
@@ -271,29 +201,24 @@ mod tests {
 
     #[test]
     fn complex_basics() {
-        let e2 = IntegerPower(2);
-        let ec = ComplexPower(Complex::from(2.0));
+        let ec = ComplexPower::new(2.0, 0.0);
         let sc = Power2 {};
 
         let mut z = Complex::new(0., 1.);
         // Test that i^2 = -1 and that -1^2 = 1:
         for _ in 0..2 {
-            let z2 = e2.apply_to(z);
             let zc = ec.apply_to(z);
             let zsc = sc.apply_to(z);
-            assert_complex_eq!(z2, zc);
-            assert_complex_eq!(z2, zsc);
-            assert_complex_ne!(z, z2);
-            z = z2;
+            assert_complex_eq!(zc, zsc);
+            assert_complex_ne!(z, zc);
+            z = zc;
         }
 
         let z = crate::vec2(-0.75, 0.75).into();
-        let z2 = e2.apply_to(z);
         let zc = ec.apply_to(z);
         let zsc = sc.apply_to(z);
         println!("{zc}");
-        assert_complex_eq!(z2, zc);
-        assert_complex_eq!(z2, zsc);
+        assert_complex_eq!(zc, zsc);
     }
     #[test]
     fn powc_known_answer() {
@@ -307,30 +232,14 @@ mod tests {
 
     #[test]
     fn power_zero_special_cases() {
-        let expf = RealPower(0.0);
         let two = Complex::ONE * 2.0;
 
-        // x^0 == 0
-        let f1 = expf.apply_to(two);
-        assert_eq!(f1, Complex::ONE);
-        // 0^0 is undefined, but in our world we've special-cased it as zero to prevent a shader
-        // abort.
-        let z2 = expf.apply_to(Complex::ZERO);
-        assert_eq!(z2, Complex::ZERO);
-
-        // Consistency check with integer powers
-        let exp_int = IntegerPower(0);
-        let i1 = exp_int.apply_to(two);
-        assert_eq!(i1, Complex::ONE);
-        let i2 = exp_int.apply_to(Complex::ZERO);
-        assert_eq!(i2, Complex::ZERO);
-        let i3 = Power2 {}.apply_to(Complex::ZERO);
-        assert_eq!(i3, Complex::ZERO);
-
-        // Now do it all again with complex powers
         let exp_complex = ComplexPower(Complex::ZERO);
+        // x^0 == 0
         let z1 = exp_complex.apply_to(two);
         assert_eq!(z1, Complex::ONE);
+        // 0^0 is undefined, but in our world we've special-cased it as zero to prevent a shader
+        // abort.
         let z2 = exp_complex.apply_to(Complex::ZERO);
         assert_eq!(z2, Complex::ZERO);
     }

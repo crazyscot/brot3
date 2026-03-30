@@ -85,11 +85,15 @@ macro_rules! exponent_monomorph {
             $crate::data::NumericType::Integer if $exponent.int == 6 => {
                 $run_it!($crate::maths::Power6 {}, $alg)
             }
+            #[allow(clippy::cast_precision_loss)]
             $crate::data::NumericType::Integer => {
-                $run_it!($crate::maths::IntegerPower($exponent.int), $alg)
+                $run_it!(
+                    $crate::maths::ComplexPower::new($exponent.int as f32, 0.0),
+                    $alg
+                )
             }
             $crate::data::NumericType::Float => {
-                $run_it!($crate::maths::RealPower($exponent.real), $alg)
+                $run_it!($crate::maths::ComplexPower::new($exponent.real, 0.0), $alg)
             }
             $crate::data::NumericType::Complex => {
                 $run_it!($crate::maths::ComplexPower::from($exponent), $alg)
