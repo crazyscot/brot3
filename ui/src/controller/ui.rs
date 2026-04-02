@@ -7,6 +7,7 @@ use brot3_lib::{
     engine,
 };
 use easy_shader_runner::{UiState, egui};
+use num_traits::AsPrimitive as _;
 
 use super::{DVec2, Instant};
 
@@ -154,14 +155,17 @@ impl super::Controller {
             self.reiterate = true;
         }
         if movement.exponent != 0. {
-            let new_exp = (self.state.exponent.real + factor32 * movement.exponent)
+            let current = match self.state.exponent.typ {
+                NumericType::Integer => self.state.exponent.int.as_(),
+                _ => self.state.exponent.real,
+            };
+            let new_exp = (current + factor32 * movement.exponent)
                 .clamp(Self::EXPONENT_MIN, Self::EXPONENT_MAX);
             if self.state.exponent.real != new_exp {
                 self.reiterate = true;
                 self.state.exponent.real = new_exp;
-                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
                 if self.state.exponent.typ == NumericType::Integer {
-                    self.state.exponent.int = self.state.exponent.real.round() as i32;
+                    self.state.exponent.int = self.state.exponent.real.round().as_();
                 }
             }
             movement.exponent = 0.;

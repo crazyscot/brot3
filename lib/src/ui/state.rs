@@ -30,7 +30,7 @@ pub struct UiState {
     pub palette: Palette,
     /// The exponent for the fractal
     ///
-    /// *N.B. This field is serialised as an `Exponent`!*
+    /// *N.B. This field is serialised as [`crate::ui::Exponent`] !*
     pub exponent: PushExponent,
     /// Set to enable iteration cull mode. This affects the colouring.
     pub iteration_cull: bool,
