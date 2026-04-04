@@ -30,7 +30,7 @@ dashu-float = { version = "0.4.3", default-features = false }
 derive_more = { version = "2.1.1", default-features = false }
 dirs = "6.0.0"
 document-features = "0.2.12"
-egui_extras = "0.33"
+egui_extras = "0.34"
 env_logger = "0.11.10"
 flate2 = "1.1.9"
 float_eq = { version = "1.0.1", default-features = false }
