@@ -48,11 +48,11 @@ pub(crate) struct Args {
     #[arg(long)]
     pub fullscreen: bool,
 
-    /// Starts up with the UI hidden (press F2 to show it)
+    /// Starts up with the controls hidden (press F2 to show them)
     #[arg(long)]
-    pub no_ui: bool,
+    pub no_controls: bool,
 
-    /// Selects the initial fractal algorithm to use
+    /// Selects the fractal algorithm to use
     #[arg(
         short = 'F',
         long,
@@ -62,7 +62,7 @@ pub(crate) struct Args {
     )]
     pub fractal: Algorithm,
 
-    /// Selects the initial colouring algorithm to use
+    /// Selects the colouring algorithm to use
     #[arg(
         short = 'C',
         long,
@@ -72,7 +72,7 @@ pub(crate) struct Args {
     )]
     pub colourer: Colourer,
 
-    /// Selects the initial colour style to use
+    /// Selects the colour style to use
     #[arg(
         long,
         alias = "color-style",
@@ -81,7 +81,7 @@ pub(crate) struct Args {
     )]
     pub colour_style: ColourStyle,
 
-    /// Selects the initial brightness rendering style to use
+    /// Selects the brightness rendering style to use
     #[arg(
         long,
         alias = "color-brightness-style",

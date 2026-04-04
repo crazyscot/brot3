@@ -139,7 +139,7 @@ impl Controller {
             show_scale_bar: true,
             show_fps: false,
             vsync: true,
-            show_controls: !options.no_ui,
+            show_controls: !options.no_controls,
             keyboard_help: false,
             show_about: false,
             show_license: false,
