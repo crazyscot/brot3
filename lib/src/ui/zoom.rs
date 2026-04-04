@@ -56,6 +56,11 @@ impl From<f32> for ViewportZoom {
         Self(value.into())
     }
 }
+impl From<f64> for ViewportZoom {
+    fn from(value: f64) -> Self {
+        Self(value)
+    }
+}
 
 impl PartialEq for ViewportZoom {
     fn eq(&self, other: &Self) -> bool {

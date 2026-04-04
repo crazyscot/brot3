@@ -6,7 +6,9 @@ use std::path::PathBuf;
 use std::{path::PathBuf, str::FromStr};
 
 use brot3_lib::{
+    BigComplex,
     data::{Algorithm, ColourStyle, Colourer, Modifier, Palette},
+    engine::DEFAULT_FRACTAL_PLANE_SIZE,
     ui::UiState,
     util::Size,
 };
@@ -58,7 +60,8 @@ pub(crate) struct Args {
         long,
         alias = "fractal",
         value_name = "NAME",
-        default_value = "mandelbrot"
+        default_value = "mandelbrot",
+        help_heading("Fractal")
     )]
     pub fractal: Algorithm,
 
@@ -68,7 +71,8 @@ pub(crate) struct Args {
         long,
         alias = "colorer",
         value_name = "NAME",
-        default_value = "neon"
+        default_value = "neon",
+        help_heading("Colouring")
     )]
     pub colourer: Colourer,
 
@@ -77,7 +81,8 @@ pub(crate) struct Args {
         long,
         alias = "color-style",
         value_name = "NAME",
-        default_value = "continuous"
+        default_value = "continuous",
+        help_heading("Colouring")
     )]
     pub colour_style: ColourStyle,
 
@@ -86,7 +91,8 @@ pub(crate) struct Args {
         long,
         alias = "color-brightness-style",
         value_name = "NAME",
-        default_value = "standard"
+        default_value = "standard",
+        help_heading("Colouring")
     )]
     pub brightness_style: Modifier,
 
@@ -120,8 +126,31 @@ pub(crate) struct Args {
 
     /// Disables parallel rendering when using --output. This may be useful for benchmarking or
     /// other analytical runs.
-    #[arg(long, default_value_t = false, requires = "output")]
+    #[arg(
+        long,
+        default_value_t = false,
+        requires = "output",
+        help_heading("Fractal")
+    )]
     pub no_parallel_render: bool,
+
+    /// The maximum number of iterations to use
+    #[arg(short('I'), long, value_name = "NUMBER", help_heading("Fractal"))]
+    pub max_iterations: Option<u32>,
+
+    /// The centre point of the plot, e.g. -1-1i.
+    #[arg(
+        short = 'c',
+        long,
+        value_name = "COMPLEX",
+        allow_hyphen_values(true),
+        help_heading("Fractal")
+    )]
+    pub(crate) centre: Option<BigComplex>,
+
+    /// The zoom depth of the plot, e.g. 1e16
+    #[arg(short = 'z', long, value_name = "NUMBER", help_heading("Fractal"))]
+    pub(crate) zoom: Option<f64>,
 }
 
 // A simple tuple struct to represent a 2D u32 vector.
@@ -169,6 +198,14 @@ impl From<&Args> for UiState {
                 .with_colourer(args.colourer)
                 .with_style(args.colour_style)
                 .with_brightness(args.brightness_style),
+            max_iter: args.max_iterations.unwrap_or(UiState::default().max_iter),
+            viewport_translate: args
+                .centre
+                .as_ref()
+                .map_or(UiState::default().viewport_translate, |c| c.0.clone()),
+            viewport_zoom: args.zoom.map_or(UiState::default().viewport_zoom, |z| {
+                (z / DEFAULT_FRACTAL_PLANE_SIZE).into()
+            }),
             ..UiState::default()
         }
     }
