@@ -28,7 +28,7 @@ pub mod util;
 
 #[cfg(not(spirv))]
 pub use bignum::{
-    big_complex::BigComplex,
+    big_complex::{BigComplex, ParseError as BigComplexParseError},
     big_vec2::{BigVec2, fbig_from_str},
 };
 use spirv_std::glam::Vec4Swizzles as _;
