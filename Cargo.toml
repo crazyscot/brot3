@@ -115,7 +115,7 @@ pedantic = { level = "deny", priority = -1 }
 
 [profile.release]
 lto = "thin"
-debug = true
+debug = "line-tables-only"
 
 [workspace.metadata.cargo-shear]
 ignored = [
