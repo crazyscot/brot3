@@ -1,4 +1,6 @@
 use egui_winit::winit::window::Window;
+use num_traits::AsPrimitive as _;
+use wgpu::PipelineCompilationOptions;
 
 use crate::{
     context::GraphicsContext,
@@ -25,7 +27,7 @@ struct PipelineLayouts {
     compute: wgpu::PipelineLayout,
 }
 
-pub struct RenderPass {
+pub(crate) struct RenderPass {
     pipelines: Pipelines,
     #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
     pipeline_layouts: PipelineLayouts,
@@ -39,7 +41,7 @@ pub struct RenderPass {
 }
 
 impl RenderPass {
-    pub fn new<C: ControllerTrait>(
+    pub(crate) fn new<C: ControllerTrait>(
         ctx: &GraphicsContext,
         shader_bytes: &[u8],
         controller: &mut C,
@@ -128,7 +130,7 @@ impl RenderPass {
         ctx.queue.submit(Some(encoder.finish()));
     }
 
-    pub fn render<C: ControllerTrait>(
+    pub(crate) fn render<C: ControllerTrait>(
         &mut self,
         ctx: &GraphicsContext,
         window: &Window,
@@ -208,7 +210,7 @@ impl RenderPass {
                     .write_buffer(&self.emulate_constants_buffer.render, 0, bytes);
             }
             for (i, bind_group) in self.bind_groups.iter().enumerate() {
-                rpass.set_bind_group(i as u32, bind_group, &[]);
+                rpass.set_bind_group(i.as_(), bind_group, &[]);
             }
             let (vertices, indices) = controller.get_vertex_index_buffer();
             if let Some((vertex_buffer, num_vertices)) = vertices {
@@ -224,7 +226,7 @@ impl RenderPass {
             }
         }
 
-        ctx.queue.submit(Some(encoder.finish()));
+        let _ = ctx.queue.submit(Some(encoder.finish()));
     }
 
     fn render_ui<C: ControllerTrait>(
@@ -264,7 +266,7 @@ impl RenderPass {
                 label: Some("UI Encoder"),
             });
 
-        self.ui_renderer.update_buffers(
+        let _ = self.ui_renderer.update_buffers(
             &ctx.device,
             &ctx.queue,
             &mut encoder,
@@ -300,11 +302,11 @@ impl RenderPass {
             );
         }
 
-        ctx.queue.submit(Some(encoder.finish()));
+        let _ = ctx.queue.submit(Some(encoder.finish()));
     }
 
     #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
-    pub fn new_module(&mut self, ctx: &GraphicsContext, shader_path: &std::path::Path) {
+    pub(crate) fn new_module(&mut self, ctx: &GraphicsContext, shader_path: &std::path::Path) {
         self.pipelines = create_pipelines(
             &ctx.device,
             &self.pipeline_layouts,
@@ -314,7 +316,7 @@ impl RenderPass {
         );
     }
 
-    pub fn shader_offset(&self) -> glam::Vec2 {
+    pub(crate) fn shader_offset(&self) -> glam::Vec2 {
         glam::vec2(self.shader_viewport.left(), self.shader_viewport.top())
     }
 }
@@ -354,7 +356,7 @@ fn create_pipelines(
     device: &wgpu::Device,
     pipeline_layouts: &PipelineLayouts,
     surface_format: wgpu::TextureFormat,
-    vertex_buffer_layouts: &[wgpu::VertexBufferLayout],
+    vertex_buffer_layouts: &[wgpu::VertexBufferLayout<'_>],
     shader_bytes: &[u8],
 ) -> Pipelines {
     let spirv = wgpu::util::make_spirv(shader_bytes);
@@ -369,7 +371,7 @@ fn create_pipelines(
             module,
             entry_point: Some("main_vs"),
             buffers: vertex_buffer_layouts,
-            compilation_options: Default::default(),
+            compilation_options: PipelineCompilationOptions::default(),
         },
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
@@ -394,7 +396,7 @@ fn create_pipelines(
                 blend: None,
                 write_mask: wgpu::ColorWrites::ALL,
             })],
-            compilation_options: Default::default(),
+            compilation_options: PipelineCompilationOptions::default(),
         }),
         multiview: None,
         cache: None,

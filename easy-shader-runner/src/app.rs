@@ -18,7 +18,7 @@ use crate::{
     user_event::CustomEvent,
 };
 
-pub struct Graphics<C: ControllerTrait> {
+pub(crate) struct Graphics<C: ControllerTrait> {
     rpass: RenderPass,
     ctx: GraphicsContext,
     controller: C,
@@ -27,20 +27,20 @@ pub struct Graphics<C: ControllerTrait> {
     window: Arc<Window>,
 }
 
-pub struct Builder<C: ControllerTrait + Send> {
+pub(crate) struct Builder<C: ControllerTrait + Send> {
     event_proxy: EventLoopProxy<CustomEvent<C>>,
     shader_bytes: Cow<'static, [u8]>,
     params: Parameters<C>,
 }
 
-pub enum App<C: ControllerTrait + Send> {
+pub(crate) enum App<C: ControllerTrait + Send> {
     Builder(Builder<C>),
     Building(#[cfg(target_arch = "wasm32")] Option<PhysicalSize<u32>>),
     Graphics(Box<Graphics<C>>),
 }
 
 impl<C: ControllerTrait + Send> App<C> {
-    pub fn new(
+    pub(crate) fn new(
         event_proxy: EventLoopProxy<CustomEvent<C>>,
         shader_bytes: Cow<'static, [u8]>,
         params: crate::Parameters<C>,
@@ -52,7 +52,7 @@ impl<C: ControllerTrait + Send> App<C> {
         })
     }
 
-    pub fn resize(&mut self, size: PhysicalSize<u32>) {
+    pub(crate) fn resize(&mut self, size: PhysicalSize<u32>) {
         let Self::Graphics(gfx) = self else {
             #[cfg(target_arch = "wasm32")]
             if let Self::Building(_) = self {
@@ -67,21 +67,21 @@ impl<C: ControllerTrait + Send> App<C> {
         }
     }
 
-    pub fn keyboard_input(&mut self, event: KeyEvent) {
+    pub(crate) fn keyboard_input(&mut self, event: KeyEvent) {
         let Self::Graphics(gfx) = self else {
             return;
         };
         gfx.controller.keyboard_input(event);
     }
 
-    pub fn mouse_input(&mut self, state: ElementState, button: MouseButton) {
+    pub(crate) fn mouse_input(&mut self, state: ElementState, button: MouseButton) {
         let Self::Graphics(gfx) = self else {
             return;
         };
         gfx.controller.mouse_input(state, button);
     }
 
-    pub fn touch(&mut self, id: u64, phase: TouchPhase, location: PhysicalPosition<f64>) {
+    pub(crate) fn touch(&mut self, id: u64, phase: TouchPhase, location: PhysicalPosition<f64>) {
         let Self::Graphics(gfx) = self else {
             return;
         };
@@ -89,7 +89,7 @@ impl<C: ControllerTrait + Send> App<C> {
             .touch(id, phase, glam::dvec2(location.x, location.y));
     }
 
-    pub fn mouse_move(&mut self, position: PhysicalPosition<f64>) {
+    pub(crate) fn mouse_move(&mut self, position: PhysicalPosition<f64>) {
         let Self::Graphics(gfx) = self else {
             return;
         };
@@ -97,12 +97,12 @@ impl<C: ControllerTrait + Send> App<C> {
         gfx.controller.mouse_move(position);
     }
 
-    pub fn mouse_scroll(&mut self, delta: MouseScrollDelta) {
+    pub(crate) fn mouse_scroll(&mut self, delta: MouseScrollDelta) {
         let Self::Graphics(gfx) = self else {
             return;
         };
         let delta = match delta {
-            MouseScrollDelta::LineDelta(x, y) => glam::dvec2(x as f64, y as f64),
+            MouseScrollDelta::LineDelta(x, y) => glam::dvec2(f64::from(x), f64::from(y)),
             MouseScrollDelta::PixelDelta(p) => glam::dvec2(p.x, p.y) * 0.02,
         };
         #[cfg(target_arch = "wasm32")]
@@ -131,7 +131,7 @@ impl<C: ControllerTrait + Send> App<C> {
         );
     }
 
-    pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    pub(crate) fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let Self::Graphics(gfx) = self else {
             return Ok(());
         };
@@ -153,7 +153,7 @@ impl<C: ControllerTrait + Send> App<C> {
         if let Some(should_be_fullscreen) = gfx.ui_state.fullscreen_requested {
             // This is an event that tells us the application wishes to assert the fullscreen state.
             if should_be_fullscreen {
-                gfx.window.current_monitor().map(|monitor| {
+                let _ = gfx.window.current_monitor().map(|monitor| {
                     monitor.video_modes().next().map(|mode| {
                         if cfg!(any(target_os = "macos", unix)) {
                             gfx.window
@@ -164,7 +164,7 @@ impl<C: ControllerTrait + Send> App<C> {
                     })
                 });
             } else {
-                gfx.window.set_fullscreen(None)
+                gfx.window.set_fullscreen(None);
             }
             gfx.ui_state.fullscreen_requested = None;
         }
@@ -174,7 +174,7 @@ impl<C: ControllerTrait + Send> App<C> {
         result
     }
 
-    pub fn ui_consumes_event(&mut self, event: &WindowEvent) -> bool {
+    pub(crate) fn ui_consumes_event(&mut self, event: &WindowEvent) -> bool {
         let Self::Graphics(gfx) = self else {
             return false;
         };
@@ -182,7 +182,7 @@ impl<C: ControllerTrait + Send> App<C> {
     }
 
     #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
-    pub fn new_module(&mut self, shader_path: &std::path::Path) {
+    pub(crate) fn new_module(&mut self, shader_path: &std::path::Path) {
         let Self::Graphics(gfx) = self else {
             return;
         };
@@ -255,7 +255,7 @@ impl<C: ControllerTrait + Send> ApplicationHandler<CustomEvent<C>> for App<C> {
         match event {
             WindowEvent::RedrawRequested => {
                 if let Err(wgpu::SurfaceError::OutOfMemory) = self.render() {
-                    event_loop.exit()
+                    event_loop.exit();
                 }
                 #[cfg(feature = "compute")]
                 self.update();
@@ -316,7 +316,7 @@ async fn create_graphics<C: ControllerTrait + Send>(
     let window = Arc::new(window);
     let ctx = GraphicsContext::new(window.clone(), initial_size, &controller).await;
 
-    let ui = Ui::new(window.clone());
+    let ui = Ui::new(&window);
 
     let ui_state = UiState::new(builder.params.options);
 
@@ -331,7 +331,7 @@ async fn create_graphics<C: ControllerTrait + Send>(
         window,
     };
 
-    builder
+    let _ = builder
         .event_proxy
         .send_event(CustomEvent::CreateWindow(Box::new(gfx)))
         .ok();

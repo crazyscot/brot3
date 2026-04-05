@@ -8,10 +8,11 @@ use egui_winit::{
     State,
     winit::{event::WindowEvent, window::Window},
 };
+use num_traits::AsPrimitive;
 
 use crate::{GraphicsContext, controller::ControllerTrait, fps_counter::FpsCounter};
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Options {
     pub escape_exits: bool,
 }
@@ -21,6 +22,7 @@ impl Default for Options {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
 pub struct UiState {
     fps: u32,
     #[cfg(not(target_arch = "wasm32"))]
@@ -30,7 +32,7 @@ pub struct UiState {
     /// On macOS, the keypress Ctrl+Command+F (fullscreen) is handled by the OS.
     /// In other words, the fullscreen state may change for reasons we can't otherwise detect.
     ///
-    /// easy-shader-runner sets fullscreen_active to reflect the actual fullscreen state.
+    /// easy-shader-runner sets `fullscreen_active` to reflect the actual fullscreen state.
     pub fullscreen_active: bool,
     /// Controller sets this when it wants to change the state. easy-shader-runner will clear it
     /// once actioned.
@@ -39,6 +41,7 @@ pub struct UiState {
 }
 
 impl UiState {
+    #[must_use]
     pub fn new(options: Options) -> Self {
         Self {
             fps: 0,
@@ -50,6 +53,7 @@ impl UiState {
         }
     }
 
+    #[must_use]
     pub fn fps(&self) -> &u32 {
         &self.fps
     }
@@ -61,13 +65,13 @@ impl Default for UiState {
     }
 }
 
-pub struct Ui {
+pub(crate) struct Ui {
     egui_winit_state: State,
     fps_counter: FpsCounter,
 }
 
 impl Ui {
-    pub fn new(window: Arc<Window>) -> Self {
+    pub(crate) fn new(window: &Arc<Window>) -> Self {
         let context = Context::default();
         context.options_mut(|w| w.zoom_with_keyboard = false);
         let viewport_id = context.viewport_id();
@@ -75,7 +79,7 @@ impl Ui {
             context,
             viewport_id,
             &window,
-            Some(window.scale_factor() as f32),
+            Some(window.scale_factor().as_()),
             None,
             None,
         );
@@ -86,13 +90,13 @@ impl Ui {
         }
     }
 
-    pub fn consumes_event(&mut self, window: &Window, event: &WindowEvent) -> bool {
+    pub(crate) fn consumes_event(&mut self, window: &Window, event: &WindowEvent) -> bool {
         self.egui_winit_state
             .on_window_event(window, event)
             .consumed
     }
 
-    pub fn prepare<C: ControllerTrait>(
+    pub(crate) fn prepare<C: ControllerTrait>(
         &mut self,
         window: &Window,
         ui_state: &mut UiState,
@@ -103,7 +107,7 @@ impl Ui {
         let raw_input = self.egui_winit_state.take_egui_input(window);
         let mut available_rect = egui::Rect::NAN;
         let full_output = self.egui_winit_state.egui_ctx().run(raw_input, |ctx| {
-            self.ui(ctx, ui_state, controller, graphics_context);
+            Self::ui(ctx, ui_state, controller, graphics_context);
             available_rect = ctx.available_rect();
         });
         self.egui_winit_state
@@ -121,7 +125,6 @@ impl Ui {
     }
 
     fn ui<C: ControllerTrait>(
-        &self,
         ctx: &Context,
         ui_state: &mut UiState,
         controller: &mut C,

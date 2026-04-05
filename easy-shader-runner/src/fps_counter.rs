@@ -3,26 +3,30 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub struct FpsCounter {
+use num_traits::AsPrimitive;
+
+pub(crate) struct FpsCounter {
     frames: VecDeque<Instant>,
 }
 
 impl FpsCounter {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             frames: VecDeque::default(),
         }
     }
 
-    pub fn tick(&mut self) -> u32 {
+    pub(crate) fn tick(&mut self) -> u32 {
         let one_second_from_now = Instant::now() + Duration::from_secs(1);
         self.frames.push_back(one_second_from_now);
-        let now = one_second_from_now - Duration::from_secs(1);
+        let now = one_second_from_now
+            .checked_sub(Duration::from_secs(1))
+            .unwrap();
 
         while self.frames.front().is_some_and(|t| t < &now) {
-            self.frames.pop_front();
+            let _ = self.frames.pop_front();
         }
 
-        self.frames.len() as u32
+        self.frames.len().as_()
     }
 }

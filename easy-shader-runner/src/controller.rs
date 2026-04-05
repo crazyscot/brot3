@@ -2,7 +2,7 @@ use egui_winit::winit::{
     event::{ElementState, KeyEvent, MouseButton, TouchPhase},
     event_loop::ActiveEventLoop,
 };
-use glam::*;
+use glam::{DVec2, UVec2, Vec2, u32, u64};
 
 use crate::GraphicsContext;
 

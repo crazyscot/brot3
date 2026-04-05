@@ -11,8 +11,9 @@ use crate::Error as ESRError;
 
 /// Compile the shader with a standard path (absolute, or relative to the current working directory)
 ///
-/// If `relative_to_manifest` is true, `shader_crate_path` is relative to CARGO_MANIFEST_DIR.
+/// If `relative_to_manifest` is true, `shader_crate_path` is relative to `CARGO_MANIFEST_DIR`.
 /// If not, it is a standard path (may be absolute or relative).
+#[allow(unsafe_code, clippy::disallowed_methods)]
 pub(crate) fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: ControllerTrait + Send>(
     #[cfg(feature = "hot-reload-shader")] event_proxy: EventLoopProxy<CustomEvent<C>>,
     crate_path: impl AsRef<Path>,
@@ -60,14 +61,7 @@ pub(crate) fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: Controller
     } else {
         builder
     };
-    fn handle_compile_result(compile_result: CompileResult) -> PathBuf {
-        match compile_result.module {
-            ModuleResult::SingleModule(result) => result,
-            ModuleResult::MultiModule(_) => {
-                panic!("expected `ModuleResult::SingleModule")
-            }
-        }
-    }
+
     #[cfg(feature = "hot-reload-shader")]
     let initial_result = builder
         .watch(move |compile_result, first| {
@@ -80,7 +74,7 @@ pub(crate) fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: Controller
                             compile_result
                         )))
                         .is_ok()
-                )
+                );
             }
         })
         .expect("Configuration is incorrect for watching")
@@ -89,4 +83,13 @@ pub(crate) fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: Controller
     #[cfg(not(feature = "hot-reload-shader"))]
     let initial_result = builder.build().map_err(ESRError::BuildFailed)?;
     Ok(handle_compile_result(initial_result))
+}
+
+fn handle_compile_result(compile_result: CompileResult) -> PathBuf {
+    match compile_result.module {
+        ModuleResult::SingleModule(result) => result,
+        ModuleResult::MultiModule(_) => {
+            panic!("expected `ModuleResult::SingleModule")
+        }
+    }
 }

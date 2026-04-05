@@ -1073,6 +1073,7 @@ dependencies = [
  "env_logger",
  "futures",
  "glam",
+ "num-traits",
  "spirv-builder",
  "thiserror 2.0.18",
  "wasm-bindgen-futures",

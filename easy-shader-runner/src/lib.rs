@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use std::{borrow::Cow, path::PathBuf};
 
 pub use context::GraphicsContext;
@@ -7,6 +9,8 @@ use egui_winit::winit::event_loop::EventLoop;
 pub use egui_winit::{egui, winit};
 pub use ui::UiState;
 use user_event::CustomEvent;
+
+use crate::ui::Options;
 
 mod app;
 mod context;
@@ -45,6 +49,7 @@ pub enum Error {
 ///
 /// There is no `Default` implementation as `controller` and `title` must always be provided.
 #[non_exhaustive]
+#[allow(missing_debug_implementations)]
 pub struct Parameters<C: ControllerTrait + Send> {
     /// UI controller
     pub controller: C,
@@ -60,10 +65,11 @@ impl<C: ControllerTrait + Send> Parameters<C> {
         Self {
             controller,
             title: title.into(),
-            options: Default::default(),
+            options: Options::default(),
         }
     }
 
+    #[must_use]
     pub fn esc_key_exits(mut self, enable: bool) -> Self {
         self.options.escape_exits = enable;
         self
@@ -72,7 +78,7 @@ impl<C: ControllerTrait + Send> Parameters<C> {
 
 /// Run with runtime compilation
 ///
-/// If `relative_to_manifest` is true, `shader_crate_path` is relative to CARGO_MANIFEST_DIR.
+/// If `relative_to_manifest` is true, `shader_crate_path` is relative to `CARGO_MANIFEST_DIR`.
 /// If not, it is a standard path (may be absolute or relative).
 #[cfg(all(
     any(feature = "runtime-compilation", feature = "hot-reload-shader"),
@@ -119,7 +125,9 @@ fn start<C: ControllerTrait + Send>(
     Ok(event_loop.run_app(&mut app)?)
 }
 
+#[allow(unsafe_code, clippy::disallowed_methods)]
 pub fn setup_logging() {
+    use std::fmt::Write;
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -128,7 +136,7 @@ pub fn setup_logging() {
             let mut rust_log = std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_owned());
             for loud_crate in ["naga", "wgpu_core", "wgpu_hal"] {
                 if !rust_log.contains(&format!("{loud_crate}=")) {
-                    rust_log += &format!(",{loud_crate}=warn");
+                    let _ = write!(&mut rust_log, ",{loud_crate}=warn");
                 }
             }
             unsafe {

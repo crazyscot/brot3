@@ -86,7 +86,7 @@ impl super::Controller {
             self.scale_bar(ctx);
         }
         if self.show_fps {
-            Self::fps_window(ctx, ui_state);
+            Self::fps_window(ctx, *ui_state);
         }
         if self.keyboard_help {
             Self::keyboard_help_window(ctx);

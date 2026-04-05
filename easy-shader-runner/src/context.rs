@@ -4,6 +4,7 @@ use egui_winit::winit::{dpi::PhysicalSize, window::Window};
 
 use crate::controller::ControllerTrait;
 
+#[allow(missing_debug_implementations)]
 pub struct GraphicsContext {
     pub surface: wgpu::Surface<'static>,
     pub device: wgpu::Device,
@@ -81,29 +82,8 @@ impl GraphicsContext {
             .await
             .expect("Failed to create device");
 
-        fn auto_configure_surface<'a>(
-            adapter: &wgpu::Adapter,
-            device: &wgpu::Device,
-            surface: wgpu::Surface<'a>,
-            size: PhysicalSize<u32>,
-        ) -> (wgpu::Surface<'a>, wgpu::SurfaceConfiguration) {
-            let capabilities = surface.get_capabilities(adapter);
-            let mut surface_config = surface
-                .get_default_config(adapter, size.width, size.height)
-                .unwrap_or_else(|| {
-                    panic!(
-                        "Missing formats/present modes in surface capabilities: {capabilities:#?}"
-                    )
-                });
-            surface_config.present_mode = wgpu::PresentMode::AutoVsync;
-            surface_config.format =
-                egui_wgpu::preferred_framebuffer_format(&capabilities.formats).unwrap();
-            surface.configure(device, &surface_config);
-            (surface, surface_config)
-        }
-
         let (surface, config) =
-            auto_configure_surface(&adapter, &device, initial_surface, initial_size);
+            Self::auto_configure_surface(&adapter, &device, initial_surface, initial_size);
 
         GraphicsContext {
             surface,
@@ -111,6 +91,25 @@ impl GraphicsContext {
             queue,
             config,
         }
+    }
+
+    fn auto_configure_surface<'a>(
+        adapter: &wgpu::Adapter,
+        device: &wgpu::Device,
+        surface: wgpu::Surface<'a>,
+        size: PhysicalSize<u32>,
+    ) -> (wgpu::Surface<'a>, wgpu::SurfaceConfiguration) {
+        let capabilities = surface.get_capabilities(adapter);
+        let mut surface_config = surface
+            .get_default_config(adapter, size.width, size.height)
+            .unwrap_or_else(|| {
+                panic!("Missing formats/present modes in surface capabilities: {capabilities:#?}")
+            });
+        surface_config.present_mode = wgpu::PresentMode::AutoVsync;
+        surface_config.format =
+            egui_wgpu::preferred_framebuffer_format(&capabilities.formats).unwrap();
+        surface.configure(device, &surface_config);
+        (surface, surface_config)
     }
 
     #[cfg(not(target_arch = "wasm32"))]

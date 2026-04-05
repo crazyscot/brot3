@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     // While OUT_DIR is set for both build.rs and compiling the crate, PROFILE is only set in

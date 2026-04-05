@@ -81,7 +81,7 @@ impl super::Controller {
         });
     }
 
-    pub(crate) fn fps_window(ctx: &egui::Context, ui_state: &EsrUiState) {
+    pub(crate) fn fps_window(ctx: &egui::Context, ui_state: EsrUiState) {
         egui::Window::new("fps")
             .title_bar(false)
             .resizable(false)
