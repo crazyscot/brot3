@@ -17,6 +17,7 @@ inputs:
 runs:
   using: composite
   steps:
+    # N.B. Github runners already have profile set to minimal.
     - name: Set profile
       if: ${{ inputs.profile }}
       run: rustup set profile ${{ inputs.profile }}

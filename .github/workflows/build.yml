@@ -13,6 +13,8 @@ on:
 
 permissions: {}
 
+# N.B. github runners have `rustup set profile minimal` by default
+
 env:
   CARGO_TERM_COLOR: always
   CLICOLOR_FORCE: 1
@@ -142,7 +144,6 @@ jobs:
         with:
           rust-components: ${{ matrix.rust_components }}
           tools: ${{ matrix.tools }}
-          profile: minimal
       - name: status check
         run: git status --porcelain
       - name: build

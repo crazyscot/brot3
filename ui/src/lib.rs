@@ -58,6 +58,8 @@ pub enum MainError {
     EasyShaderRunner(#[from] easy_shader_runner::Error),
     #[error(transparent)]
     Render(#[from] render::RenderError),
+    #[error("Shader not present due to suppress-shader-build feature")]
+    SuppressedShaderBuild,
 }
 
 /// Main CLI entrypoint
@@ -83,7 +85,11 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
     let params = easy_shader_runner::Parameters::new(controller, version_string("brot3 "))
         .esc_key_exits(false);
     cfg_if::cfg_if! {
-        if #[cfg(runtime_compile)] {
+        if #[cfg(feature = "suppress-shader-build")] {
+            // Runtime compilation disabled by feature flag
+            Err(MainError::SuppressedShaderBuild)?;
+            let _ = params.esc_key_exits(true); // hush unused warning
+        } else if #[cfg(runtime_compile)] {
 
             let manifest = std::env::var("CARGO_MANIFEST_DIR");
             let relative_to_manifest = manifest.is_ok();

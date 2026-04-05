@@ -27,6 +27,8 @@ fn main() {
         // CAUTION: This must match what shader_builder main.rs outputs.
         build_print::info!("Using prebuilt shader at {shader_path}");
         println!("cargo:rustc-env=BROT3_SHADER={shader_path}");
+    } else if cfg!(feature = "suppress-shader-build") {
+        build_print::note!("Suppressing shader build due to feature flag");
     } else {
         // If not, go build it.
         build_print::note!("Running shader builder...");

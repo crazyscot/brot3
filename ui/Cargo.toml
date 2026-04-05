@@ -24,6 +24,8 @@ bench = false
 default = []
 runtime-compilation = ["easy-shader-runner/runtime-compilation"]
 hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
+## For use in special CI jobs only
+suppress-shader-build = []
 
 [dependencies]
 brot3-lib = { workspace = true }

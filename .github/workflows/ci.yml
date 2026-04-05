@@ -14,6 +14,8 @@ env:
   BROT3_RUST_VERSION: nightly-2025-06-30
   # BROT3_RUST_VERSION should match the version in rust-toolchain.toml & across all workflows
 
+# N.B. github runners have `rustup set profile minimal` by default
+
 jobs:
   build:
     uses: ./.github/workflows/build.yml
@@ -62,8 +64,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Set minimal profile # no fmt or clippy
-        run: rustup set profile minimal
       - uses: actions/checkout@v6
       - name: Install Rust
         uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
@@ -115,3 +115,21 @@ jobs:
         if: ${{ failure() }}
       - run: cargo +stable machete --with-metadata
         if: ${{ !cancelled() }}
+
+  clippy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: set toolchain override
+        run: cp -f rust-toolchain-fmt.toml rust-toolchain.toml
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
+        with:
+          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          components: clippy,rustc-dev
+      - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2
+      - name: clippy
+        run: cargo clippy --locked --workspace -F suppress-shader-build
+        env:
+          RUSTGPU_SKIP_TOOLCHAIN_CHECK: 1
