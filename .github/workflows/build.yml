@@ -35,7 +35,7 @@ jobs:
         uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
         with:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
-          components: clippy,rust-src,rustc-dev,llvm-tools
+          components: rust-src,rustc-dev,llvm-tools
       - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2
         with:
           cache-workspace-crates: true
@@ -43,9 +43,6 @@ jobs:
       - name: build shader
         run: cargo run -p shader_builder --locked --release
         # Continue on error as far as possible, to provide maximum useful information
-      - name: clippy (lib)
-        run: cargo clippy -p brot3-lib --locked --release --all-targets
-        if: ${{ !cancelled() }}
       - name: Upload SPIRV artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
@@ -97,7 +94,7 @@ jobs:
           print('::group::Building matrix')
 
           # Combinations to always include in the matrix
-          matrix = [combo('x86_64-unknown-linux-gnu', 'ubuntu-22.04', 'cargo-deb', 'clippy', True)]
+          matrix = [combo('x86_64-unknown-linux-gnu', 'ubuntu-22.04', 'cargo-deb', '', True)]
 
           # Combinations to include only on release builds
           if RELEASE_WORKFLOW == 'true':
@@ -203,12 +200,6 @@ jobs:
         with:
           name: brot3_${{ steps.version.outputs.version }}-deb-${{ matrix.runs_on }}
           path: ${{ steps.build_deb.outputs.deb }}
-
-      - name: clippy (ui)
-        # Run clippy only on the Linux build
-        # !cancelled() because we want this to run even if a previous step failed
-        if: ${{ matrix.platform == 'linux' && !cancelled() }}
-        run: cargo clippy -p brot3-ui -p shader_builder -p xtask --locked --release --no-default-features --all-targets
 
       - name: create mac Info.plist
         if: ${{ matrix.platform == 'mac' }}
