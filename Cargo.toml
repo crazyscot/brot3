@@ -100,16 +100,6 @@ variant_size_differences = "deny"
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
 pedantic = { level = "deny", priority = -1 }
-
-# note: rust-cache turns off incremental builds, so we don't need a profile mod for CI.
-# [profile.release]
-# See https://nnethercote.github.io/perf-book/build-configuration.html
-# codegen-units = 1
-# lto = "thin"
-# strip = "debuginfo"
-# incremental = false # implicit by rust-cache
-
-[profile.bench]
 # codegen-units = 1
 
 [profile.release]
