@@ -5,7 +5,10 @@
 //! This crate has a hidden dependency on the `png` feature of the `image` crate.
 //! </div>
 
-use std::sync::{Arc, atomic::AtomicBool};
+use std::{
+    sync::{Arc, atomic::AtomicBool},
+    time::Instant,
+};
 
 use brot3_lib::{
     BigVec2,
@@ -17,7 +20,6 @@ use easy_shader_runner::{
     ControllerTrait, GraphicsContext, UiState as ESRUiState, egui, wgpu, winit,
 };
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
-use web_time::Instant;
 use winit::{
     dpi::PhysicalSize,
     event::{ElementState, MouseButton},

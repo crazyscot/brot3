@@ -36,7 +36,6 @@ ui = [
   "scopeguard",
   "futures",
   "num-traits",
-  "web-time",
 ]
 
 [dependencies]
@@ -63,7 +62,6 @@ serde_json.workspace = true
 strum = { workspace = true, features = ["std"] }
 thiserror.workspace = true
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
-web-time = { workspace = true, optional = true }
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
 easy-shader-runner = { workspace = true, default-features = false, optional = true }
