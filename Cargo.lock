@@ -1061,8 +1061,7 @@ checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 
 [[package]]
 name = "easy-shader-runner"
-version = "0.0.0"
-source = "git+https://github.com/crazyscot/easy-shader-runner?rev=318d9087427c54d7385da13fe01173fca85089fb#318d9087427c54d7385da13fe01173fca85089fb"
+version = "3.4.0"
 dependencies = [
  "bytemuck",
  "cfg-if",
@@ -1074,15 +1073,12 @@ dependencies = [
  "env_logger",
  "futures",
  "glam",
- "js-sys",
- "log",
  "spirv-builder",
  "thiserror 2.0.18",
  "wasm-bindgen-futures",
  "web-sys",
  "web-time",
  "wgpu",
- "winit",
 ]
 
 [[package]]
@@ -1461,17 +1457,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cecba35d7ad927e23624b22ad55235f2239cfa44fd10428eecbeba6d6a717718"
 
 [[package]]
-name = "futures-macro"
-version = "0.3.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e835b70203e41293343137df5c0664546da5745f82ec9b84d40be8336958447b"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
 name = "futures-sink"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1492,7 +1477,6 @@ dependencies = [
  "futures-channel",
  "futures-core",
  "futures-io",
- "futures-macro",
  "futures-sink",
  "futures-task",
  "memchr",

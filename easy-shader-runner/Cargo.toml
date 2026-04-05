@@ -1,0 +1,47 @@
+[package]
+name = "easy-shader-runner"
+version.workspace = true
+authors = ["Abel <abel465@gmail.com>"]
+edition.workspace = true
+keywords = ["shaders", "rust-gpu", "egui"]
+license = "MIT"
+publish = false
+repository = "https://github.com/abel465/easy-shader-runner"
+description = "Use rust shaders and egui on the web and native"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["hot-reload-shader"]
+runtime-compilation = ["dep:spirv-builder"]
+hot-reload-shader = ["spirv-builder/watch"]
+emulate_constants = []
+compute = []
+
+[dependencies]
+bytemuck.workspace = true
+cfg-if.workspace = true
+egui.workspace = true
+egui-wgpu.workspace = true
+glam.workspace = true
+thiserror.workspace = true
+web-time.workspace = true
+
+[target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
+egui-winit = { workspace = true, default-features = true }
+env_logger.workspace = true
+futures = { workspace = true, default-features = false, features = ["executor"] }
+spirv-builder = { workspace = true, optional = true }
+wgpu = { workspace = true, default-features = false, features = ["spirv", "vulkan", "dx12", "metal"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+egui-winit = { workspace = true, default-features = false }
+wgpu = { workspace = true, default-features = false, features = ["spirv", "webgpu"] }
+console_error_panic_hook = "0.1.7"
+console_log = "1.0.0"
+wasm-bindgen-futures = "0.4.50"
+web-sys = "0.3.77"
+
+# [lints]
+# workspace = true
