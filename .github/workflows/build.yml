@@ -38,7 +38,6 @@ jobs:
           components: rust-src,rustc-dev,llvm-tools
       - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2.8.2
         with:
-          cache-workspace-crates: true
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
       - name: build shader
         run: cargo run -p shader_builder --locked --release
