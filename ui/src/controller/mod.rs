@@ -35,7 +35,7 @@ mod small_windows;
 mod ui;
 
 const MIN_ZOOM: f64 = 0.05;
-pub(crate) const MAX_ZOOM_STANDARD: f64 = 1.0e4; // reported on UI as 40000
+use crate::MAX_ZOOM_STANDARD;
 
 // Around this point, f32 maths breaks down: we can no longer accurately represent pixel sizes.
 const MAX_ZOOM_PERTURBATIONS_F32: f64 = 2.5e34; // reported on UI as 1e35

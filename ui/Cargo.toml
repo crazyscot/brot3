@@ -21,45 +21,57 @@ doctest = false
 bench = false
 
 [features]
-default = []
+default = ["ui"]
 runtime-compilation = ["easy-shader-runner/runtime-compilation"]
 hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
 ## For use in special CI jobs only
 suppress-shader-build = []
+ui = [
+  "easy-shader-runner",
+  "egui_extras",
+  "rfd",
+  "bytemuck",
+  "dirs",
+  "chrono",
+  "scopeguard",
+  "futures",
+  "num-traits",
+  "web-time",
+]
 
 [dependencies]
 brot3-lib = { workspace = true }
-bytemuck = { workspace = true }
+bytemuck = { workspace = true, optional = true }
 cfg-if = { workspace = true }
-chrono = { workspace = true, features = ["clock"] }
+chrono = { workspace = true, features = ["clock"], optional = true }
 clap = { workspace = true, features = ["derive", "wrap_help"] }
-dirs = { workspace = true }
-egui_extras = { workspace = true, features = ["image"] }
+dirs = { workspace = true, optional = true }
+egui_extras = { workspace = true, features = ["image"], optional = true }
 env_logger = { workspace = true }
-futures = { workspace = true }
+futures = { workspace = true, optional = true }
 glam = { workspace = true }
 # image is indirectly used, for unpicking PNGs
 image = { workspace = true, features = ["png"] }
 log = { workspace = true }
 mimalloc = { workspace = true }
-num-traits = { workspace = true }
+num-traits = { workspace = true, optional = true }
 png = { workspace = true }
 rayon = { workspace = true }
-rfd = { workspace = true }
-scopeguard = { workspace = true }
+rfd = { workspace = true, optional = true }
+scopeguard = { workspace = true, optional = true }
 serde_json.workspace = true
 strum = { workspace = true, features = ["std"] }
 thiserror.workspace = true
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
-web-time = { workspace = true }
+web-time = { workspace = true, optional = true }
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
-easy-shader-runner = { workspace = true, default-features = false }
+easy-shader-runner = { workspace = true, default-features = false, optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # CAUTION: wasm builds are not currently tested.
 # wasm-bindgen-futures = "0.4.55"
-easy-shader-runner = { workspace = true, default-features = false, features = ["emulate_constants"] }
+easy-shader-runner = { workspace = true, default-features = false, features = ["emulate_constants"], optional = true }
 
 [build-dependencies]
 build-print = { workspace = true }

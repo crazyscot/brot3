@@ -6,9 +6,11 @@
 use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
 mod cli;
+#[cfg(feature = "ui")]
 mod controller;
 mod render;
 pub(crate) mod save;
+#[cfg(feature = "ui")]
 pub mod widgets;
 
 #[cfg(runtime_compile)]
@@ -26,6 +28,8 @@ const CANDIDATE_SHADER_PATHS: &[&str] = &["./lib", "../lib"];
 
 pub(crate) mod version;
 use version::version_string;
+
+pub(crate) const MAX_ZOOM_STANDARD: f64 = 1.0e4; // reported on UI as 40000
 
 #[cfg(runtime_compile)]
 fn is_directory<P: AsRef<Path>>(path: P) -> bool {
@@ -54,12 +58,15 @@ pub enum MainError {
     ShaderDirectoryNotFound(String),
     #[error("SPIRV tools {0} not found")]
     SpirvToolsNotFound(String),
+    #[cfg(feature = "ui")]
     #[error(transparent)]
     EasyShaderRunner(#[from] easy_shader_runner::Error),
     #[error(transparent)]
     Render(#[from] render::RenderError),
     #[error("Shader not present due to suppress-shader-build feature")]
     SuppressedShaderBuild,
+    #[error("User interface is not present in this build")]
+    UilessBuild,
 }
 
 /// Main CLI entrypoint
@@ -72,13 +79,21 @@ pub async fn main() -> Result<(), MainError> {
         println!("{}", version_string("brot3 "));
         return Ok(());
     }
+
     if args.output.is_some() {
         render::main(&args)
     } else {
-        ui_main(&args)
+        cfg_if::cfg_if! {
+            if #[cfg(feature = "ui")] {
+                ui_main(&args)
+            } else {
+                Err(MainError::UilessBuild)
+            }
+        }
     }
 }
 
+#[cfg(feature = "ui")]
 fn ui_main(args: &cli::Args) -> Result<(), MainError> {
     easy_shader_runner::setup_logging();
     let controller = controller::Controller::new(args);

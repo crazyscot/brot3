@@ -25,7 +25,7 @@ pub(crate) fn main(args: &Args) -> Result<(), MainError> {
     let mut constants = FragmentConstants::from(&state);
 
     let mut perturbation_points = Vec::new();
-    if f64::from(constants.viewport_zoom) > crate::controller::MAX_ZOOM_STANDARD {
+    if f64::from(constants.viewport_zoom) > crate::MAX_ZOOM_STANDARD {
         constants.flags |= Flags::PERTURBATION_MODE;
         brot3_lib::engine::mandelbrot_perturbed_compute_reference_iters(
             &mut perturbation_points,
