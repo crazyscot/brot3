@@ -165,6 +165,10 @@ impl UiState {
                 log::info!("Loaded from {}", path.display());
                 Ok(state)
             }
+            Err(LibError::Io(e)) if e.kind() == std::io::ErrorKind::InvalidData => {
+                // This is what we get when the file isn't valid UTF-8. Try PNG.
+                Ok(UiState::load_png(&path)?)
+            }
             Err(LibError::Json(j)) => {
                 if j.is_syntax() {
                     // It's not valid JSON, so try PNG
