@@ -87,6 +87,8 @@ pub(crate) struct Controller {
 
     // Loading & saving
     load_save_active: Arc<AtomicBool>,
+    // Are we working on a save operation? (Should we display that flag?)
+    save_busy: Arc<AtomicBool>,
     // The last directory we used for a save or load operation.
     last_save_dir: Option<std::path::PathBuf>,
     // Spawned UI tasks use this channel to communicate their last used directory
@@ -165,6 +167,7 @@ impl Controller {
             inspector: Inspector::default(),
             render_pass: 0,
             load_save_active: Arc::new(AtomicBool::new(false)),
+            save_busy: Arc::new(AtomicBool::new(false)),
             last_save_dir: None,
             save_dir_channel: Channel::default(),
             error_message: error_message.map(Arc::new),

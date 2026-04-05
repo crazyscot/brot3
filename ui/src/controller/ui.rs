@@ -2,6 +2,8 @@
 //!
 //! Portions of this file are based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
 
+use std::sync::atomic::Ordering;
+
 use brot3_lib::{
     data::{Algorithm, NumericType, Palette},
     engine,
@@ -103,6 +105,9 @@ impl super::Controller {
         }
         if self.show_open {
             self.open_ui(ctx);
+        }
+        if self.save_busy.load(Ordering::Relaxed) {
+            Self::save_busy_window(ctx);
         }
         self.error_modal(ctx);
 

@@ -170,9 +170,15 @@ impl super::Controller {
             let perturbation_points = self.perturbation.points.clone();
             let consts = self.fragment_constants(true);
             let state = self.state.clone();
+            let save_busy = Arc::clone(&self.save_busy);
+
             self.load_save_generic_workflow(
                 || save_dialog.save_file(),
                 move |filename| {
+                    save_busy.store(true, std::sync::atomic::Ordering::Release);
+                    scopeguard::defer! {
+                        save_busy.store(false, std::sync::atomic::Ordering::Release);
+                    }
                     crate::save::do_save_image(filename, consts, &state, &perturbation_points, true)
                 },
                 "saving image",
@@ -281,5 +287,16 @@ impl super::Controller {
         use brot3_lib::ui::update_field_from_channel as uffc;
         uffc(&self.error_message_channel, &mut self.error_message);
         uffc(&self.save_dir_channel, &mut self.last_save_dir);
+    }
+
+    pub(crate) fn save_busy_window(ctx: &egui::Context) {
+        egui::Window::new("Saving...")
+            .title_bar(false)
+            .resizable(false)
+            .interactable(false)
+            .anchor(egui::Align2::LEFT_TOP, egui::Vec2::new(50., 25.))
+            .show(ctx, |ui| {
+                ui.label(egui::RichText::new("Saving...").size(36.));
+            });
     }
 }
