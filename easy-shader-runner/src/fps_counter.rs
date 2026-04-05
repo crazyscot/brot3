@@ -1,6 +1,7 @@
-use std::collections::VecDeque;
-
-use web_time::{Duration, Instant};
+use std::{
+    collections::VecDeque,
+    time::{Duration, Instant},
+};
 
 pub struct FpsCounter {
     frames: VecDeque<Instant>,

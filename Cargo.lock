@@ -1077,7 +1077,6 @@ dependencies = [
  "thiserror 2.0.18",
  "wasm-bindgen-futures",
  "web-sys",
- "web-time",
  "wgpu",
 ]
 
