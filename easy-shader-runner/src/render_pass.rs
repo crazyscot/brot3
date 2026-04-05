@@ -1,9 +1,10 @@
+use egui_winit::winit::window::Window;
+
 use crate::{
     context::GraphicsContext,
     controller::ControllerTrait,
     ui::{Ui, UiState},
 };
-use egui_winit::winit::window::Window;
 
 #[cfg(feature = "emulate_constants")]
 struct EmulateConstantsBuffer {

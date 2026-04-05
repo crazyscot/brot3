@@ -1,4 +1,5 @@
-use crate::{GraphicsContext, controller::ControllerTrait, fps_counter::FpsCounter};
+use std::sync::Arc;
+
 use egui::{
     Context,
     epaint::{ClippedPrimitive, textures::TexturesDelta},
@@ -7,7 +8,8 @@ use egui_winit::{
     State,
     winit::{event::WindowEvent, window::Window},
 };
-use std::sync::Arc;
+
+use crate::{GraphicsContext, controller::ControllerTrait, fps_counter::FpsCounter};
 
 #[derive(Clone, Copy)]
 pub struct Options {
@@ -30,7 +32,8 @@ pub struct UiState {
     ///
     /// easy-shader-runner sets fullscreen_active to reflect the actual fullscreen state.
     pub fullscreen_active: bool,
-    /// Controller sets this when it wants to change the state. easy-shader-runner will clear it once actioned.
+    /// Controller sets this when it wants to change the state. easy-shader-runner will clear it
+    /// once actioned.
     pub fullscreen_requested: Option<bool>,
     pub escape_exits: bool,
 }

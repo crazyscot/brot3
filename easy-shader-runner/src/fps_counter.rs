@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+
 use web_time::{Duration, Instant};
 
 pub struct FpsCounter {

@@ -1,5 +1,6 @@
-use spirv_builder::{CompileResult, MetadataPrintout, ModuleResult, SpirvBuilder};
 use std::path::{Path, PathBuf};
+
+use spirv_builder::{CompileResult, MetadataPrintout, ModuleResult, SpirvBuilder};
 #[cfg(feature = "hot-reload-shader")]
 use {
     crate::{controller::ControllerTrait, user_event::CustomEvent},

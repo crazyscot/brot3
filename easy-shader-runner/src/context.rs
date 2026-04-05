@@ -1,6 +1,8 @@
-use crate::controller::ControllerTrait;
-use egui_winit::winit::{dpi::PhysicalSize, window::Window};
 use std::sync::Arc;
+
+use egui_winit::winit::{dpi::PhysicalSize, window::Window};
+
+use crate::controller::ControllerTrait;
 
 pub struct GraphicsContext {
     pub surface: wgpu::Surface<'static>,

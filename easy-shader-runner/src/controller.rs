@@ -1,7 +1,10 @@
-use crate::GraphicsContext;
-use egui_winit::winit::event::{ElementState, KeyEvent, MouseButton, TouchPhase};
-use egui_winit::winit::event_loop::ActiveEventLoop;
+use egui_winit::winit::{
+    event::{ElementState, KeyEvent, MouseButton, TouchPhase},
+    event_loop::ActiveEventLoop,
+};
 use glam::*;
+
+use crate::GraphicsContext;
 
 pub trait ControllerTrait: 'static {
     fn resize(&mut self, _size: UVec2);
@@ -81,6 +84,7 @@ pub trait ControllerTrait: 'static {
     fn new_shader_module(&mut self) {}
 
     /// This callback is invoked during initialision, before the wgpu context is created.
-    /// For example, it allows you to detect the available screen resolutions before the shader is first launched.
+    /// For example, it allows you to detect the available screen resolutions before the shader is
+    /// first launched.
     fn app_resumed(&mut self, _event_loop: &ActiveEventLoop) {}
 }

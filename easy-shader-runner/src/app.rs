@@ -1,11 +1,4 @@
-use crate::{
-    Parameters,
-    context::GraphicsContext,
-    controller::ControllerTrait,
-    render_pass::RenderPass,
-    ui::{Ui, UiState},
-    user_event::CustomEvent,
-};
+use std::{borrow::Cow, sync::Arc};
 
 use egui_winit::winit::{
     application::ApplicationHandler,
@@ -15,8 +8,15 @@ use egui_winit::winit::{
     keyboard::{Key, NamedKey},
     window::{Fullscreen, Window, WindowId},
 };
-use std::borrow::Cow;
-use std::sync::Arc;
+
+use crate::{
+    Parameters,
+    context::GraphicsContext,
+    controller::ControllerTrait,
+    render_pass::RenderPass,
+    ui::{Ui, UiState},
+    user_event::CustomEvent,
+};
 
 pub struct Graphics<C: ControllerTrait> {
     rpass: RenderPass,
@@ -154,9 +154,10 @@ impl<C: ControllerTrait + Send> App<C> {
             // This is an event that tells us the application wishes to assert the fullscreen state.
             if should_be_fullscreen {
                 gfx.window.current_monitor().map(|monitor| {
-                    monitor.video_modes().next().map(|mode|{
+                    monitor.video_modes().next().map(|mode| {
                         if cfg!(any(target_os = "macos", unix)) {
-                            gfx.window.set_fullscreen(Some(Fullscreen::Borderless(Some(monitor))));
+                            gfx.window
+                                .set_fullscreen(Some(Fullscreen::Borderless(Some(monitor))));
                         } else {
                             gfx.window.set_fullscreen(Some(Fullscreen::Exclusive(mode)));
                         }

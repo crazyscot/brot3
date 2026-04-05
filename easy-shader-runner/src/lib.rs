@@ -1,15 +1,12 @@
-use egui_winit::winit::event_loop::EventLoop;
-use std::borrow::Cow;
-use std::path::PathBuf;
-use user_event::CustomEvent;
+use std::{borrow::Cow, path::PathBuf};
 
 pub use context::GraphicsContext;
 pub use controller::ControllerTrait;
-pub use ui::UiState;
-
 pub use egui_wgpu::wgpu;
-pub use egui_winit::egui;
-pub use egui_winit::winit;
+use egui_winit::winit::event_loop::EventLoop;
+pub use egui_winit::{egui, winit};
+pub use ui::UiState;
+use user_event::CustomEvent;
 
 mod app;
 mod context;
