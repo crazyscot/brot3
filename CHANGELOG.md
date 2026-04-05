@@ -1,3 +1,136 @@
+## [3.4.0](https://github.com/crazyscot/brot3/releases/tag/v3.4.0) - 2026-04-05
+
+### 🚀 Features
+
+- *(cli)* Add --max_iter, --centre, --zoom and some help headings - ([13458eb](https://github.com/crazyscot/brot3/commit/13458eba3467f5adc92fcb9138b9880ecb04b4a3))
+- Create Save Image menu item, file dialog, placeholder save code - ([b610512](https://github.com/crazyscot/brot3/commit/b610512fb04ac73294f5dbe9e0737ecbd64adbf0))
+- Save PNG (rendered entirely on the host for now) - ([e4fa01e](https://github.com/crazyscot/brot3/commit/e4fa01eb9e00445e1bea0c669585c21086369e5f))
+- Set PNG file descriptive comment and better default filename - ([7bed802](https://github.com/crazyscot/brot3/commit/7bed80265a65c47a038455cb70ff917b5929ede9))
+- Add CLI options --colour-style and --brightness-style - ([1d0e437](https://github.com/crazyscot/brot3/commit/1d0e4379427b892995af190f60a160d7d563bb75))
+- Save the current UI state as a JSON file - ([0588438](https://github.com/crazyscot/brot3/commit/0588438deeee8d5e65257e9979f6d640d596ef71))
+- Include encoded UI state in a PNG, for later reloading - ([e6670a0](https://github.com/crazyscot/brot3/commit/e6670a02d7dfa94e915b0a89624d72757d16aef7))
+- CLI to allow loading a saved position file - ([bf33b6d](https://github.com/crazyscot/brot3/commit/bf33b6d574f784f221ef71a261eeef4d76f4e6b2))
+- CLI to allow loading a PNG: use its metadata as the initial position - ([93f7898](https://github.com/crazyscot/brot3/commit/93f7898e339aaed0c81f8400ef1b78685d682616))
+- Open a file (JSON or PNG) to jump to its position - ([1fe3c71](https://github.com/crazyscot/brot3/commit/1fe3c71e9e95a4a2778e6d71e0ae46ec0e21701e))
+- CLI --output to render as PNG - ([fc57ba6](https://github.com/crazyscot/brot3/commit/fc57ba661deed564fe3c9d1fceb1dc058a16b170))
+
+### 🐛 Bug Fixes
+
+- *(build)* Shader on spir-v with debug=true - ([be20e5d](https://github.com/crazyscot/brot3/commit/be20e5df74b4f9bdb147b14b437a72530a446453))
+- Negative exponents - ([c134c83](https://github.com/crazyscot/brot3/commit/c134c83f47a88c623b2a489ea4ebf89da0ae4534))
+- Mouse zoom gestures should zoom about the current pointer location - ([f5083c6](https://github.com/crazyscot/brot3/commit/f5083c6117bc3449471e814d74def074bfa0cce8))
+- Don't include coordinates in suggested filenames, it makes them too long - ([dd0be69](https://github.com/crazyscot/brot3/commit/dd0be690b646cd20e81a4c3b355fc5e4c68dfbd3))
+- Anchor data read-out so it doesn't move around on window resize - ([441196b](https://github.com/crazyscot/brot3/commit/441196b181b10d9958a3f207f63af4b741784331))
+- Use correct size of perturbation buffer - ([eda56fc](https://github.com/crazyscot/brot3/commit/eda56fc798dc3b2d0e06f40a2d8a28245586291d))
+- Apply perturbation mode correctly when given a file at startup - ([9c6f610](https://github.com/crazyscot/brot3/commit/9c6f6104495357fde985f0332b87f9b1886d573a))
+- Value clamping in UI - ([1984bfc](https://github.com/crazyscot/brot3/commit/1984bfca3ae0c0c4f3dd418fd127a93021ce2329))
+- Buffer overrun that sometimes crashed deep zooms - ([8fc55dd](https://github.com/crazyscot/brot3/commit/8fc55dd43b954c491f16be6933d0a69a80126e7b))
+- Exponent hotkeys in integer mode - ([fc6dc4f](https://github.com/crazyscot/brot3/commit/fc6dc4f51969ffab02aae13888c373a20ebbaa66))
+- Using some PNG files containing a JSON descriptor as input - ([63ce333](https://github.com/crazyscot/brot3/commit/63ce333ac71331e1fa69eafe5ed0394abb142c46))
+
+### 📚 Documentation
+
+- Doc comments for Algorithm, Colourer, ColourStyle, Modifier - ([080d63e](https://github.com/crazyscot/brot3/commit/080d63e95ac52bcfd992f84a2aba283cfb6fb435))
+
+### ⚡ Performance
+
+- Use rayon on host-side PNG renders for a significant speed-up - ([69d0dbd](https://github.com/crazyscot/brot3/commit/69d0dbd203cc02bd4ba958562f26c06005b918f5))
+- Add Exponentiator::apply_power_minus_1_to - ([27b22d9](https://github.com/crazyscot/brot3/commit/27b22d95fe2447708d938ec07926f179c3c1f2f0))
+- Don't compute distance estimation unless we actually need to - ([4e62b63](https://github.com/crazyscot/brot3/commit/4e62b639255e30c2c9be97727a30505c1f6a0c24))
+- Inline some trait implementations - ([e7456cd](https://github.com/crazyscot/brot3/commit/e7456cdc1ea371ddc374be725059ec5db8e21a77))
+- Merge IntegerPower and RealPower structs into Complex - ([fa38340](https://github.com/crazyscot/brot3/commit/fa38340148dd3b7490967ef03c31932376ebb661))
+- Optimise macro-generated exponentiation special cases - ([4081f99](https://github.com/crazyscot/brot3/commit/4081f99bae045942888d321a381d87652afd85e4))
+- Refactor away warp divergence in colouring algorithms - ([a574a07](https://github.com/crazyscot/brot3/commit/a574a072048ab182b816266cfa727e91719bcf8a))
+- Refactor away more if statements to remove warp divergence - ([b17a653](https://github.com/crazyscot/brot3/commit/b17a653ce38a4c6b9cde30ad4f7a9e56a681935c))
+- Implement some short-cuts for special cases - ([bcea2ae](https://github.com/crazyscot/brot3/commit/bcea2ae9c9427cec21ce968a2686984db87df27d))
+
+### 🚜 Refactor
+
+- *(!)* Move NumericType and PushExponent into util - ([62a1bd9](https://github.com/crazyscot/brot3/commit/62a1bd9754659b217fa2b90f8adb47b0650dda51))
+- *(!)* Merge shader into lib - ([582606d](https://github.com/crazyscot/brot3/commit/582606d0e4034e94c989eea9b7590b03e8ee01f1))
+- Add Exponent struct, streamlined for serialization - ([9e74873](https://github.com/crazyscot/brot3/commit/9e74873577a9588501080ab10aaf0e59b488f08c))
+- Merge ui's Exponent into PushExponent - ([fa58070](https://github.com/crazyscot/brot3/commit/fa580709bdf94d2663fae7df08e2da1272f76220))
+- Move BigComplex and BigVec2 to util - ([f651a31](https://github.com/crazyscot/brot3/commit/f651a31e0a69fd4b2850eae937b7d4914271ebf1))
+- UI zoom display calculation - ([55d7ac1](https://github.com/crazyscot/brot3/commit/55d7ac1ffce70690eb88578e0107147e66f837cf))
+- Move pixel_spacing_* calculations into a helper trait - ([8b9a62c](https://github.com/crazyscot/brot3/commit/8b9a62c5530cf84813086209eb701937427c70eb))
+- Move shader entrypoints into their own module as far as possible - ([ad01333](https://github.com/crazyscot/brot3/commit/ad01333a323e4bedab3f3f1e93c1a86b8603b76d))
+- Tidy shader crate exports - ([a791a98](https://github.com/crazyscot/brot3/commit/a791a98052a434264d319e3059a3ed4159ae8bc9))
+- Move enums to a new base crate - ([3fd1ea1](https://github.com/crazyscot/brot3/commit/3fd1ea133453d131584f316dd0c87c52b8ef4504))
+- Move PushExponent into base - ([a977d63](https://github.com/crazyscot/brot3/commit/a977d6312d992dea57e86f7f13c6b465520d365a))
+- Move Exponent from util to base - ([679a6ed](https://github.com/crazyscot/brot3/commit/679a6ed7ef6093674062bc78736de565504e92b6))
+- Move Big module into base - ([c7f3e26](https://github.com/crazyscot/brot3/commit/c7f3e26c17ca79ef5379fb8ddb0c7c956e5817c9))
+- Move dynfmt into base - ([0969430](https://github.com/crazyscot/brot3/commit/09694305f57deb0765040aaf706f65f2caa89a68))
+- Use log instead of dprintln - ([61fb4bc](https://github.com/crazyscot/brot3/commit/61fb4bc1057f6540a374587ce2078861168adc69))
+- Move PixelSpacing into base - ([78815e2](https://github.com/crazyscot/brot3/commit/78815e2be12f7a7526694f727aec0b0f18b1180a))
+- ViewportZoom - ([d229d0c](https://github.com/crazyscot/brot3/commit/d229d0c0e90f4d2714b9cc917e526cad05ce3542))
+- Move FragmentConstants::DEFAULT_SIZE into Controller, as NOMINAL_SIZE - ([738808e](https://github.com/crazyscot/brot3/commit/738808e8122527fb26364187c26cd925d2f4f4c8))
+- Calculate LOGLOG2_ESCAPE_THRESHOLD at the start of the run - ([b57c69d](https://github.com/crazyscot/brot3/commit/b57c69dd642afb85ab16a5c2bde90d97f3d861b2))
+- Add better float comparisons for Exponent - ([8d31745](https://github.com/crazyscot/brot3/commit/8d31745bf2cc34a0dc8de3e8329e5c9547f95848))
+- Rename base to brot3-lib - ([b5111ea](https://github.com/crazyscot/brot3/commit/b5111ea2f2a291394d7180961b16a53a595aa56c))
+- Lib::big -> lib::bignum - ([9c40838](https://github.com/crazyscot/brot3/commit/9c4083826f33b30fcedbcdbce7951891643df4d3))
+- Internal structure of lib crate - ([216a90f](https://github.com/crazyscot/brot3/commit/216a90f6a084c71172e09a094505a11cd2cc1b62))
+- Move relevant UI fields into a serializable structure - ([2a5a433](https://github.com/crazyscot/brot3/commit/2a5a4337ecba5a6eb1e0731875b461a925ffe4cb))
+- Move DEFAULT_FRACTAL_PLANE_SIZE and NOMINAL_WINDOW_SIZE into the engine - ([4b20940](https://github.com/crazyscot/brot3/commit/4b20940d960d2a861d281adaa085b3b36b9a53a8))
+- Move Controller.size into UiState - ([7564b74](https://github.com/crazyscot/brot3/commit/7564b740a5feb8b0ed0ddb7838510ba348b9788a))
+- FragmentConstants.display_string() - ([9f5cd80](https://github.com/crazyscot/brot3/commit/9f5cd8063c259db71efc78e090287e5ea8b54ea4))
+- Pivot from anyhow to thiserror in lib, ui, shader_builder - ([ff7189f](https://github.com/crazyscot/brot3/commit/ff7189fd74145eff60638512258cd20010caa4a0))
+- Open/save result workflows - ([9db1dad](https://github.com/crazyscot/brot3/commit/9db1dad668c69ff0409bf1723094f67c72dfd7c5))
+- Use mpsc channels for task signalling instead of Arc<Mutex<...>> - ([4f2d6fb](https://github.com/crazyscot/brot3/commit/4f2d6fb442665c2e27af959bede7dac5038cf066))
+- Move UiState save/load logic into lib - ([35c8806](https://github.com/crazyscot/brot3/commit/35c88062be11c00d155995fd2fbdb72f0548cea4))
+
+### 🎨 Styling
+
+- Move debug options into a submenu - ([ebe95a4](https://github.com/crazyscot/brot3/commit/ebe95a460c59b50078929f50a74a3776317ff062))
+- Colourize CLI - ([7f9891c](https://github.com/crazyscot/brot3/commit/7f9891c2293ce53a996c886236531e9b39d7c1e7))
+- Add tooltip help text to enum drop-downs in the UI - ([56b41a1](https://github.com/crazyscot/brot3/commit/56b41a1606715e2ef144d67e96d66b9fcd10f755))
+- Add a Saving window while saving - ([7daac37](https://github.com/crazyscot/brot3/commit/7daac37ed2d9c701d2d299d4eca145420a12df4c))
+
+### 🧪 Testing
+
+- Add test data for benchmarking, ignore flamegraph output files - ([81d3acd](https://github.com/crazyscot/brot3/commit/81d3acd91d73082dd7a352f553cef137746d1446))
+- Add gungraun (cycle-counting) benchmarks - ([f3144c7](https://github.com/crazyscot/brot3/commit/f3144c770b07fdb681e4f83b4c01f016fa8bcf93))
+- Add criterion benchmarker - ([4f20331](https://github.com/crazyscot/brot3/commit/4f2033111fb4427038ac8e91c707548fe494d093))
+- Merge colour conversion into cycles benchmarker - ([0933600](https://github.com/crazyscot/brot3/commit/0933600028443e8b708190bf679f977e9c47a0ae))
+- No cache-workspace-crates on shader - ([df90016](https://github.com/crazyscot/brot3/commit/df900163204daefc1947ad33ebe2f1b4c88a9608))
+
+### 🏗️  Build, packaging & CI
+
+- Add debug to shader_builder, align build options with those of easy-shader-runner - ([053c408](https://github.com/crazyscot/brot3/commit/053c408fbdc240a700fb9625b2187536ecf6fd80))
+- Tidy up bench & release profiles - ([891c791](https://github.com/crazyscot/brot3/commit/891c791bb2bf50eea8f011793371de067ff7ac65))
+- Debloat release builds (debug = line-tables-only) - ([f12f2dd](https://github.com/crazyscot/brot3/commit/f12f2ddddb017e11450b210147e33670afb93406))
+- Move clippy to its own job - ([84a0bc7](https://github.com/crazyscot/brot3/commit/84a0bc71c7e1ab3256311382c472a5812550b513))
+- Update actions to versions that use node.js 24 - ([0249dcb](https://github.com/crazyscot/brot3/commit/0249dcbfbaa4f4d6bd6467e4b9769d9fd54d0737))
+- Add ui feature flag, enabled by default - ([2f7f081](https://github.com/crazyscot/brot3/commit/2f7f081e7aa736a6ca8dbc33d10cb0b72cf5b778))
+
+### ◀️ Revert
+
+- Refactor: move shader entrypoints into their own module as far as possible - ([219458a](https://github.com/crazyscot/brot3/commit/219458ae950ad4368c859d7011b17c8d0a472157))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Rename no-ui to no-controls; tidy up doc comments - ([6fcdfd8](https://github.com/crazyscot/brot3/commit/6fcdfd84810002f756c054f692388b8d54143daf))
+- Tidy up cargo config - ([d5c4e6f](https://github.com/crazyscot/brot3/commit/d5c4e6f0846592a2765bb440a0fc5b65bb25beda))
+- Add default filename and directory to save dialog - ([89ab14d](https://github.com/crazyscot/brot3/commit/89ab14d532842b204678ffad0fbc04b697e6e82f))
+- Add error modal in case the save fails - ([8952508](https://github.com/crazyscot/brot3/commit/8952508ff53894d167229eae9049fca8fb6b5c17))
+- Add pre-commit-checks, make it pass - ([ea871b9](https://github.com/crazyscot/brot3/commit/ea871b9c69e498dcebf5587f4c83dfc07883090e))
+- Make BigVec2 and BigComplex serialisable (as significand and exponent) - ([9654096](https://github.com/crazyscot/brot3/commit/9654096b392b160c5f041a58bb71082c979f3ecc))
+- Add Display, Debug and basic string parsing for BigVec2 and BigComplex - ([8822d0e](https://github.com/crazyscot/brot3/commit/8822d0e68f2e48e8b9cc910d1f92bbeba55f0539))
+- Switch off clippy::missing_panics_doc altogether - ([f65c852](https://github.com/crazyscot/brot3/commit/f65c85213f5bcc4305a3f639a2f55b1605d8d36e))
+- Drop now-empty util crate, update ci - ([323fbbb](https://github.com/crazyscot/brot3/commit/323fbbb4b95b939ebf3c87df412cdb5dd9d32626))
+- Cargo autoderive, resort the deps lists, update workspace structure diagram - ([4cdbc24](https://github.com/crazyscot/brot3/commit/4cdbc245c8ba16f46b86c298f403c7e6cd315c13))
+- Update copyright/authorship notices - ([e47efe9](https://github.com/crazyscot/brot3/commit/e47efe92ef059d6c390332c1b52b7b25c3125f05))
+- Reduce visibility of internal lib items - ([ae24700](https://github.com/crazyscot/brot3/commit/ae2470097f365f64b83e7588b4c1d1c020963e44))
+- Add a cfg_alias for spirv - ([4fa341a](https://github.com/crazyscot/brot3/commit/4fa341af2295cb2359f4885a73c84bd6e5078a47))
+- Add --no-parallel-render flag, to aid analysis - ([fa99235](https://github.com/crazyscot/brot3/commit/fa992352bac7d7980fd44a3d7d94f0c6e0cc0240))
+- Cargo autoinherit - ([0d3f530](https://github.com/crazyscot/brot3/commit/0d3f530bd99499489369ff9d4764a74b9d86fc22))
+- Impl FromStr for BigComplex - ([ce06fd0](https://github.com/crazyscot/brot3/commit/ce06fd0e58f7716370dec109f6a5d1c87ce82557))
+
+### 💼 Other
+
+- Introduce dprintln macro, use it for save fn chatter - ([4a03f7f](https://github.com/crazyscot/brot3/commit/4a03f7f4f9ac692a4144aebd4dd7b451734d49ad))
+- Improve pixel error handling - ([88d406f](https://github.com/crazyscot/brot3/commit/88d406f547fec1125e97345ed683df5f20a9a9c1))
+- Remove clippy from existing builds - ([15228d4](https://github.com/crazyscot/brot3/commit/15228d41e0ac861bdcb2f97377b12d3c5bdc142b))
+
 ## [3.3.0](https://github.com/crazyscot/brot3/releases/tag/v3.3.0) - 2026-01-31
 
 ### 🚀 Features

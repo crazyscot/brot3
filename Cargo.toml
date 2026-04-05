@@ -3,7 +3,7 @@ members = ["lib", "shader_builder", "ui", "xtask"]
 resolver = "2"
 
 [workspace.package]
-version = "3.3.0"
+version = "3.4.0"
 authors = ["Ross Younger <crazyscot@gmail.com>"]
 categories = ["graphics", "mathematics"]
 edition = "2024"
