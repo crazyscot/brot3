@@ -2,6 +2,7 @@
 //!
 //! Based on earlier work by Abel <abel465@gmail.com>, see <https://github.com/abel465/mandelbrot>
 
+#[cfg(not(spirv))]
 use core::str::FromStr;
 
 use bytemuck::NoUninit;
