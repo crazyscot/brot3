@@ -13,12 +13,12 @@ impl super::Controller {
                 ui.label(egui::RichText::new(crate::version_string("Version: ")).italics());
 
                 ui.add_space(12.);
-                ui.image(egui::include_image!("../../../icons/original,origin=-1.259742+0.377104i,axes=0.01+0.01i,max=512,col=lch-gradient.png"));
+                ui.image(egui::include_image!("../../../icons/about-image.png"));
                 ui.add_space(6.);
 
-                ui.label(
-                    egui::RichText::new("Dedicated to the memory of Benoît B. Mandelbrot.")
-                );
+                ui.label(egui::RichText::new(
+                    "Dedicated to the memory of Benoît B. Mandelbrot.",
+                ));
                 ui.add_space(12.);
                 if ui.button("License").clicked() {
                     self.show_license = true;
