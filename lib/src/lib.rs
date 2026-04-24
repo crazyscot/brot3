@@ -5,6 +5,8 @@
 
 #![cfg_attr(spirv, no_std)]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
+// HACK(eddyb) can't easily see warnings otherwise from `spirv-builder` builds.
+#![deny(warnings)]
 
 //! ## Feature flags
 #![doc = document_features::document_features!()]
