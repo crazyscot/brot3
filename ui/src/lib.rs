@@ -28,10 +28,13 @@ const CARGO_SHADER_RELATIVE_PATH: &str = "../lib";
 #[cfg(runtime_compile)]
 const CANDIDATE_SHADER_PATHS: &[&str] = &["./lib", "../lib"];
 
+#[doc(hidden)]
+pub use save::write_png; // exported for use by compute_shader integration test
 use version::version_string;
 
-/// Access to the spir-v shader, temporarily public for use in `compute_test.rs`
-pub const SHADER_BYTES: &[u8] = include_bytes!(env!("BROT3_SHADER"));
+#[cfg(not(feature = "suppress-shader-build"))]
+/// Single point of reference to the spir-v shader
+const SHADER_BYTES: &[u8] = include_bytes!(env!("BROT3_SHADER"));
 
 /// Absolute limit on the number of iterations, which also limits the size of the perturbation
 /// buffer.
@@ -180,14 +183,14 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
             } else {
                 easy_shader_runner::run_with_prebuilt_shader(
                     params,
-                    include_bytes!(env!("BROT3_SHADER")),
+                    SHADER_BYTES,
                 )?;
             }
         } else {
             // Runtime compilation disabled by feature flag
             easy_shader_runner::run_with_prebuilt_shader(
                 params,
-                include_bytes!(env!("BROT3_SHADER")),
+                SHADER_BYTES,
             )?;
         }
     }

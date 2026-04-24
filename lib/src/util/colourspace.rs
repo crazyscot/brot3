@@ -122,6 +122,27 @@ impl From<RgbVec> for Hsl {
     }
 }
 
+/// Packed RGBA colour as a single u32, with 8 bits per channel.
+/// This is assembled as a u32, but endian swapped as necessary so that it can be directly cast to a
+/// `[u8]` and written to a PNG file.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PackedRgba8(pub u32);
+
+impl From<RgbVec> for PackedRgba8 {
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    fn from(rgbvec: RgbVec) -> Self {
+        let rgb = (rgbvec.0.clamp(Vec3::ZERO, Vec3::ONE) * 255.0)
+            .round()
+            .as_uvec3();
+        let (r, g, b) = (rgb.x, rgb.y, rgb.z);
+        if cfg!(target_endian = "big") {
+            Self((r << 24) | (g << 16) | (b << 8) | 255)
+        } else {
+            Self((255 << 24) | (b << 16) | (g << 8) | r)
+        }
+    }
+}
+
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
@@ -160,6 +181,23 @@ mod tests {
         let cases = [tc!(Hsl::new(240.0, 100.0, 50.0), [0.0, 0.0, 1.0], RgbVec)];
         for f in cases {
             f();
+        }
+    }
+
+    #[test]
+    fn known_answer_rgbvec_rgba() {
+        let cases = [
+            ([0.0, 0.0, 0.0], 0x0000_00ff),
+            ([1.0, 1.0, 1.0], 0xffff_ffff),
+            ([1.0, 0.0, 0.0], 0xff00_00ff),
+            ([0.0, 1.0, 0.0], 0x00ff_00ff),
+            ([0.0, 0.0, 1.0], 0x0000_ffff),
+            ([0.5, 0.0, 0.25], 0x8000_40ff),
+        ]
+        .map(|(rgb, rgba)| (RgbVec::from(rgb), rgba));
+        for (rgbvec, expected) in cases {
+            let rgba: super::PackedRgba8 = rgbvec.into();
+            assert_eq!(u32::from_be(rgba.0), expected, "failing case: {rgbvec:?}");
         }
     }
 }

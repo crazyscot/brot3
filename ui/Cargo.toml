@@ -46,12 +46,15 @@ chrono = { workspace = true, features = ["clock"], optional = true }
 clap = { workspace = true, features = ["derive", "wrap_help"] }
 derive_more = { workspace = true, default-features = false, features = ["debug"] }
 dirs = { workspace = true, optional = true }
+easy-cast = { workspace = true }
 egui_extras = { workspace = true, features = ["image"], optional = true }
 env_logger = { workspace = true }
 futures = { workspace = true, optional = true }
+futures-channel = { workspace = true }
 glam = { workspace = true }
 # image is indirectly used, for unpicking PNGs
 image = { workspace = true, features = ["png"] }
+itertools = "0.14.0"
 log = { workspace = true }
 mimalloc = { workspace = true }
 num-traits = { workspace = true, optional = true }
@@ -76,6 +79,9 @@ easy-shader-runner = { workspace = true, default-features = false, features = ["
 [build-dependencies]
 build-print = { workspace = true }
 cfg_aliases = { workspace = true }
+
+[dev-dependencies]
+average = { workspace = true }
 
 [lints]
 workspace = true
