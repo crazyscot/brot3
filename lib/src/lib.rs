@@ -15,7 +15,9 @@
 #![feature(assert_matches)]
 
 /// Local glam re-exports for convenience
-pub(crate) use spirv_std::glam::{UVec2, Vec2, Vec3, Vec4, f32, uvec2, vec2, vec3};
+pub(crate) use spirv_std::glam::{
+    UVec2, UVec3, Vec2, Vec3, Vec3Swizzles as _, Vec4, f32, uvec2, uvec3, vec2, vec3,
+};
 #[cfg(spirv)]
 use spirv_std::num_traits::real::Real;
 #[allow(unused_imports)] // Some are reused in some configurations
@@ -37,7 +39,7 @@ use spirv_std::glam::Vec4Swizzles as _;
 
 use crate::{
     data::{Flags, FragmentConstants, PointResult},
-    util::{GridRef, GridRefMut, GridShared, RgbVec},
+    util::{GridRef, GridRefMut, GridShared, PackedRgba8, RgbVec},
 };
 
 /// Complex type used throughout shader
@@ -61,6 +63,7 @@ pub fn main_fs(
     #[cfg(feature = "emulate_constants")]
     #[spirv(storage_buffer, descriptor_set = 1, binding = 0)]
     constants: &FragmentConstants,
+
     #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [PointResult],
     #[spirv(storage_buffer, descriptor_set = 0, binding = 1)]
     perturbation_reference_points: &[Vec2],
@@ -123,4 +126,41 @@ pub fn main_vs(
     // pos expresses the cycle: (-1,-1) (3,-1) (-1,3) (3,3)
 
     *out_pos = pos.extend(0.0).extend(1.0);
+}
+
+pub const COMPUTE_SHADER_THREADS: UVec3 = uvec3(64, 1, 1);
+
+/// SPIRV compute shader entrypoint
+#[spirv(compute(threads(64, 1, 1)))]
+pub fn main_cs(
+    #[spirv(global_invocation_id)] gid: UVec3,
+    #[cfg(not(feature = "emulate_constants"))]
+    #[spirv(push_constant)]
+    constants: &FragmentConstants,
+    #[cfg(feature = "emulate_constants")]
+    #[spirv(storage_buffer, descriptor_set = 1, binding = 1)]
+    constants: &FragmentConstants,
+
+    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] pixels: &mut [u32],
+    #[spirv(storage_buffer, descriptor_set = 0, binding = 1)]
+    perturbation_reference_points: &[Vec2],
+) {
+    // Input gid is the pixel address
+    let coord_int = gid.xy();
+    let coord = coord_int.as_vec2();
+
+    // viewport pixel size e.g. 1920x1080
+    let size = constants.size.as_vec2();
+    let pixel_spacing = constants.pixel_spacing();
+
+    // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
+    let complex_offset = (coord - 0.5 * size) * pixel_spacing;
+
+    let render_data = engine::render(constants, complex_offset, perturbation_reference_points);
+    let colour = engine::colour_data(render_data, constants, pixel_spacing);
+
+    // no inspector marker in compute shader
+
+    let mut matrix = GridRefMut::new(constants.size.as_uvec2(), pixels);
+    matrix.set(gid.xy(), PackedRgba8::from(colour).0);
 }

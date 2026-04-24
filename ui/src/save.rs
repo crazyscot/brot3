@@ -5,7 +5,7 @@ use std::{
     fs::File,
     path::Path,
     sync::atomic::{AtomicBool, Ordering},
-    time::Instant,
+    time::{Duration, Instant},
 };
 
 use brot3_lib::{
@@ -15,6 +15,8 @@ use brot3_lib::{
 use glam::{Vec2, Vec4, uvec2, vec4};
 use rayon::prelude::*;
 use thiserror::Error;
+
+use crate::compute::ComputeController;
 
 /// The error type used by this module
 #[derive(Error, Debug, strum::EnumIs)]
@@ -28,6 +30,8 @@ pub enum LoadSaveError {
     Lib(#[from] LibError),
     #[error("Some pixels failed to render. The saved image may have gaps where this occurred.")]
     PartialRenderFailure,
+    #[error("Compute shader controller failed: {0}")]
+    ComputeController(#[from] crate::compute::ComputeControllerError),
 }
 
 pub(crate) fn do_save_image(
@@ -47,11 +51,11 @@ pub(crate) fn do_save_image(
         constants.flags |= Flags::PERTURBATION_MODE;
     }
     let start = Instant::now();
-    let (pixels, partial_failure) = render_cpu(
-        &constants,
-        perturbation_points,
-        matches!(mode, RenderMode::CpuParallel),
-    );
+    let (pixels, partial_failure) = match mode {
+        RenderMode::CpuSingleThreaded => render_cpu(&constants, perturbation_points, false),
+        RenderMode::CpuParallel => render_cpu(&constants, perturbation_points, true),
+        RenderMode::Gpu => (render_gpu(&constants, perturbation_points)?, false),
+    };
     let duration = start.elapsed();
     log::debug!("Rendered image in {duration:?}");
 
@@ -136,9 +140,53 @@ fn render_cpu(
     (pixels, failure.load(Ordering::Relaxed))
 }
 
+fn render_gpu(
+    constants: &FragmentConstants,
+    perturbation_points: &[Vec2],
+) -> Result<Vec<u8>, LoadSaveError> {
+    let render_size = constants.size.into();
+    let mut controller = ComputeController::new(render_size, 1, true)?;
+    let mut frame_data = Vec::with_capacity(render_size.element_product() as usize);
+    let times = controller.run(
+        *constants,
+        render_size.extend(1),
+        1,
+        perturbation_points,
+        |rgba| {
+            frame_data.clear();
+            frame_data.extend_from_slice(rgba);
+        },
+    )?;
+    if times.len() == 4 {
+        use itertools::Itertools as _;
+        // The compute controller provides 4 timestamps: start, start of compute, completion of
+        // compute, teardown. These in turn can be resolved into phases: setup, compute,
+        // teardown.
+        let overall = Duration::from_nanos(times.last().unwrap() - times[0]);
+        let deltas = times
+            .into_iter()
+            .tuple_windows()
+            .map(|(start, end)| Duration::from_nanos(end - start))
+            .collect::<Vec<_>>();
+        log::debug!(
+            "GPU timing: setup {:?}, compute {:?}, teardown {:?}, overall {:?}",
+            deltas[0],
+            deltas[1],
+            deltas[2],
+            overall
+        );
+    } else {
+        log::warn!(
+            "Expected 4 timestamps from compute controller, got {}",
+            times.len()
+        );
+    }
+    Ok(frame_data)
+}
+
 /// Writes the given pixel data to a PNG file, embedding metadata about the UI state and
 /// software version.
-fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveError> {
+pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveError> {
     let mut encoder = png::Encoder::new(
         File::create(path)?,
         state.viewport_size.x,

@@ -15,6 +15,7 @@ repository = "https://github.com/crazyscot/brot3/"
 abels-complex = { version = "0.5.1", default-features = false }
 anyhow = "1.0.102"
 assert_matches = "1.5.0"
+average = "0.17.0"
 bitflags = "2.11.0"
 brot3-lib = { path = "lib" }
 build-print = "1.0.1"
@@ -30,6 +31,7 @@ dashu-float = { version = "0.4.3", default-features = false }
 derive_more = { version = "2.1.1", default-features = false }
 dirs = "6.0.0"
 document-features = "0.2.12"
+easy-cast = "0.5.4"
 easy-shader-runner = { path = "easy-shader-runner", default-features = false }
 egui = "0.33.0"
 egui-wgpu = "0.33.0"
@@ -39,6 +41,7 @@ env_logger = "0.11.10"
 flate2 = "1.1.9"
 float_eq = { version = "1.0.1", default-features = false }
 futures = { version = "0.3.32", default-features = false }
+futures-channel = "0.3.32"
 glam = { version = "0.32.1", default-features = false }
 gungraun = "0.17.2"
 image = { version = "0.25.10", default-features = false }

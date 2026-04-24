@@ -1,6 +1,7 @@
 //! CLI rendering mode
 
 use brot3_lib::ui::UiState;
+use env_logger::Env;
 
 use crate::{MainError, cli::Args, save::do_save_image};
 
@@ -13,7 +14,7 @@ pub enum RenderError {
 }
 
 pub(crate) fn main(args: &Args) -> Result<(), MainError> {
-    let _ = env_logger::try_init();
+    let _ = env_logger::Builder::from_env(Env::default().default_filter_or("warn")).try_init();
 
     let input = args.input.as_ref().unwrap();
     let mut state = UiState::load_magic(input).map_err(RenderError::LoadFailed)?;
