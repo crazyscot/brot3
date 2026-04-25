@@ -115,10 +115,23 @@ pub(crate) fn do_save_image(
     log::debug!("Rendered image in {duration:?}");
 
     let pngstart = Instant::now();
+
+    assert_eq!(constants.size, state.viewport_size.into());
+    write_png(path, state, &pixels)?;
+    log::debug!("Converted to PNG in {:?}", pngstart.elapsed());
+    if failure.load(Ordering::Relaxed) {
+        return Err(LoadSaveError::PartialRenderFailure);
+    }
+    Ok(())
+}
+
+/// Writes the given pixel data to a PNG file, embedding metadata about the UI state and
+/// software version.
+fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveError> {
     let mut encoder = png::Encoder::new(
         File::create(path)?,
-        constants.size.width,
-        constants.size.height,
+        state.viewport_size.x,
+        state.viewport_size.y,
     );
     encoder.set_color(png::ColorType::Rgba);
     encoder.set_depth(png::BitDepth::Eight);
@@ -132,10 +145,6 @@ pub(crate) fn do_save_image(
         });
     encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));
     let mut writer = encoder.write_header()?;
-    writer.write_image_data(&pixels)?;
-    log::debug!("Converted to PNG in {:?}", pngstart.elapsed());
-    if failure.load(Ordering::Relaxed) {
-        return Err(LoadSaveError::PartialRenderFailure);
-    }
+    writer.write_image_data(pixels)?;
     Ok(())
 }
