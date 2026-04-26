@@ -168,7 +168,6 @@ impl super::Controller {
                 .set_file_name(&default_filename);
 
             let perturbation_points = self.perturbation.points.clone();
-            let consts = self.fragment_constants(true);
             let state = self.state.clone();
             let save_busy = Arc::clone(&self.save_busy);
 
@@ -179,7 +178,7 @@ impl super::Controller {
                     scopeguard::defer! {
                         save_busy.store(false, std::sync::atomic::Ordering::Release);
                     }
-                    crate::save::do_save_image(filename, consts, &state, &perturbation_points, true)
+                    crate::save::do_save_image(filename, &state, &perturbation_points, true)
                 },
                 "saving image",
             );

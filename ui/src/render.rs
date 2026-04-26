@@ -1,9 +1,6 @@
 //! CLI rendering mode
 
-use brot3_lib::{
-    data::{Flags, FragmentConstants},
-    ui::UiState,
-};
+use brot3_lib::ui::UiState;
 
 use crate::{MainError, cli::Args, save::do_save_image};
 
@@ -22,24 +19,21 @@ pub(crate) fn main(args: &Args) -> Result<(), MainError> {
     let mut state = UiState::load_magic(input).map_err(RenderError::LoadFailed)?;
 
     state.viewport_size = args.size.unwrap_or_default().as_uvec2();
-    let mut constants = FragmentConstants::from(&state);
-
-    let mut perturbation_points = Vec::new();
-    if f64::from(constants.viewport_zoom) > crate::MAX_ZOOM_STANDARD {
-        constants.flags |= Flags::PERTURBATION_MODE;
+    let mut perturbation_points: Vec<glam::Vec2> = Vec::new();
+    if state.viewport_zoom.0 > crate::MAX_ZOOM_STANDARD {
         brot3_lib::engine::mandelbrot_perturbed_compute_reference_iters(
             &mut perturbation_points,
             &state.viewport_translate,
             state.algorithm,
             state.max_iter,
         );
+        // do_save_image will set the perturbation_mode flag
     }
 
     let output = args.output.as_ref().unwrap();
     log::info!("Parallel flag is {}", !args.no_parallel_render);
     do_save_image(
         output,
-        constants,
         &state,
         &perturbation_points,
         !args.no_parallel_render,

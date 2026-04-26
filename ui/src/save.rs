@@ -32,24 +32,24 @@ pub enum LoadSaveError {
 
 pub(crate) fn do_save_image(
     path: &Path,
-    mut constants: FragmentConstants,
     state: &UiState,
     perturbation_points: &[Vec2],
     parallel: bool,
 ) -> Result<(), LoadSaveError> {
-    // TODO: We shouldn't need to pass in both state and constants?
-    // But they don't quite match up right now. Would have to refactor more of Controller into
-    // UiState.
+    let mut constants = FragmentConstants::from(state);
     constants.flags |= Flags::NEEDS_REITERATE;
     constants.buffer_size = uvec2(0, 0).into();
     log::debug!(
         "Saving image to {} with constants: {constants:?}",
         path.display()
     );
+    if !perturbation_points.is_empty() {
+        constants.flags |= Flags::PERTURBATION_MODE;
+    }
     let start = Instant::now();
 
-    let width = constants.size.width as usize;
-    let height = constants.size.height as usize;
+    let width = state.viewport_size.x as usize;
+    let height = state.viewport_size.y as usize;
     let total_bytes = width * height * 4;
     let mut pixels = vec![0u8; total_bytes];
 
