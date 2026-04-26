@@ -97,7 +97,7 @@ impl RenderPass {
     }
 
     #[cfg(feature = "compute")]
-    pub fn compute(
+    pub(crate) fn compute(
         &self,
         ctx: &GraphicsContext,
         dimensions: glam::UVec3,
@@ -127,7 +127,7 @@ impl RenderPass {
             }
             cpass.dispatch_workgroups(workspace.x, workspace.y, workspace.z);
         }
-        ctx.queue.submit(Some(encoder.finish()));
+        let _ = ctx.queue.submit(Some(encoder.finish()));
     }
 
     pub(crate) fn render<C: ControllerTrait>(

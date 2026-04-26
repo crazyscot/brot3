@@ -111,7 +111,7 @@ impl<C: ControllerTrait + Send> App<C> {
     }
 
     #[cfg(feature = "compute")]
-    pub fn update(&mut self) {
+    pub(crate) fn update(&mut self) {
         let Self::Graphics(gfx) = self else {
             return;
         };
