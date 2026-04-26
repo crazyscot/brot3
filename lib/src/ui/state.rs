@@ -80,6 +80,28 @@ impl From<&UiState> for FragmentConstants {
     }
 }
 
+impl TryFrom<&FragmentConstants> for UiState {
+    type Error = LibError;
+
+    fn try_from(consts: &FragmentConstants) -> Result<Self, LibError> {
+        Ok(Self {
+            viewport_translate: BigVec2::try_new(
+                consts.viewport_translate.x,
+                consts.viewport_translate.y,
+            )
+            .map_err(|e| LibError::StateConversionFailed(e.to_string()))?
+            .with_precision(super::BIGNUM_PRECISION_LIMIT),
+            viewport_zoom: consts.viewport_zoom.into(),
+            algorithm: consts.algorithm,
+            max_iter: consts.max_iter,
+            palette: consts.palette,
+            exponent: consts.exponent,
+            iteration_cull: consts.flags.contains(Flags::ITERATION_CULL),
+            viewport_size: consts.size.into(),
+        })
+    }
+}
+
 impl UiState {
     /// Replaces this struct with the other, except for the unserialised fields (which are
     /// preserved).

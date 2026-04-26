@@ -39,4 +39,6 @@ pub enum Error {
     UnrecognisedFormat,
     #[error("PNG file did not contain usable state data")]
     PngHadNoStateData,
+    #[error("Unable to convert state data: {0}")]
+    StateConversionFailed(String),
 }
