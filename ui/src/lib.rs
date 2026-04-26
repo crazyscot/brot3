@@ -15,7 +15,7 @@ pub(crate) mod version;
 pub mod widgets;
 
 #[cfg(runtime_compile)]
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use clap::Parser;
 

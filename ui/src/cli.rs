@@ -1,8 +1,6 @@
 //! Command line argument definitions
 // (c) 2025 Ross Younger
 
-#[cfg(runtime_compile)]
-use std::path::PathBuf;
 use std::{path::PathBuf, str::FromStr};
 
 use brot3_lib::{
