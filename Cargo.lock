@@ -345,6 +345,7 @@ dependencies = [
  "cfg_aliases",
  "chrono",
  "clap",
+ "derive_more 2.1.1",
  "dirs",
  "easy-shader-runner",
  "egui_extras",
@@ -363,6 +364,7 @@ dependencies = [
  "strum",
  "thiserror 2.0.18",
  "tokio",
+ "wgpu",
 ]
 
 [[package]]

@@ -6,6 +6,7 @@
 use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
 mod cli;
+pub mod compute;
 #[cfg(feature = "ui")]
 mod controller;
 mod render;
