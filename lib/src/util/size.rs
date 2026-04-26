@@ -97,6 +97,20 @@ impl From<UVec2> for Size {
     }
 }
 
+impl From<Size> for UVec2 {
+    /// ```
+    /// # use brot3_lib::util::Size;
+    /// # use glam::UVec2;
+    /// let sz = Size::new(100, 200);
+    /// let uv: UVec2 = sz.into();
+    /// assert_eq!(uv.x, 100);
+    /// assert_eq!(uv.y, 200);
+    /// ```
+    fn from(sz: Size) -> Self {
+        uvec2(sz.width, sz.height)
+    }
+}
+
 #[cfg(not(spirv))]
 impl FromStr for Size {
     type Err = String;
