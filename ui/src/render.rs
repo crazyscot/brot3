@@ -20,7 +20,7 @@ pub(crate) fn main(args: &Args) -> Result<(), MainError> {
 
     state.viewport_size = args.size.unwrap_or_default().as_uvec2();
     let mut perturbation_points: Vec<glam::Vec2> = Vec::new();
-    if state.viewport_zoom.0 > crate::MAX_ZOOM_STANDARD {
+    if state.viewport_zoom.requires_perturbation_mode() {
         brot3_lib::engine::mandelbrot_perturbed_compute_reference_iters(
             &mut perturbation_points,
             &state.viewport_translate,

@@ -10,6 +10,16 @@ use serde::{Deserialize, Serialize};
 pub struct ViewportZoom(pub f64);
 
 impl ViewportZoom {
+    /// Maximum zoom with perturbation mode.
+    /// Around this point, f32 maths breaks down: we can no longer accurately represent pixel sizes.
+    // reported on UI as 1e35
+    pub const MAX_ZOOM_PERTURBATIONS_F32: f64 = 2.5e34;
+    /// The maximum zoom factor that can be achieved without perturbation mode.
+    // reported on UI as 40000
+    pub const MAX_ZOOM_STANDARD: f64 = 1.0e4;
+    /// The minimum zoom factor we are interested in rendering.
+    pub const MIN_ZOOM: f64 = 0.05;
+
     /// Relate the current axis size to the nominal initial size to get a more
     /// intuitive zoom readout.
     #[cfg(not(spirv))]
@@ -42,6 +52,23 @@ impl ViewportZoom {
             v if v < 10000.0 => 1,
             _ => 0,
         }
+    }
+
+    /// Does this zoom factor require perturbation mode to render correctly?
+    #[must_use]
+    pub fn requires_perturbation_mode(self) -> bool {
+        self.0 > Self::MAX_ZOOM_STANDARD
+    }
+
+    /// Clamp a zoom factor to the valid range for a given mode.
+    #[must_use]
+    pub fn clamp_to_mode(self, perturbation_mode: bool) -> Self {
+        let max_zoom = if perturbation_mode {
+            Self(Self::MAX_ZOOM_PERTURBATIONS_F32)
+        } else {
+            Self(Self::MAX_ZOOM_STANDARD)
+        };
+        Self(self.0.clamp(Self::MIN_ZOOM, max_zoom.0))
     }
 }
 

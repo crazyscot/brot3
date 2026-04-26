@@ -10,6 +10,7 @@ mod cli;
 mod controller;
 mod render;
 pub(crate) mod save;
+pub(crate) mod version;
 #[cfg(feature = "ui")]
 pub mod widgets;
 
@@ -26,10 +27,10 @@ const CARGO_SHADER_RELATIVE_PATH: &str = "../lib";
 #[cfg(runtime_compile)]
 const CANDIDATE_SHADER_PATHS: &[&str] = &["./lib", "../lib"];
 
-pub(crate) mod version;
 use version::version_string;
 
-pub(crate) const MAX_ZOOM_STANDARD: f64 = 1.0e4; // reported on UI as 40000
+/// Access to the spir-v shader, temporarily public for use in `compute_test.rs`
+pub const SHADER_BYTES: &[u8] = include_bytes!(env!("BROT3_SHADER"));
 
 #[cfg(runtime_compile)]
 fn is_directory<P: AsRef<Path>>(path: P) -> bool {

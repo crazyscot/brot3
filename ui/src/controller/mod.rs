@@ -14,7 +14,7 @@ use brot3_lib::{
     BigVec2,
     data::{Flags, FragmentConstants, Modifier, PointResult},
     engine::PixelSpacing as _,
-    ui::{BIGNUM_PRECISION_LIMIT, Channel, UiState as BrotUiState},
+    ui::{BIGNUM_PRECISION_LIMIT, Channel, UiState as BrotUiState, ViewportZoom},
 };
 use easy_shader_runner::{
     ControllerTrait, GraphicsContext, UiState as ESRUiState, egui, wgpu, winit,
@@ -36,12 +36,8 @@ mod menu;
 mod small_windows;
 mod ui;
 
-const MIN_ZOOM: f64 = 0.05;
-use crate::MAX_ZOOM_STANDARD;
-
-// Around this point, f32 maths breaks down: we can no longer accurately represent pixel sizes.
-const MAX_ZOOM_PERTURBATIONS_F32: f64 = 2.5e34; // reported on UI as 1e35
-
+/// Absolute limit on the number of iterations, which also limits the size of the perturbation
+/// buffer.
 // N.B. This affects the perturbation buffer size. But it's only 2 * sizeof(f32) per point.
 const MAX_MAX_ITERATIONS: u32 = 100_000;
 
@@ -207,29 +203,21 @@ impl Controller {
         }
     }
 
-    /// Maximum zoom for the current settings
-    fn zoom_max(&self) -> f64 {
-        if self.perturbation_mode || self.force_perturb {
-            MAX_ZOOM_PERTURBATIONS_F32
-        } else {
-            MAX_ZOOM_STANDARD
-        }
-    }
-
     /// Apply a new zoom factor, subject to the limits, perturbation state, and possibility to
     /// auto-update the perturbation state.
     pub(crate) fn update_zoom_factor(&mut self, new_zoom: f64) {
+        let requires_perturb = ViewportZoom(new_zoom).requires_perturbation_mode();
         // Auto-update perturbation, if appropriate
         if !self.force_perturb {
-            if !self.perturbation_mode && new_zoom > MAX_ZOOM_STANDARD && self.perturb_implemented()
-            {
+            if !self.perturbation_mode && requires_perturb && self.perturb_implemented() {
                 self.perturbation_mode = true;
-            } else if self.perturbation_mode && new_zoom < MAX_ZOOM_STANDARD {
+            } else if self.perturbation_mode && !requires_perturb {
                 self.perturbation_mode = false;
             }
         }
         // Apply the limits
-        self.state.viewport_zoom.0 = new_zoom.clamp(MIN_ZOOM, self.zoom_max());
+        self.state.viewport_zoom =
+            ViewportZoom(new_zoom).clamp_to_mode(self.perturbation_mode || self.force_perturb);
     }
 }
 
