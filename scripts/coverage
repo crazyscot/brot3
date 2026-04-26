@@ -22,6 +22,6 @@ PREFIX=$(pwd)
 mkdir -p $COVERAGE_DIR
 # shellcheck disable=SC2086
 # N.B. nextest doesn't support doctests yet
-cargo ${NIGHTLY} llvm-cov --locked --frozen --all-features --workspace --lcov --output-path $COVERAGE_DIR/lcov.info --no-cfg-coverage --show-instantiations nextest
+cargo ${NIGHTLY} llvm-cov --locked --frozen --all-features --lcov --output-path $COVERAGE_DIR/lcov.info --no-cfg-coverage --show-instantiations nextest -p brot3-lib
 genhtml $COVERAGE_DIR/lcov.info -o $COVERAGE_DIR/html --prefix ${PREFIX}
 echo Coverage written to $COVERAGE_DIR/html
