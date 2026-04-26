@@ -36,11 +36,6 @@ mod menu;
 mod small_windows;
 mod ui;
 
-/// Absolute limit on the number of iterations, which also limits the size of the perturbation
-/// buffer.
-// N.B. This affects the perturbation buffer size. But it's only 2 * sizeof(f32) per point.
-const MAX_MAX_ITERATIONS: u32 = 100_000;
-
 #[allow(clippy::struct_excessive_bools)]
 pub(crate) struct Controller {
     /// primary loadable/saveable state
@@ -339,7 +334,7 @@ impl ControllerTrait for Controller {
         let perturbation_points_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("perturbation_points_buffer"),
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            size: std::mem::size_of::<Vec2>() as u64 * u64::from(MAX_MAX_ITERATIONS + 1),
+            size: std::mem::size_of::<Vec2>() as u64 * u64::from(crate::MAX_MAX_ITERATIONS + 1),
             mapped_at_creation: false,
         });
 

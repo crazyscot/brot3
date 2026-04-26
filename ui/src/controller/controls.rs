@@ -6,8 +6,6 @@ use easy_shader_runner::egui;
 use num_traits::AsPrimitive;
 use strum::EnumMessage as _;
 
-use crate::controller::MAX_MAX_ITERATIONS;
-
 #[allow(unused_results)]
 impl super::Controller {
     pub(crate) const DEFAULT_WIDTH: f32 = 130.;
@@ -140,7 +138,7 @@ impl super::Controller {
 
                 ui.label(egui::RichText::new("Max Iterations"));
                 if ui
-                    .add(egui::Slider::new(&mut self.state.max_iter, 1..=MAX_MAX_ITERATIONS).logarithmic(true))
+                    .add(egui::Slider::new(&mut self.state.max_iter, 1..=crate::MAX_MAX_ITERATIONS).logarithmic(true))
                     .changed()
                 {
                     self.reiterate = true;

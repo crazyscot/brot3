@@ -215,7 +215,7 @@ impl super::Controller {
     }
 
     fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {
-        let mut dest = Vec::with_capacity(super::MAX_MAX_ITERATIONS as usize);
+        let mut dest = Vec::with_capacity(crate::MAX_MAX_ITERATIONS as usize);
 
         engine::mandelbrot_perturbed_compute_reference_iters(
             &mut dest,
