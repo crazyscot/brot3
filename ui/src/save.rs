@@ -9,7 +9,7 @@ use std::{
 };
 
 use brot3_lib::{
-    data::{Flags, FragmentConstants, PointResult},
+    data::{Flags, FragmentConstants, PointResult, RenderMode},
     ui::{Error as LibError, UiState},
 };
 use glam::{Vec2, Vec4, uvec2, vec4};
@@ -34,7 +34,7 @@ pub(crate) fn do_save_image(
     path: &Path,
     state: &UiState,
     perturbation_points: &[Vec2],
-    parallel: bool,
+    mode: RenderMode,
 ) -> Result<(), LoadSaveError> {
     let mut constants = FragmentConstants::from(state);
     constants.flags |= Flags::NEEDS_REITERATE;
@@ -47,7 +47,11 @@ pub(crate) fn do_save_image(
         constants.flags |= Flags::PERTURBATION_MODE;
     }
     let start = Instant::now();
-    let (pixels, partial_failure) = render_cpu(&constants, perturbation_points, parallel);
+    let (pixels, partial_failure) = render_cpu(
+        &constants,
+        perturbation_points,
+        matches!(mode, RenderMode::CpuParallel),
+    );
     let duration = start.elapsed();
     log::debug!("Rendered image in {duration:?}");
 

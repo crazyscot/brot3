@@ -5,7 +5,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use brot3_lib::{
     BigComplex,
-    data::{Algorithm, ColourStyle, Colourer, Modifier, Palette},
+    data::{Algorithm, ColourStyle, Colourer, Modifier, Palette, RenderMode},
     engine::DEFAULT_FRACTAL_PLANE_SIZE,
     ui::UiState,
     util::Size,
@@ -122,15 +122,14 @@ pub(crate) struct Args {
     #[arg(long, value_name = "WIDTH,HEIGHT", requires = "output")]
     pub size: Option<Size>,
 
-    /// Disables parallel rendering when using --output. This may be useful for benchmarking or
-    /// other analytical runs.
     #[arg(
+        short('R'),
         long,
-        default_value_t = false,
-        requires = "output",
+        default_value = "gpu",
+        help = "The render mode to use when saving an image. This may be useful for benchmarking or other analytical runs.",
         help_heading("Fractal")
     )]
-    pub no_parallel_render: bool,
+    pub render_mode: RenderMode,
 
     /// The maximum number of iterations to use
     #[arg(short('I'), long, value_name = "NUMBER", help_heading("Fractal"))]

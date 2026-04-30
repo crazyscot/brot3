@@ -6,13 +6,13 @@ use std::{
     sync::Arc,
 };
 
-use brot3_lib::ui::UiState;
+use brot3_lib::{data::RenderMode, ui::UiState};
 use easy_shader_runner::{UiState as EsrUiState, egui};
 use rfd::FileDialog;
 use tokio::task::JoinHandle;
 
 use super::DVec2;
-use crate::save::LoadSaveError;
+use crate::save::{self, LoadSaveError};
 
 #[allow(unused_results)]
 impl super::Controller {
@@ -178,7 +178,12 @@ impl super::Controller {
                     scopeguard::defer! {
                         save_busy.store(false, std::sync::atomic::Ordering::Release);
                     }
-                    crate::save::do_save_image(filename, &state, &perturbation_points, true)
+                    save::do_save_image(
+                        filename,
+                        &state,
+                        &perturbation_points,
+                        RenderMode::default(),
+                    )
                 },
                 "saving image",
             );

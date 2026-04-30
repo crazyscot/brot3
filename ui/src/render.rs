@@ -31,14 +31,9 @@ pub(crate) fn main(args: &Args) -> Result<(), MainError> {
     }
 
     let output = args.output.as_ref().unwrap();
-    log::info!("Parallel flag is {}", !args.no_parallel_render);
-    do_save_image(
-        output,
-        &state,
-        &perturbation_points,
-        !args.no_parallel_render,
-    )
-    .map_err(RenderError::SaveFailed)?;
+    log::debug!("Render mode is {}", args.render_mode);
+    do_save_image(output, &state, &perturbation_points, args.render_mode)
+        .map_err(RenderError::SaveFailed)?;
     log::info!("Successfully rendered image to {}", output.display());
     Ok(())
 }
