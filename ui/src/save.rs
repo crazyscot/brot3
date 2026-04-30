@@ -47,9 +47,28 @@ pub(crate) fn do_save_image(
         constants.flags |= Flags::PERTURBATION_MODE;
     }
     let start = Instant::now();
+    let (pixels, partial_failure) = render_cpu(&constants, perturbation_points, parallel);
+    let duration = start.elapsed();
+    log::debug!("Rendered image in {duration:?}");
 
-    let width = state.viewport_size.x as usize;
-    let height = state.viewport_size.y as usize;
+    let pngstart = Instant::now();
+
+    assert_eq!(constants.size, state.viewport_size.into());
+    write_png(path, state, &pixels)?;
+    log::debug!("Converted to PNG in {:?}", pngstart.elapsed());
+    if partial_failure {
+        return Err(LoadSaveError::PartialRenderFailure);
+    }
+    Ok(())
+}
+
+fn render_cpu(
+    constants: &FragmentConstants,
+    perturbation_points: &[Vec2],
+    parallel: bool,
+) -> (Vec<u8>, bool) {
+    let width = constants.size.width as usize;
+    let height = constants.size.height as usize;
     let total_bytes = width * height * 4;
     let mut pixels = vec![0u8; total_bytes];
 
@@ -72,7 +91,7 @@ pub(crate) fn do_save_image(
                 let frag_coord = vec4(x as f32, y as f32, 0.0, 0.0);
                 brot3_lib::main_fs(
                     frag_coord,
-                    &constants,
+                    constants,
                     &mut grid,
                     perturbation_points,
                     &mut pixel,
@@ -110,19 +129,7 @@ pub(crate) fn do_save_image(
             .enumerate()
             .for_each(&render_chunk);
     }
-
-    let duration = start.elapsed();
-    log::debug!("Rendered image in {duration:?}");
-
-    let pngstart = Instant::now();
-
-    assert_eq!(constants.size, state.viewport_size.into());
-    write_png(path, state, &pixels)?;
-    log::debug!("Converted to PNG in {:?}", pngstart.elapsed());
-    if failure.load(Ordering::Relaxed) {
-        return Err(LoadSaveError::PartialRenderFailure);
-    }
-    Ok(())
+    (pixels, failure.load(Ordering::Relaxed))
 }
 
 /// Writes the given pixel data to a PNG file, embedding metadata about the UI state and
