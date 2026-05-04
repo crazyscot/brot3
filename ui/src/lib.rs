@@ -16,7 +16,7 @@ pub(crate) mod version;
 pub mod widgets;
 
 #[cfg(runtime_compile)]
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use clap::Parser;
 
@@ -140,9 +140,9 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
                 if let Some(path) = args.shader.as_ref() {
                     if !is_directory(path) {
                         // If given, an explicit shader directory must be present
-                        return Err(MainError::ShaderDirectoryNotFound(path.display()));
+                        return Err(MainError::ShaderDirectoryNotFound(path.display().to_string()));
                     }
-                    shader_path = args.shader;
+                    shader_path = args.shader.clone();
                 } else if !args.static_shader {
                     for p in CANDIDATE_SHADER_PATHS {
                         if is_directory(p) {
@@ -178,7 +178,7 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
                     params,
                     path,
                     relative_to_manifest,
-                    args.spirv_tools,
+                    args.spirv_tools.clone(),
                 )?;
             } else {
                 easy_shader_runner::run_with_prebuilt_shader(
