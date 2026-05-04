@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use spirv_builder::{CompileResult, MetadataPrintout, ModuleResult, SpirvBuilder};
+use spirv_builder::{CompileResult, ModuleResult, SpirvBuilder, SpirvMetadata};
 #[cfg(feature = "hot-reload-shader")]
 use {
     crate::{controller::ControllerTrait, user_event::CustomEvent},
@@ -49,13 +49,16 @@ pub(crate) fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: Controller
         crate_path.as_ref().to_path_buf()
     };
 
-    let builder = SpirvBuilder::new(crate_path, "spirv-unknown-vulkan1.1")
-        .print_metadata(MetadataPrintout::None)
+    let mut builder = SpirvBuilder::new(crate_path, "spirv-unknown-vulkan1.1")
+        .spirv_metadata(SpirvMetadata::None)
         .shader_crate_features([
             #[cfg(feature = "emulate_constants")]
             "emulate_constants".into(),
         ])
         .shader_panic_strategy(spirv_builder::ShaderPanicStrategy::SilentExit);
+    builder.build_script.defaults = true;
+    builder.build_script.dependency_info = Some(true);
+
     let builder = if let Some(p) = rustc_codegen_spirv_location {
         builder.rustc_codegen_spirv_location(p)
     } else {
@@ -63,11 +66,15 @@ pub(crate) fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: Controller
     };
 
     #[cfg(feature = "hot-reload-shader")]
-    let initial_result = builder
-        .watch(move |compile_result, first| {
-            if let Some(first) = first {
-                first.submit(compile_result);
-            } else {
+    let initial_result = {
+        let mut watcher = builder
+            .watch()
+            .expect("Configuration is incorrect for watching");
+        let first_compile = watcher.recv().map_err(|e| ESRError::BuildFailed(e))?;
+        //let mut thread_watcher = watcher.forget_lifetime();
+        let _jh = std::thread::spawn(move || {
+            loop {
+                let compile_result = watcher.recv().unwrap();
                 std::assert!(
                     event_proxy
                         .send_event(CustomEvent::NewModule(handle_compile_result(
@@ -76,10 +83,10 @@ pub(crate) fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: Controller
                         .is_ok()
                 );
             }
-        })
-        .expect("Configuration is incorrect for watching")
-        .first_compile
-        .ok_or(ESRError::BuildFailedQuietly)?;
+        });
+        first_compile
+    };
+
     #[cfg(not(feature = "hot-reload-shader"))]
     let initial_result = builder.build().map_err(ESRError::BuildFailed)?;
     Ok(handle_compile_result(initial_result))

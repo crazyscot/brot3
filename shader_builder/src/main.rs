@@ -6,7 +6,7 @@
 
 use std::{env, path::Path};
 
-use spirv_builder::{MetadataPrintout, SpirvBuilder};
+use spirv_builder::{SpirvBuilder, SpirvMetadata};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -26,19 +26,17 @@ fn build_shader(path_to_crate: &str) -> Result<(), BuildError> {
     } else {
         vec![]
     };
-    let builder = SpirvBuilder::new(path_to_crate, "spirv-unknown-vulkan1.1")
-        .print_metadata(MetadataPrintout::None)
+    let mut builder = SpirvBuilder::new(path_to_crate, "spirv-unknown-vulkan1.1")
+        .spirv_metadata(SpirvMetadata::None)
         .shader_crate_features(features)
         .shader_panic_strategy(spirv_builder::ShaderPanicStrategy::SilentExit);
+    builder.build_script.defaults = true;
+    builder.build_script.env_shader_spv_path = Some(true);
 
     let compile_result = builder.build()?;
+    // builder sets the env var brot3_lib.spv to the path of the built shader
     #[allow(clippy::disallowed_methods)]
     let shader_path = std::fs::canonicalize(compile_result.module.unwrap_single())?;
-    // sample output:
-    // `cargo::rustc-env=BROT3_SHADER=/home/builder/brot3/target/spirv-builder/
-    // spirv-unknown-vulkan1.1/` release/deps/brot3_lib.spv
-    // CAUTION: This must match what `ui/build.rs` expects.
-    println!("cargo::rustc-env=BROT3_SHADER={}", shader_path.display());
     build_print::info!("built shader is {shader_path:?}");
     Ok(())
 }

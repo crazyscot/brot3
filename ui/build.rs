@@ -26,7 +26,7 @@ fn main() {
     if let Ok(shader_path) = env::var("BROT3_PREBUILT_SHADER") {
         // CAUTION: This must match what shader_builder main.rs outputs.
         build_print::info!("Using prebuilt shader at {shader_path}");
-        println!("cargo:rustc-env=BROT3_SHADER={shader_path}");
+        println!("cargo:rustc-env=brot3_lib.spv={shader_path}");
     } else if cfg!(feature = "suppress-shader-build") {
         build_print::note!("Suppressing shader build due to feature flag");
     } else {
@@ -37,13 +37,8 @@ fn main() {
 }
 
 fn build_shader() {
-    // Force a rebuild if any shader crate changed.
-    // We must also rebuild if src/ changed, to maintain standard rebuild behaviour.
-    // CAUTION: Hard-wired paths !
-    println!("cargo:rerun-if-changed=src/");
-    println!("cargo:rerun-if-changed=../shader_builder/");
-    println!("cargo:rerun-if-changed=../lib/");
-    println!("cargo:rerun-if-env-changed=CARGO_CFG_TARGET_ARCH");
+    // These days, spirv-builder outputs a lot of cargo:rerun-if-changed markers, so we don't need
+    // to worry.
 
     // While OUT_DIR is set for both build.rs and compiling the crate, PROFILE is only set in
     // build.rs. So, export it to crate compilation as well.
@@ -78,7 +73,7 @@ fn build_shader() {
     build_print::info!("running: cargo {argz:?}");
     let status = cargo.status().unwrap();
     // N.B. shader_builder outputs something like:
-    // `cargo:rustc-env=BROT3_SHADER=/home/builder/brot3/target/spirv-builder/
+    // `cargo:rustc-env=brot3_lib.spv=/home/builder/brot3/target/spirv-builder/
     // spirv-unknown-vulkan1.1/release/deps/brot3_lib.spv`
     if !status.success() {
         if let Some(code) = status.code() {
@@ -145,7 +140,7 @@ fn process_version_string() {
 
     // Force a rerun on change of branch or on commit
     // CAUTION: Hard wired path
-    // TRAP: You cannot use an absolute path with cargo:rerun-if-changed
+    // TRAP: In the past, you could not use an absolute path with cargo:rerun-if-changed.
     // TRAP: Don't pretty-print a PathBuf here, you get quotes with it: cargo doesn't dequote, so it
     // will be always-dirty.
     let top_level = PathBuf::from("..");

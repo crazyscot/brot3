@@ -11,7 +11,7 @@ env:
   CLICOLOR_FORCE: 1
   RUST_BACKTRACE: 1
   CARGO_INCREMENTAL: 0
-  BROT3_RUST_VERSION: nightly-2025-06-30
+  BROT3_RUST_VERSION: nightly-2026-04-11
   # BROT3_RUST_VERSION should match the version in rust-toolchain.toml & across all workflows
 
 # N.B. github runners have `rustup set profile minimal` by default
@@ -42,7 +42,7 @@ jobs:
         uses: EmbarkStudios/cargo-deny-action@3fd3802e88374d3fe9159b834c7714ec57d6c979 # 2.0.14
         with:
           command: check ${{ matrix.checks }}
-          rust-version: "nightly-2025-06-30"
+          rust-version: ${{ env.BROT3_RUST_VERSION }}
           # N.B. the cargo-deny-action container image installs 1.85.0 by default
 
   cargo-fmt:

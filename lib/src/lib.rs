@@ -11,8 +11,6 @@
 //! ## Feature flags
 #![doc = document_features::document_features!()]
 #![allow(missing_docs)]
-// enable this unstable feature (used in tests):
-#![feature(assert_matches)]
 
 pub use easy_cast;
 use easy_cast::Cast as _;

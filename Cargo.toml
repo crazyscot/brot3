@@ -65,7 +65,7 @@ wgpu = { version = "27.0", default-features = false }
 
 [workspace.dependencies.spirv-std]
 git = "https://github.com/Rust-GPU/rust-gpu"
-rev = "b3eda4df9814b6176d3c0844eb67f70a22ebb378"
+rev = "c904e5c039676df3409dd7aa61119102109af921"
 
 [patch.'https://github.com/Rust-GPU/rust-gpu']
 # TEMP: abels-complex 0.5 forces glam 0.32; rust-gpu currently requires glam >=0.30.8
@@ -74,7 +74,7 @@ glam = { version = "0.32.1" }
 
 [workspace.dependencies.spirv-builder]
 git = "https://github.com/Rust-GPU/rust-gpu"
-rev = "b3eda4df9814b6176d3c0844eb67f70a22ebb378"
+rev = "c904e5c039676df3409dd7aa61119102109af921"
 
 [workspace.lints.rust]
 dead_code = "warn"

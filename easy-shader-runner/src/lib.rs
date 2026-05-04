@@ -41,8 +41,6 @@ pub enum Error {
     ))]
     #[error(transparent)]
     BuildFailed(spirv_builder::SpirvBuilderError),
-    #[error("Build failed")]
-    BuildFailedQuietly,
 }
 
 /// Common parameters and options for all shader runs.

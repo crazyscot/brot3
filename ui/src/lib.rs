@@ -34,7 +34,7 @@ use version::version_string;
 
 #[cfg(not(feature = "suppress-shader-build"))]
 /// Single point of reference to the spir-v shader
-const SHADER_BYTES: &[u8] = include_bytes!(env!("BROT3_SHADER"));
+const SHADER_BYTES: &[u8] = include_bytes!(env!("brot3_lib.spv"));
 
 /// Absolute limit on the number of iterations, which also limits the size of the perturbation
 /// buffer.
