@@ -77,8 +77,6 @@ mod tests {
 
     use pretty_assertions::assert_eq;
 
-    use crate::dynfmt;
-
     // testcase helper macro: run both positive and negative versions of input data
     macro_rules! tc {
         ($val:expr, $expect: expr) => {

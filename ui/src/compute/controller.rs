@@ -59,8 +59,10 @@ impl ComputeController {
             Self::describe_bind_groups(&device, render_size, &pixel_buffer, &reference_buffer);
         let bind_group_layouts = layouts.iter();
 
-        let pipeline_layout =
-            Self::create_pipeline_layout(&device, &bind_group_layouts.collect::<Vec<_>>());
+        let pipeline_layout = Self::create_pipeline_layout(
+            &device,
+            &bind_group_layouts.map(Some).collect::<Vec<_>>(),
+        );
 
         let shader = Self::load_shader(&device);
         let pipeline = Self::create_pipeline(&device, &pipeline_layout, &shader);
@@ -127,7 +129,7 @@ impl ComputeController {
                 timestamp_writes,
             });
             cpass.set_pipeline(&self.pipeline);
-            cpass.set_push_constants(0, bytemuck::bytes_of(&constants));
+            cpass.set_immediates(0, bytemuck::bytes_of(&constants));
 
             self.queue.write_buffer(
                 &self.reference_buffer,
@@ -210,11 +212,12 @@ impl ComputeController {
         timestamps: bool,
     ) -> Result<(Device, Queue), RequestDeviceError> {
         let instance = wgpu::Instance::new(
-            &wgpu::InstanceDescriptor {
+            wgpu::InstanceDescriptor {
                 backends: wgpu::Backends::PRIMARY,
                 flags: wgpu::InstanceFlags::default(),
                 memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
                 backend_options: wgpu::BackendOptions::default(),
+                display: None,
             }
             .with_env(),
         );
@@ -237,9 +240,9 @@ impl ComputeController {
             (features, limits)
         } else {
             (
-                features | wgpu::Features::PUSH_CONSTANTS,
+                features | wgpu::Features::IMMEDIATES,
                 wgpu::Limits {
-                    max_push_constant_size: limits.max_push_constant_size.max(128),
+                    max_immediate_size: limits.max_immediate_size.max(128),
                     ..limits
                 },
             )
@@ -291,11 +294,11 @@ impl ComputeController {
         _supported_features: wgpu::Features,
         supported_limits: &wgpu::Limits,
     ) -> (wgpu::Features, wgpu::Limits) {
-        let max_storage_buffer_binding_size = u32::conv(core::mem::size_of::<PointResult>())
-            * render_size.element_product().max(u32::conv(
+        let max_storage_buffer_binding_size = u64::conv(core::mem::size_of::<PointResult>())
+            * u64::from(render_size.element_product()).max(u64::conv(
                 std::mem::size_of::<Vec2>() * (MAX_MAX_ITERATIONS + 1),
             ));
-        let max_buffer_size = max_storage_buffer_binding_size.into();
+        let max_buffer_size = max_storage_buffer_binding_size;
 
         assert!(max_buffer_size < supported_limits.max_buffer_size);
         assert!(max_storage_buffer_binding_size < supported_limits.max_storage_buffer_binding_size);
@@ -375,22 +378,16 @@ impl ComputeController {
 
     fn create_pipeline_layout(
         device: &Device,
-        bind_group_layouts: &[&wgpu::BindGroupLayout],
+        bind_group_layouts: &[Option<&wgpu::BindGroupLayout>],
     ) -> wgpu::PipelineLayout {
-        let create = |push_constant_ranges| {
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("b3compute pipeline"),
-                bind_group_layouts,
-                push_constant_ranges,
-            })
-        };
-        create(&[
+        device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("b3compute pipeline"),
+            bind_group_layouts,
             #[cfg(not(feature = "emulate_constants"))]
-            wgpu::PushConstantRange {
-                stages: wgpu::ShaderStages::COMPUTE,
-                range: 0..128,
-            },
-        ])
+            immediate_size: 128,
+            #[cfg(feature = "emulate_constants")]
+            immediate_size: 0,
+        })
     }
 
     fn create_pipeline(

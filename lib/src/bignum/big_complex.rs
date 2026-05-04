@@ -512,7 +512,7 @@ mod tests {
     use float_eq::assert_float_eq;
 
     use super::{BigVec2, FBig, ParseError};
-    use crate::{BigComplex, make_bigcomplex, make_bigvec2};
+    use crate::{BigComplex, make_bigvec2};
 
     /// Helper trait for converting a float that came from decimal out to an f64 using the correct
     /// precision and rounding

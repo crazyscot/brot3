@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use egui_winit::winit::{dpi::PhysicalSize, window::Window};
-
-use crate::controller::ControllerTrait;
+use crate::{
+    controller::ControllerTrait,
+    winit::{dpi::PhysicalSize, event_loop::OwnedDisplayHandle, window::Window},
+};
 
 #[allow(missing_debug_implementations)]
 pub struct GraphicsContext {
@@ -17,13 +18,15 @@ impl GraphicsContext {
         window: Arc<Window>,
         initial_size: PhysicalSize<u32>,
         controller: &C,
+        display: OwnedDisplayHandle,
     ) -> GraphicsContext {
         let instance = wgpu::Instance::new(
-            &wgpu::InstanceDescriptor {
+            wgpu::InstanceDescriptor {
                 backends: wgpu::Backends::PRIMARY,
                 flags: wgpu::InstanceFlags::default(),
                 memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
                 backend_options: wgpu::BackendOptions::default(),
+                display: Some(Box::new(display)),
             }
             .with_env(),
         );
@@ -65,9 +68,9 @@ impl GraphicsContext {
             (features, limits)
         } else {
             (
-                features | wgpu::Features::PUSH_CONSTANTS,
+                features | wgpu::Features::IMMEDIATES,
                 wgpu::Limits {
-                    max_push_constant_size: limits.max_push_constant_size.max(128),
+                    max_immediate_size: limits.max_immediate_size.max(128),
                     ..limits
                 },
             )

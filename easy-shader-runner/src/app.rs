@@ -4,7 +4,7 @@ use egui_winit::winit::{
     application::ApplicationHandler,
     dpi::{PhysicalPosition, PhysicalSize},
     event::{ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent},
-    event_loop::{ActiveEventLoop, EventLoopProxy},
+    event_loop::{ActiveEventLoop, EventLoopProxy, OwnedDisplayHandle},
     keyboard::{Key, NamedKey},
     window::{Fullscreen, Window, WindowId},
 };
@@ -131,9 +131,9 @@ impl<C: ControllerTrait + Send> App<C> {
         );
     }
 
-    pub(crate) fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    pub(crate) fn render(&mut self) -> bool {
         let Self::Graphics(gfx) = self else {
-            return Ok(());
+            return true;
         };
         gfx.window.request_redraw();
         let result = gfx.rpass.render(
@@ -235,9 +235,9 @@ impl<C: ControllerTrait + Send> ApplicationHandler<CustomEvent<C>> for App<C> {
                             PhysicalSize { width, height }
                         })
                         .expect("couldn't get window size");
-                    wasm_bindgen_futures::spawn_local(create_graphics(builder, size, window));
+                    wasm_bindgen_futures::spawn_local(create_graphics(builder, size, window, event_loop.owned_display_handle()));
                 } else {
-                    futures::executor::block_on(create_graphics(builder, window.inner_size(), window));
+                    futures::executor::block_on(create_graphics(builder, window.inner_size(), window, event_loop.owned_display_handle()));
                 }
             }
         }
@@ -254,7 +254,7 @@ impl<C: ControllerTrait + Send> ApplicationHandler<CustomEvent<C>> for App<C> {
         }
         match event {
             WindowEvent::RedrawRequested => {
-                if let Err(wgpu::SurfaceError::OutOfMemory) = self.render() {
+                if !self.render() {
                     event_loop.exit();
                 }
                 #[cfg(feature = "compute")]
@@ -311,10 +311,11 @@ async fn create_graphics<C: ControllerTrait + Send>(
     builder: Builder<C>,
     initial_size: PhysicalSize<u32>,
     window: Window,
+    display: OwnedDisplayHandle,
 ) {
     let mut controller = builder.params.controller;
     let window = Arc::new(window);
-    let ctx = GraphicsContext::new(window.clone(), initial_size, &controller).await;
+    let ctx = GraphicsContext::new(window.clone(), initial_size, &controller, display).await;
 
     let ui = Ui::new(&window);
 

@@ -42,7 +42,7 @@ impl super::Controller {
                         (self.state.viewport_size.x / 2).cast(),
                         (self.state.viewport_size.y / 2).cast(),
                     ))
-                    .frame(egui::Frame::window(&ctx.style()).fill(egui::Color32::DARK_RED).inner_margin(10.0))
+                    .frame(egui::Frame::window(&ctx.global_style()).fill(egui::Color32::DARK_RED).inner_margin(10.0))
                     .show(ctx, |ui| {
                         let _ = ui.label(
                         "Perturbation mode is not yet implemented here. Only Mandelbrot at power 2 is currently supported.",

@@ -106,9 +106,9 @@ impl Ui {
         ui_state.fps = self.fps_counter.tick();
         let raw_input = self.egui_winit_state.take_egui_input(window);
         let mut available_rect = egui::Rect::NAN;
-        let full_output = self.egui_winit_state.egui_ctx().run(raw_input, |ctx| {
+        let full_output = self.egui_winit_state.egui_ctx().run_ui(raw_input, |ctx| {
             Self::ui(ctx, ui_state, controller, graphics_context);
-            available_rect = ctx.available_rect();
+            available_rect = ctx.content_rect();
         });
         self.egui_winit_state
             .handle_platform_output(window, full_output.platform_output);

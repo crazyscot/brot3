@@ -268,9 +268,9 @@ impl ControllerTrait for Controller {
         _supported_features: wgpu::Features,
         supported_limits: wgpu::Limits,
     ) -> (wgpu::Features, wgpu::Limits) {
-        let max_storage_buffer_binding_size =
-            u32::conv(core::mem::size_of::<PointResult>()) * self.cache_size.element_product();
-        let max_buffer_size = max_storage_buffer_binding_size.into();
+        let max_storage_buffer_binding_size = u64::conv(core::mem::size_of::<PointResult>())
+            * u64::conv(self.cache_size.element_product());
+        let max_buffer_size = max_storage_buffer_binding_size;
         assert!(max_buffer_size < supported_limits.max_buffer_size);
         assert!(max_storage_buffer_binding_size < supported_limits.max_storage_buffer_binding_size);
         (

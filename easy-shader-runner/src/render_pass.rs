@@ -1,6 +1,6 @@
 use egui_winit::winit::window::Window;
 use num_traits::AsPrimitive as _;
-use wgpu::PipelineCompilationOptions;
+use wgpu::{CurrentSurfaceTexture, PipelineCompilationOptions};
 
 use crate::{
     context::GraphicsContext,
@@ -62,7 +62,7 @@ impl RenderPass {
 
         let vertex_buffer_layouts = controller.describe_vertex_buffer_layouts(ctx);
         let pipeline_layouts =
-            create_pipeline_layouts(ctx, &bind_group_layouts.collect::<Vec<_>>());
+            create_pipeline_layouts(ctx, &bind_group_layouts.map(Some).collect::<Vec<_>>());
         let pipelines = create_pipelines(
             &ctx.device,
             &pipeline_layouts,
@@ -117,7 +117,7 @@ impl RenderPass {
             cpass.set_pipeline(&self.pipelines.compute);
             {
                 #[cfg(not(feature = "emulate_constants"))]
-                cpass.set_push_constants(0, push_constants);
+                cpass.set_immediates(0, push_constants);
                 #[cfg(feature = "emulate_constants")]
                 ctx.queue
                     .write_buffer(&self.emulate_constants_buffer.compute, 0, push_constants);
@@ -137,29 +137,22 @@ impl RenderPass {
         ui: &mut Ui,
         ui_state: &mut UiState,
         controller: &mut C,
-    ) -> Result<(), wgpu::SurfaceError> {
-        let output = match ctx.surface.get_current_texture() {
-            Ok(surface_texture) => surface_texture,
-            Err(err) => {
-                eprintln!("get_current_texture error: {err:?}");
-                return match err {
-                    wgpu::SurfaceError::Lost => {
-                        ctx.surface.configure(&ctx.device, &ctx.config);
-                        Ok(())
-                    }
-                    _ => Err(err),
-                };
-            }
+    ) -> bool {
+        let texture = ctx.surface.get_current_texture();
+
+        let (CurrentSurfaceTexture::Success(texture) | CurrentSurfaceTexture::Suboptimal(texture)) =
+            texture
+        else {
+            eprintln!("get_current_texture failed: {texture:?}");
+            return false;
         };
-        let output_view = output
+        let output_view = texture
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
         self.render_ui(ctx, &output_view, window, ui, ui_state, controller);
-
-        output.present();
-
-        Ok(())
+        texture.present();
+        true
     }
 
     fn render_shader<C: ControllerTrait>(
@@ -189,6 +182,7 @@ impl RenderPass {
                     },
                 })],
                 depth_stencil_attachment: None,
+                multiview_mask: None,
             });
 
             let size = glam::vec2(available_rect.width(), available_rect.height()).floor();
@@ -204,7 +198,7 @@ impl RenderPass {
                 let push_constants = controller.prepare_render(ctx, offset);
                 let bytes = bytemuck::bytes_of(&push_constants);
                 #[cfg(not(feature = "emulate_constants"))]
-                rpass.set_push_constants(wgpu::ShaderStages::FRAGMENT, 0, bytes);
+                rpass.set_immediates(0, bytes);
                 #[cfg(feature = "emulate_constants")]
                 ctx.queue
                     .write_buffer(&self.emulate_constants_buffer.render, 0, bytes);
@@ -289,6 +283,7 @@ impl RenderPass {
                     },
                 })],
                 depth_stencil_attachment: None,
+                multiview_mask: None,
             });
 
             for id in &textures_delta.free {
@@ -323,32 +318,23 @@ impl RenderPass {
 
 fn create_pipeline_layouts(
     ctx: &GraphicsContext,
-    bind_group_layouts: &[&wgpu::BindGroupLayout],
+    bind_group_layouts: &[Option<&wgpu::BindGroupLayout>],
 ) -> PipelineLayouts {
-    let create = |push_constant_ranges| {
+    let create = || {
         ctx.device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
                 bind_group_layouts,
-                push_constant_ranges,
+                #[cfg(not(feature = "emulate_constants"))]
+                immediate_size: 128,
+                #[cfg(feature = "emulate_constants")]
+                immediate_size: 0,
             })
     };
     PipelineLayouts {
-        render: create(&[
-            #[cfg(not(feature = "emulate_constants"))]
-            wgpu::PushConstantRange {
-                stages: wgpu::ShaderStages::FRAGMENT,
-                range: 0..128,
-            },
-        ]),
+        render: create(),
         #[cfg(feature = "compute")]
-        compute: create(&[
-            #[cfg(not(feature = "emulate_constants"))]
-            wgpu::PushConstantRange {
-                stages: wgpu::ShaderStages::COMPUTE,
-                range: 0..128,
-            },
-        ]),
+        compute: create(),
     }
 }
 
@@ -398,7 +384,7 @@ fn create_pipelines(
             })],
             compilation_options: PipelineCompilationOptions::default(),
         }),
-        multiview: None,
+        multiview_mask: None,
         cache: None,
     });
     #[cfg(feature = "compute")]

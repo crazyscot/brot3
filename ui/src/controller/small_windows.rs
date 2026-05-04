@@ -75,7 +75,7 @@ impl super::Controller {
                     .pivot(egui::Align2::LEFT_CENTER)
                     .fixed_pos(window_pos)
                     .show(ctx, |ui| {
-                        ui.label(egui::RichText::new(format!("{pixel_legend:.3e}",)));
+                        ui.label(egui::RichText::new(format!("{pixel_legend:.3e}")));
                     });
             });
         });

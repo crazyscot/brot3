@@ -273,7 +273,6 @@ mod tests {
     use glam::dvec2;
 
     use super::{BigVec2, DVec2};
-    use crate::make_bigvec2;
     #[test]
     fn conversions() {
         let z = make_bigvec2!(3, 4).with_precision(10);
