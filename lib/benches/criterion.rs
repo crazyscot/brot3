@@ -12,8 +12,8 @@ use brot3_lib::{
     util::Size,
 };
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use easy_cast::{Cast as _, CastApprox as _, ConvApprox as _};
 use glam::{Vec2, vec2};
-use num_traits::AsPrimitive as _;
 
 static CONSTS_M2_DEFAULT: LazyLock<FragmentConstants> = LazyLock::new(|| FragmentConstants {
     size: Size::new(800, 600),
@@ -21,9 +21,8 @@ static CONSTS_M2_DEFAULT: LazyLock<FragmentConstants> = LazyLock::new(|| Fragmen
     ..Default::default()
 });
 
-#[allow(clippy::cast_precision_loss)]
 fn prep_render(x: u32, y: u32, constants: &FragmentConstants) -> (Vec2, FragmentConstants) {
-    let coord = vec2(x as f32 + 0.5, y as f32 + 0.5);
+    let coord = vec2(f32::conv_approx(x) + 0.5, f32::conv_approx(y) + 0.5);
     let size = constants.size.as_vec2();
     let pixel_spacing = constants.pixel_spacing();
     let complex_offset = (coord - 0.5 * size) * pixel_spacing;
@@ -71,7 +70,7 @@ fn reference_points(c: &mut Criterion) {
                     &mut points,
                     s,
                     Algorithm::Mandelbrot,
-                    MAXITER_REFPOINTS.as_(),
+                    MAXITER_REFPOINTS.cast(),
                 );
             });
         },
@@ -89,13 +88,13 @@ fn iterate_perturbed(c: &mut Criterion) {
         &mut reference_points,
         &state.viewport_translate,
         Algorithm::Mandelbrot,
-        MAXITER_REFPOINTS.as_(),
+        MAXITER_REFPOINTS.cast(),
     );
 
     // viewport pixel size e.g. 1920x1080
     let viewport_size = vec2(800.0, 600.0);
     // pixel address within the viewport
-    let pixel_address = vec2(position.0.as_(), position.1.as_());
+    let pixel_address = vec2(position.0.cast_approx(), position.1.cast_approx());
     let frag_consts = FragmentConstants::from(&state);
     // convert pixel coordinates to complex units such that (0,0) is at the centre of the
     // viewport
@@ -107,7 +106,7 @@ fn iterate_perturbed(c: &mut Criterion) {
         Algorithm::Mandelbrot,
         complex_offset.into(),
     );
-    running_consts.n_reference = reference_points.len().as_();
+    running_consts.n_reference = reference_points.len().cast();
     running_consts.reference_points = reference_points.as_slice();
     let vars = RunningVariables::default();
 

@@ -6,6 +6,7 @@ use std::{
 };
 
 use dashu_float::FBig;
+use easy_cast::{Conv as _, ConvApprox as _};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -342,17 +343,12 @@ fn count_significant_digits(s: &str) -> usize {
 
 /// Estimate the precision (in bits) needed to represent either part of a complex number.
 /// This assumes the two parts have similar precision requirements.
-#[allow(
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss,
-    clippy::cast_precision_loss
-)]
 fn estimate_precision(real: &str, imag: &str) -> usize {
     let digits = count_significant_digits(real)
         .max(count_significant_digits(imag))
         .max(1);
     // Rough heuristic: ~3.3 bits per decimal digit
-    ((digits as f64) * 3.3).ceil() as usize
+    usize::conv_approx((f64::conv(digits) * 3.3).ceil())
 }
 
 impl Deref for BigComplex {

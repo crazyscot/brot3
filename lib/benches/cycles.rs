@@ -15,9 +15,9 @@ use brot3_lib::{
     ui::UiState,
     util::Size,
 };
+use easy_cast::{Cast as _, CastApprox as _, ConvApprox as _};
 use glam::{Vec2, vec2};
 use gungraun::{library_benchmark, library_benchmark_group, main};
-use num_traits::cast::AsPrimitive as _;
 
 // ..........................................................
 
@@ -53,9 +53,8 @@ static CONSTS_M2_DEFAULT: LazyLock<FragmentConstants> = LazyLock::new(|| Fragmen
     ..Default::default()
 });
 
-#[allow(clippy::cast_precision_loss)]
 fn prep_render(x: u32, y: u32, constants: &FragmentConstants) -> (Vec2, FragmentConstants) {
-    let coord = vec2(x as f32 + 0.5, y as f32 + 0.5);
+    let coord = vec2(f32::conv_approx(x) + 0.5, f32::conv_approx(y) + 0.5);
     let size = constants.size.as_vec2();
     let pixel_spacing = constants.pixel_spacing();
     let complex_offset = (coord - 0.5 * size) * pixel_spacing;
@@ -92,7 +91,7 @@ fn reference_points(centre: &BigVec2) {
         &mut points,
         centre,
         Algorithm::Mandelbrot,
-        MAXITER_REFPOINTS.as_(),
+        MAXITER_REFPOINTS.cast(),
     );
 }
 
@@ -110,13 +109,13 @@ impl PerturbedSetup<'_> {
             &mut reference_points,
             &state.viewport_translate,
             Algorithm::Mandelbrot,
-            MAXITER_REFPOINTS.as_(),
+            MAXITER_REFPOINTS.cast(),
         );
 
         // viewport pixel size e.g. 1920x1080
         let viewport_size = vec2(800.0, 600.0);
         // pixel address within the viewport
-        let pixel_address = vec2(x.as_(), y.as_());
+        let pixel_address = vec2(x.cast_approx(), y.cast_approx());
         let constants = FragmentConstants::from(&state);
         // convert pixel coordinates to complex units such that (0,0) is at the centre of the
         // viewport
@@ -157,7 +156,6 @@ library_benchmark_group!(
 
 // ..........................................................
 
-#[allow(clippy::cast_precision_loss)]
 fn col(colourer: Colourer) -> FragmentConstants {
     let mut consts = *CONSTS_M2_DEFAULT;
     consts.palette.colourer = colourer;

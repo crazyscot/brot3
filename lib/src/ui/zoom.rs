@@ -1,5 +1,6 @@
 // (c) 2026 Ross Younger
 
+use easy_cast::CastApprox as _;
 #[cfg(not(spirv))]
 use serde::{Deserialize, Serialize};
 
@@ -73,9 +74,8 @@ impl ViewportZoom {
 }
 
 impl From<ViewportZoom> for f32 {
-    #[allow(clippy::cast_possible_truncation)]
     fn from(value: ViewportZoom) -> Self {
-        value.0 as f32
+        value.0.cast_approx()
     }
 }
 impl From<f32> for ViewportZoom {

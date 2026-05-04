@@ -33,6 +33,7 @@ bytemuck = { workspace = true, features = ["derive"] }
 const-default = { workspace = true }
 derive_more = { workspace = true, default-features = false, features = ["constructor", "display", "eq"] }
 document-features = { workspace = true }
+easy-cast = { workspace = true, default-features = false }
 float_eq.workspace = true
 num-traits.workspace = true
 paste = { workspace = true }
@@ -59,6 +60,7 @@ thiserror = { workspace = true }
 assert_matches = { workspace = true }
 criterion = { workspace = true, features = ["html_reports"] }
 derive_more = { workspace = true, features = ["debug"] }
+easy-cast = { workspace = true, default-features = true }
 gungraun = { workspace = true }
 pretty_assertions = { workspace = true }
 strum = { workspace = true }

@@ -7,6 +7,7 @@ use std::{
 };
 
 use brot3_lib::{data::RenderMode, ui::UiState};
+use easy_cast::{Cast as _, ConvApprox as _};
 use easy_shader_runner::{UiState as EsrUiState, egui};
 use rfd::FileDialog;
 use tokio::task::JoinHandle;
@@ -25,10 +26,9 @@ impl super::Controller {
             return;
         }
         // Bottom centre of window
-        #[allow(clippy::cast_precision_loss)]
         let pos = (
-            (self.state.viewport_size.x / 2) as f32,
-            (self.state.viewport_size.y - 10) as f32,
+            (self.state.viewport_size.x / 2).cast(),
+            (self.state.viewport_size.y - 10).cast(),
         );
 
         let mut bar = egui::Area::new(egui::Id::new("scalebar"))
@@ -92,14 +92,16 @@ impl super::Controller {
             });
     }
 
-    #[allow(clippy::cast_possible_truncation)]
     pub(crate) fn context_menu_window(&mut self, ctx: &egui::Context, pos: DVec2) {
         let scale = ctx.pixels_per_point();
         let r = egui::Window::new("right_click_menu")
             .frame(egui::Frame::NONE)
             .title_bar(false)
             .resizable(false)
-            .fixed_pos([pos.x as f32 / scale, pos.y as f32 / scale])
+            .fixed_pos([
+                f32::conv_approx(pos.x) / scale,
+                f32::conv_approx(pos.y) / scale,
+            ])
             .show(ctx, |ui| {
                 if ui.button("Inspector...").clicked() {
                     self.inspector.position = self.pixel_address_to_complex(pos);

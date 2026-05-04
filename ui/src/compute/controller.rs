@@ -2,7 +2,7 @@ use brot3_lib::{
     COMPUTE_SHADER_THREADS,
     data::{FragmentConstants, PointResult},
 };
-use easy_cast::Cast as _;
+use easy_cast::{Cast as _, Conv as _};
 use glam::{UVec2, UVec3, Vec2};
 use wgpu::{Device, Queue, RequestDeviceError, ShaderModule};
 
@@ -276,28 +276,27 @@ impl ComputeController {
             size: pixel_buffer_size,
             mapped_at_creation: false,
         });
-        let reference_buffer_size =
-            std::mem::size_of::<Vec2>() as u64 * u64::from(MAX_MAX_ITERATIONS + 1);
+        let reference_buffer_size = std::mem::size_of::<Vec2>() * (MAX_MAX_ITERATIONS + 1);
         let reference_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("reference_buffer"),
             usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::STORAGE,
-            size: reference_buffer_size,
+            size: reference_buffer_size.cast(),
             mapped_at_creation: false,
         });
         (pixel_buffer, staging_buffer, reference_buffer)
     }
 
-    #[allow(clippy::cast_possible_truncation)]
     fn describe_wgpu_features_and_limits(
         render_size: UVec2,
         _supported_features: wgpu::Features,
         supported_limits: &wgpu::Limits,
     ) -> (wgpu::Features, wgpu::Limits) {
-        let max_storage_buffer_binding_size = core::mem::size_of::<PointResult>() as u32
-            * render_size
-                .element_product()
-                .max(std::mem::size_of::<Vec2>() as u32 * (MAX_MAX_ITERATIONS + 1));
+        let max_storage_buffer_binding_size = u32::conv(core::mem::size_of::<PointResult>())
+            * render_size.element_product().max(u32::conv(
+                std::mem::size_of::<Vec2>() * (MAX_MAX_ITERATIONS + 1),
+            ));
         let max_buffer_size = max_storage_buffer_binding_size.into();
+
         assert!(max_buffer_size < supported_limits.max_buffer_size);
         assert!(max_storage_buffer_binding_size < supported_limits.max_storage_buffer_binding_size);
         (

@@ -3,6 +3,7 @@
 //! (c) 2025-6 Ross Younger
 
 use bytemuck::NoUninit;
+use num_traits::AsPrimitive;
 
 use super::{BoundaryClass, ColourStyle};
 
@@ -10,7 +11,7 @@ use super::{BoundaryClass, ColourStyle};
 #[derive(Copy, Clone, Debug, Default, NoUninit, derive_more::Constructor)]
 #[repr(C)]
 pub struct PointResult {
-    /// iteration count
+    /// iteration count; `u32::MAX` means that the limit was reached, signifying "inside the set"
     iters: u32,
     /// fractional part of iteration count (range 0..1)
     iters_fraction: f32,
@@ -36,11 +37,14 @@ impl PointResult {
     // ACCESSORS ////////////////////////////////////////////////////////////
     /// Iterations
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
     pub fn iters(&self, style: ColourStyle) -> f32 {
+        // Cast with precision loss is OK here. The actual number is limited to MAX_MAX_ITER
+        // (100,000), which is exactly representable in f32. The only issue that crops up is
+        // our current use of `u32::MAX` to represent "infinity" for points inside the set.
+        let whole = self.iters_whole().as_();
         match style {
-            ColourStyle::Discrete => self.iters_whole() as f32,
-            ColourStyle::Continuous => self.iters_whole() as f32 + self.iters_fraction(),
+            ColourStyle::Discrete => whole,
+            ColourStyle::Continuous => whole + self.iters_fraction(),
         }
     }
 
@@ -97,7 +101,7 @@ impl PointResult {
     ///
     /// This function reimplements that effect.
     pub fn cull_iterations(&mut self) {
-        if self.iters == u32::MAX {
+        if self.inside() {
             return;
         }
 

@@ -85,10 +85,12 @@ macro_rules! exponent_monomorph {
             $crate::data::NumericType::Integer if $exponent.int == 6 => {
                 $run_it!($crate::maths::Power6 {}, $alg)
             }
-            #[allow(clippy::cast_precision_loss)]
             $crate::data::NumericType::Integer => {
                 $run_it!(
-                    $crate::maths::ComplexPower::new($exponent.int as f32, 0.0),
+                    $crate::maths::ComplexPower::new(
+                        <_ as $crate::easy_cast::Cast<f32>>::cast($exponent.int),
+                        0.0
+                    ),
                     $alg
                 )
             }
@@ -767,7 +769,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cast_possible_truncation)]
     fn distance_estimator_boundary_classification() {
         let centre = vec2(-1.5, 0.0);
         let centre_big = BigVec2::try_new(centre.x, centre.y).unwrap();

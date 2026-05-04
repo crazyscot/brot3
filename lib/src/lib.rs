@@ -14,6 +14,8 @@
 // enable this unstable feature (used in tests):
 #![feature(assert_matches)]
 
+pub use easy_cast;
+use easy_cast::Cast as _;
 /// Local glam re-exports for convenience
 pub(crate) use spirv_std::glam::{
     UVec2, UVec3, Vec2, Vec3, Vec3Swizzles as _, Vec4, f32, uvec2, uvec3, vec2, vec3,
@@ -119,8 +121,7 @@ pub fn main_vs(
     #[spirv(vertex_index)] vert_id: i32,
     #[spirv(position, invariant)] out_pos: &mut Vec4,
 ) {
-    #[allow(clippy::cast_precision_loss)]
-    let uv = vec2(((vert_id << 1) & 2) as f32, (vert_id & 2) as f32);
+    let uv = vec2(((vert_id << 1) & 2).cast(), (vert_id & 2).cast());
     // uv expresses the cycle: (0,0) (2,0) (0,2) (2,2)
     let pos = 2.0 * uv - Vec2::ONE;
     // pos expresses the cycle: (-1,-1) (3,-1) (-1,3) (3,3)

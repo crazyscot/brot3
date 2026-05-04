@@ -98,7 +98,6 @@ impl From<RgbVec> for Hsl {
 
         // compute hue components safely: avoid dividing by zero by substituting 1.0 when chroma ==
         // 0
-        #[allow(clippy::cast_precision_loss)]
         let safe_d = if is_gray { 1.0 } else { d };
         let t = if g < b { 6.0 } else { 0.0 };
         let h_r = ((g - b) / safe_d + t) * 60.0;
@@ -106,8 +105,11 @@ impl From<RgbVec> for Hsl {
         let h_b = ((r - g) / safe_d + 4.0) * 60.0;
 
         // priority-preserving selection for which channel is max (r wins if tied)
-        #[allow(clippy::cast_precision_loss)]
-        let mr = u32::from(float_eq!(max, r, abs <= 0.000_001)) as f32;
+        let mr = if float_eq!(max, r, abs <= 0.000_001) {
+            1.0
+        } else {
+            0.0
+        };
         let mg = if float_eq!(max, g, abs <= 0.000_001) {
             1.0 - mr
         } else {
@@ -129,7 +131,6 @@ impl From<RgbVec> for Hsl {
 pub struct PackedRgba8(pub u32);
 
 impl From<RgbVec> for PackedRgba8 {
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn from(rgbvec: RgbVec) -> Self {
         let rgb = (rgbvec.0.clamp(Vec3::ZERO, Vec3::ONE) * 255.0)
             .round()

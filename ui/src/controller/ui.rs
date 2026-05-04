@@ -8,8 +8,8 @@ use brot3_lib::{
     data::{Algorithm, NumericType, Palette},
     engine,
 };
+use easy_cast::{Cast as _, CastApprox as _, CastFloat as _};
 use easy_shader_runner::{UiState, egui};
-use num_traits::AsPrimitive as _;
 
 use super::{DVec2, Instant};
 
@@ -35,13 +35,12 @@ impl super::Controller {
         self.service_channels();
 
         if self.perturbation_mode && !self.perturb_implemented() {
-            #[allow(clippy::cast_precision_loss)]
-                let _ = egui::Window::new("Unimplemented")
+            let _ = egui::Window::new("Unimplemented")
                     .collapsible(false)
                     .resizable(false)
                     .fixed_pos(egui::pos2(
-                        self.state.viewport_size.x as f32 / 2.0,
-                        self.state.viewport_size.y as f32 / 2.0,
+                        (self.state.viewport_size.x / 2).cast(),
+                        (self.state.viewport_size.y / 2).cast(),
                     ))
                     .frame(egui::Frame::window(&ctx.style()).fill(egui::Color32::DARK_RED).inner_margin(10.0))
                     .show(ctx, |ui| {
@@ -137,8 +136,7 @@ impl super::Controller {
         let dt = self.last_instant.elapsed().as_secs_f64();
         self.last_instant = Instant::now();
         let factor = self.modifier_key_factor();
-        #[allow(clippy::cast_possible_truncation)]
-        let factor32 = factor as f32;
+        let factor32: f32 = factor.cast_approx();
         let zoom2 = self.movement.zoom2;
         if zoom2 != 1.0 {
             let zoom_in = zoom2.is_sign_positive();
@@ -161,7 +159,7 @@ impl super::Controller {
         }
         if movement.exponent != 0. {
             let current = match self.state.exponent.typ {
-                NumericType::Integer => self.state.exponent.int.as_(),
+                NumericType::Integer => self.state.exponent.int.cast(),
                 _ => self.state.exponent.real,
             };
             let new_exp = (current + factor32 * movement.exponent)
@@ -170,7 +168,7 @@ impl super::Controller {
                 self.reiterate = true;
                 self.state.exponent.real = new_exp;
                 if self.state.exponent.typ == NumericType::Integer {
-                    self.state.exponent.int = self.state.exponent.real.round().as_();
+                    self.state.exponent.int = self.state.exponent.real.cast_nearest();
                 }
             }
             movement.exponent = 0.;
@@ -215,7 +213,7 @@ impl super::Controller {
     }
 
     fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {
-        let mut dest = Vec::with_capacity(crate::MAX_MAX_ITERATIONS as usize);
+        let mut dest = Vec::with_capacity(crate::MAX_MAX_ITERATIONS.cast());
 
         engine::mandelbrot_perturbed_compute_reference_iters(
             &mut dest,

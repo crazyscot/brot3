@@ -39,7 +39,7 @@ const SHADER_BYTES: &[u8] = include_bytes!(env!("BROT3_SHADER"));
 /// Absolute limit on the number of iterations, which also limits the size of the perturbation
 /// buffer.
 // N.B. This affects the perturbation buffer size. But it's only 2 * sizeof(f32) per point.
-const MAX_MAX_ITERATIONS: u32 = 100_000;
+const MAX_MAX_ITERATIONS: usize = 100_000;
 
 #[cfg(runtime_compile)]
 fn is_directory<P: AsRef<Path>>(path: P) -> bool {

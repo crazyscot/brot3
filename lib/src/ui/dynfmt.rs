@@ -1,5 +1,7 @@
 // (c) 2025 Ross Younger
 
+use easy_cast::Conv as _;
+
 fn strip_trailers(s: &str) -> &str {
     // Strip trailing zeroes (after the point)
     // Strip trailing decimal point, if it's not followed by any digits
@@ -30,8 +32,7 @@ where
     let val = f64::from(val);
     let precision = if precision == 0 { 1 } else { precision };
     let exponent = if val == 0. { 0. } else { val.abs().log10() };
-    #[allow(clippy::cast_precision_loss)]
-    let e_mode = exponent < -4.0 || exponent > precision as f64;
+    let e_mode = exponent < -4.0 || exponent > f64::conv(precision);
     let s = if e_mode {
         // I really want split_once_inclusive() but that's not available right now.
         let s = format!("{val:.precision$e}");

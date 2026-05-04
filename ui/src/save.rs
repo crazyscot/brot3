@@ -12,6 +12,7 @@ use brot3_lib::{
     data::{Flags, FragmentConstants, PointResult, RenderMode},
     ui::{Error as LibError, UiState},
 };
+use easy_cast::CastApprox;
 use glam::{Vec2, Vec4, uvec2, vec4};
 use rayon::prelude::*;
 use thiserror::Error;
@@ -95,8 +96,7 @@ fn render_cpu(
                 let mut grid = [PointResult::default()];
                 let mut pixel = Vec4::default();
 
-                #[allow(clippy::cast_precision_loss)]
-                let frag_coord = vec4(x as f32, y as f32, 0.0, 0.0);
+                let frag_coord = vec4(x.cast_approx(), y.cast_approx(), 0.0, 0.0);
                 brot3_lib::main_fs(
                     frag_coord,
                     constants,
