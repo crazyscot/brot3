@@ -70,7 +70,7 @@ pub(crate) fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: Controller
         let mut watcher = builder
             .watch()
             .expect("Configuration is incorrect for watching");
-        let first_compile = watcher.recv().map_err(|e| ESRError::BuildFailed(e))?;
+        let first_compile = watcher.recv().map_err(ESRError::BuildFailed)?;
         //let mut thread_watcher = watcher.forget_lifetime();
         let _jh = std::thread::spawn(move || {
             loop {

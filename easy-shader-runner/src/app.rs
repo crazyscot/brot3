@@ -253,10 +253,8 @@ impl<C: ControllerTrait + Send> ApplicationHandler<CustomEvent<C>> for App<C> {
             return;
         }
         match event {
-            WindowEvent::RedrawRequested => {
-                if !self.render() {
-                    event_loop.exit();
-                }
+            WindowEvent::RedrawRequested if !self.render() => {
+                event_loop.exit();
                 #[cfg(feature = "compute")]
                 self.update();
             }

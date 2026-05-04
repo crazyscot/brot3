@@ -375,12 +375,10 @@ impl ControllerTrait for Controller {
                 self.dragging = pressed;
                 self.inspector.dragging = pressed && self.mouse_on_marker();
             }
-            MouseButton::Right => {
-                if state == ElementState::Pressed {
-                    // hack: offset the menu from the clicked point, so it doesn't immediately
-                    // disappear
-                    self.context_menu = Some(self.mouse_position - DVec2::splat(5.0));
-                }
+            MouseButton::Right if state == ElementState::Pressed => {
+                // hack: offset the menu from the clicked point, so it doesn't immediately
+                // disappear
+                self.context_menu = Some(self.mouse_position - DVec2::splat(5.0));
             }
             _ => (),
         }
