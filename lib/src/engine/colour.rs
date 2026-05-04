@@ -19,6 +19,8 @@ macro_rules! deprintln {
 
 use core::f32::consts::{E, PI, TAU};
 
+use easy_cast::Conv as _;
+
 #[cfg(spirv)]
 use crate::Real;
 use crate::{
@@ -208,14 +210,13 @@ fn one_lone_coder(constants: &FragmentConstants, iters: f32, pixel: &PointResult
     if pixel.inside() { Hsl::BLACK } else { colour }
 }
 
-#[allow(clippy::cast_precision_loss)]
 fn monochrome(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     #[cfg(not(spirv))]
     if pixel.inside() {
         return Hsl::BLACK;
     }
     // Compute an input from 0..1, relative to max_iter
-    let input = iters.ln() / (constants.max_iter as f32).ln();
+    let input = iters.ln() / f32::conv(constants.max_iter).ln();
     // Scale the offset down to -2..2
     let offset = constants.palette.offset / 5.;
     // This palette has a gamma transfer function
@@ -224,7 +225,6 @@ fn monochrome(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
     if pixel.inside() { Hsl::BLACK } else { colour }
 }
 
-#[allow(clippy::cast_precision_loss)]
 fn monochrome2(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     #[cfg(not(spirv))]
     if pixel.inside() {
@@ -271,7 +271,6 @@ fn neon(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
 
 /// A cool appearance with blue hues.
 /// Inspired by the `iceblue` theme by David Bau <https://github.com/davidbau/mandelbrot/blob/main/index.html>
-#[allow(clippy::cast_precision_loss)]
 fn icyblue(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     #[cfg(not(spirv))]
     if pixel.inside() {

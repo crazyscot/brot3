@@ -5,14 +5,10 @@ use brot3_lib::{
     dynfmt,
     engine::{DEFAULT_FRACTAL_PLANE_SIZE, NOMINAL_WINDOW_SIZE},
 };
+use easy_cast::CastApprox as _;
 use easy_shader_runner::egui;
 
-#[allow(
-    unused_results,
-    clippy::cast_precision_loss,
-    clippy::cast_possible_truncation,
-    clippy::cast_sign_loss
-)]
+#[allow(unused_results)]
 impl super::Controller {
     /// Calculates the decimal precision required to satisfactorily express a fractal part
     /// co-ordinate.
@@ -20,8 +16,7 @@ impl super::Controller {
     /// We need two guard digits to correctly reconstruct to desired accuracy.
     /// <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#693> refers.
     fn precision_digits(&self) -> usize {
-        let pixel_size = self.pixel_complex_size();
-        ((0.0 - pixel_size.log10()).ceil() + 2.0) as usize
+        ((0.0 - self.pixel_complex_size().log10()).ceil() + 2.0).cast_approx()
     }
 
     pub(crate) fn coords_window(&mut self, ctx: &egui::Context) {

@@ -7,7 +7,7 @@
 
 use std::fmt;
 
-use num_traits::AsPrimitive as _;
+use easy_cast::ConvApprox as _;
 use serde::{
     Deserialize, Serialize,
     de::{self, Deserializer, MapAccess, Visitor},
@@ -151,11 +151,12 @@ impl Exponent {
     /// Check if this exponent is within the given bounds (inclusive)
     #[must_use]
     pub fn is_valid(&self, min: i32, max: i32) -> bool {
+        let (minf, maxf) = (f32::conv_approx(min), f32::conv_approx(max));
         match self {
             Exponent::Integer(i) => i >= &min && i <= &max,
-            Exponent::Real(r) => *r >= min.as_() && *r <= max.as_(),
+            Exponent::Real(r) => *r >= minf && *r <= maxf,
             Exponent::Complex { real, imag } => {
-                *real >= min.as_() && *real <= max.as_() && *imag >= min.as_() && *imag <= max.as_()
+                *real >= minf && *real <= maxf && *imag >= minf && *imag <= maxf
             }
         }
     }

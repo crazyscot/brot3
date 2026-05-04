@@ -16,6 +16,7 @@ use brot3_lib::{
     engine::PixelSpacing as _,
     ui::{BIGNUM_PRECISION_LIMIT, Channel, UiState as BrotUiState, ViewportZoom},
 };
+use easy_cast::Conv as _;
 use easy_shader_runner::{
     ControllerTrait, GraphicsContext, UiState as ESRUiState, egui, wgpu, winit,
 };
@@ -177,7 +178,6 @@ impl Controller {
         self.reiterate = true;
     }
 
-    #[allow(clippy::cast_possible_truncation)]
     fn fragment_constants(&self, reiterate: bool) -> FragmentConstants {
         let flags = Flags::flag_if(reiterate || self.always_reiterate, Flags::NEEDS_REITERATE)
             | Flags::flag_if(self.inspector.active, Flags::INSPECTOR_ACTIVE)
@@ -263,14 +263,13 @@ impl ControllerTrait for Controller {
         self.fragment_constants(reiterate)
     }
 
-    #[allow(clippy::cast_possible_truncation)]
     fn describe_wgpu_features_and_limits(
         &self,
         _supported_features: wgpu::Features,
         supported_limits: wgpu::Limits,
     ) -> (wgpu::Features, wgpu::Limits) {
         let max_storage_buffer_binding_size =
-            core::mem::size_of::<PointResult>() as u32 * self.cache_size.element_product();
+            u32::conv(core::mem::size_of::<PointResult>()) * self.cache_size.element_product();
         let max_buffer_size = max_storage_buffer_binding_size.into();
         assert!(max_buffer_size < supported_limits.max_buffer_size);
         assert!(max_storage_buffer_binding_size < supported_limits.max_storage_buffer_binding_size);
@@ -334,7 +333,7 @@ impl ControllerTrait for Controller {
         let perturbation_points_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("perturbation_points_buffer"),
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            size: std::mem::size_of::<Vec2>() as u64 * u64::from(crate::MAX_MAX_ITERATIONS + 1),
+            size: u64::conv(std::mem::size_of::<Vec2>() * (crate::MAX_MAX_ITERATIONS + 1)),
             mapped_at_creation: false,
         });
 

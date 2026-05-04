@@ -6,6 +6,7 @@ use std::{
 };
 
 use dashu::float::{DBig, FBig, round::mode::Zero};
+use easy_cast::ConvApprox as _;
 use glam::{DVec2, UVec2, Vec2};
 use serde::{Deserialize, Serialize};
 
@@ -120,8 +121,7 @@ impl BigVec2 {
     pub fn precision(&self) -> UVec2 {
         let p0 = self.x.precision();
         let p1 = self.y.precision();
-        #[allow(clippy::cast_possible_truncation)]
-        glam::uvec2(p0 as u32, p1 as u32)
+        glam::uvec2(u32::conv_approx(p0), u32::conv_approx(p1))
     }
 
     /// Returns the greater precision of either axis

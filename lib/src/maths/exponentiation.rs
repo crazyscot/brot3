@@ -4,6 +4,8 @@
 
 #![allow(missing_docs)]
 
+use num_traits::AsPrimitive as _;
+
 #[cfg(spirv)]
 use crate::Real;
 use crate::{Complex, data::PushExponent};
@@ -57,15 +59,14 @@ macro_rules! power_unrolled {
                 fn apply_power_minus_1_to(self, z: Complex) -> Complex {
                     unroll_int!($pow - 1, z)
                 }
-                #[allow(clippy::cast_precision_loss)]
                 #[inline(always)]
                 fn power(self) -> f32 {
-                    $pow as f32
+                    // Cast with precision loss is OK here. Power is limited to 20.
+                    $pow.as_()
                 }
-                #[allow(clippy::cast_precision_loss)]
                 #[inline(always)]
                 fn log2(self) -> f32 {
-                    ($pow as f32).log2()
+                    self.power().log2()
                 }
             }
         }
@@ -147,6 +148,7 @@ impl ComplexPower {
 mod tests {
     #![allow(clippy::cognitive_complexity)]
 
+    use easy_cast::Conv as _;
     use float_eq::{assert_float_eq, float_ne};
     use pretty_assertions::assert_eq;
 
@@ -175,7 +177,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp, clippy::cast_precision_loss)]
+    #[allow(clippy::float_cmp)]
     fn int_basics() {
         let z_two = Complex::ONE + Complex::ONE;
         macro_rules! expo_object {
@@ -194,15 +196,15 @@ mod tests {
                 expo_object,
                 MandelbrotFamily
             );
-            assert_eq!(pow, i as f32);
-            assert_eq!(log2, (i as f32).log2());
+            assert_eq!(pow, f32::conv(i));
+            assert_eq!(log2, f32::conv(i).log2());
             assert_eq!(z.im, 0.0);
             assert_eq!(z.re, 2.0_f32.powi(i));
         }
     }
 
     #[test]
-    #[allow(clippy::float_cmp, clippy::cast_precision_loss)]
+    #[allow(clippy::float_cmp)]
     fn real_basics() {
         let rp = ComplexPower::new(2.5, 0.0);
         let z = Complex::new(1.0, 1.0);

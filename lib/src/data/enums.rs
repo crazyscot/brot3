@@ -150,8 +150,8 @@ macro_rules! incrementable {
             fn add(self, delta: i32) -> Self::Output {
                 use num_traits::{FromPrimitive as _, ToPrimitive as _};
                 use strum::VariantArray as _;
-                #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-                let n = Self::VARIANTS.len() as i32;
+                use $crate::easy_cast::Cast as _;
+                let n = Self::VARIANTS.len().cast();
                 let mut i = self.to_i32().unwrap_or_default() + delta;
                 i = i.rem_euclid(n);
                 Self::from_i32(i).unwrap()

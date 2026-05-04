@@ -6,6 +6,7 @@
 use core::str::FromStr;
 
 use bytemuck::NoUninit;
+use easy_cast::Conv as _;
 
 use crate::{UVec2, Vec2, uvec2, vec2};
 
@@ -48,8 +49,7 @@ impl Size {
     /// ```
     #[must_use]
     pub fn aspect_ratio(self) -> f32 {
-        #![allow(clippy::cast_precision_loss)]
-        self.width as f32 / self.height as f32
+        f32::conv(self.width) / f32::conv(self.height)
     }
 
     /// Converts to a [`Vec2`]
@@ -63,8 +63,7 @@ impl Size {
     /// ```
     #[must_use]
     pub fn as_vec2(self) -> Vec2 {
-        #![allow(clippy::cast_precision_loss)]
-        vec2(self.width as f32, self.height as f32)
+        vec2(f32::conv(self.width), f32::conv(self.height))
     }
 
     /// Converts to a [`UVec2`]
