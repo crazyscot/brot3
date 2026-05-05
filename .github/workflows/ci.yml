@@ -24,7 +24,7 @@ jobs:
 
   cargo-deny:
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    timeout-minutes: 5
     strategy:
       matrix:
         checks:
@@ -47,7 +47,7 @@ jobs:
 
   cargo-fmt:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v6
       - name: set toolchain override
@@ -98,7 +98,7 @@ jobs:
   checks-stable-suite:
     name: checks (stable suite)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       # This job runs all its checks without stopping (unless cancelled)
       - uses: actions/checkout@v6
