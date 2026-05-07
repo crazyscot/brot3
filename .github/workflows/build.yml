@@ -39,6 +39,7 @@ jobs:
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
+          cache-workspace-crates: true
       - name: build shader
         run: cargo run -p shader_builder --locked --release --verbose
         # Continue on error as far as possible, to provide maximum useful information
