@@ -40,7 +40,7 @@ jobs:
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
       - name: build shader
-        run: cargo run -p shader_builder --locked --release
+        run: cargo run -p shader_builder --locked --release --verbose
         # Continue on error as far as possible, to provide maximum useful information
       - name: Upload SPIRV artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -146,7 +146,7 @@ jobs:
         id: pre-build
         # We need to run this to get the version file, so we can feed that to build-binary...
         # CAUTION: This cargo invocation must match that used by the build-binary step.
-        run: cargo build --release --bin brot3 --locked --package brot3-ui --no-default-features -F ui
+        run: cargo build --release --bin brot3 --locked --package brot3-ui --no-default-features -F ui --verbose
       - name: extract version
         id: version
         shell: python
