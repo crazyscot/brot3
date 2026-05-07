@@ -157,7 +157,7 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f'version={version}')
       - name: build binary package
-        uses: taiki-e/upload-rust-binary-action@3962470d6e7f1993108411bc3f75a135ec67fc8c # v1.27.0
+        uses: taiki-e/upload-rust-binary-action@f0d45ae91ee7b8ee928de7a9d04d893a08bcbec6 # v1.32.2
         id: build-binary
         with:
           bin: brot3
