@@ -50,6 +50,28 @@ jobs:
           path: target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/brot3_lib.spv
         if: ${{ !cancelled() }}
 
+  ui-hot-reload:
+    # This build is not shipped, but confirming that it hasn't broken is valuable.
+    # This is a separate build due to its size. (The hot-reload-shader feature flag pulls in spirv-tools.)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: set toolchain override
+        run: cp -f rust-toolchain-fmt.toml rust-toolchain.toml
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
+        with:
+          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          components: rust-src,rustc-dev,llvm-tools
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
+          cache-workspace-crates: true
+      - name: build
+        # As this build is not shipped, build it as a debug build for speed.
+        run: cargo build --bin brot3 --locked --package brot3-ui -F hot-reload-shader -F suppress-shader-build
+
   define-matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -144,10 +166,13 @@ jobs:
       - name: status check
         run: git status --porcelain
       - name: build
-        id: pre-build
+        id: prebuild
         # We need to run this to get the version file, so we can feed that to build-binary...
         # CAUTION: This cargo invocation must match that used by the build-binary step.
         run: cargo build --release --bin brot3 --locked --package brot3-ui --no-default-features -F ui --verbose
+      - name: build (no ui)
+        id: prebuild2
+        run: cargo build --release --bin brot3 --locked --package brot3-ui --no-default-features --verbose
       - name: extract version
         id: version
         shell: python
