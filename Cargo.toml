@@ -24,7 +24,7 @@ cfg-if = "1.0.4"
 cfg_aliases = "0.2.1"
 chrono = { version = "0.4.44", default-features = false }
 clap = { version = "4.6.1", features = ["derive"] }
-const-default = { version = "1.0.0", features = ["derive"], default-features = false }
+const-default = { version = "1.0.0", default-features = false }
 criterion = "0.8.2"
 dashu = { version = "0.4.2", default-features = false }
 dashu-float = { version = "0.4.3", default-features = false }
