@@ -24,22 +24,85 @@ env:
   # BROT3_RUST_VERSION should match the version in rust-toolchain.toml & across all workflows
 
 jobs:
-  shader:
+  shader_builder:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
+
+      # This job builds tooling for the shader job. Note that shader-builder is a thin wrapper around spirv_builder.
+      # We also cache the built artifacts, so include as an extra key the hash of the crate source tree.
+      # If the cache is hot, we short-circuit the build process and simply re-ship the cached artifacts.
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        id: rust-cache
+        with:
+          save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
+          cache-directories: .tmp/sb
+          key: ${{ hashFiles('shader_builder/**') }}
+
+      - name: Determine build status
+        id: do-build
+        run: |
+          echo Cache hit status: Rust ${{ steps.rust-cache.outputs.cache-hit }}.
+          do_build=${{ (steps.rust-cache.outputs.cache-hit != 'true') && '1' || '0' }}
+          echo RCC cache hit: ${{ steps.rust-cache.outputs.cache-hit }} : ${{ steps.rust-cache.outputs.cache-hit == 'true' }}
+          echo do-build decision: $do_build
+          echo do-build=$do_build >> $GITHUB_OUTPUT
+          ls -lR .temp/sb || true
+
+      # Build and tooling actions (gated by the status check)
+      # N.B. We don't need to install the spirv-tools .deb here, as we're not actually using them in this job
+      - name: Install Rust
+        if: ${{ steps.do-build.outputs.do-build == '1' }}
+        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
+        with:
+          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          components: rust-src,rustc-dev,llvm-tools
+      - name: build
+        if: ${{ steps.do-build.outputs.do-build == '1' }}
+        run: |
+          rm -rf .temp/sb
+          cargo build -p shader_builder --locked --release --no-default-features -F use-installed-tools
+      - name: assemble upload
+        if: ${{ steps.do-build.outputs.do-build == '1' }}
+        run: mkdir -p .temp/sb && cp target/release/shader_builder target/release/librustc_codegen_spirv.so .temp/sb/
+
+      # Send the artifact, whether we built it or it came from cache.
+      - name: Upload artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: shader_builder
+          path: .temp/sb/*
+        if: ${{ !cancelled() }}
+
+  shader:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: shader_builder
+    steps:
+      - name: Install spirv-tools
+        run: sudo apt update && sudo apt install spirv-tools
       - name: Install Rust
         uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
         with:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
           components: rust-src,rustc-dev,llvm-tools
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - uses: actions/checkout@v6
+      - name: Download shader_builder
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
-          cache-workspace-crates: true
+          name: shader_builder
+          path: ${{ github.workspace }}/.temp/shader_builder
+      - name: Fix permissions
+        run: ls -lR .temp ; chmod -v +x ${{ github.workspace }}/.temp/shader_builder/*
+      # This is not currently worth cacheing. A 110M cache but no time saving overall.
+      #- uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      #  with:
+      #    save-if: ${{ github.ref_type != 'tag' }}
       - name: build shader
-        run: cargo run -p shader_builder --locked --release --verbose
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/.temp/shader_builder
+        run: pwd; ls -lR .temp/shader_builder; ./.temp/shader_builder/shader_builder
         # Continue on error as far as possible, to provide maximum useful information
       - name: Upload SPIRV artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -63,7 +126,6 @@ jobs:
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
-          cache-workspace-crates: true
       - name: build
         # As this build is not shipped, build it as a debug build for speed.
         run: cargo build --bin brot3 --locked --package brot3-ui -F hot-reload-shader
