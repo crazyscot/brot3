@@ -45,6 +45,7 @@ futures-channel = "0.3.32"
 glam = { version = "0.32.1", default-features = false }
 gungraun = "0.18.2"
 image = { version = "0.25.10", default-features = false }
+itertools = "0.14.0"
 log = "0.4.29"
 mimalloc = "0.1.50"
 num-derive = "0.4.2"

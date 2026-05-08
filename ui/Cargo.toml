@@ -53,7 +53,7 @@ futures-channel = { workspace = true }
 glam = { workspace = true }
 # image is indirectly used, for unpicking PNGs
 image = { workspace = true, features = ["png"] }
-itertools = "0.14.0"
+itertools = { workspace = true }
 log = { workspace = true }
 mimalloc = { workspace = true }
 png = { workspace = true }
