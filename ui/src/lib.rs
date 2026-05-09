@@ -91,13 +91,12 @@ pub async fn main() -> Result<(), MainError> {
     if args.output.is_some() {
         render::main(&args)
     } else {
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "ui")] {
-                ui_main(&args)
-            } else {
-                Err(MainError::UilessBuild)
-            }
+        #[cfg(feature = "ui")]
+        {
+            ui_main(&args)
         }
+        #[cfg(not(feature = "ui"))]
+        Err(MainError::UilessBuild)
     }
 }
 

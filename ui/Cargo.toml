@@ -35,7 +35,6 @@ ui = [
 [dependencies]
 brot3-lib = { workspace = true }
 bytemuck = { workspace = true }
-cfg-if = { workspace = true }
 chrono = { workspace = true, features = ["clock"], optional = true }
 clap = { workspace = true, features = ["derive", "wrap_help"] }
 derive_more = { workspace = true, default-features = false, features = ["debug"] }
