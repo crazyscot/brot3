@@ -76,6 +76,7 @@ glam = { version = "0.32.1" }
 [workspace.dependencies.spirv-builder]
 git = "https://github.com/Rust-GPU/rust-gpu"
 rev = "c904e5c039676df3409dd7aa61119102109af921"
+default-features = false
 
 [workspace.lints.rust]
 dead_code = "warn"

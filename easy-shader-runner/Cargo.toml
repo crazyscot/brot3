@@ -13,11 +13,16 @@ description = "Use rust shaders and egui on the web and native"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["hot-reload-shader"]
+default = ["hot-reload-shader", "use-compiled-tools"]
 runtime-compilation = ["dep:spirv-builder"]
 hot-reload-shader = ["spirv-builder/watch"]
 emulate_constants = []
 compute = []
+# If enabled, spirv-builder uses spirv-tools binaries installed in PATH, instead of
+# compiling and linking the spirv-tools C++ code
+use-installed-tools = ["spirv-builder?/use-installed-tools"]
+# If enabled, spirv-builder will compile and link the C++ code for the spirv tools
+use-compiled-tools = ["spirv-builder?/use-compiled-tools"]
 
 [dependencies]
 bytemuck.workspace = true
