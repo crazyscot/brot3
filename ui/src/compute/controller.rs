@@ -231,22 +231,13 @@ impl ComputeController {
             .await
             .expect("Failed to find an appropriate adapter");
 
-        let (features, limits) = Self::describe_wgpu_features_and_limits(
+        let (mut features, mut limits) = Self::describe_wgpu_features_and_limits(
             render_size,
             adapter.features(),
             &adapter.limits(),
         );
-        let (mut features, limits) = if cfg!(feature = "emulate_constants") {
-            (features, limits)
-        } else {
-            (
-                features | wgpu::Features::IMMEDIATES,
-                wgpu::Limits {
-                    max_immediate_size: limits.max_immediate_size.max(128),
-                    ..limits
-                },
-            )
-        };
+        features |= wgpu::Features::IMMEDIATES;
+        limits.max_immediate_size = limits.max_immediate_size.max(128);
         if timestamps {
             features |=
                 wgpu::Features::TIMESTAMP_QUERY | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
@@ -342,7 +333,6 @@ impl ComputeController {
                     },
                     count: None,
                 },
-                // emulate_constants would go here if we needed it
             ],
             label: Some("b3compute bgl"),
         });
@@ -383,10 +373,7 @@ impl ComputeController {
         device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("b3compute pipeline"),
             bind_group_layouts,
-            #[cfg(not(feature = "emulate_constants"))]
             immediate_size: 128,
-            #[cfg(feature = "emulate_constants")]
-            immediate_size: 0,
         })
     }
 
