@@ -27,16 +27,14 @@ ui = [
   "easy-shader-runner",
   "egui_extras",
   "rfd",
-  "bytemuck",
   "dirs",
   "chrono",
   "scopeguard",
-  "futures",
 ]
 
 [dependencies]
 brot3-lib = { workspace = true }
-bytemuck = { workspace = true, optional = true }
+bytemuck = { workspace = true }
 cfg-if = { workspace = true }
 chrono = { workspace = true, features = ["clock"], optional = true }
 clap = { workspace = true, features = ["derive", "wrap_help"] }
@@ -45,7 +43,7 @@ dirs = { workspace = true, optional = true }
 easy-cast = { workspace = true, features = ["std"] }
 egui_extras = { workspace = true, features = ["image"], optional = true }
 env_logger = { workspace = true }
-futures = { workspace = true, optional = true }
+futures = { workspace = true, features = ["executor"] }
 futures-channel = { workspace = true }
 glam = { workspace = true }
 # image is indirectly used, for unpicking PNGs
@@ -61,7 +59,7 @@ serde_json.workspace = true
 strum = { workspace = true, features = ["std"] }
 thiserror.workspace = true
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
-wgpu.workspace = true
+wgpu = { workspace = true, default-features = false, features = ["spirv", "vulkan", "dx12", "metal"] }
 
 [target.'cfg(not(any(target_arch = "wasm32")))'.dependencies]
 easy-shader-runner = { workspace = true, default-features = false, optional = true }
