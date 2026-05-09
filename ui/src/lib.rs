@@ -62,8 +62,8 @@ pub enum MainError {
     ManifestShaderConflict,
     #[error("Missing shader directory in CARGO_MANIFEST_DIR mode (manifest={mp}, shader={shader})")]
     MissingShaderDirectory { mp: String, shader: String },
-    #[error("Shader directory {0} not found")]
-    ShaderDirectoryNotFound(String),
+    #[error("Shader directory not found")]
+    ShaderDirectoryNotFound,
     #[error("SPIRV tools {0} not found")]
     SpirvToolsNotFound(String),
     #[cfg(feature = "ui")]
@@ -73,6 +73,8 @@ pub enum MainError {
     Render(#[from] render::RenderError),
     #[error("User interface is not present in this build")]
     UilessBuild,
+    #[error("Shader source directory not found, running with prebuilt shader")]
+    FallbackToPrebuiltShader,
 }
 
 /// Main CLI entrypoint
@@ -106,81 +108,98 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
     #[allow(unused_variables, reason = "false positive")]
     let params = easy_shader_runner::Parameters::new(controller, version_string("brot3 "))
         .esc_key_exits(false);
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "hot-reload-shader")] {
 
-            let manifest = std::env::var("CARGO_MANIFEST_DIR");
-            let relative_to_manifest = manifest.is_ok();
-
-            let mut shader_path = None;
-
-            if let Ok(mp) = manifest {
-                // We're running under cargo
-                if args.shader.is_some() {
-                    return Err(MainError::ManifestShaderConflict);
-                }
-                let mut pb = PathBuf::from(&mp);
-                pb.push(CARGO_SHADER_RELATIVE_PATH);
-                if !is_directory(&pb) {
-                    return Err(MainError::MissingShaderDirectory {
-                        mp,
-                        shader: CARGO_SHADER_RELATIVE_PATH.to_string(),
-                    });
-                }
-                shader_path = Some(PathBuf::from(CARGO_SHADER_RELATIVE_PATH));
-            } else {
-                // We're not running under cargo
-                if let Some(path) = args.shader.as_ref() {
-                    if !is_directory(path) {
-                        // If given, an explicit shader directory must be present
-                        return Err(MainError::ShaderDirectoryNotFound(path.display().to_string()));
-                    }
-                    shader_path = args.shader.clone();
-                } else if !args.static_shader {
-                    for p in CANDIDATE_SHADER_PATHS {
-                        if is_directory(p) {
-                            shader_path = Some(PathBuf::from(p));
-                            break;
-                        }
-                    }
-                    if shader_path.is_none() {
-                        log::info!(
-                            "Shader source directory not found, running with prebuilt shader"
-                        );
-                    }
-                }
+    #[cfg(feature = "hot-reload-shader")]
+    if !args.static_shader {
+        match find_shader_path(args) {
+            Ok(path) => {
+                log::info!(
+                    "Found shader source directory at {}, running with runtime compilation",
+                    path.display()
+                );
+                return run_with_hot_reload(args, &path, params);
             }
-            if let Some(ref tp) = args.spirv_tools
-                && !is_file(tp)
-            {
-                return Err(MainError::SpirvToolsNotFound(tp.display().to_string()));
+            Err(MainError::FallbackToPrebuiltShader) => {
+                log::warn!("Shader source directory not found, running with prebuilt shader")
             }
-            if let Some(path) = shader_path
-                && !args.static_shader
-            {
-                // Yes, we can successfully run with runtime shader compilation!
-                let hook = std::panic::take_hook();
-                std::panic::set_hook(Box::new(move |e| {
-                    let msg = e.to_string();
-                    if msg.contains("Could not find") && msg.contains("in library path") {
-                        eprintln!("Error: {e}\nEither set your library path appropriately, or specify the path to the library with --spirv-tools <PATH>, or use --static-shader");
-                    } else {
-                        hook(e);
-                    }
-                }));
-                return Ok(easy_shader_runner::run_with_runtime_compilation(
-                    params,
-                    path,
-                    relative_to_manifest,
-                    args.spirv_tools.clone(),
-                )?);
-            }
-            // else fallthrough to the prebuilt case
+            Err(e) => return Err(e),
         }
     }
-    // No runtime compilation
+    // runtime compilation configured out, or it didn't succeed
     Ok(easy_shader_runner::run_with_prebuilt_shader(
         params,
         SHADER_BYTES,
     )?)
+}
+
+#[cfg(feature = "hot-reload-shader")]
+/// Finds the path to the shader source directory, if it exists.
+///
+/// Returns `Ok(path to shader)` on success.
+fn find_shader_path(args: &cli::Args) -> Result<PathBuf, MainError> {
+    let shader_path = if let Ok(manifest) = std::env::var("CARGO_MANIFEST_DIR") {
+        // We're running under cargo
+        if args.shader.is_some() {
+            return Err(MainError::ManifestShaderConflict);
+        }
+        let mut pb = PathBuf::from(&manifest);
+        pb.push(CARGO_SHADER_RELATIVE_PATH);
+        if !is_directory(&pb) {
+            return Err(MainError::MissingShaderDirectory {
+                mp: manifest,
+                shader: CARGO_SHADER_RELATIVE_PATH.to_string(),
+            });
+        }
+        Some(PathBuf::from(CARGO_SHADER_RELATIVE_PATH))
+    } else {
+        // We're not running under cargo
+        if let Some(path) = args.shader.as_ref() {
+            if !is_directory(path) {
+                // If given, an explicit shader directory must be present
+                return Err(MainError::ShaderDirectoryNotFound);
+            }
+            args.shader.clone()
+        } else {
+            CANDIDATE_SHADER_PATHS
+                .iter()
+                .find(|p| is_directory(p))
+                .map(|p| PathBuf::from(p))
+        }
+    };
+    if let Some(ref tp) = args.spirv_tools
+        && !is_file(tp)
+    {
+        return Err(MainError::SpirvToolsNotFound(tp.display().to_string()));
+    }
+    shader_path.ok_or(MainError::FallbackToPrebuiltShader)
+}
+
+#[cfg(feature = "hot-reload-shader")]
+fn run_with_hot_reload<C: easy_shader_runner::ControllerTrait + Send>(
+    args: &cli::Args,
+    path: &Path,
+    params: easy_shader_runner::Parameters<C>,
+) -> Result<(), MainError> {
+    // Are we running under cargo?
+    let relative_to_manifest = std::env::var("CARGO_MANIFEST_DIR").is_ok();
+
+    let hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |e| {
+        let msg = e.to_string();
+        if msg.contains("Could not find") && msg.contains("in library path") {
+            eprintln!(
+                "Error: {e}\nEither set your library path appropriately, or specify the path to the library with --spirv-tools <PATH>, or use --static-shader"
+            );
+        } else {
+            hook(e);
+        }
+    }));
+
+    easy_shader_runner::run_with_runtime_compilation(
+        params,
+        path,
+        relative_to_manifest,
+        args.spirv_tools.clone(),
+    )?;
+    return Ok(());
 }
