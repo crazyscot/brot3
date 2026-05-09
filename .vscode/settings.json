@@ -17,10 +17,13 @@
   "rust-analyzer.linkedProjects": [
     "./Cargo.toml"
   ],
+  // slightly gross hack to prevent the analyzer from triggering a shader build unnecessarily
+  "rust-analyzer.cargo.extraEnv": {
+    "BROT3_PREBUILT_SHADER": "lib.rs"
+  },
   "rust-analyzer.showUnlinkedFileNotification": false,
   // rustup component add rust-analyzer, then set this in ~/.config/Code/User/settings.json:
   // "rust-analyzer.server.path": "${userHome}/.cargo/bin/rust-analyzer",
-
   // "rust-analyzer.cargo.features": ["unstable-test-helpers"],
   "editor.formatOnSave": true
 }

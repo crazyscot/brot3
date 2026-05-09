@@ -23,8 +23,6 @@ bench = false
 [features]
 default = ["ui"]
 hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
-## For use in special CI jobs only
-suppress-shader-build = []
 ui = [
   "easy-shader-runner",
   "egui_extras",

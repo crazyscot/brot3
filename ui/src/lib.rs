@@ -32,8 +32,6 @@ const CANDIDATE_SHADER_PATHS: &[&str] = &["./lib", "../lib"];
 pub use save::write_png; // exported for use by compute_shader integration test
 use version::version_string;
 
-#[cfg(not(feature = "suppress-shader-build"))]
-/// Single point of reference to the spir-v shader
 const SHADER_BYTES: &[u8] = include_bytes!(env!("brot3_lib.spv"));
 
 /// Absolute limit on the number of iterations, which also limits the size of the perturbation
@@ -73,8 +71,6 @@ pub enum MainError {
     EasyShaderRunner(#[from] easy_shader_runner::Error),
     #[error(transparent)]
     Render(#[from] render::RenderError),
-    #[error("Shader not present due to suppress-shader-build feature")]
-    SuppressedShaderBuild,
     #[error("User interface is not present in this build")]
     UilessBuild,
 }
@@ -107,14 +103,11 @@ pub async fn main() -> Result<(), MainError> {
 fn ui_main(args: &cli::Args) -> Result<(), MainError> {
     easy_shader_runner::setup_logging();
     let controller = controller::Controller::new(args);
+    #[allow(unused_variables, reason = "false positive")]
     let params = easy_shader_runner::Parameters::new(controller, version_string("brot3 "))
         .esc_key_exits(false);
     cfg_if::cfg_if! {
-        if #[cfg(feature = "suppress-shader-build")] {
-            // Runtime compilation disabled by feature flag
-            Err(MainError::SuppressedShaderBuild)?;
-            let _ = params.esc_key_exits(true); // hush unused warning
-        } else if #[cfg(feature = "hot-reload-shader")] {
+        if #[cfg(feature = "hot-reload-shader")] {
 
             let manifest = std::env::var("CARGO_MANIFEST_DIR");
             let relative_to_manifest = manifest.is_ok();
@@ -165,6 +158,7 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
             if let Some(path) = shader_path
                 && !args.static_shader
             {
+                // Yes, we can successfully run with runtime shader compilation!
                 let hook = std::panic::take_hook();
                 std::panic::set_hook(Box::new(move |e| {
                     let msg = e.to_string();
@@ -174,25 +168,19 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
                         hook(e);
                     }
                 }));
-                easy_shader_runner::run_with_runtime_compilation(
+                return Ok(easy_shader_runner::run_with_runtime_compilation(
                     params,
                     path,
                     relative_to_manifest,
                     args.spirv_tools.clone(),
-                )?;
-            } else {
-                easy_shader_runner::run_with_prebuilt_shader(
-                    params,
-                    SHADER_BYTES,
-                )?;
+                )?);
             }
-        } else {
-            // Runtime compilation disabled by feature flag
-            easy_shader_runner::run_with_prebuilt_shader(
-                params,
-                SHADER_BYTES,
-            )?;
+            // else fallthrough to the prebuilt case
         }
     }
-    Ok(())
+    // No runtime compilation
+    Ok(easy_shader_runner::run_with_prebuilt_shader(
+        params,
+        SHADER_BYTES,
+    )?)
 }

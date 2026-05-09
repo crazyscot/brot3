@@ -4,7 +4,7 @@ use brot3_lib::{
 };
 use easy_cast::{Cast as _, Conv as _};
 use glam::{UVec2, UVec3, Vec2};
-use wgpu::{Device, Queue, RequestDeviceError, ShaderModule};
+use wgpu::{Device, Queue, RequestDeviceError};
 
 use super::Queries;
 use crate::MAX_MAX_ITERATIONS;
@@ -20,8 +20,6 @@ pub enum Error {
     PollError(#[from] wgpu::PollError),
     #[error(transparent)]
     RequestDeviceError(#[from] wgpu::RequestDeviceError),
-    #[error("Shader not present due to suppress-shader-build feature")]
-    SuppressedShaderBuild,
 }
 
 #[allow(missing_docs)]
@@ -41,13 +39,6 @@ pub struct ComputeController {
 }
 
 impl ComputeController {
-    /// Creates a new `ComputeController` with the specified render size and number of passes.
-    #[cfg(feature = "suppress-shader-build")]
-    pub fn new(render_size: UVec2, n_passes: u32, timestamps: bool) -> Result<Self, Error> {
-        Err(Error::SuppressedShaderBuild)
-    }
-
-    #[cfg(not(feature = "suppress-shader-build"))]
     /// Creates a new `ComputeController` with the specified render size and number of passes.
     pub fn new(render_size: UVec2, n_passes: u32, timestamps: bool) -> Result<Self, Error> {
         let (device, queue) =
@@ -356,8 +347,7 @@ impl ComputeController {
         (vec![layout], vec![bind_group])
     }
 
-    #[cfg(not(feature = "suppress-shader-build"))]
-    fn load_shader(device: &Device) -> ShaderModule {
+    fn load_shader(device: &Device) -> wgpu::ShaderModule {
         let spirv = wgpu::util::make_spirv(crate::SHADER_BYTES);
         let label = "b3compute";
         device.create_shader_module(wgpu::ShaderModuleDescriptor {

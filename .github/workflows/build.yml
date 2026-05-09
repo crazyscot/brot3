@@ -66,7 +66,10 @@ jobs:
           cache-workspace-crates: true
       - name: build
         # As this build is not shipped, build it as a debug build for speed.
-        run: cargo build --bin brot3 --locked --package brot3-ui -F hot-reload-shader -F suppress-shader-build
+        run: cargo build --bin brot3 --locked --package brot3-ui -F hot-reload-shader
+        env:
+          # gross hack to suppress the shader build as this build is not shipped
+          BROT3_PREBUILT_SHADER: lib.rs
 
   define-matrix:
     runs-on: ubuntu-latest
