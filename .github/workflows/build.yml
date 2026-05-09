@@ -168,10 +168,7 @@ jobs:
         id: prebuild
         # We need to run this to get the version file, so we can feed that to build-binary...
         # CAUTION: This cargo invocation must match that used by the build-binary step.
-        run: cargo build --release --bin brot3 --locked --package brot3-ui --no-default-features -F ui --verbose
-      - name: build (no ui)
-        id: prebuild2
-        run: cargo build --release --bin brot3 --locked --package brot3-ui --no-default-features --verbose
+        run: cargo build --release --bin brot3 --locked --package brot3-ui --verbose
       - name: extract version
         id: version
         shell: python
@@ -194,8 +191,7 @@ jobs:
           leading-dir: true
           locked: true
           package: brot3-ui
-          no-default-features: true
-          features: ui
+          #features: ui
           # CAUTION: These options must lead to a cargo invocation that matches that of the build-binary step.
           # If unsure, check this step's output log.
           # For this INNER archive, we use -raw on Mac and otherwise no suffix.
