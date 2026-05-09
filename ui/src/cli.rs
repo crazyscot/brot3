@@ -23,14 +23,14 @@ pub(crate) struct Args {
     #[arg(short = 'V', long, help = "Print version")]
     pub version: bool,
 
-    #[cfg(runtime_compile)]
+    #[cfg(feature = "hot-reload-shader")]
     #[arg(long)]
     /// Specifies the path to the shader directory.
     ///
     /// This is only allowed when run standalone (not via `cargo run`).
     pub shader: Option<PathBuf>,
 
-    #[cfg(runtime_compile)]
+    #[cfg(feature = "hot-reload-shader")]
     #[arg(long)]
     /// Specifies the path to the the SPIRV tools library, if needed
     /// (`librustc_codegen_spirv.so`, `librustc_codegen_spirv.dylib`, `rustc_codegen_spirv.dll`)
@@ -39,7 +39,7 @@ pub(crate) struct Args {
     /// It works best with absolute paths.
     pub spirv_tools: Option<PathBuf>,
 
-    #[cfg(runtime_compile)]
+    #[cfg(feature = "hot-reload-shader")]
     #[arg(long)]
     /// Disables runtime shader compilation and uses the built-in shader.
     pub static_shader: bool,

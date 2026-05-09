@@ -15,17 +15,17 @@ pub(crate) mod version;
 #[cfg(feature = "ui")]
 pub mod widgets;
 
-#[cfg(runtime_compile)]
+#[cfg(feature = "hot-reload-shader")]
 use std::path::{Path, PathBuf};
 
 use clap::Parser;
 
 // CAUTION: Hard-wired paths
 /// The relative path to the shader crate, from the point of view of the ui crate
-#[cfg(runtime_compile)]
+#[cfg(feature = "hot-reload-shader")]
 const CARGO_SHADER_RELATIVE_PATH: &str = "../lib";
 /// Where to look for the shader at runtime, if we're not running under cargo and no path was given
-#[cfg(runtime_compile)]
+#[cfg(feature = "hot-reload-shader")]
 const CANDIDATE_SHADER_PATHS: &[&str] = &["./lib", "../lib"];
 
 #[doc(hidden)]
@@ -41,7 +41,7 @@ const SHADER_BYTES: &[u8] = include_bytes!(env!("brot3_lib.spv"));
 // N.B. This affects the perturbation buffer size. But it's only 2 * sizeof(f32) per point.
 const MAX_MAX_ITERATIONS: usize = 100_000;
 
-#[cfg(runtime_compile)]
+#[cfg(feature = "hot-reload-shader")]
 fn is_directory<P: AsRef<Path>>(path: P) -> bool {
     match std::fs::metadata(path) {
         Ok(m) => m.is_dir(),
@@ -49,7 +49,7 @@ fn is_directory<P: AsRef<Path>>(path: P) -> bool {
     }
 }
 
-#[cfg(runtime_compile)]
+#[cfg(feature = "hot-reload-shader")]
 fn is_file<P: AsRef<Path>>(path: P) -> bool {
     match std::fs::metadata(path) {
         Ok(m) => m.is_file(),
@@ -114,7 +114,7 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
             // Runtime compilation disabled by feature flag
             Err(MainError::SuppressedShaderBuild)?;
             let _ = params.esc_key_exits(true); // hush unused warning
-        } else if #[cfg(runtime_compile)] {
+        } else if #[cfg(feature = "hot-reload-shader")] {
 
             let manifest = std::env::var("CARGO_MANIFEST_DIR");
             let relative_to_manifest = manifest.is_ok();

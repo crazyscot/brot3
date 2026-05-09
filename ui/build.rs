@@ -14,10 +14,6 @@ fn main() {
 
     cfg_aliases! {
         wasm: { target_arch = "wasm32" },
-        runtime_compile: { all(
-            feature = "hot-reload-shader",
-            not(wasm)
-        )},
     }
 
     // We need a pre-compiled shader to use as a fallback.
