@@ -72,7 +72,6 @@ The useful feature flag combinations are:
 | ------------------------ | -------------------------------------------------------------------------------------------------- |
 | _None_                   | Shader compiled at build time only. **Recommended if you only want to browse the Mandelbrot set!** |
 | `-F hot-reload-shader`   | Runtime shader compilation with hot reload                                                         |
-| `-F runtime-compilation` | Runtime shader compilation without hot reload                                                      |
 
 As you might imagine, the runtime compilation options add the cost of the spirv-builder to compile-time and binary size.
 This is only useful if you want to hack on the shader.
