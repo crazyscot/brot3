@@ -123,6 +123,7 @@ impl RenderPass {
                     .write_buffer(&self.emulate_constants_buffer.compute, 0, push_constants);
             }
             for (i, bind_group) in self.bind_groups.iter().enumerate() {
+                #[allow(clippy::cast_possible_truncation)]
                 cpass.set_bind_group(i as u32, bind_group, &[]);
             }
             cpass.dispatch_workgroups(workspace.x, workspace.y, workspace.z);
@@ -393,7 +394,7 @@ fn create_pipelines(
         layout: Some(&pipeline_layouts.compute),
         module,
         entry_point: Some("main_cs"),
-        compilation_options: Default::default(),
+        compilation_options: PipelineCompilationOptions::default(),
         cache: None,
     });
     Pipelines {
@@ -411,6 +412,7 @@ fn create_emulate_constants_bind_groups(
     wgpu::BindGroup,
     EmulateConstantsBuffer,
 ) {
+    use wgpu::util::DeviceExt;
     let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         entries: &[
             wgpu::BindGroupLayoutEntry {
@@ -438,7 +440,6 @@ fn create_emulate_constants_bind_groups(
         label: Some("emulated push constants layout"),
     });
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST;
-    use wgpu::util::DeviceExt;
     let fragment_constants_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: None,
         contents: &[0; 128],

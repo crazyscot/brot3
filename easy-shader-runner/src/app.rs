@@ -115,6 +115,7 @@ impl<C: ControllerTrait + Send> App<C> {
         let Self::Graphics(gfx) = self else {
             return;
         };
+        #[allow(clippy::cast_precision_loss)]
         let frame_time = gfx
             .window
             .current_monitor()

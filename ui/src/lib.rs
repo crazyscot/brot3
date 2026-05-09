@@ -119,7 +119,7 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
                 return run_with_hot_reload(args, &path, params);
             }
             Err(MainError::FallbackToPrebuiltShader) => {
-                log::warn!("Shader source directory not found, running with prebuilt shader")
+                log::warn!("Shader source directory not found, running with prebuilt shader");
             }
             Err(e) => return Err(e),
         }
@@ -162,7 +162,7 @@ fn find_shader_path(args: &cli::Args) -> Result<PathBuf, MainError> {
             CANDIDATE_SHADER_PATHS
                 .iter()
                 .find(|p| is_directory(p))
-                .map(|p| PathBuf::from(p))
+                .map(PathBuf::from)
         }
     };
     if let Some(ref tp) = args.spirv_tools
@@ -200,5 +200,5 @@ fn run_with_hot_reload<C: easy_shader_runner::ControllerTrait + Send>(
         relative_to_manifest,
         args.spirv_tools.clone(),
     )?;
-    return Ok(());
+    Ok(())
 }

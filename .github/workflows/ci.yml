@@ -119,6 +119,10 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      RUSTGPU_SKIP_TOOLCHAIN_CHECK: 1
+      # gross hack to suppress the shader build as this build is not shipped
+      BROT3_PREBUILT_SHADER: lib.rs
     steps:
       - uses: actions/checkout@v6
       - name: set toolchain override
@@ -129,9 +133,30 @@ jobs:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
           components: clippy,rustc-dev
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-      - name: clippy
-        run: cargo clippy --locked --workspace
-        env:
-          RUSTGPU_SKIP_TOOLCHAIN_CHECK: 1
-          # gross hack to suppress the shader build as this build is not shipped
-          BROT3_PREBUILT_SHADER: lib.rs
+      - name: clippy (no features)
+        run: cargo clippy --locked --no-deps -p brot3-lib -p brot3-ui --no-default-features
+      - name: clippy (all features)
+        run: cargo clippy --locked --no-deps -p brot3-lib -p brot3-ui --all-features
+
+  clippy-no-features:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RUSTGPU_SKIP_TOOLCHAIN_CHECK: 1
+      # gross hack to suppress the shader build as this build is not shipped
+      BROT3_PREBUILT_SHADER: lib.rs
+    steps:
+      - uses: actions/checkout@v6
+      - name: set toolchain override
+        run: cp -f rust-toolchain-nobuild.toml rust-toolchain.toml
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
+        with:
+          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          components: clippy,rustc-dev
+      # Not currently worth keeping (saves 22s, cache 220M)
+      #- uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      #  with:
+      #    key: clippy2
+      - name: clippy (no features)
+        run: cargo clippy --locked --no-deps -p brot3-lib -p brot3-ui --no-default-features
