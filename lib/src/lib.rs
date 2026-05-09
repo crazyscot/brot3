@@ -4,7 +4,7 @@
 //! the penalty of building spirv-builder and the shader for spirv.
 
 #![cfg_attr(spirv, no_std)]
-#![cfg_attr(coverage_nightly, feature(coverage_attribute))]
+#![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
 // HACK(eddyb) can't easily see warnings otherwise from `spirv-builder` builds.
 #![deny(warnings)]
 
