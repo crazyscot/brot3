@@ -75,7 +75,6 @@ easy-shader-runner = { workspace = true, default-features = false, features = ["
 
 [build-dependencies]
 build-print = { workspace = true }
-cfg_aliases = { workspace = true }
 
 [dev-dependencies]
 average = { workspace = true }
@@ -140,7 +139,6 @@ category = "GraphicsAndDesign"
 [package.metadata.cargo-machete]
 ignored = [
   "build-print", # used by build.rs
-  "cfg_aliases", # used by build.rs
   "image", # used as a mixin, not directly referenced
 ]
 

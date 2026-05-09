@@ -7,14 +7,11 @@
 
 use std::{env, path::PathBuf};
 
-use cfg_aliases::cfg_aliases;
+#[cfg(all(target_arch = "wasm32", feature = "hot-reload-shader"))]
+compile_error!("The `hot-reload-shader` feature is not supported on wasm builds.");
 
 fn main() {
     process_version_string();
-
-    cfg_aliases! {
-        wasm: { target_arch = "wasm32" },
-    }
 
     // We need a pre-compiled shader to use as a fallback.
     // Have we been provided with one? (CI artifact)

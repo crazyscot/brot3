@@ -2,7 +2,7 @@
 
 #![allow(clippy::single_match)]
 
-#[cfg(wasm)]
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen_futures::wasm_bindgen::{self, prelude::*};
 
 mod cli;
@@ -81,7 +81,7 @@ pub enum MainError {
 
 /// Main CLI entrypoint
 #[tokio::main]
-#[cfg_attr(wasm, wasm_bindgen(start))]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 #[allow(clippy::missing_panics_doc)]
 pub async fn main() -> Result<(), MainError> {
     let args = cli::Args::parse();

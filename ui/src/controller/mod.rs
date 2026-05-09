@@ -355,7 +355,7 @@ impl ControllerTrait for Controller {
         (vec![layout], vec![bind_group])
     }
 
-    #[cfg(all(feature = "hot-reload-shader", not(wasm)))]
+    #[cfg(feature = "hot-reload-shader")]
     fn new_shader_module(&mut self) {
         self.reiterate = true;
     }
