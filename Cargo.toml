@@ -109,6 +109,7 @@ pedantic = { level = "deny", priority = -1 }
 [profile.release]
 lto = "thin"
 debug = "line-tables-only"
+strip = "debuginfo"
 
 [profile.dev]
 package.spirv-tools-sys.opt-level = 1
