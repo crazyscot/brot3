@@ -6,6 +6,7 @@
   "yaml": {
   },
   "excludes": [
+    "rust-toolchain.toml",
     "**/node_modules"
   ],
   "plugins": [

@@ -29,6 +29,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
+      - name: Base toolchain
+        uses: ./.github/actions/toolchain
+        with:
+          channel: ${{ env.BROT3_RUST_VERSION }}
 
       # This job builds tooling for the shader job. Note that shader-builder is a thin wrapper around spirv_builder.
       # We also cache the built artifacts, so include as an extra key the hash of the crate source tree.
@@ -51,11 +55,10 @@ jobs:
 
       # Build and tooling actions (gated by the status check)
       # N.B. We don't need to install the spirv-tools .deb here, as we're not actually using them in this job
-      - name: Install Rust
+      - uses: ./.github/actions/toolchain
         if: ${{ steps.do-build.outputs.do-build == '1' }}
-        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
         with:
-          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          channel: ${{ env.BROT3_RUST_VERSION }}
           components: rust-src,rustc-dev,llvm-tools
       - name: build
         if: ${{ steps.do-build.outputs.do-build == '1' }}
@@ -81,6 +84,11 @@ jobs:
     needs: shader_builder
     steps:
       - uses: actions/checkout@v6
+      - name: Base toolchain
+        uses: ./.github/actions/toolchain
+        with:
+          channel: ${{ env.BROT3_RUST_VERSION }}
+
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         id: rust-cache
         with:
@@ -97,11 +105,10 @@ jobs:
           ls -lR .temp/shader || true
 
       # Tool installation and shader build are gated by the status check
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
+      - uses: ./.github/actions/toolchain
         if: ${{ steps.do-build.outputs.do-build == '1' }}
         with:
-          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          channel: ${{ env.BROT3_RUST_VERSION }}
           components: rust-src,rustc-dev,llvm-tools
       - name: Download shader_builder
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -141,10 +148,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
+      - uses: ./.github/actions/toolchain
         with:
-          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          channel: ${{ env.BROT3_RUST_VERSION }}
           components: rust-src,rustc-dev,llvm-tools
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
@@ -239,13 +245,18 @@ jobs:
       BROT3_PREBUILT_SHADER: ${{ github.workspace }}/target/prebuilt-shader/brot3_lib.spv
     steps:
       - uses: actions/checkout@v6
-
+      # N.B. We do not use the local toolchain action here, because it overwrites rust-toolchain.toml which causes the build to be marked as dirty.
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
         with:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
-          components: ${{ matrix.rust_components }}
-      - name: install tools
+          components: ${{ join(env.Components, ',') }}
+        env:
+          Components:
+            rust-src,rustc-dev,llvm-tools
+            ${{ matrix.rust_components }}
+
+      - name: install additional tools
         if: ${{ matrix.tools }}
         uses: taiki-e/install-action@dfcb1ee29051d97c8d0f2d437199570008fd5612 # v2.65.15
         # this action is used in multiple places
