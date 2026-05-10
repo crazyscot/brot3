@@ -235,18 +235,32 @@ jobs:
       # Is the binary upload raw ? (Mac binaries need to be wrapped into the app package format.)
       RAW_OR_BINARY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '-binary' }}
       RAW_OR_EMPTY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '' }}
-      # Downloaded artifact from an earlier job - set up by ui_build_prep action
+      # Downloaded artifact from an earlier job - set up by download-artifact action
       BROT3_PREBUILT_SHADER: ${{ github.workspace }}/target/prebuilt-shader/brot3_lib.spv
     steps:
       - uses: actions/checkout@v6
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
+        with:
+          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          components: ${{ matrix.rust_components }}
+      - name: install tools
+        if: ${{ matrix.tools }}
+        uses: taiki-e/install-action@dfcb1ee29051d97c8d0f2d437199570008fd5612 # v2.65.15
+        # this action is used in multiple places
+        with:
+          tool: ${{ matrix.tools }}
+          checksum: true
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
-      - uses: ./.github/actions/ui_build_prep
-        # This may build stuff, so runs after rust-cache
+      - name: Download shader
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          rust-components: ${{ matrix.rust_components }}
-          tools: ${{ matrix.tools }}
+          name: brot3_lib.spv
+          path: ${{ github.workspace }}/target/prebuilt-shader
+
       - name: status check
         run: git status --porcelain
       - name: build
