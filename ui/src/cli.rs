@@ -32,7 +32,7 @@ pub(crate) struct Args {
 
     #[cfg(feature = "hot-reload-shader")]
     #[arg(long)]
-    /// Specifies the path to the the SPIRV tools library, if needed
+    /// Specifies the path to the the rust SPIRV code generation library, if needed
     /// (`librustc_codegen_spirv.so`, `librustc_codegen_spirv.dylib`, `rustc_codegen_spirv.dll`)
     ///
     /// This is only required when the tools library is not on your shared library/DLL search path.

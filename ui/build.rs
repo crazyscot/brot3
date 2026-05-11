@@ -25,6 +25,16 @@ fn main() {
         build_print::note!("Running shader builder...");
         build_shader();
     }
+    #[cfg(all(
+        feature = "hot-reload-shader",
+        not(feature = "use-compiled-tools"),
+        not(feature = "use-installed-tools")
+    ))]
+    {
+        build_print::warn!(
+            r"Running with hot-reload-shader, but no tools library configured. This is not a recommended configuration. You must either specify --spirv-tools /path/to/librustc_codegen_spirv.so, or enable one of the `use-compiled-tools` or `use-installed-tools` features."
+        );
+    }
 }
 
 fn build_shader() {

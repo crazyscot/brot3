@@ -21,8 +21,19 @@ doctest = false
 bench = false
 
 [features]
-default = ["ui"]
+default = ["ui", "use-compiled-tools"]
+# Allow runtime edits to the shader code without having to rebuild the entire UI.
+# Note that this feature needs to be able to find librustc_codegen_spirv.so at runtime.
+# `cargo run` usually gets it right, but when running the binary you can specify the path
+#  with `--spirv-tools=/path/to/librustc_codegen_spirv.so`.
 hot-reload-shader = ["easy-shader-runner/hot-reload-shader"]
+# Runtime compilation uses spirv-tools binaries (spirv-as, spirv-link, etc) installed in PATH, instead of
+# compiling and linking the spirv-tools C++ code. `apt-get install spirv-tools` or equivalent.
+use-installed-tools = ["easy-shader-runner?/use-installed-tools"]
+# Runtime compilation compiles and links the C++ code for the spirv-tools binaries itself.
+use-compiled-tools = ["easy-shader-runner?/use-compiled-tools"]
+# If neither use-compiled-tools nor use-installed-tools are set, you need to the program uses whichever librustc_codegen_spirv.so it can find.
+
 ui = [
   "easy-shader-runner",
   "egui_extras",
