@@ -139,14 +139,36 @@ impl RenderPass {
         ui_state: &mut UiState,
         controller: &mut C,
     ) -> bool {
-        let texture = ctx.surface.get_current_texture();
+        let state = ctx.surface.get_current_texture();
+        let texture = match state {
+            CurrentSurfaceTexture::Success(texture) => texture,
+            CurrentSurfaceTexture::Suboptimal(texture) => {
+                log::info!("wgpu surface is suboptimal, reconfiguring");
+                ctx.surface.configure(&ctx.device, &ctx.config);
+                texture
+            }
+            CurrentSurfaceTexture::Occluded | CurrentSurfaceTexture::Timeout => return true,
 
-        let (CurrentSurfaceTexture::Success(texture) | CurrentSurfaceTexture::Suboptimal(texture)) =
-            texture
-        else {
-            eprintln!("get_current_texture failed: {texture:?}");
-            return false;
+            CurrentSurfaceTexture::Outdated => {
+                ctx.surface.configure(&ctx.device, &ctx.config);
+                log::info!("wgpu surface is outdated, reconfiguring");
+                return true;
+            }
+
+            CurrentSurfaceTexture::Lost => {
+                log::error!("wgpu Surface was lost");
+                // SOMEDAY: We might recreate the surface (or the whole Device) here. For now, just
+                // exit.
+                return false;
+            }
+            CurrentSurfaceTexture::Validation => {
+                // SOMEDAY: We might attempt to deal with the validation error here. For now, just
+                // exit.
+                log::error!("wgpu Surface raised a Validation error");
+                return false;
+            }
         };
+
         let output_view = texture
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
