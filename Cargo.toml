@@ -63,6 +63,7 @@ strum = { version = "0.28.0", default-features = false }
 thiserror = { version = "2.0.18", default-features = false }
 tokio = "1.52.1"
 wgpu = { version = "29.0", default-features = false }
+windows = { version = "0.62.2", default-features = false }
 
 [workspace.dependencies.spirv-std]
 git = "https://github.com/Rust-GPU/rust-gpu"

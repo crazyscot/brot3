@@ -79,6 +79,9 @@ easy-shader-runner = { workspace = true, default-features = false, optional = tr
 # wasm-bindgen-futures = "0.4.55"
 easy-shader-runner = { workspace = true, default-features = false, features = ["emulate_constants"], optional = true }
 
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { workspace = true, features = ["Win32_System_Console"] }
+
 [build-dependencies]
 build-print = { workspace = true }
 
