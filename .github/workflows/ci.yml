@@ -33,7 +33,7 @@ jobs:
     # Prevent sudden announcement of a new advisory from failing ci:
     continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
         with:
           persist-credentials: false
       - name: cargo deny
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - uses: ./.github/actions/toolchain
         with:
           channel: ${{ env.BROT3_RUST_VERSION }}
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - uses: ./.github/actions/toolchain
         with:
           channel: ${{ env.BROT3_RUST_VERSION }}
@@ -95,7 +95,7 @@ jobs:
     timeout-minutes: 5
     steps:
       # This job runs all its checks without stopping (unless cancelled)
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - uses: ./.github/actions/toolchain
         with:
           channel: stable
@@ -121,7 +121,7 @@ jobs:
       # gross hack to suppress the shader build as this build is not shipped
       BROT3_PREBUILT_SHADER: lib.rs
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - uses: ./.github/actions/toolchain
         with:
           channel: ${{ env.BROT3_RUST_VERSION }}

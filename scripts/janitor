@@ -17,7 +17,7 @@ dprint fmt
 cargo $RUST_VERSION fix --edition-idioms --broken-code --allow-dirty --allow-staged --allow-no-vcs --workspace
 
 # normally one would use +nightly for this
-cargo $RUST_VERSION clippy --fix --broken-code --allow-dirty --allow-staged
+cargo $RUST_VERSION clippy --locked --fix --broken-code --allow-dirty --allow-staged
 
 # udeps emits some false positive warnings:
 #

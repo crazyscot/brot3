@@ -2,7 +2,7 @@
 frequency = 'always'
 
 [alias]
-xtask = "run --package xtask --"
+xtask = "run --locked --package xtask --"
 
 # On Windows MSVC, statically link the C runtime so that the resulting EXE does
 # not depend on the vcruntime DLL.

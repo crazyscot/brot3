@@ -6,6 +6,8 @@ on:
   delete:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   cleanup:
     runs-on: ubuntu-latest

@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - name: Base toolchain
         uses: ./.github/actions/toolchain
         with:
@@ -83,7 +83,7 @@ jobs:
     timeout-minutes: 30
     needs: shader_builder
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - name: Base toolchain
         uses: ./.github/actions/toolchain
         with:
@@ -223,7 +223,7 @@ jobs:
       # Downloaded artifact from an earlier job - set up by download-artifact action
       BROT3_PREBUILT_SHADER: ${{ github.workspace }}/.temp/prebuilt-shader/brot3_lib.spv
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       # N.B. We do not use the local toolchain action here, because it overwrites rust-toolchain.toml which causes the build to be marked as dirty.
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561
@@ -384,7 +384,7 @@ jobs:
     needs:
       - shader
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - uses: ./.github/actions/toolchain
         with:
           channel: ${{ env.BROT3_RUST_VERSION }}
