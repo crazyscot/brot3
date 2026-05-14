@@ -4,7 +4,7 @@ use brot3_lib::{
 };
 use easy_cast::{Cast as _, Conv as _};
 use glam::{UVec2, UVec3, Vec2};
-use wgpu::{Device, Queue, RequestDeviceError};
+use wgpu::{Device, Queue};
 
 use super::Queries;
 use crate::MAX_MAX_ITERATIONS;
@@ -38,11 +38,20 @@ pub struct ComputeController {
     queries: Option<Queries>,
 }
 
+struct InitDeviceResult {
+    device: Device,
+    queue: Queue,
+    timestamps_supported: bool,
+}
+
 impl ComputeController {
     /// Creates a new `ComputeController` with the specified render size and number of passes.
-    pub fn new(render_size: UVec2, n_passes: u32, timestamps: bool) -> Result<Self, Error> {
-        let (device, queue) =
-            futures::executor::block_on(Self::init_device(render_size, timestamps))?;
+    pub fn new(render_size: UVec2, n_passes: u32) -> Result<Self, Error> {
+        let InitDeviceResult {
+            device,
+            queue,
+            timestamps_supported,
+        } = futures::executor::block_on(Self::init_device(render_size))?;
         let (pixel_buffer, staging_buffer, reference_buffer) =
             Self::create_buffers(&device, render_size);
 
@@ -57,7 +66,7 @@ impl ComputeController {
 
         let shader = Self::load_shader(&device);
         let pipeline = Self::create_pipeline(&device, &pipeline_layout, &shader);
-        let queries = if timestamps {
+        let queries = if timestamps_supported {
             Some(Queries::new(&device, 2 * n_passes + 2))
         } else {
             None
@@ -198,10 +207,7 @@ impl ComputeController {
         std::mem::size_of::<f32>() as u64 * u64::from(render_size.element_product())
     }
 
-    async fn init_device(
-        render_size: UVec2,
-        timestamps: bool,
-    ) -> Result<(Device, Queue), RequestDeviceError> {
+    async fn init_device(render_size: UVec2) -> Result<InitDeviceResult, Error> {
         let instance = wgpu::Instance::new(
             wgpu::InstanceDescriptor {
                 backends: wgpu::Backends::PRIMARY,
@@ -222,26 +228,25 @@ impl ComputeController {
             .await
             .expect("Failed to find an appropriate adapter");
 
-        let (mut features, mut limits) = Self::describe_wgpu_features_and_limits(
+        let (features, limits, timestamps_supported) = Self::describe_wgpu_features_and_limits(
             render_size,
             adapter.features(),
             &adapter.limits(),
         );
-        features |= wgpu::Features::IMMEDIATES;
-        limits.max_immediate_size = limits.max_immediate_size.max(128);
-        if timestamps {
-            features |=
-                wgpu::Features::TIMESTAMP_QUERY | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
-        }
 
-        adapter
+        let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor {
                 label: Some("b3compute"),
                 required_features: features,
                 required_limits: limits,
                 ..Default::default()
             })
-            .await
+            .await?;
+        Ok(InitDeviceResult {
+            device,
+            queue,
+            timestamps_supported,
+        })
     }
 
     fn create_buffers(
@@ -273,24 +278,36 @@ impl ComputeController {
 
     fn describe_wgpu_features_and_limits(
         render_size: UVec2,
-        _supported_features: wgpu::Features,
+        supported_features: wgpu::Features,
         supported_limits: &wgpu::Limits,
-    ) -> (wgpu::Features, wgpu::Limits) {
+    ) -> (wgpu::Features, wgpu::Limits, bool) {
+        use wgpu::Features;
+
         let max_storage_buffer_binding_size = u64::conv(core::mem::size_of::<PointResult>())
             * u64::from(render_size.element_product()).max(u64::conv(
                 std::mem::size_of::<Vec2>() * (MAX_MAX_ITERATIONS + 1),
             ));
         let max_buffer_size = max_storage_buffer_binding_size;
 
-        assert!(max_buffer_size < supported_limits.max_buffer_size);
-        assert!(max_storage_buffer_binding_size < supported_limits.max_storage_buffer_binding_size);
+        let mut features = wgpu::Features::default() | wgpu::Features::IMMEDIATES;
+
+        let timestamps_supported = supported_features
+            .contains(Features::TIMESTAMP_QUERY | Features::TIMESTAMP_QUERY_INSIDE_ENCODERS);
+        if timestamps_supported {
+            features |= Features::TIMESTAMP_QUERY | Features::TIMESTAMP_QUERY_INSIDE_ENCODERS;
+        }
+
+        let max_immediate_size = supported_limits.max_immediate_size.max(128);
+
         (
-            wgpu::Features::default(),
+            features,
             wgpu::Limits {
                 max_storage_buffer_binding_size,
                 max_buffer_size,
+                max_immediate_size,
                 ..Default::default()
             },
+            timestamps_supported,
         )
     }
 

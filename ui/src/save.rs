@@ -55,7 +55,12 @@ pub(crate) fn do_save_image(
     let (pixels, partial_failure) = match mode {
         RenderMode::CpuSingleThreaded => render_cpu(&constants, perturbation_points, false),
         RenderMode::CpuParallel => render_cpu(&constants, perturbation_points, true),
-        RenderMode::Gpu => (render_gpu(&constants, perturbation_points)?, false),
+        RenderMode::Gpu => render_gpu(&constants, perturbation_points)
+            .inspect_err(|e| log::warn!("Failed to render on GPU, falling back to CPU: {e}"))
+            .map_or_else(
+                |_| render_cpu(&constants, perturbation_points, true),
+                |vec| (vec, false),
+            ),
     };
     let duration = start.elapsed();
     log::debug!("Rendered image in {duration:?}");
@@ -145,7 +150,7 @@ fn render_gpu(
     perturbation_points: &[Vec2],
 ) -> Result<Vec<u8>, LoadSaveError> {
     let render_size = constants.size.into();
-    let mut controller = ComputeController::new(render_size, 1, true)?;
+    let mut controller = ComputeController::new(render_size, 1)?;
     let mut frame_data = Vec::with_capacity(render_size.element_product() as usize);
     let times = controller.run(
         *constants,
@@ -175,12 +180,12 @@ fn render_gpu(
             deltas[2],
             overall
         );
-    } else {
+    } else if !times.is_empty() {
         log::warn!(
             "Expected 4 timestamps from compute controller, got {}",
             times.len()
         );
-    }
+    } // else ignore: not all devices support timestamp queries, and the controller will simply return an empty Vec in that case.
     Ok(frame_data)
 }
 

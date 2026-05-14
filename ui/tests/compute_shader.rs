@@ -13,7 +13,7 @@ fn compute_shader_test() -> Result<(), Box<dyn std::error::Error>> {
     let render_size = uvec2(3840, 2160);
     let mut times = Vec::new();
     let start = Instant::now();
-    let mut controller = ComputeController::new(render_size, n_passes, true)?;
+    let mut controller = ComputeController::new(render_size, n_passes)?;
     times.push(("initialization", start.elapsed()));
     let consts = FragmentConstants {
         size: render_size.into(),
