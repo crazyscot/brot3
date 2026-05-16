@@ -62,7 +62,6 @@ itertools = { workspace = true }
 log = { workspace = true }
 mimalloc = { workspace = true }
 png = { workspace = true }
-rayon = { workspace = true }
 rfd = { workspace = true, optional = true }
 scopeguard = { workspace = true, optional = true }
 serde_json.workspace = true

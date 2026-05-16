@@ -138,7 +138,7 @@ enumdef!(
     /// Use the CPU to render the image, using multiple threads.
     CpuParallel,
     /// Use the CPU to render the image, using a single thread. This is slow, but may be useful for benchmarking or debugging.
-    CpuSingleThreaded
+    Cpu
 );
 
 macro_rules! incrementable {

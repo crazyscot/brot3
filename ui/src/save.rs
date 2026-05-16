@@ -4,17 +4,15 @@
 use std::{
     fs::File,
     path::Path,
-    sync::atomic::{AtomicBool, Ordering},
     time::{Duration, Instant},
 };
 
 use brot3_lib::{
-    data::{Flags, FragmentConstants, PointResult, RenderMode},
+    data::{Flags, FragmentConstants, RenderMode},
     ui::{Error as LibError, UiState},
+    util::render_frame,
 };
-use easy_cast::CastApprox;
-use glam::{Vec2, Vec4, uvec2, vec4};
-use rayon::prelude::*;
+use glam::{Vec2, uvec2};
 use thiserror::Error;
 
 use crate::compute::ComputeController;
@@ -53,12 +51,12 @@ pub(crate) fn do_save_image(
     }
     let start = Instant::now();
     let (pixels, partial_failure) = match mode {
-        RenderMode::CpuSingleThreaded => render_cpu(&constants, perturbation_points, false),
-        RenderMode::CpuParallel => render_cpu(&constants, perturbation_points, true),
+        RenderMode::Cpu => render_frame(&constants, perturbation_points, false),
+        RenderMode::CpuParallel => render_frame(&constants, perturbation_points, true),
         RenderMode::Gpu => render_gpu(&constants, perturbation_points)
             .inspect_err(|e| log::warn!("Failed to render on GPU, falling back to CPU: {e}"))
             .map_or_else(
-                |_| render_cpu(&constants, perturbation_points, true),
+                |_| render_frame(&constants, perturbation_points, true),
                 |vec| (vec, false),
             ),
     };
@@ -74,75 +72,6 @@ pub(crate) fn do_save_image(
         return Err(LoadSaveError::PartialRenderFailure);
     }
     Ok(())
-}
-
-fn render_cpu(
-    constants: &FragmentConstants,
-    perturbation_points: &[Vec2],
-    parallel: bool,
-) -> (Vec<u8>, bool) {
-    let width = constants.size.width as usize;
-    let height = constants.size.height as usize;
-    let total_bytes = width * height * 4;
-    let mut pixels = vec![0u8; total_bytes];
-
-    let chunk_pixels = 128; // by experiment, this seems to be a good balance between overhead and parallelism. It's not a multiple of typical SIMD widths, but it keeps the CPU busy without too much overhead.
-    let chunk_bytes = chunk_pixels * 4; // RGBA8
-    let failure = AtomicBool::new(false);
-
-    let render_chunk = |(chunk_idx, chunk): (usize, &mut [u8])| {
-        let byte_offset = chunk_idx * chunk_bytes;
-        let start_pixel = byte_offset / 4;
-        let mut y = start_pixel / width;
-        let mut x = start_pixel % width;
-
-        for i in (0..chunk.len()).step_by(4) {
-            let result = std::panic::catch_unwind(|| {
-                let mut grid = [PointResult::default()];
-                let mut pixel = Vec4::default();
-
-                let frag_coord = vec4(x.cast_approx(), y.cast_approx(), 0.0, 0.0);
-                brot3_lib::main_fs(
-                    frag_coord,
-                    constants,
-                    &mut grid,
-                    perturbation_points,
-                    &mut pixel,
-                );
-                pixel
-            });
-            let pixel = if let Ok(p) = result {
-                p
-            } else {
-                log::debug!("Panic at pixel ({x}, {y})");
-                failure.store(true, Ordering::Relaxed);
-                Vec4::ZERO
-            };
-
-            let bytes = (pixel * 255.0).as_u8vec4().to_array();
-            chunk[i..i + 4].copy_from_slice(&bytes);
-
-            // Move to next pixel
-            x += 1;
-            if x >= width {
-                x = 0;
-                y += 1;
-            }
-        }
-    };
-
-    if parallel {
-        pixels
-            .par_chunks_mut(chunk_bytes)
-            .enumerate()
-            .for_each(render_chunk);
-    } else {
-        pixels
-            .chunks_mut(chunk_bytes)
-            .enumerate()
-            .for_each(&render_chunk);
-    }
-    (pixels, failure.load(Ordering::Relaxed))
 }
 
 fn render_gpu(

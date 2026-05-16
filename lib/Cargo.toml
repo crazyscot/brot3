@@ -51,6 +51,7 @@ glam = { workspace = true, features = ["std", "bytemuck"] }
 log = { workspace = true }
 num-derive = { workspace = true }
 png = { workspace = true }
+rayon = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 strum = { workspace = true, default-features = false, features = ["derive"] }
