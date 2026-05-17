@@ -33,7 +33,8 @@ pub fn render_frame(
             .par_chunks_mut(chunk_bytes)
             .enumerate()
             .for_each(|(chunk_idx, chunk)| {
-                render_chunk(chunk_idx, chunk, constants, perturbation_points);
+                let start_pixel = chunk_idx * chunk_pixels;
+                render_chunk(start_pixel, chunk, constants, perturbation_points);
             });
     } else {
         // no point in iterating over chunks if we're not running in parallel
@@ -42,23 +43,28 @@ pub fn render_frame(
     (pixels, failure.load(Ordering::Relaxed))
 }
 
-/// Renders a chunk of pixels. The chunk index is used to determine the starting pixel coordinates.
-/// This function is called in parallel for different chunks, so it should not have side effects or
-/// rely on shared state. This function is exported for benchmarking and testing purposes.
+/// Renders a chunk of pixels as RGBA8 (i.e. 4 bytes per pixel).
+///
+/// Data will be written to the passed in `pixel_data` slice.
+/// The length of `pixel_data` must be a multiple of 4 (the size of one RGBA8 pixel), and the total
+/// number of pixels rendered will be `pixel_data.len() / 4`.
+///
+/// CAUTION: `start_pixel` indexes into the fractal viewport, not the chunk. Pixel data is always
+/// written to the `pixel_data` slice starting from index 0.
+///
+/// This function is exported for benchmarking and testing purposes.
 #[doc(hidden)]
 pub fn render_chunk(
-    chunk_idx: usize,
-    chunk: &mut [u8],
+    start_pixel: usize,
+    pixel_data: &mut [u8],
     constants: &FragmentConstants,
     perturbation_points: &[Vec2],
 ) {
     let width = constants.size.width as usize;
-    let byte_offset = chunk_idx * chunk.len();
-    let start_pixel = byte_offset / 4;
     let mut y = start_pixel / width;
     let mut x = start_pixel % width;
 
-    for i in (0..chunk.len()).step_by(4) {
+    for i in (0..pixel_data.len()).step_by(4) {
         let mut grid = [PointResult::default()];
         let mut pixel = Vec4::default();
 
@@ -73,7 +79,7 @@ pub fn render_chunk(
         // TODO: Is it still necessary to catch panics here? It would be less expensive to trap on
         // the chunk level, or even the entire render.
         let bytes = (pixel * 255.0).as_u8vec4().to_array();
-        chunk[i..i + 4].copy_from_slice(&bytes);
+        pixel_data[i..i + 4].copy_from_slice(&bytes);
 
         // Move to next pixel
         x += 1;
