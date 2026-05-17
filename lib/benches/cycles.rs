@@ -6,7 +6,7 @@ use std::{hint::black_box, sync::LazyLock};
 
 use brot3_lib::{
     BigVec2, Complex,
-    data::{Algorithm, Colourer, FragmentConstants, PointResult},
+    data::{Algorithm, Colourer, FragmentConstants, PointResult, PushExponent},
     engine::{
         self, RunningConstants, RunningVariables, mandelbrot_family_iterate_algorithm,
         mandelbrot_perturbed_iterate_algorithm,
@@ -247,4 +247,34 @@ library_benchmark_group!(
 
 // ..........................................................
 
-main!(library_benchmark_groups = fractal, colour, maths);
+fn frame_consts(power: i32) -> FragmentConstants {
+    FragmentConstants {
+        exponent: PushExponent {
+            int: power,
+            ..Default::default()
+        },
+        size: Size::new(100, 100),
+        ..*CONSTS_M2_DEFAULT
+    }
+}
+
+#[library_benchmark]
+#[bench::p2(frame_consts(2))]
+#[bench::p3(frame_consts(3))]
+#[bench::p6(frame_consts(6))]
+#[bench::p7(frame_consts(7))]
+#[bench::p8(frame_consts(8))]
+//#[bench::one(frame_consts(1))]
+//#[bench::zero(frame_consts(0))]
+//#[bench::minus_two(frame_consts(-2))]
+fn whole_frame(consts: FragmentConstants) {
+    // let _ = black_box(imo2_bithack(black_box(i)));
+
+    let _ = black_box(brot3_lib::util::render_frame(&consts, &[], false));
+}
+
+library_benchmark_group!(name = frame, benchmarks = [whole_frame]);
+
+// ..........................................................
+
+main!(library_benchmark_groups = fractal, colour, maths, frame);
