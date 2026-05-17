@@ -25,7 +25,7 @@ use crate::{
 /// - `{"integer": 2}` for integer exponents
 /// - `{"real": 2.5}` for real exponents
 ///
-/// All components are bounded to the range [-20, +20] by default, though bounds are configurable.
+/// Components are bounded to the range [+1, +20] by default, though bounds are configurable.
 #[derive(Clone, Copy, Debug)]
 pub enum Exponent {
     /// Integer exponent

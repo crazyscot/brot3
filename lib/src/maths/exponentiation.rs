@@ -94,27 +94,13 @@ pub struct RealPower(pub f32);
 impl Exponentiator for RealPower {
     #[inline]
     fn apply_to(self, z: Complex) -> Complex {
-        if z == Complex::ZERO {
-            // special case to avoid breaking at 0^0 (undefined)
-            Complex::ZERO
-        } else if self.0 == 0.0 {
-            Complex::ONE
-        } else {
-            z.powf(self.0).to_rectangular()
-        }
+        z.powf(self.0).to_rectangular()
     }
 
     #[allow(clippy::float_cmp)]
     #[inline]
     fn apply_power_minus_1_to(self, z: Complex) -> Complex {
-        if z == Complex::ZERO {
-            // special case to avoid breaking at 0^0 (undefined)
-            Complex::ZERO
-        } else if self.0 == 1.0 {
-            Complex::ONE
-        } else {
-            z.powf(self.0 - 1.0).to_rectangular()
-        }
+        z.powf(self.0 - 1.0).to_rectangular()
     }
 
     fn power(self) -> f32 {
@@ -122,8 +108,7 @@ impl Exponentiator for RealPower {
     }
 
     fn log2(self) -> f32 {
-        // special case where exponent is less than 2, to avoid undefinedness at/below 0.
-        self.0.max(2.0).log2()
+        self.0.log2()
     }
 }
 
@@ -219,19 +204,5 @@ mod tests {
         let zsc = sc.apply_to(z);
         println!("{zc}");
         assert_complex_eq!(zc, zsc);
-    }
-
-    #[test]
-    fn power_zero_special_cases() {
-        let two = Complex::ONE * 2.0;
-
-        let exp_complex = RealPower(0.0);
-        // x^0 == 0
-        let z1 = exp_complex.apply_to(two);
-        assert_eq!(z1, Complex::ONE);
-        // 0^0 is undefined, but in our world we've special-cased it as zero to prevent a shader
-        // abort.
-        let z2 = exp_complex.apply_to(Complex::ZERO);
-        assert_eq!(z2, Complex::ZERO);
     }
 }

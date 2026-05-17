@@ -64,7 +64,7 @@ impl super::Controller {
                         NumericType::Integer => {
                             if ui.add(egui::Slider::new(
                                     &mut self.state.exponent.int,
-                                    -Self::EXPONENT_MAX_INT..=Self::EXPONENT_MAX_INT,
+                                    Self::EXPONENT_MIN_INT..=Self::EXPONENT_MAX_INT,
                                 ))
                                 .changed()
                             {
@@ -76,7 +76,7 @@ impl super::Controller {
                             if ui.add(
                                     egui::Slider::new(
                                         &mut self.state.exponent.real,
-                                        -Self::EXPONENT_MAX..=Self::EXPONENT_MAX,
+                                        Self::EXPONENT_MIN..=Self::EXPONENT_MAX,
                                     )
                                     .step_by(0.1),
                                 )

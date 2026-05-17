@@ -25,6 +25,7 @@ fn it_setup<E: Exponentiator>(e: E) -> RunningConstants<'static, E> {
     RunningConstants::standard_with(Complex::new(-0.75, 0.0), e, Algorithm::Mandelbrot)
 }
 
+#[allow(dead_code)]
 fn it_alg_setup(algorithm: Algorithm) -> RunningConstants<'static, Power2> {
     RunningConstants::standard_with(Complex::new(-0.75, 0.0), Power2 {}, algorithm)
 }
@@ -38,10 +39,7 @@ fn it_alg_setup(algorithm: Algorithm) -> RunningConstants<'static, Power2> {
 #[bench::real6(&it_setup(RealPower(6.0)))]
 #[bench::real7(&it_setup(RealPower(7.0)))]
 #[bench::real20(&it_setup(RealPower(20.0)))]
-#[bench::minus2(&it_setup(RealPower(-2.0)))]
-#[bench::minus1(&it_setup(RealPower(-1.0)))]
-#[bench::zero(&it_setup(RealPower(0.0)))]
-#[bench::mbar(&it_alg_setup(Algorithm::Mandelbar))] // same result as m2
+//#[bench::mbar(&it_alg_setup(Algorithm::Mandelbar))] // same result as m2
 //#[bench::bird(&it_alg_setup(Algorithm::BirdOfPrey))] // same result as m2
 fn iterate_std<E: Exponentiator>(consts: &RunningConstants<'_, E>) {
     let mut vars = RunningVariables::default();
@@ -205,9 +203,6 @@ library_benchmark_group!(name = colour, benchmarks = [colour_pt, hsl_to_rgb]);
 #[bench::p5(Power5{})]
 #[bench::p6(Power6{})]
 #[bench::r_m20(RealPower(-20.0))]
-#[bench::r_m2(RealPower(-2.0))]
-#[bench::r_m1(RealPower(-1.0))]
-#[bench::r_zero(RealPower(0.0))]
 #[bench::r1(RealPower(1.0))]
 #[bench::r2(RealPower(2.0))]
 #[bench::r2p1(RealPower(2.1))]
@@ -262,9 +257,6 @@ fn frame_consts(power: i32) -> FragmentConstants {
 #[bench::p6(frame_consts(6))]
 #[bench::p7(frame_consts(7))]
 #[bench::p8(frame_consts(8))]
-//#[bench::one(frame_consts(1))]
-//#[bench::zero(frame_consts(0))]
-//#[bench::minus_two(frame_consts(-2))]
 fn whole_frame(consts: FragmentConstants) {
     // let _ = black_box(imo2_bithack(black_box(i)));
 
