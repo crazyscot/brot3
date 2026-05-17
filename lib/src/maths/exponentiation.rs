@@ -6,9 +6,9 @@
 
 use num_traits::AsPrimitive as _;
 
+use crate::Complex;
 #[cfg(spirv)]
 use crate::Real;
-use crate::{Complex, data::PushExponent};
 
 pub trait Exponentiator: Copy + Clone {
     fn apply_to(self, z: Complex) -> Complex;
@@ -82,64 +82,48 @@ macro_rules! int_powers {
 int_powers!(2, 3, 4, 5, 6);
 
 /*
- * We used to have separate IntegerPower and RealPower structs.
- * Integer benchmarked much slower than ComplexPower on both CPU and GPU.
+ * We used to have separate IntegerPower, RealPower and ComplexPower structs.
+ * Integer benchmarked much slower than Real/ComplexPower on both CPU and GPU.
  * This appears to be because `powi` becomes a software loop, whereas RealPower uses hardware
- * powf instructions. RealPower benchmarked about the same, but there was no point in keeping it
- * separately.
+ * powf instructions. RealPower benchmarked about the same as Complex, but there was no point in
+ * keeping it separate.
  */
 
 #[derive(Copy, Clone, Debug)]
-pub struct ComplexPower(pub Complex);
-impl ComplexPower {
-    #[inline]
-    fn apply(power: Complex, z: Complex) -> Complex {
-        // special case as ln(0) is undefined
-        if z == Complex::ZERO {
-            return Complex::ZERO;
-        }
-        // special case to avoid breaking at 0^0 (undefined)
-        if power == Complex::ZERO {
-            return Complex::ONE;
-        }
-        // function: z^p = e^(p ln(z))
-        (power * z.ln()).exp().to_rectangular()
-    }
-}
-impl Exponentiator for ComplexPower {
+pub struct RealPower(pub f32);
+impl Exponentiator for RealPower {
     #[inline]
     fn apply_to(self, z: Complex) -> Complex {
-        Self::apply(self.0, z)
+        if z == Complex::ZERO {
+            // special case to avoid breaking at 0^0 (undefined)
+            Complex::ZERO
+        } else if self.0 == 0.0 {
+            Complex::ONE
+        } else {
+            z.powf(self.0).to_rectangular()
+        }
     }
 
+    #[allow(clippy::float_cmp)]
     #[inline]
     fn apply_power_minus_1_to(self, z: Complex) -> Complex {
-        Self::apply(self.0 - Complex::ONE, z)
+        if z == Complex::ZERO {
+            // special case to avoid breaking at 0^0 (undefined)
+            Complex::ZERO
+        } else if self.0 == 1.0 {
+            Complex::ONE
+        } else {
+            z.powf(self.0 - 1.0).to_rectangular()
+        }
     }
 
     fn power(self) -> f32 {
-        self.0.re
+        self.0
     }
 
-    // For now, we'll compute a log in ℝ so take abs(power).
-    // c.abs().log() === (c.abs_sq() ^ 0.5).log() === 0.5 * c.abs_sq().log()
-    // For parity with Int and Floats, we'll special case where abs < 2 i.e. abs_sq < 4
     fn log2(self) -> f32 {
-        self.0.abs_sq().max(4.0).log2() * 0.5
-    }
-}
-impl From<PushExponent> for ComplexPower {
-    fn from(exp: PushExponent) -> Self {
-        Self(Complex {
-            re: exp.real,
-            im: exp.imag,
-        })
-    }
-}
-impl ComplexPower {
-    #[must_use]
-    pub fn new(real: f32, imag: f32) -> Self {
-        Self(Complex { re: real, im: imag })
+        // special case where exponent is less than 2, to avoid undefinedness at/below 0.
+        self.0.max(2.0).log2()
     }
 }
 
@@ -155,7 +139,7 @@ mod tests {
     use crate::{
         Complex,
         data::PushExponent,
-        maths::{ComplexPower, Exponentiator, Power2},
+        maths::{Exponentiator, Power2, RealPower},
     };
 
     macro_rules! assert_complex_eq {
@@ -206,7 +190,7 @@ mod tests {
     #[test]
     #[allow(clippy::float_cmp)]
     fn real_basics() {
-        let rp = ComplexPower::new(2.5, 0.0);
+        let rp = RealPower(2.5);
         let z = Complex::new(1.0, 1.0);
         let z1 = rp.apply_to(z);
         assert_float_eq!(z1.re, -0.91018, abs <= 0.000_1);
@@ -217,7 +201,7 @@ mod tests {
 
     #[test]
     fn complex_basics() {
-        let ec = ComplexPower::new(2.0, 0.0);
+        let ec = RealPower(2.0);
         let sc = Power2 {};
 
         let mut z = Complex::new(0., 1.);
@@ -236,21 +220,12 @@ mod tests {
         println!("{zc}");
         assert_complex_eq!(zc, zsc);
     }
-    #[test]
-    fn powc_known_answer() {
-        let z = Complex::new(2.0, 3.0);
-        let exp = ComplexPower(Complex::new(0.5, -0.707));
-        let expected = Complex::new(3.480_689_8, -1.534_852_6);
-        let result = exp.apply_to(z);
-        assert_complex_eq!(result, expected);
-        println!("{z} ^ {exp:?} = {result}");
-    }
 
     #[test]
     fn power_zero_special_cases() {
         let two = Complex::ONE * 2.0;
 
-        let exp_complex = ComplexPower(Complex::ZERO);
+        let exp_complex = RealPower(0.0);
         // x^0 == 0
         let z1 = exp_complex.apply_to(two);
         assert_eq!(z1, Complex::ONE);

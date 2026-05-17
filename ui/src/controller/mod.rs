@@ -221,7 +221,6 @@ struct Movement {
     zoom2: f64, /* Specialised scale factor. 1.0 => do nothing; >1.0 zoom in by that factor; <
                  * -1.0 zoom out by negated factor; (-1.0..1.0) invalid. */
     exponent: f32,
-    exponent_im: f32,
     gradient: f32,
     offset: f32,
     gamma: f32,
@@ -235,7 +234,6 @@ impl Default for Movement {
             zoom2: 1.0,
             translate: DVec2::ZERO,
             exponent: Default::default(),
-            exponent_im: Default::default(),
             gradient: Default::default(),
             offset: Default::default(),
             gamma: Default::default(),

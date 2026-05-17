@@ -160,7 +160,7 @@ impl super::Controller {
         if movement.exponent != 0. {
             let current = match self.state.exponent.typ {
                 NumericType::Integer => self.state.exponent.int.cast(),
-                _ => self.state.exponent.real,
+                NumericType::Float => self.state.exponent.real,
             };
             let new_exp = (current + factor32 * movement.exponent)
                 .clamp(Self::EXPONENT_MIN, Self::EXPONENT_MAX);
@@ -172,17 +172,6 @@ impl super::Controller {
                 }
             }
             movement.exponent = 0.;
-        }
-        if movement.exponent_im != 0. {
-            let new_exp = (self.state.exponent.imag + factor32 * movement.exponent_im)
-                .clamp(Self::EXPONENT_MIN, Self::EXPONENT_MAX);
-            if self.state.exponent.imag != new_exp
-                && self.state.exponent.typ != NumericType::Integer
-            {
-                self.reiterate = true;
-                self.state.exponent.imag = new_exp;
-            }
-            movement.exponent_im = 0.;
         }
 
         macro_rules! palette_fields {

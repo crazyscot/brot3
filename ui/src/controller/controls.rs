@@ -45,22 +45,16 @@ impl super::Controller {
                         let previous_typ = self.state.exponent.typ;
                         ui.radio_value(&mut self.state.exponent.typ, NumericType::Integer, "Integer");
                         ui.radio_value(&mut self.state.exponent.typ, NumericType::Float, "Float");
-                        ui.radio_value(&mut self.state.exponent.typ, NumericType::Complex, "Complex");
                         ui.end_row();
                         match (previous_typ, self.state.exponent.typ) {
                             (NumericType::Integer, _) => {
                                 self.state.exponent.real = self.state.exponent.int.cast();
-                                self.state.exponent.imag = 0.0;
                             }
                             (_, NumericType::Integer) => {
                                 self.state.exponent.int = self.state.exponent.real.cast_nearest();
                                 self.state.exponent.real = self.state.exponent.int.cast();
-                                self.state.exponent.imag = 0.0;
                             }
-                            (NumericType::Complex, NumericType::Float)  | (NumericType::Float, NumericType::Complex) => {
-                                self.state.exponent.imag = 0.0;
-                            }
-                            (NumericType::Float, NumericType::Float) |  (NumericType::Complex, NumericType::Complex)=> (),
+                            (NumericType::Float, NumericType::Float) => (),
                         }
                         if self.state.exponent.typ != previous_typ {
                             self.reiterate = true;
@@ -90,35 +84,6 @@ impl super::Controller {
                             {
                                 self.reiterate = true;
                             }
-                        }
-                        NumericType::Complex => {
-                            ui.label("Real");
-                            if ui.add(
-                                    egui::Slider::new(
-                                        &mut self.state.exponent.real,
-                                        -Self::EXPONENT_MAX..=Self::EXPONENT_MAX,
-                                    )
-                                    .step_by(0.1),
-                                )
-                                .changed()
-                            {
-                                self.reiterate = true;
-                            }
-                        }
-                    }
-
-                    if self.state.exponent.typ == NumericType::Complex {
-                        ui.label("Imaginary");
-                        if ui.add(
-                                egui::Slider::new(
-                                    &mut self.state.exponent.imag,
-                                    -Self::EXPONENT_MAX..=Self::EXPONENT_MAX,
-                                )
-                                .step_by(0.1),
-                            )
-                            .changed()
-                        {
-                            self.reiterate = true;
                         }
                     }
                 });

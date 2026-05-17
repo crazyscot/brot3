@@ -18,8 +18,9 @@ use crate::util::Size;
 /// Shader push constants
 #[allow(missing_docs)]
 pub struct FragmentConstants {
-    // Caution! Larger structs must be correctly aligned, hence the random ordering.
-    pub exponent: PushExponent, // 128 bits
+    // Caution! Larger structs must be correctly aligned, hence the seemingly random ordering.
+    pub exponent: PushExponent, // 96 bits
+    pub flags: Flags,           // u32
 
     /// window pixel size
     pub size: Size, // 64 bits
@@ -28,7 +29,6 @@ pub struct FragmentConstants {
     pub inspector_point_pixel_address: Vec2, // 64 bits
     pub viewport_translate: Vec2,            // 64 bits
 
-    pub flags: Flags, // u32
     pub viewport_zoom: f32,
     pub algorithm: Algorithm, // u32
     pub max_iter: u32,

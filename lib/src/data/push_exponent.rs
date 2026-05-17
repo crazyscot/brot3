@@ -17,11 +17,9 @@ pub enum NumericType {
     #[default]
     Integer,
     Float,
-    Complex,
 }
 
-/// The exponent for the fractal, in a GPU-friendly format. It can be an integer, a real number, or
-/// a complex number.
+/// The exponent for the fractal, in a GPU-friendly format. It can be an integer or a real number.
 #[derive(Copy, Clone, Debug, PartialEq, NoUninit)]
 #[repr(C)]
 #[cfg_attr(not(spirv), derive(Serialize, Deserialize))]
@@ -31,10 +29,8 @@ pub struct PushExponent {
     pub typ: NumericType,
     /// Only used when `typ` is Integer
     pub int: i32,
-    /// Used when `typ` is Float or Complex
+    /// Used when `typ` is Float
     pub real: f32,
-    /// Only used when `typ` is Complex
-    pub imag: f32,
 }
 
 impl Default for PushExponent {
@@ -43,7 +39,6 @@ impl Default for PushExponent {
             typ: NumericType::Integer,
             int: 2,
             real: 0.,
-            imag: 0.,
         }
     }
 }
@@ -76,7 +71,6 @@ impl PushExponent {
         match self.typ {
             NumericType::Integer => self.int == 2,
             NumericType::Float => self.real == 2.0,
-            NumericType::Complex => self.real == 2.0 && self.imag == 0.0,
         }
     }
 

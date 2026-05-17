@@ -87,18 +87,14 @@ macro_rules! exponent_monomorph {
             }
             $crate::data::NumericType::Integer => {
                 $run_it!(
-                    $crate::maths::ComplexPower::new(
-                        <_ as $crate::easy_cast::Cast<f32>>::cast($exponent.int),
-                        0.0
-                    ),
+                    $crate::maths::RealPower(<_ as $crate::easy_cast::Cast<f32>>::cast(
+                        $exponent.int
+                    )),
                     $alg
                 )
             }
             $crate::data::NumericType::Float => {
-                $run_it!($crate::maths::ComplexPower::new($exponent.real, 0.0), $alg)
-            }
-            $crate::data::NumericType::Complex => {
-                $run_it!($crate::maths::ComplexPower::from($exponent), $alg)
+                $run_it!($crate::maths::RealPower($exponent.real), $alg)
             }
         }
     };
@@ -709,7 +705,7 @@ mod tests {
     use super::Flags;
     use crate::{
         BigVec2, Vec2,
-        data::{Algorithm, BoundaryClass, FragmentConstants, NumericType, Palette, PushExponent},
+        data::{Algorithm, BoundaryClass, FragmentConstants, Palette, PushExponent},
         engine,
         util::Size,
         vec2,
@@ -742,20 +738,6 @@ mod tests {
         );
         eprintln!("{result:?}");
         assert_eq!(result.iters_fraction(), 0.522_014_14);
-    }
-
-    #[test]
-    fn mandelbrot_known_answer_cpow() {
-        #![allow(clippy::float_cmp)]
-        let point = crate::vec2(-0.75, 0.75);
-        let mut consts = test_frag_consts();
-        consts.exponent.typ = NumericType::Complex;
-        consts.exponent.real = 2.0;
-        consts.exponent.imag = 0.0;
-        eprintln!("{consts:#?}");
-        let result = engine::render(&consts, point - consts.viewport_translate, &[Vec2::ZERO; 0]);
-        eprintln!("{result:?}");
-        assert_eq!(result.iters_fraction(), 0.522_014_6);
     }
 
     #[test]

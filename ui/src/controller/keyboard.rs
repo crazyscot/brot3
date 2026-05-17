@@ -65,8 +65,7 @@ impl super::Controller {
                         row!("⬅➡", "Real");
                         row!("⬆⬇", "Complex");
                         row!("Z X", "Zoom");
-                        row!("E R", "Exponent Re");
-                        row!("D F", "Exponent Im");
+                        row!("E R", "Exponent");
                         row!("Y U", "Gradient");
                         row!("H J", "Offset");
                         row!("N M", "Gamma");
@@ -182,7 +181,6 @@ impl super::Controller {
                 #[cfg(target_os = "macos")]
                 // Fullscreen on Apple is implemented by the OS
                 'f' if self.ctrl_pressed && self.super_pressed => {}
-                'd' | 'f' => self.expo_im(c == 'f', pressed),
 
                 // Quit
                 #[cfg(target_os = "macos")]
@@ -233,15 +231,6 @@ impl super::Controller {
             let magnitude = self.state.exponent.ui_step();
             let sign = if increase { 1. } else { -1. };
             self.movement.exponent = sign * magnitude;
-            // no need to clamp the value; the slider does it for us
-        }
-    }
-
-    fn expo_im(&mut self, increase: bool, active: bool) {
-        if active {
-            let magnitude = self.state.exponent.ui_step();
-            let sign = if increase { 1. } else { -1. };
-            self.movement.exponent_im = sign * magnitude;
             // no need to clamp the value; the slider does it for us
         }
     }
