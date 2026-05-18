@@ -107,14 +107,12 @@ pub fn render(
     reference_points: &[Vec2],
 ) -> PointResult {
     let point = offset + constants.viewport_translate;
-    let (c, dc) = match constants.algorithm {
-        Algorithm::Mandeldrop => {
-            // Mandeldrop is the same as Mandelbrot but with a different c.
-            // TODO: Need to run the maths properly for perturbation Mandeldrop, understand how to
-            // compute dc.
-            (Complex::from(point).recip(), offset)
-        }
-        _ => (Complex::from(point), offset),
+
+    let (c, dc) = if cfg!(feature = "all-fractals") && constants.algorithm == Algorithm::Mandeldrop
+    {
+        (Complex::from(point).recip(), offset)
+    } else {
+        (Complex::from(point), offset)
     };
 
     macro_rules! run_fractal {
@@ -126,6 +124,7 @@ pub fn render(
                     c,
                     dc: dc.into(),
                     algorithm: constants.algorithm,
+                    #[cfg(feature = "all-fractals")]
                     modifiers: AlgorithmModifiers::from(constants),
                     exponentiator: $expo,
                     reference_points,
@@ -170,6 +169,7 @@ where
     /// viewport). Used only in perturbation mode.
     dc: Complex,
     algorithm: Algorithm,
+    #[cfg(feature = "all-fractals")]
     modifiers: AlgorithmModifiers,
     exponentiator: E,
     /// Reference points (only used in perturbation mode)
@@ -187,6 +187,7 @@ impl<E: Exponentiator> RunningConstants<'_, E> {
             c,
             dc: Complex::ZERO,
             algorithm,
+            #[cfg(feature = "all-fractals")]
             modifiers: AlgorithmModifiers::from(algorithm),
             exponentiator,
             reference_points: &[],
@@ -205,6 +206,7 @@ impl<E: Exponentiator> RunningConstants<'_, E> {
             c,
             dc,
             algorithm,
+            #[cfg(feature = "all-fractals")]
             modifiers: AlgorithmModifiers::from(algorithm),
             exponentiator,
             reference_points: &[],
@@ -231,6 +233,7 @@ pub struct RunningVariables {
 
 /// Having a match expression in a hot loop hurts performance pretty badly,
 /// so we're reducing it down to some simple boolean decisions.
+#[cfg(feature = "all-fractals")]
 #[derive(Default, Copy, Clone, Debug)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct AlgorithmModifiers {
@@ -242,12 +245,14 @@ pub struct AlgorithmModifiers {
     premod_im_conjugate: bool,
 }
 
+#[cfg(feature = "all-fractals")]
 impl From<&FragmentConstants> for AlgorithmModifiers {
     fn from(consts: &FragmentConstants) -> Self {
         AlgorithmModifiers::from(consts.algorithm)
     }
 }
 
+#[cfg(feature = "all-fractals")]
 impl From<Algorithm> for AlgorithmModifiers {
     fn from(algorithm: Algorithm) -> Self {
         let mut rv = AlgorithmModifiers::default();
@@ -354,6 +359,7 @@ where
         }
 
         while iters < self.frag.max_iter && vars.norm_sqr < ESCAPE_THRESHOLD_SQ {
+            #[cfg(feature = "all-fractals")]
             F::pre_modify_point(&self.consts, &mut vars);
             prev_z = vars.z;
             prev_norm_sqr = vars.norm_sqr;
@@ -424,6 +430,7 @@ trait AlgorithmDetail<'a, E: Exponentiator> {
     /// Pre-modifies a point before applying the algorithm.
     ///
     /// Override as necessary.
+    #[cfg(feature = "all-fractals")]
     fn pre_modify_point(_consts: &RunningConstants<'a, E>, _vars: &mut RunningVariables) {}
 
     /// One iteration of the fractal algorithm.
@@ -437,24 +444,27 @@ trait AlgorithmDetail<'a, E: Exponentiator> {
 pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     vars: &mut RunningVariables,
-    iters: u32,
+    #[allow(unused_variables)] iters: u32,
 ) {
-    let params = &consts.modifiers;
     let power = consts.exponentiator.power();
     let z_in = vars.z;
 
     // Raise z to the given power ...
     let mut z = consts.exponentiator.apply_to(z_in);
 
-    // Algorithm difference here:
-    // Celtic uses z_re_abs instead of z_re.
-    // Variant may or may not take z_re_abs depending on the iters count.
-    let z_re = z.re;
-    let z_re_abs = z_re.abs();
-    let is_odd = !iters.is_multiple_of(2);
+    #[cfg(feature = "all-fractals")]
+    {
+        let params = &consts.modifiers;
+        // Algorithm difference here:
+        // Celtic uses z_re_abs instead of z_re.
+        // Variant may or may not take z_re_abs depending on the iters count.
+        let z_re = z.re;
+        let z_re_abs = z_re.abs();
+        let is_odd = !iters.is_multiple_of(2);
 
-    let use_z_re_abs = params.iter_re_abs || (params.iter_re_variant && is_odd);
-    z.re = if use_z_re_abs { z_re_abs } else { z_re };
+        let use_z_re_abs = params.iter_re_abs || (params.iter_re_variant && is_odd);
+        z.re = if use_z_re_abs { z_re_abs } else { z_re };
+    }
 
     // ... and add the constant value
     z += consts.c;
@@ -472,6 +482,7 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
 }
 
 #[inline]
+#[cfg(feature = "all-fractals")]
 fn mandelbrot_family_pre_modify_point<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     vars: &mut RunningVariables,
@@ -479,6 +490,7 @@ fn mandelbrot_family_pre_modify_point<E: Exponentiator>(
     mandelbrot_family_pre_modify_point_inner(&mut vars.z, consts.modifiers);
 }
 
+#[cfg(feature = "all-fractals")]
 /// TODO: Someday, deduplicate this with `mandelbrot_family_pre_modify_point_inner_big`?
 #[inline]
 fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmModifiers) {
@@ -491,9 +503,7 @@ fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmMo
     // Burning Ship applies abs() to both parts
 
     let zr_abs = z.re.abs();
-    if params.premod_re_abs {
-        z.re = zr_abs;
-    }
+    z.re = if params.premod_re_abs { zr_abs } else { z.re };
     z.im = if params.premod_im_abs {
         abs_im
     } else if params.premod_im_conjugate {
@@ -507,6 +517,7 @@ fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmMo
 /// Part of the high-precision perturbation-mode calculations on CPU.
 ///
 /// TODO: Someday, deduplicate this with `mandelbrot_family_pre_modify_point_inner`?
+#[cfg(feature = "all-fractals")]
 fn mandelbrot_family_pre_modify_point_inner_big(
     z: &mut crate::BigComplex,
     params: AlgorithmModifiers,
@@ -533,6 +544,7 @@ fn mandelbrot_family_pre_modify_point_inner_big(
 struct MandelbrotFamily {}
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
     #[inline]
+    #[cfg(feature = "all-fractals")]
     fn pre_modify_point(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables) {
         mandelbrot_family_pre_modify_point(consts, vars);
     }
@@ -550,6 +562,7 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
 struct MandelbrotPerturbed {}
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
     #[inline]
+    #[cfg(feature = "all-fractals")]
     fn pre_modify_point(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables) {
         mandelbrot_family_pre_modify_point(consts, vars);
     }
@@ -630,12 +643,12 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
     algorithm: Algorithm,
     max_iter: u32,
 ) {
-    use dashu::base::Sign;
     use dashu_float::{FBig, round::mode as RoundingMode};
 
     use crate::BigComplex;
 
     points.clear();
+    #[cfg(feature = "all-fractals")]
     let modifiers = AlgorithmModifiers::from(algorithm);
     let threshold_sq = FBig::<RoundingMode::Zero>::try_from(ESCAPE_THRESHOLD_SQ).unwrap();
 
@@ -651,19 +664,24 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
     let mut iter = 0;
 
     while iter < max_iter && z.norm_squared() < threshold_sq {
+        #[cfg(feature = "all-fractals")]
         mandelbrot_family_pre_modify_point_inner_big(&mut z, modifiers);
 
         // <<< This is iterate_algorithm
         // TODO: Implement powers other than 2 (requires support in BigComplex)
         z = z.square();
 
-        // Algorithm difference here:
-        // Celtic uses z_re_abs instead of z_re.
-        // Variant may or may not take z_re_abs depending on the iters count.
-        let is_odd = !iter.is_multiple_of(2);
-        let use_z_re_abs = modifiers.iter_re_abs || (modifiers.iter_re_variant && is_odd);
-        if use_z_re_abs && z.x.sign() == Sign::Negative {
-            z.x *= Sign::Negative;
+        #[cfg(feature = "all-fractals")]
+        {
+            use dashu::base::Sign;
+            // Algorithm difference here:
+            // Celtic uses z_re_abs instead of z_re.
+            // Variant may or may not take z_re_abs depending on the iters count.
+            let is_odd = !iter.is_multiple_of(2);
+            let use_z_re_abs = modifiers.iter_re_abs || (modifiers.iter_re_variant && is_odd);
+            if use_z_re_abs && z.x.sign() == Sign::Negative {
+                z.x *= Sign::Negative;
+            }
         }
         z = z + &c;
         // >>> End of iterate_algorithm analogue

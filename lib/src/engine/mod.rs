@@ -5,9 +5,11 @@ mod colour;
 pub(crate) mod entrypoints;
 pub(crate) mod fractal;
 pub use colour::colour_data;
+#[cfg(feature = "all-fractals")]
+pub use fractal::AlgorithmModifiers;
 #[cfg(not(spirv))]
 pub use fractal::mandelbrot_perturbed_compute_reference_iters;
-pub use fractal::{AlgorithmModifiers, render};
+pub use fractal::render;
 // Expose internals for use by benchmarks
 #[doc(hidden)]
 pub use fractal::{

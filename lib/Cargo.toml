@@ -29,6 +29,8 @@ default = []
 emulate_constants = []
 ## Build support for all colourers. If not set, builds only neon.
 all-colourers = []
+## Include support for all fractals. If not set, builds only the original Mandelbrot set and Mandeldrop.
+all-fractals = []
 
 [dependencies]
 bitflags = { workspace = true, features = ["bytemuck"] }
