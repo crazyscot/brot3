@@ -24,8 +24,11 @@ name = "criterion"
 harness = false
 
 [features]
+default = []
 ## Emulate push constants. Useful if the GPU does not support PUSH_CONSTANTS.
 emulate_constants = []
+## Build support for all colourers. If not set, builds only neon.
+all-colourers = []
 
 [dependencies]
 bitflags = { workspace = true, features = ["bytemuck"] }

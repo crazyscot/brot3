@@ -35,18 +35,22 @@ use crate::{
 pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
     use crate::data::Colourer as C;
     let iters = data.iters(constants.palette.colour_style);
-    let mut hsl = match constants.palette.colourer {
-        C::LogRainbow => log_rainbow(constants, iters, &data),
-        C::WhiteFade => white_fade(constants, iters, &data),
-        C::BlackFade => black_fade(constants, iters, &data),
-        C::Mandy => mandy(constants, iters, &data),
-        C::OneLoneCoder => one_lone_coder(constants, iters, &data),
-        C::Monochrome => monochrome(constants, iters, &data),
-        C::Monochrome2 => monochrome2(constants, iters, &data),
-        C::Neon => neon(constants, iters, &data),
-        C::IcyBlue => icyblue(constants, iters, &data),
-        C::None => Hsl::WHITE,
-        // _ => Hsl::BLACK,
+    let mut hsl = if cfg!(feature = "all-colourers") {
+        match constants.palette.colourer {
+            C::LogRainbow => log_rainbow(constants, iters, &data),
+            C::WhiteFade => white_fade(constants, iters, &data),
+            C::BlackFade => black_fade(constants, iters, &data),
+            C::Mandy => mandy(constants, iters, &data),
+            C::OneLoneCoder => one_lone_coder(constants, iters, &data),
+            C::Monochrome => monochrome(constants, iters, &data),
+            C::Monochrome2 => monochrome2(constants, iters, &data),
+            C::Neon => neon(constants, iters, &data),
+            C::IcyBlue => icyblue(constants, iters, &data),
+            C::None => Hsl::WHITE,
+            // _ => Hsl::BLACK,
+        }
+    } else {
+        neon(constants, iters, &data)
     };
     deprintln!("interim hsl: {hsl:?}");
 
@@ -265,6 +269,7 @@ fn icyblue(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hs
 
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
+#[allow(unused_imports)]
 mod tests {
     use const_default::ConstDefault;
     use float_eq::float_eq;
@@ -294,6 +299,7 @@ mod tests {
 
     #[test]
     fn known_answers() {
+        #[cfg(feature = "all-colourers")]
         let cases = [
             (Colourer::LogRainbow, 100, 0.0, [0.325, 1., 0.]),
             (Colourer::WhiteFade, 10, 0.31876, [0.166, 0.006, 0.296]),
@@ -307,6 +313,8 @@ mod tests {
             (Colourer::Mandy, 100, 0.0, [0.991, 0.083, 0.8797]),
             (Colourer::IcyBlue, 100, 0.0, [0.9717, 0.9717, 0.9908]),
         ];
+        #[cfg(not(feature = "all-colourers"))]
+        let cases = [(Colourer::Neon, 100, 0.0, [0.609, 1.0, 0.078])];
         for (colourer, iters, iters_fraction, expected) in cases {
             let consts = FragmentConstants {
                 max_iter: 100_000,
@@ -343,6 +351,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "all-colourers")]
     #[test]
     fn filaments() {
         let mut consts = FragmentConstants {
@@ -366,6 +375,7 @@ mod tests {
         assert_eq!(result, RgbVec(Vec3::splat(0.099_999_994)));
     }
 
+    #[cfg(feature = "all-colourers")]
     #[test]
     fn filaments2() {
         let mut consts = FragmentConstants {
@@ -390,6 +400,7 @@ mod tests {
         assert_eq!(result, RgbVec(Vec3::splat(0.099_999_994)));
     }
 
+    #[cfg(feature = "all-colourers")]
     #[test]
     fn filaments3() {
         let mut consts = FragmentConstants {
@@ -414,6 +425,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "all-colourers")]
     fn radius() {
         let mut consts = FragmentConstants {
             max_iter: 200,

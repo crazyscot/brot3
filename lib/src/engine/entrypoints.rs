@@ -134,7 +134,7 @@ mod tests {
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
             palette: Palette {
-                colourer: Colourer::LogRainbow,
+                colourer: Colourer::Neon,
                 ..Default::default()
             },
             inspector_point_pixel_address: Vec2::default(),
@@ -153,7 +153,7 @@ mod tests {
             ((7.0, 0.0), (1.0, 1.0, 1.0)),
             ((8.0, 0.0), (1.0, 1.0, 1.0)),
             // 10 or more pixels out is unaltered
-            ((9.0, 0.0), (0.0, 1.0, 0.141_448_5)),
+            ((9.0, 0.0), (0.073_526_144, 0.632_362_3, 1.0)),
         ];
         let mut empty = vec![]; // Complex
 
@@ -206,7 +206,8 @@ mod tests {
             &perturbation_reference_points,
         );
 
-        let expected_colour = PackedRgba8::from(RgbVec::from(vec3(0.0, 1.0, 0.141_448_5))).0;
+        let expected_colour =
+            PackedRgba8::from(RgbVec::from(vec3(0.073_526_144, 0.632_362_3, 1.0))).0;
         assert_eq!(pixels[0], expected_colour);
     }
 }
