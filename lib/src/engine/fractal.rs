@@ -135,11 +135,35 @@ pub fn render(
         };
     }
 
-    let mut result = if constants.flags.contains(Flags::PERTURBATION_MODE) {
-        exponent_monomorph!(constants.exponent, run_fractal, MandelbrotPerturbed)
-    } else {
-        exponent_monomorph!(constants.exponent, run_fractal, MandelbrotFamily)
-    };
+    let mut result: PointResult;
+
+    cfg_if::cfg_if! {
+        if #[cfg(all(feature = "standard-mode", feature = "perturbation-mode", feature = "variable-exponent"))] {
+            if constants.flags.contains(Flags::PERTURBATION_MODE) {
+                // Perturbation mode only supports power 2 right now
+                result = run_fractal!(crate::maths::Power2 {}, MandelbrotPerturbed);
+            } else {
+                result = exponent_monomorph!(constants.exponent, run_fractal, MandelbrotFamily);
+            }
+        } else if #[cfg(all(feature = "standard-mode", feature = "perturbation-mode"))] {
+            if constants.flags.contains(Flags::PERTURBATION_MODE) {
+                // Perturbation mode only supports power 2 right now
+                result = run_fractal!(crate::maths::Power2 {}, MandelbrotPerturbed);
+            } else {
+                result = run_fractal!(crate::maths::Power2 {}, MandelbrotFamily);
+            }
+        } else if #[cfg(feature = "perturbation-mode")] {
+            // This is a perturbation-only shader, which only supports power 2 right now; ignore variable-exponent
+            result = run_fractal!(crate::maths::Power2 {}, MandelbrotPerturbed);
+        } else if #[cfg(feature = "variable-exponent")] {
+            // Standard mode (or no mode selected)
+            result = exponent_monomorph!(constants.exponent, run_fractal, MandelbrotFamily);
+        } else {
+            // Standard mode with no variable exponent support: just power 2
+            result = run_fractal!(crate::maths::Power2 {}, MandelbrotFamily);
+        }
+    }
+
     if constants.flags.contains(Flags::ITERATION_CULL) {
         result.cull_iterations();
     }
@@ -541,6 +565,7 @@ fn mandelbrot_family_pre_modify_point_inner_big(
     }
 }
 
+#[allow(dead_code)] // used in some feature configurations
 struct MandelbrotFamily {}
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
     #[inline]
@@ -559,7 +584,9 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
     }
 }
 
+#[cfg(feature = "perturbation-mode")]
 struct MandelbrotPerturbed {}
+#[cfg(feature = "perturbation-mode")]
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
     #[inline]
     #[cfg(feature = "all-fractals")]
@@ -782,7 +809,12 @@ mod tests {
         assert!(!run_case(0));
         assert!(!run_case(15));
         assert!(!run_case(16));
+        // curveball: with -F perturbation-mode, case 17 is classified as Close; without, it's
+        // NotClose.
+        #[cfg(feature = "perturbation-mode")]
         assert!(run_case(17));
+        #[cfg(not(feature = "perturbation-mode"))]
+        assert!(!run_case(17));
         assert!(run_case(18));
         assert!(run_case(19));
         assert!(run_case(20));

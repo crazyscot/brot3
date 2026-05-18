@@ -324,6 +324,7 @@ dependencies = [
  "assert_matches",
  "bitflags 2.11.1",
  "bytemuck",
+ "cfg-if",
  "cfg_aliases",
  "clap",
  "const-default",

@@ -27,14 +27,23 @@ harness = false
 default = []
 ## Emulate push constants. Useful if the GPU does not support PUSH_CONSTANTS.
 emulate_constants = []
-## Build support for all colourers. If not set, builds only neon.
+## Build support for all colourers into the shader. If not set, builds only neon.
 all-colourers = []
-## Include support for all fractals. If not set, builds only the original Mandelbrot set and Mandeldrop.
+## Include support for all fractals in the shader. If not set, builds only the original Mandelbrot set and Mandeldrop.
 all-fractals = []
+## Include support for variable exponents in the shader. If not set, builds for the fixed standard exponent of 2.
+variable-exponent = []
+## Support for perturbation mode in the shader.
+## At least one of standard-mode and perturbation-mode must be set.
+perturbation-mode = []
+## Support for standard mode in the shader.
+## At least one of standard-mode and perturbation-mode must be set.
+standard-mode = []
 
 [dependencies]
 bitflags = { workspace = true, features = ["bytemuck"] }
 bytemuck = { workspace = true, features = ["derive"] }
+cfg-if.workspace = true
 const-default = { workspace = true }
 derive_more = { workspace = true, default-features = false, features = ["constructor", "display", "eq"] }
 document-features = { workspace = true }
