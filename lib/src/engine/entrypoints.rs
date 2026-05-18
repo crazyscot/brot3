@@ -18,8 +18,7 @@ use crate::{
 /// This does the iteration and rendering work.
 pub(crate) fn main_fs(
     frag_coord: Vec4,
-    #[cfg(not(feature = "emulate_constants"))] constants: &FragmentConstants,
-    #[cfg(feature = "emulate_constants")] constants: &FragmentConstants,
+    constants: &FragmentConstants,
     grid: &mut [PointResult],
     perturbation_reference_points: &[Vec2],
     output: &mut Vec4,
@@ -27,7 +26,6 @@ pub(crate) fn main_fs(
     // window-relative coords (0,W) x (0,H) (they might be half pixels e.g. 0.5 to 1023.5); we
     // ignore depth & 1/w
     let coord = frag_coord.xy();
-    let coord_int = coord.as_uvec2();
 
     // viewport pixel size e.g. 1920x1080
     let size = constants.size.as_vec2();
@@ -36,20 +34,21 @@ pub(crate) fn main_fs(
     // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
     let complex_offset = (coord - 0.5 * size) * pixel_spacing;
 
+    let coord_int = coord.as_uvec2();
     let cache = GridRef::new(constants.buffer_size.as_uvec2(), grid);
     let cacheable = cache.address_valid(coord_int);
 
-    let render_data = if !cacheable {
-        engine::render(constants, complex_offset, perturbation_reference_points)
-    } else if constants.flags.contains(Flags::NEEDS_REITERATE) {
-        let render_data = engine::render(constants, complex_offset, perturbation_reference_points);
-        let mut cache = GridRefMut::new(constants.buffer_size.as_uvec2(), grid);
-        cache.set(coord_int, render_data);
-        render_data
-    } else {
+    let render_data;
+    if cacheable && !constants.flags.contains(Flags::NEEDS_REITERATE) {
         // it's cacheable and cached
-        cache.get(coord_int)
-    };
+        render_data = cache.get(coord_int);
+    } else {
+        render_data = engine::render(constants, complex_offset, perturbation_reference_points);
+        if cacheable {
+            let mut cache = GridRefMut::new(constants.buffer_size.as_uvec2(), grid);
+            cache.set(coord_int, render_data);
+        }
+    }
 
     let mut colour = engine::colour_data(render_data, constants, pixel_spacing);
 
