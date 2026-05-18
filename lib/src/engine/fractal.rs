@@ -125,6 +125,7 @@ pub fn render(
                 consts: RunningConstants {
                     c,
                     dc: dc.into(),
+                    algorithm: constants.algorithm,
                     modifiers: AlgorithmModifiers::from(constants),
                     exponentiator: $expo,
                     reference_points,
@@ -169,6 +170,7 @@ where
     /// Relative complex address of the point we are rendering (relative to the centre of the
     /// viewport). Used only in perturbation mode.
     dc: Complex,
+    algorithm: Algorithm,
     modifiers: AlgorithmModifiers,
     exponentiator: E,
     /// Reference points (only used in perturbation mode)
@@ -188,6 +190,7 @@ impl<E: Exponentiator> RunningConstants<'_, E> {
         Self {
             c,
             dc: Complex::ZERO,
+            algorithm,
             modifiers: AlgorithmModifiers::from(algorithm),
             exponentiator,
             reference_points: &[],
@@ -206,6 +209,7 @@ impl<E: Exponentiator> RunningConstants<'_, E> {
         RunningConstants {
             c,
             dc,
+            algorithm,
             modifiers: AlgorithmModifiers::from(algorithm),
             exponentiator,
             reference_points: &[],
@@ -318,13 +322,10 @@ where
         // This is analytically solvable; no iteration loop is needed.
         // `power()` is a push constant → the outer check is a *uniform* branch (no warp
         // divergence cost). Only valid when no algorithm modifiers alter the orbit.
+        #[cfg(feature = "DISABLED_power_zero_short_circuit")]
         #[allow(clippy::float_cmp)]
         if self.consts.exponentiator.power() == 0.0
-            && !self.consts.modifiers.premod_re_abs
-            && !self.consts.modifiers.premod_im_abs
-            && !self.consts.modifiers.premod_im_conjugate
-            && !self.consts.modifiers.iter_re_abs
-            && !self.consts.modifiers.iter_re_variant
+            && self.consts.algorithm == Algorithm::Mandelbrot
         {
             let fixed_point = Complex::ONE + self.consts.c;
             let fp_norm_sq = fixed_point.abs_sq();
@@ -354,11 +355,7 @@ where
         //   Period-2 bulb:    (re+1)² + im² < 1/16
         #[allow(clippy::float_cmp)]
         if self.consts.exponentiator.power() == 2.0
-            && !self.consts.modifiers.premod_re_abs
-            && !self.consts.modifiers.premod_im_abs
-            && !self.consts.modifiers.premod_im_conjugate
-            && !self.consts.modifiers.iter_re_abs
-            && !self.consts.modifiers.iter_re_variant
+            && self.consts.algorithm == Algorithm::Mandelbrot
         {
             let c = self.consts.c;
             let cr14 = c.re - 0.25;
