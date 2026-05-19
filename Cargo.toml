@@ -115,6 +115,11 @@ strip = "debuginfo"
 [profile.dev]
 package.spirv-tools-sys.opt-level = 1
 
+# I would really like to set this for spirv builds only.
+# At present this is achieved having shader_builder set an env var.
+# [profile.release.package."brot3-lib"]
+# debug = false
+
 [workspace.metadata.cargo-shear]
 ignored = [
   "image", # used as a mixin, not directly referenced

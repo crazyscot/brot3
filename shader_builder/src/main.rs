@@ -33,6 +33,11 @@ fn build_shader(path_to_crate: &str) -> Result<(), BuildError> {
     builder.build_script.defaults = true;
     builder.build_script.env_shader_spv_path = Some(true);
 
+    #[allow(unsafe_code, clippy::disallowed_methods)]
+    unsafe {
+        std::env::set_var("CARGO_PROFILE_RELEASE_DEBUG", "false");
+    }
+
     let compile_result = builder.build()?;
     // builder sets the env var brot3_lib.spv to the path of the built shader
     #[allow(clippy::disallowed_methods)]
