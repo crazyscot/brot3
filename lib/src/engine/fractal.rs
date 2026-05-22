@@ -8,7 +8,7 @@
 #[cfg(not(spirv))]
 const DEBUG_FRACTAL: bool = false;
 
-pub(crate) use crate::{ESCAPE_THRESHOLD, ESCAPE_THRESHOLD_SQ};
+pub(crate) use crate::{ESCAPE_THRESHOLD_LOGLOG2, ESCAPE_THRESHOLD_SQ};
 
 #[clippy::format_args]
 macro_rules! deprintln {
@@ -130,7 +130,6 @@ pub fn render(
                     exponentiator: $expo,
                     reference_points,
                     n_reference: reference_points.len(),
-                    loglog2_escape_threshold: ESCAPE_THRESHOLD.log2().log2(),
                 },
             }
             .run()
@@ -179,9 +178,6 @@ where
     /// Number of reference points (only used in perturbation mode)
     #[doc(hidden)]
     pub n_reference: usize,
-    /// `ESCAPE_THRESHOLD.log2().log2()`, precomputed for efficiency in the smoothed iteration
-    /// count formula.
-    loglog2_escape_threshold: f32,
 }
 
 impl<E: Exponentiator> RunningConstants<'_, E> {
@@ -195,7 +191,6 @@ impl<E: Exponentiator> RunningConstants<'_, E> {
             exponentiator,
             reference_points: &[],
             n_reference: 0,
-            loglog2_escape_threshold: ESCAPE_THRESHOLD.log2().log2(),
         }
     }
 
@@ -214,7 +209,6 @@ impl<E: Exponentiator> RunningConstants<'_, E> {
             exponentiator,
             reference_points: &[],
             n_reference: 0,
-            loglog2_escape_threshold: ESCAPE_THRESHOLD.log2().log2(),
         }
     }
 }
@@ -333,8 +327,8 @@ where
                 // Orbit escapes at iteration 2.
                 // prev_z=c, prev_norm_sqr=|c|² (values just before the escaping iteration).
                 let log_log_zn = (fp_norm_sq.log2() * 0.5).log2();
-                let smoothed = 1.0 + self.consts.loglog2_escape_threshold
-                    - log_log_zn / self.consts.exponentiator.log2();
+                let smoothed =
+                    1.0 + ESCAPE_THRESHOLD_LOGLOG2 - log_log_zn / self.consts.exponentiator.log2();
                 return PointResult::new(
                     2,
                     smoothed,
@@ -430,8 +424,8 @@ where
         // z.norm().log() === z.norm_sqr().log() * 0.5
         let log_log_zn = (norm_sqr.max(1.0 + f32::MIN_POSITIVE).log2() * 0.5).log2();
 
-        let smoothed_iters = 1. + self.consts.loglog2_escape_threshold
-            - log_log_zn / self.consts.exponentiator.log2();
+        let smoothed_iters =
+            1. + ESCAPE_THRESHOLD_LOGLOG2 - log_log_zn / self.consts.exponentiator.log2();
 
         // sigh! saturating_add is not currently implemented, so do it ourselves:
         let inside = norm_sqr < ESCAPE_THRESHOLD_SQ;

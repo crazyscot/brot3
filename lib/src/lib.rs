@@ -48,6 +48,7 @@ pub const INSPECTOR_MARKER_SIZE: f32 = 9.;
 #[doc(hidden)]
 pub const ESCAPE_THRESHOLD: f32 = 10.0;
 const ESCAPE_THRESHOLD_SQ: f32 = ESCAPE_THRESHOLD * ESCAPE_THRESHOLD;
+const ESCAPE_THRESHOLD_LOGLOG2: f32 = 1.732_020_9; // ESCAPE_THRESHOLD.log2().log2(); alas, log2 isn't a const fn at the moment.
 
 /// SPIRV `fragment` entrypoint.
 /// This does the iteration and rendering work.
