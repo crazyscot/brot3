@@ -353,8 +353,6 @@ where
             }
         }
 
-        //let iterate_params = AlgorithmModifiers::from(self.constants);
-
         while iters < self.frag.max_iter && vars.norm_sqr < ESCAPE_THRESHOLD_SQ {
             F::pre_modify_point(&self.consts, &mut vars);
             prev_z = vars.z;
@@ -384,8 +382,7 @@ where
 
         // abs() overflows on deeper zooms, so use geometry to calculate |dz_dist| differently.
         if vars.boundary == BoundaryClass::Indeterminate {
-            let arg = vars.dz_dist.re.atan2(vars.dz_dist.im);
-            let abs_dz = vars.dz_dist.re / arg.sin();
+            let abs_dz = vars.dz_dist.abs();
             let distance = 2.0 * ln_za * za / abs_dz;
             let threshold = self.frag.pixel_spacing() / 4.0;
 
@@ -767,11 +764,15 @@ mod tests {
         assert!(!run_case(0));
         assert!(!run_case(15));
         assert!(!run_case(16));
-        assert!(!run_case(17));
-        assert!(!run_case(34));
-        // on f32, this is the point where things start to overflow and go a bit weird
+        assert!(run_case(17));
+        assert!(run_case(18));
+        assert!(run_case(19));
+        assert!(run_case(20));
+        assert!(run_case(34));
+        // f32 has been known to experience things going a bit weird around around here, with
+        // previous implementations.
         assert!(run_case(35));
-        assert!(!run_case(36)); // sunspot
+        assert!(run_case(36));
         assert!(run_case(37));
         assert!(run_case(38));
         assert!(run_case(100));
