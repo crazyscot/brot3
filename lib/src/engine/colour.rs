@@ -116,21 +116,14 @@ fn white_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
         return Hsl::BLACK;
     }
     // We are using a different escape threshold to fanf, so scale the function to suit.
-    let iters = (iters - 3.0).max(0.0).ln();
+    let iters = (iters - 3.0).max(1.0).ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
     let mut v = Vec3::new(2.0, 1.5, 1.0) * iters * grad + off;
     v = (v.cos() + Vec3::ONE) * 0.5;
     let colour = RgbVec(v).into();
-    // TODO: Benchmark this on GPU, look for optimisations. Vector or not?
-    if iters < 0.0 {
-        Hsl::WHITE
-    } else if pixel.inside() {
-        Hsl::BLACK
-    } else {
-        colour
-    }
+    if pixel.inside() { Hsl::BLACK } else { colour }
 }
 
 /// Based on Tony Finch's "Black Fade" colourer
@@ -141,19 +134,14 @@ fn black_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
         return Hsl::BLACK;
     }
     // We are using a different escape threshold to fanf, so scale the function to suit.
-    let iters = (iters - 3.0).max(0.0).ln();
+    let iters = (iters - 3.0).max(1.0).ln();
     let grad = constants.palette.gradient;
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
     let mut v = Vec3::new(1.0, 2.0, 3.0) * iters * grad + off;
     v = (Vec3::ONE - v.cos()) * 0.5;
     let colour = RgbVec(v).into();
-    // TODO: Benchmark this on GPU, look for optimisations. Vector or not?
-    if iters < 0.0 || pixel.inside() {
-        Hsl::BLACK
-    } else {
-        colour
-    }
+    if pixel.inside() { Hsl::BLACK } else { colour }
 }
 
 /// Based on Richard Kettlewell's "mandy". <http://www.greenend.org.uk/rjk/mandy/>
@@ -186,15 +174,13 @@ fn one_lone_coder(constants: &FragmentConstants, iters: f32, pixel: &PointResult
         return Hsl::BLACK;
     }
     let grad = constants.palette.gradient;
-    // Offset is applied before cos(), so scale the input (0..10) to 2pi
+    // Offset is applied before sin(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
-    // TODO: Benchmark this on GPU, consider vectorising.
-    let colour = RgbVec::from([
-        (0.1 * grad * iters + off).sin() * 0.5 + 0.5,
-        (0.1 * grad * iters + off + 2.094).sin() * 0.5 + 0.5,
-        (0.1 * grad * iters + off + 4.188).sin() * 0.5 + 0.5,
-    ])
-    .into();
+    let v1 = Vec3::splat(0.1 * grad * iters + off);
+    // Phase shift the three channels 120 degrees apart to create an RGB cycle.
+    let v2 = vec3(0.0, TAU / 3.0, 2.0 * TAU / 3.0);
+    let v3 = (v1 + v2).sin() * 0.5 + 0.5;
+    let colour = RgbVec(v3).into();
     if pixel.inside() { Hsl::BLACK } else { colour }
 }
 
