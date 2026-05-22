@@ -303,14 +303,6 @@ where
 
         deprintln!("DBG: run for c={:?}", self.consts.c);
 
-        // Boundary to use for analytically-determined inside pixels.
-        // Uniform branch: DISTANCE_ESTIMATE is a push-constant flag.
-        let inside_boundary = if self.frag.flags.contains(Flags::DISTANCE_ESTIMATE) {
-            BoundaryClass::Inside
-        } else {
-            BoundaryClass::Ignored
-        };
-
         // Power-zero short-circuit: for f(z) = z^0 + c (no modifiers), the orbit is:
         //   z₀=0, z₁=c, z₂=1+c, z₃=1+c, ...  (fixed point from iteration 2 onward)
         // This is analytically solvable; no iteration loop is needed.
@@ -337,7 +329,7 @@ where
                     BoundaryClass::Ignored,
                 );
             }
-            return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, inside_boundary);
+            return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, BoundaryClass::Inside);
         }
 
         // Cardioid and period-2 bulb short-circuit for standard Mandelbrot (power=2, no
@@ -357,7 +349,7 @@ where
             let q = cr14 * cr14 + im2;
             let cr1 = c.re + 1.0;
             if q * (q + cr14) <= 0.25 * im2 || cr1 * cr1 + im2 < 0.0625 {
-                return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, inside_boundary);
+                return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, BoundaryClass::Inside);
             }
         }
 
@@ -391,26 +383,23 @@ where
         // unconditionally discarded by the outermost select, so computing it for them is safe.
 
         // abs() overflows on deeper zooms, so use geometry to calculate |dz_dist| differently.
-        let arg = vars.dz_dist.re.atan2(vars.dz_dist.im);
-        let abs_dz = vars.dz_dist.re / arg.sin();
-        let distance = 2.0 * ln_za * za / abs_dz;
-        let threshold = self.frag.pixel_spacing() / 4.0;
+        if vars.boundary == BoundaryClass::Indeterminate {
+            let arg = vars.dz_dist.re.atan2(vars.dz_dist.im);
+            let abs_dz = vars.dz_dist.re / arg.sin();
+            let distance = 2.0 * ln_za * za / abs_dz;
+            let threshold = self.frag.pixel_spacing() / 4.0;
 
-        let dist_class = if distance <= threshold {
-            BoundaryClass::Close
-        } else {
-            BoundaryClass::NotClose
-        };
-        let indeterminate_class = if iters == self.frag.max_iter {
-            BoundaryClass::Inside
-        } else {
-            dist_class
-        };
-        vars.boundary = if vars.boundary == BoundaryClass::Indeterminate {
-            indeterminate_class
-        } else {
-            vars.boundary
-        };
+            let dist_class = if distance <= threshold {
+                BoundaryClass::Close
+            } else {
+                BoundaryClass::NotClose
+            };
+            vars.boundary = if iters == self.frag.max_iter {
+                BoundaryClass::Inside
+            } else {
+                dist_class
+            };
+        }
         let angle = prev_z.arg();
         let norm_sqr = vars.norm_sqr;
 
