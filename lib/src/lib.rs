@@ -37,7 +37,7 @@ pub use bignum::{
     big_vec2::{BigVec2, fbig_from_str},
 };
 
-use crate::data::{FragmentConstants, PointResult};
+use crate::data::FragmentConstants;
 
 /// Complex type used throughout shader
 pub type Complex = abels_complex::Complex<f32>;
@@ -62,18 +62,11 @@ pub fn main_fs(
     #[spirv(storage_buffer, descriptor_set = 1, binding = 0)]
     constants: &FragmentConstants,
 
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] grid: &mut [PointResult],
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 1)]
+    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)]
     perturbation_reference_points: &[Vec2],
     output: &mut Vec4,
 ) {
-    engine::entrypoints::main_fs(
-        frag_coord,
-        constants,
-        grid,
-        perturbation_reference_points,
-        output,
-    );
+    engine::entrypoints::main_fs(frag_coord, constants, perturbation_reference_points, output);
 }
 
 /// SPIRV `vertex` entrypoint.

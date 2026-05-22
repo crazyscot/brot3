@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use easy_cast::CastApprox;
 use rayon::prelude::*;
 
-use crate::{FragmentConstants, PointResult, Vec2, Vec4, vec4};
+use crate::{FragmentConstants, Vec2, Vec4, vec4};
 
 #[must_use]
 /// Renders a frame on the CPU, returning the pixel data as a flat RGBA8 array. The boolean
@@ -65,17 +65,10 @@ pub fn render_chunk(
     let mut x = start_pixel % width;
 
     for i in (0..pixel_data.len()).step_by(4) {
-        let mut grid = [PointResult::default()];
         let mut pixel = Vec4::default();
 
         let frag_coord = vec4(x.cast_approx(), y.cast_approx(), 0.0, 0.0);
-        crate::main_fs(
-            frag_coord,
-            constants,
-            &mut grid,
-            perturbation_points,
-            &mut pixel,
-        );
+        crate::main_fs(frag_coord, constants, perturbation_points, &mut pixel);
         // TODO: Is it still necessary to catch panics here? It would be less expensive to trap on
         // the chunk level, or even the entire render.
         let bytes = (pixel * 255.0).as_u8vec4().to_array();

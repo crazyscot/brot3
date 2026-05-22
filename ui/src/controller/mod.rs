@@ -285,47 +285,19 @@ impl ControllerTrait for Controller {
         &mut self,
         gfx_ctx: &GraphicsContext,
     ) -> (Vec<wgpu::BindGroupLayout>, Vec<wgpu::BindGroup>) {
-        use wgpu::util::DeviceExt;
-
         let device = &gfx_ctx.device;
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: false },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage { read_only: true },
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
                 },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                },
-            ],
+                count: None,
+            }],
             label: Some("bind_group_layout"),
-        });
-
-        let cache_size = self.cache_size;
-        log::info!("Using cache size {cache_size}");
-        assert!(
-            cache_size != UVec2::ZERO,
-            "logic error: cache_size was not set up by the time we needed it"
-        );
-        let initial_contents =
-            vec![0; std::mem::size_of::<PointResult>() * cache_size.element_product() as usize];
-        let render_data_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("render_data_buffer"),
-            usage: wgpu::BufferUsages::STORAGE,
-            contents: &initial_contents,
         });
 
         let perturbation_points_buffer = device.create_buffer(&wgpu::BufferDescriptor {
@@ -337,16 +309,10 @@ impl ControllerTrait for Controller {
 
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: render_data_buffer.as_entire_binding(),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: perturbation_points_buffer.as_entire_binding(),
-                },
-            ],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: perturbation_points_buffer.as_entire_binding(),
+            }],
             label: Some("fractal_bind_group"),
         });
         self.perturbation.buffer = Some(perturbation_points_buffer);

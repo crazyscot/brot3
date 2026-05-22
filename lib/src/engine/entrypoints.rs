@@ -8,9 +8,9 @@ use spirv_std::spirv;
 
 use crate::{
     INSPECTOR_MARKER_SIZE, UVec3, Vec2, Vec3Swizzles as _, Vec4, Vec4Swizzles as _,
-    data::{Flags, FragmentConstants, PointResult},
+    data::{Flags, FragmentConstants},
     engine,
-    util::{GridRef, GridRefMut, GridShared, PackedRgba8, RgbVec},
+    util::{GridRefMut, PackedRgba8, RgbVec},
     vec2,
 };
 
@@ -19,7 +19,6 @@ use crate::{
 pub(crate) fn main_fs(
     frag_coord: Vec4,
     constants: &FragmentConstants,
-    grid: &mut [PointResult],
     perturbation_reference_points: &[Vec2],
     output: &mut Vec4,
 ) {
@@ -34,21 +33,7 @@ pub(crate) fn main_fs(
     // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
     let complex_offset = (coord - 0.5 * size) * pixel_spacing;
 
-    let coord_int = coord.as_uvec2();
-    let cache = GridRef::new(constants.buffer_size.as_uvec2(), grid);
-    let cacheable = cache.address_valid(coord_int);
-
-    let render_data;
-    if cacheable && !constants.flags.contains(Flags::NEEDS_REITERATE) {
-        // it's cacheable and cached
-        render_data = cache.get(coord_int);
-    } else {
-        render_data = engine::render(constants, complex_offset, perturbation_reference_points);
-        if cacheable {
-            let mut cache = GridRefMut::new(constants.buffer_size.as_uvec2(), grid);
-            cache.set(coord_int, render_data);
-        }
-    }
+    let render_data = engine::render(constants, complex_offset, perturbation_reference_points);
 
     let mut colour = engine::colour_data(render_data, constants, pixel_spacing);
 
@@ -113,7 +98,7 @@ mod tests {
     use super::{PackedRgba8, RgbVec};
     use crate::{
         UVec2, Vec2, Vec3, Vec4,
-        data::{Algorithm, Colourer, Flags, FragmentConstants, Palette, PointResult, PushExponent},
+        data::{Algorithm, Colourer, Flags, FragmentConstants, Palette, PushExponent},
         engine::new_york_distance,
         util::Size,
         uvec2, uvec3, vec2, vec3, vec4,
@@ -157,62 +142,6 @@ mod tests {
     }
 
     #[test]
-    fn render_save_retrieve() {
-        #![allow(clippy::float_cmp)]
-
-        let mut res = Vec4::default();
-        let mut grid = vec![PointResult::default(); (TEST_GRID_SIZE.x * TEST_GRID_SIZE.y) as usize];
-
-        let no_iterate = FragmentConstants {
-            flags: Flags::empty(),
-            ..test_frag_consts()
-        };
-
-        let mut empty = vec![]; // Complex
-
-        // Cache starts out empty (you probably couldn't run this on an actual GPU, the NaN might
-        // trigger an abort)
-        crate::main_fs(
-            vec4(0., 0., 0., 0.),
-            &no_iterate,
-            &mut grid,
-            empty.as_mut(),
-            &mut res,
-        );
-        assert!(res[0].is_nan());
-        assert!(res[1].is_nan());
-        assert!(res[2].is_nan());
-        assert_eq!(res[3], 1.0);
-
-        // Pass 1 populates cache
-        crate::main_fs(
-            vec4(0., 0., 0., 0.),
-            &test_frag_consts(),
-            &mut grid,
-            empty.as_mut(),
-            &mut res,
-        );
-        let expected = vec4(0.0, 1.0, 0.141_448_5, 1.0);
-        assert!(
-            res.abs_diff_eq(expected, 0.000_000_1),
-            "mismatch: {res} vs {expected}"
-        );
-
-        // Pass 2: Retrieve from cache
-        crate::main_fs(
-            vec4(0., 0., 0., 0.),
-            &no_iterate,
-            &mut grid,
-            empty.as_mut(),
-            &mut res,
-        );
-        assert!(
-            res.abs_diff_eq(expected, 0.000_000_1),
-            "mismatch: {res} vs {expected}"
-        );
-    }
-
-    #[test]
     fn an_inspector_calls() {
         let cases = &[
             // Centre of inspector is black, up to distance 6
@@ -230,8 +159,6 @@ mod tests {
 
         for (point, expect_rgb) in cases {
             let mut res = Vec4::default();
-            let mut grid =
-                vec![PointResult::default(); (TEST_GRID_SIZE.x * TEST_GRID_SIZE.y) as usize];
 
             // Set up to inspect the pixel we're rendering
             let inspector = FragmentConstants {
@@ -239,13 +166,7 @@ mod tests {
                 inspector_point_pixel_address: Vec2::from(*point),
                 ..test_frag_consts()
             };
-            crate::main_fs(
-                vec4(0., 0., 0., 0.),
-                &inspector,
-                &mut grid,
-                empty.as_mut(),
-                &mut res,
-            );
+            crate::main_fs(vec4(0., 0., 0., 0.), &inspector, empty.as_mut(), &mut res);
             let expected = Vec3::from(*expect_rgb).extend(1.0);
             assert!(
                 res.abs_diff_eq(expected, 0.000_000_1),
