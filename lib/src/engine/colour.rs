@@ -30,18 +30,6 @@ use crate::{
     vec3,
 };
 
-/// Computes the sine of all the members of a vector
-/// (syntactic sugar; glam 0.31 provides this directly)
-fn vec_sin(vec: Vec3) -> Vec3 {
-    Vec3::new(vec.x.sin(), vec.y.sin(), vec.z.sin())
-}
-
-/// Computes the cosine of all the members of a vector
-/// (syntactic sugar; glam 0.31 provides this directly)
-fn vec_cos(vec: Vec3) -> Vec3 {
-    Vec3::new(vec.x.cos(), vec.y.cos(), vec.z.cos())
-}
-
 #[must_use]
 /// Computes the colour of a point based on the provided colouring algorithm and parameters.
 pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
@@ -133,7 +121,7 @@ fn white_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
     let mut v = Vec3::new(2.0, 1.5, 1.0) * iters * grad + off;
-    v = (vec_cos(v) + Vec3::ONE) * 0.5;
+    v = (v.cos() + Vec3::ONE) * 0.5;
     let colour = RgbVec(v).into();
     // TODO: Benchmark this on GPU, look for optimisations. Vector or not?
     if iters < 0.0 {
@@ -158,7 +146,7 @@ fn black_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) ->
     // Offset is applied before cos(), so scale the input (0..10) to 2pi
     let off = constants.palette.offset * TAU / 10.;
     let mut v = Vec3::new(1.0, 2.0, 3.0) * iters * grad + off;
-    v = (Vec3::ONE - vec_cos(v)) * 0.5;
+    v = (Vec3::ONE - v.cos()) * 0.5;
     let colour = RgbVec(v).into();
     // TODO: Benchmark this on GPU, look for optimisations. Vector or not?
     if iters < 0.0 || pixel.inside() {
@@ -256,7 +244,9 @@ fn neon(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
     // Apply minimum 10 iters to reduce visual noise
     let angle = (iters + 10.0).ln() * 0.8 * PI * grad + offset;
 
-    let mut v = vec_sin(Vec3::new(0.0, PI * 0.66667, PI * 1.33333) + angle).abs();
+    let mut v = (Vec3::new(0.0, PI * 0.66667, PI * 1.33333) + angle)
+        .sin()
+        .abs();
     // Suppress minimum channel to boost saturation
     //let min_ch = r.min(g).min(b) * 0.8;
     let min_ch = v.min_element() * 0.8;
