@@ -171,6 +171,25 @@ mod tests {
     }
 
     #[test]
+    fn hue_wraparound() {
+        // Test h near 0° and 360°
+        hsl_rgb_case(Hsl::new(0.1, 100., 50.));
+        hsl_rgb_case(Hsl::new(359.9, 100., 50.));
+    }
+
+    #[test]
+    fn low_saturation() {
+        hsl_rgb_case(Hsl::new(180., 1., 50.));
+        hsl_rgb_case(Hsl::new(120., 0.01, 50.));
+    }
+
+    #[test]
+    fn boundary_lightness() {
+        hsl_rgb_case(Hsl::new(90., 100., 49.9));
+        hsl_rgb_case(Hsl::new(90., 100., 50.1));
+    }
+
+    #[test]
     fn known_answer_conversions() {
         macro_rules! tc {
             // syntax: input, expected, conversion type
