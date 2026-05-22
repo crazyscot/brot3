@@ -16,16 +16,19 @@ impl super::Controller {
     /// We need two guard digits to correctly reconstruct to desired accuracy.
     /// <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#693> refers.
     fn precision_digits(&self) -> usize {
-        ((0.0 - self.pixel_complex_size().log10()).ceil() + 2.0).cast_approx()
+        ((0.0 - self.pixel_complex_size().log10()).ceil() + 2.0)
+            .try_cast_approx()
+            .unwrap_or(2)
     }
 
     pub(crate) fn coords_window(&mut self, ctx: &egui::Context) {
-        let precision = self.precision_digits();
         // Don't render this on the first pass before we know the window size. That gives it a bad
-        // default position.
+        // default position (and viewport_size is 0, so pixel_complex_size is inf, so we fail to
+        // compute a sensible number of precision digits).
         if self.state.viewport_size.y == 0 {
             return;
         }
+        let precision = self.precision_digits();
         egui::Window::new("coords")
             .title_bar(false)
             .resizable(false)
