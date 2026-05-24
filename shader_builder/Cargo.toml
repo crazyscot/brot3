@@ -29,7 +29,9 @@ use-compiled-tools = ["spirv-builder/use-compiled-tools"]
 
 [dependencies]
 build-print.workspace = true
+dunce = { workspace = true }
 spirv-builder.workspace = true
+strum = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 
 [lints]

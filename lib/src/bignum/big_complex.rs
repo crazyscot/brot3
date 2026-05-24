@@ -6,7 +6,7 @@ use std::{
 };
 
 use dashu_float::FBig;
-use easy_cast::{Conv as _, ConvApprox as _};
+use easy_cast::{Cast as _, Conv as _, ConvFloat as _};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -348,7 +348,7 @@ fn estimate_precision(real: &str, imag: &str) -> usize {
         .max(count_significant_digits(imag))
         .max(1);
     // Rough heuristic: ~3.3 bits per decimal digit
-    usize::conv_approx((f64::conv(digits) * 3.3).ceil())
+    u64::conv_trunc((f64::conv(digits) * 3.3).ceil()).cast()
 }
 
 impl Deref for BigComplex {

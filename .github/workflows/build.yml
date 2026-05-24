@@ -221,7 +221,7 @@ jobs:
       RAW_OR_BINARY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '-binary' }}
       RAW_OR_EMPTY_MARKER: ${{ matrix.platform == 'mac' && '-raw' || '' }}
       # Downloaded artifact from an earlier job - set up by download-artifact action
-      BROT3_PREBUILT_SHADER: ${{ github.workspace }}/.temp/prebuilt-shader/brot3_lib.spv
+      BROT3_PREBUILD_SHADERS_DIR: ${{ github.workspace }}/.temp/prebuilt-shader
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       # N.B. We do not use the local toolchain action here, because it overwrites rust-toolchain.toml which causes the build to be marked as dirty.
@@ -404,4 +404,4 @@ jobs:
         # but maybe unit tests in future? If so, use the artifact from shader_builder.)
         run: cargo build --bin brot3 --locked --package brot3-ui --verbose --no-default-features -F hot-reload-shader -F ui
         env:
-          BROT3_PREBUILT_SHADER: ${{ github.workspace }}/.temp/prebuilt-shader/brot3_lib.spv
+          BROT3_PREBUILD_SHADERS_DIR: ${{ github.workspace }}/.temp/prebuilt-shader

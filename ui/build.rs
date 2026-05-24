@@ -5,23 +5,31 @@
 
 #![allow(missing_docs, clippy::missing_panics_doc)]
 
+#[allow(dead_code, unreachable_pub)]
+mod build_defs;
+
 use std::{env, path::PathBuf};
+
+use build_defs::ShaderVariant;
+use strum::VariantArray as _;
 
 #[cfg(all(target_arch = "wasm32", feature = "hot-reload-shader"))]
 compile_error!("The `hot-reload-shader` feature is not supported on wasm builds.");
 
 fn main() {
     process_version_string();
+    println!("cargo:rerun-if-changed=../common/build_defs.rs");
 
-    // We need a pre-compiled shader to use as a fallback.
-    // Have we been provided with one? (CI artifact)
-    println!("cargo:rerun-if-env-changed=BROT3_PREBUILT_SHADER");
-    if let Ok(shader_path) = env::var("BROT3_PREBUILT_SHADER") {
-        // CAUTION: This must match what shader_builder main.rs outputs.
-        build_print::info!("Using prebuilt shader at {shader_path}");
-        println!("cargo:rustc-env=brot3_lib.spv={shader_path}");
+    // Have we been provided with prebuilt shaders? (CI artifacts)
+    println!(
+        "cargo:rerun-if-env-changed={}",
+        ShaderVariant::prebuild_shaders_dir_env_var()
+    );
+    println!("cargo:rerun-if-env-changed=BROT3_SUPPRESS_SHADER_BUILD");
+    if let Some(prebuilt_shaders_dir) = read_prebuilt_shaders_dir() {
+        emit_prebuilt_shaders_dir(&prebuilt_shaders_dir);
     } else {
-        // If not, go build it. This sets the same env var.
+        // If not, go build them. This sets the compile-time env vars consumed by include_bytes!.
         build_print::note!("Running shader builder...");
         build_shader();
     }
@@ -35,6 +43,61 @@ fn main() {
             r"Running with hot-reload-shader, but no tools library configured. This is not a recommended configuration. You must either specify --spirv-tools /path/to/librustc_codegen_spirv.so, or enable one of the `use-compiled-tools` or `use-installed-tools` features."
         );
     }
+}
+
+fn read_prebuilt_shaders_dir() -> Option<PathBuf> {
+    if env::var("BROT3_SUPPRESS_SHADER_BUILD").unwrap_or_else(|_| "0".to_string()) != "0" {
+        build_print::warn!(
+            "BROT3_SUPPRESS_SHADER_BUILD is set; skipping shader build and using dummy shaders. This is intended only for CI builds that are not shipped."
+        );
+        return Some(create_dummy_shader_dir());
+    }
+    if cfg!(feature = "_cfg_test") {
+        build_print::warn!("Test configuration detected; skipping shader build");
+        return Some(create_dummy_shader_dir());
+    }
+    if let Ok(shader_dir) = env::var(ShaderVariant::prebuild_shaders_dir_env_var()) {
+        return Some(PathBuf::from(shader_dir));
+    }
+    None
+}
+
+fn create_dummy_shader_dir() -> PathBuf {
+    let dir = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("dummy-shaders");
+    std::fs::create_dir_all(&dir).unwrap();
+    for variant in ShaderVariant::VARIANTS {
+        let path = dir.join(variant.shader_filename());
+        std::fs::write(path, b"dummy shader").unwrap();
+    }
+    dir
+}
+
+fn emit_prebuilt_shaders_dir(prebuilt_shaders_dir: &PathBuf) {
+    assert!(
+        prebuilt_shaders_dir.is_dir(),
+        "Prebuilt shader directory does not exist: {}",
+        prebuilt_shaders_dir.display()
+    );
+    for variant in ShaderVariant::VARIANTS {
+        let shader_path = prebuilt_shaders_dir.join(variant.shader_filename());
+        assert!(
+            shader_path.is_file(),
+            "Prebuilt shader for {} does not exist: {}",
+            variant.key(),
+            shader_path.display()
+        );
+        build_print::info!(
+            "Using prebuilt shader {} at {}",
+            variant.key(),
+            shader_path.display()
+        );
+    }
+    let prebuilt_shaders_dir = dunce::canonicalize(prebuilt_shaders_dir).unwrap();
+    println!(
+        "cargo:rustc-env={}={}",
+        ShaderVariant::prebuild_shaders_dir_env_var(),
+        prebuilt_shaders_dir.display()
+    );
 }
 
 fn build_shader() {
@@ -73,9 +136,8 @@ fn build_shader() {
     let argz = cargo.get_args().collect::<Vec<_>>();
     build_print::info!("running: cargo {argz:?}");
     let status = cargo.status().unwrap();
-    // N.B. shader_builder outputs something like:
-    // `cargo:rustc-env=brot3_lib.spv=/home/builder/brot3/target/spirv-builder/
-    // spirv-unknown-vulkan1.1/release/deps/brot3_lib.spv`
+    // N.B. shader_builder outputs a cargo:rustc-env entry such as:
+    // `cargo:rustc-env=BROT3_PREBUILD_SHADERS_DIR=/home/builder/brot3/target/spirv-builder/...`
     if !status.success() {
         if let Some(code) = status.code() {
             std::process::exit(code);

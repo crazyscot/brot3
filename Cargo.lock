@@ -357,12 +357,14 @@ version = "3.5.0"
 dependencies = [
  "average",
  "brot3-lib",
+ "brot3-ui",
  "build-print",
  "bytemuck",
  "chrono",
  "clap",
  "derive_more 2.1.1",
  "dirs",
+ "dunce",
  "easy-cast",
  "easy-shader-runner",
  "egui_extras",
@@ -1061,6 +1063,12 @@ name = "dpi"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
+
+[[package]]
+name = "dunce"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "easy-cast"
@@ -2396,7 +2404,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3621,7 +3629,9 @@ name = "shader_builder"
 version = "0.0.0"
 dependencies = [
  "build-print",
+ "dunce",
  "spirv-builder",
+ "strum 0.28.0",
  "thiserror 2.0.18",
 ]
 
@@ -3979,7 +3989,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

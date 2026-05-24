@@ -11,6 +11,7 @@ pub mod compute;
 mod controller;
 mod render;
 pub(crate) mod save;
+mod shader_assets;
 pub(crate) mod version;
 #[cfg(feature = "ui")]
 pub mod widgets;
@@ -18,6 +19,8 @@ pub mod widgets;
 #[cfg(feature = "hot-reload-shader")]
 use std::path::{Path, PathBuf};
 
+#[cfg(any(feature = "hot-reload-shader", feature = "ui"))]
+use brot3_lib::ui::ShaderVariant;
 use clap::Parser;
 
 // CAUTION: Hard-wired paths
@@ -32,7 +35,7 @@ const CANDIDATE_SHADER_PATHS: &[&str] = &["./lib", "../lib"];
 pub use save::write_png; // exported for use by compute_shader integration test
 use version::version_string;
 
-const SHADER_BYTES: &[u8] = include_bytes!(env!("brot3_lib.spv"));
+const SHADER_BYTES: &[u8] = shader_assets::prebuilt_shader_bytes(ShaderVariant::General);
 
 /// Absolute limit on the number of iterations, which also limits the size of the perturbation
 /// buffer.

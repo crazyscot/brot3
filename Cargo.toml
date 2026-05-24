@@ -31,6 +31,7 @@ dashu-float = { version = "0.4.3", default-features = false }
 derive_more = { version = "2.1.1", default-features = false }
 dirs = "6.0.0"
 document-features = "0.2.12"
+dunce = "1.0.5"
 easy-cast = { version = "0.5.4", default-features = false }
 easy-shader-runner = { path = "easy-shader-runner", default-features = false }
 egui = "0.34.2"

@@ -1,52 +1,9 @@
 //! Shader variant selection for runtime and build orchestration.
 
-use super::UiState;
+use super::{UiState, build_defs::ShaderVariant};
 use crate::data::Algorithm;
 
-const GENERAL_FEATURES: &[&str] = &[
-    "all-colourers",
-    "all-fractals",
-    "variable-exponent",
-    "perturbation-mode",
-];
-const MANDELBROT_POW2_FEATURES: &[&str] = &["all-colourers"];
-const MANDELBROT_POW2_DEEP_FEATURES: &[&str] = &["all-colourers", "perturbation-mode"];
-
-/// The current planned shader variants.
-///
-/// These keys are intended to stay stable so they can be reused by build-time packaging and
-/// runtime selection.
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, strum::IntoStaticStr)]
-pub enum ShaderVariant {
-    /// The catch-all shader with every currently required capability enabled.
-    #[default]
-    #[strum(serialize = "general")]
-    General,
-    /// Mandelbrot-only shader for exponent 2 without perturbation mode.
-    #[strum(serialize = "mandelbrot_pow2")]
-    MandelbrotPow2,
-    /// Mandelbrot-only shader for exponent 2 with perturbation mode enabled.
-    #[strum(serialize = "mandelbrot_pow2_deep")]
-    MandelbrotPow2Deep,
-}
-
 impl ShaderVariant {
-    /// Stable identifier for this shader variant.
-    #[must_use]
-    pub fn key(self) -> &'static str {
-        self.into()
-    }
-
-    /// Cargo feature flags needed to build this variant of `brot3-lib`.
-    #[must_use]
-    pub const fn shader_crate_features(self) -> &'static [&'static str] {
-        match self {
-            Self::General => GENERAL_FEATURES,
-            Self::MandelbrotPow2 => MANDELBROT_POW2_FEATURES,
-            Self::MandelbrotPow2Deep => MANDELBROT_POW2_DEEP_FEATURES,
-        }
-    }
-
     /// Chooses the preferred shader variant for a given UI state.
     #[must_use]
     pub fn from_ui_state(state: &UiState) -> Self {
@@ -86,6 +43,22 @@ mod tests {
             ShaderVariant::MandelbrotPow2Deep.key(),
             "mandelbrot_pow2_deep"
         );
+        assert_eq!(
+            ShaderVariant::prebuild_shaders_dir_env_var(),
+            "BROT3_PREBUILD_SHADERS_DIR"
+        );
+        assert_eq!(
+            ShaderVariant::General.shader_filename(),
+            "brot3_general.spv"
+        );
+        assert_eq!(
+            ShaderVariant::MandelbrotPow2.shader_filename(),
+            "brot3_mandelbrot_pow2.spv"
+        );
+        assert_eq!(
+            ShaderVariant::MandelbrotPow2Deep.shader_filename(),
+            "brot3_mandelbrot_pow2_deep.spv"
+        );
     }
 
     #[test]
@@ -97,11 +70,12 @@ mod tests {
                 "all-fractals",
                 "variable-exponent",
                 "perturbation-mode",
+                "standard-mode",
             ]
         );
         assert_eq!(
             ShaderVariant::MandelbrotPow2.shader_crate_features(),
-            &["all-colourers"]
+            &["all-colourers", "standard-mode"]
         );
         assert_eq!(
             ShaderVariant::MandelbrotPow2Deep.shader_crate_features(),

@@ -8,7 +8,7 @@ digraph {
     {
         rank=same;
         shader [label="lib"];
-        shader_spv [shape = cylinder;label = "brot3_lib.spv";];
+        shader_spv [shape = cylinder;label = "built shaders\n(spv files)";];
     }
 
     node [shape = box3d; style = filled;];

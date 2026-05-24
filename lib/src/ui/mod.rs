@@ -5,6 +5,7 @@
 
 use thiserror::Error;
 
+mod build_defs;
 mod dynfmt;
 mod exponent;
 mod messaging;
@@ -12,10 +13,10 @@ mod shader_variant;
 mod state;
 mod zoom;
 
+pub use build_defs::ShaderVariant;
 pub use dynfmt::dynamic_format;
 pub use exponent::Exponent;
 pub use messaging::*;
-pub use shader_variant::ShaderVariant;
 pub use state::{UiState, UiStateSaveFile};
 pub use zoom::ViewportZoom;
 

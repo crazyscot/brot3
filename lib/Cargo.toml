@@ -47,7 +47,7 @@ cfg-if.workspace = true
 const-default = { workspace = true }
 derive_more = { workspace = true, default-features = false, features = ["constructor", "display", "eq"] }
 document-features = { workspace = true }
-easy-cast = { workspace = true, default-features = false }
+easy-cast = { workspace = true, default-features = false, features = ["libm"] }
 float_eq.workspace = true
 num-traits.workspace = true
 paste = { workspace = true }
