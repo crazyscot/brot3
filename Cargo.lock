@@ -1072,7 +1072,7 @@ dependencies = [
 
 [[package]]
 name = "easy-shader-runner"
-version = "3.4.0"
+version = "0.0.0"
 dependencies = [
  "bytemuck",
  "cfg-if",
@@ -3617,7 +3617,7 @@ dependencies = [
 
 [[package]]
 name = "shader_builder"
-version = "3.4.0"
+version = "0.0.0"
 dependencies = [
  "build-print",
  "spirv-builder",
@@ -5325,7 +5325,7 @@ checksum = "3ae8337f8a065cfc972643663ea4279e04e7256de865aa66fe25cec5fb912d3f"
 
 [[package]]
 name = "xtask"
-version = "3.4.0"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "chrono",
