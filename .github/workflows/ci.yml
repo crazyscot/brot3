@@ -101,7 +101,7 @@ jobs:
           channel: stable
       - uses: taiki-e/install-action@dfcb1ee29051d97c8d0f2d437199570008fd5612 # v2.65.15
         with:
-          tool: typos,dprint,cargo-machete
+          tool: typos,dprint,cargo-machete,cargo-shear
           checksum: true
       - run: typos
         if: ${{ !cancelled() }}
@@ -111,6 +111,8 @@ jobs:
       - run: dprint fmt --diff
         if: ${{ failure() }}
       - run: cargo +stable machete --with-metadata
+        if: ${{ !cancelled() }}
+      - run: cargo +stable shear --locked
         if: ${{ !cancelled() }}
 
   clippy:
