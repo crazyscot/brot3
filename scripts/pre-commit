@@ -1,0 +1,38 @@
+#!/bin/sh -e
+
+# Based on the example pre-commit script.
+# Tools you may need to install:
+#   cargo install --locked dprint typos-cli@1.39.0
+
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+	against=HEAD
+else
+	# Initial commit: diff against an empty tree object
+	against=$(git hash-object -t tree /dev/null)
+fi
+
+exec 1>&2
+
+# Note that the use of brackets around a tr range is ok here, (it's
+# even required, for portability to Solaris 10's /usr/bin/tr), since
+# the square bracket bytes happen to fall in the designated range.
+if test "$(git diff-index --cached --name-only --diff-filter=A -z """$against""" |
+	  LC_ALL=C tr -d '[ -~]\0' | wc -c)" != 0
+then
+	echo Error: Attempt to add a non-ASCII file name. This is not allowed.
+	exit 1
+fi
+
+# Cheap check for whitespace errors in changed files
+git diff-index --check --cached "$against" --
+
+CHANGED=$(mktemp)
+trap 'rm "${CHANGED}"' EXIT
+
+# More thorough check for format and style issues
+typos --format brief
+echo 'cargo fmt:'
+cargo fmt --check --message-format short
+echo 'dprint:'
+dprint check --staged --list-different --allow-no-files
