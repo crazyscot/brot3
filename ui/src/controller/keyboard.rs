@@ -31,12 +31,28 @@ macro_rules! field_fn {
 }
 
 pub(crate) trait ModifiersExt {
+    // Check control, or command, as appropriate to the OS
+    fn ctrl_or_cmd(&self) -> bool;
     fn shift(&self) -> bool;
     fn ctrl(&self) -> bool;
     fn alt(&self) -> bool;
+    #[cfg(target_os = "macos")]
+    fn super_(&self) -> bool;
 }
 
 impl ModifiersExt for ModifiersState {
+    // Check control, or command, as appropriate to the OS
+    fn ctrl_or_cmd(&self) -> bool {
+        #[cfg(target_os = "macos")]
+        {
+            self.contains(ModifiersState::SUPER)
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            self.contains(ModifiersState::CONTROL)
+        }
+    }
+
     fn shift(&self) -> bool {
         self.contains(ModifiersState::SHIFT)
     }
@@ -47,6 +63,11 @@ impl ModifiersExt for ModifiersState {
 
     fn alt(&self) -> bool {
         self.contains(ModifiersState::ALT)
+    }
+
+    #[cfg(target_os = "macos")]
+    fn super_(&self) -> bool {
+        self.contains(ModifiersState::SUPER)
     }
 }
 
@@ -187,36 +208,26 @@ impl super::Controller {
             let Some(c) = c.chars().next() else {
                 return; /* should never happen */
             };
-            let ctrl = self.keyboard_modifiers.contains(ModifiersState::CONTROL);
-            let shift = self.keyboard_modifiers.contains(ModifiersState::SHIFT);
-            #[cfg(target_os = "macos")]
-            let super_ = self.keyboard_modifiers.contains(ModifiersState::SUPER);
             match c {
                 'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
                 'e' | 'r' => self.expo_re(c == 'r', pressed),
                 #[cfg(target_os = "macos")]
                 // Fullscreen on Apple is implemented by the OS
-                'f' if ctrl && super_ => {}
+                'f' if ctrl && self.keyboard_modifiers.super_() => {}
 
                 // Quit
-                #[cfg(target_os = "macos")]
-                'q' if pressed && super_ => std::process::exit(0),
-                // SOMEDAY: It would be tidier to call event_loop.exit().
-                // Expose this in easy-shader-runner, or add a new CustomEvent
-                // and expose an EventLoopProxy.
-                #[cfg(not(target_os = "macos"))]
-                'q' if pressed && ctrl => std::process::exit(0),
+                'q' if pressed && self.keyboard_modifiers.ctrl_or_cmd() => std::process::exit(0),
 
                 'y' | 'u' => self.gradient(c == 'u', pressed),
                 'h' | 'j' => self.offset(c == 'j', pressed),
                 'n' | 'm' => self.gamma(c == 'm', pressed),
                 'i' => self.saturation(false, pressed),
-                'o' if pressed && ctrl => self.show_open = true,
+                'o' if pressed && self.keyboard_modifiers.ctrl_or_cmd() => self.show_open = true,
                 'o' => self.saturation(true, pressed),
                 'k' | 'l' => self.lightness(c == 'l', pressed),
                 'a' => self.show_about = true,
-                's' if pressed && ctrl => {
-                    if shift {
+                's' if pressed && self.keyboard_modifiers.ctrl_or_cmd() => {
+                    if self.keyboard_modifiers.shift() {
                         self.show_save_position = true;
                     } else {
                         self.show_save = true;

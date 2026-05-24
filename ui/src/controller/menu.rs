@@ -37,6 +37,15 @@ impl super::Controller {
                     const ITEM_WIDTH: f32 = 120.0;
                     use egui::Widget as _;
 
+                    #[cfg(target_os = "macos")]
+                    let ctrl_or_command = "⌘";
+                    #[cfg(not(target_os = "macos"))]
+                    let ctrl_or_command = "Ctrl+";
+                    #[cfg(target_os = "macos")]
+                    let shift_plus = "⇧";
+                    #[cfg(not(target_os = "macos"))]
+                    let shift_plus = "Shift+";
+
                     macro_rules! item {
                         ($label:expr, $accel:expr) => {
                             egui::Button::new($label)
@@ -97,29 +106,34 @@ impl super::Controller {
                     ui.separator();
 
                     if ui
-                        .add(item!("Open position or image...", "Ctrl+O"))
+                        .add(item!(
+                            "Open position or image...",
+                            format!("{ctrl_or_command}O")
+                        ))
                         .clicked()
                     {
                         self.show_open = true;
                     }
                     ui.separator();
-                    if ui.add(item!("Save image...", "Ctrl+S")).clicked() {
+                    if ui
+                        .add(item!("Save image...", format!("{ctrl_or_command}S")))
+                        .clicked()
+                    {
                         self.show_save = true;
                     }
-                    if ui.add(item!("Save position...", "Ctrl+Shift+S")).clicked() {
+                    if ui
+                        .add(item!(
+                            "Save position...",
+                            format!("{ctrl_or_command}{shift_plus}S")
+                        ))
+                        .clicked()
+                    {
                         self.show_save_position = true;
                     }
                     ui.separator();
 
                     if ui
-                        .add(item!(
-                            "Quit",
-                            if cfg!(target_os = "macos") {
-                                "⌘Q"
-                            } else {
-                                "Ctrl+Q"
-                            }
-                        ))
+                        .add(item!("Quit", format!("{ctrl_or_command}Q")))
                         .clicked()
                     {
                         // SOMEDAY: It would be tidier to call event_loop.exit().
