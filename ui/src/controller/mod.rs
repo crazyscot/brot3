@@ -19,13 +19,14 @@ use brot3_lib::{
 use easy_cast::Conv as _;
 use easy_shader_runner::{
     ControllerTrait, GraphicsContext, UiState as ESRUiState, egui, wgpu, winit,
+    winit::{
+        dpi::PhysicalSize,
+        event::{ElementState, MouseButton},
+        event_loop::ActiveEventLoop,
+        keyboard::ModifiersState,
+    },
 };
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
-use winit::{
-    dpi::PhysicalSize,
-    event::{ElementState, MouseButton},
-    event_loop::ActiveEventLoop,
-};
 
 use crate::cli::Args;
 
@@ -66,10 +67,7 @@ pub(crate) struct Controller {
     reiterate: bool,
     always_reiterate: bool,
     dragging: bool,
-    ctrl_pressed: bool,
-    shift_pressed: bool,
-    alt_pressed: bool,
-    super_pressed: bool,
+    keyboard_modifiers: ModifiersState,
     resized: bool,
     perturbation_mode: bool,
     force_perturb: bool,
@@ -148,10 +146,7 @@ impl Controller {
             reiterate: true,
             always_reiterate: false,
             dragging: false,
-            ctrl_pressed: false,
-            shift_pressed: false,
-            alt_pressed: false,
-            super_pressed: false,
+            keyboard_modifiers: ModifiersState::default(),
             resized: true,
             perturbation_mode: false,
             force_perturb: false,
@@ -330,6 +325,10 @@ impl ControllerTrait for Controller {
 
     fn keyboard_input(&mut self, key: winit::event::KeyEvent) {
         self.keyboard_input_impl(&key);
+    }
+
+    fn modifiers_changed(&mut self, mods: winit::event::Modifiers) {
+        self.modifiers_changed_impl(mods);
     }
 
     fn mouse_input(&mut self, state: ElementState, button: MouseButton) {

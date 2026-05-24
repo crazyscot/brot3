@@ -3,7 +3,9 @@ use std::{borrow::Cow, sync::Arc};
 use egui_winit::winit::{
     application::ApplicationHandler,
     dpi::{PhysicalPosition, PhysicalSize},
-    event::{ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent},
+    event::{
+        ElementState, KeyEvent, Modifiers, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent,
+    },
     event_loop::{ActiveEventLoop, EventLoopProxy, OwnedDisplayHandle},
     keyboard::{Key, NamedKey},
     window::{Fullscreen, Window, WindowId},
@@ -72,6 +74,13 @@ impl<C: ControllerTrait + Send> App<C> {
             return;
         };
         gfx.controller.keyboard_input(event);
+    }
+
+    pub(crate) fn modifiers_changed(&mut self, event: Modifiers) {
+        let Self::Graphics(gfx) = self else {
+            return;
+        };
+        gfx.controller.modifiers_changed(event);
     }
 
     pub(crate) fn mouse_input(&mut self, state: ElementState, button: MouseButton) {
@@ -277,6 +286,7 @@ impl<C: ControllerTrait + Send> ApplicationHandler<CustomEvent<C>> for App<C> {
                 }
             }
             WindowEvent::KeyboardInput { event, .. } => self.keyboard_input(event),
+            WindowEvent::ModifiersChanged(mods) => self.modifiers_changed(mods),
             WindowEvent::Resized(size) => self.resize(size),
             WindowEvent::MouseInput { state, button, .. } => self.mouse_input(state, button),
             WindowEvent::Touch(touch) => self.touch(touch.id, touch.phase, touch.location),

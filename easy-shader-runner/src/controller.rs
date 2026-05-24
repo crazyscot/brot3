@@ -1,5 +1,5 @@
 use egui_winit::winit::{
-    event::{ElementState, KeyEvent, MouseButton, TouchPhase},
+    event::{ElementState, KeyEvent, Modifiers, MouseButton, TouchPhase},
     event_loop::ActiveEventLoop,
 };
 #[cfg(feature = "compute")]
@@ -20,6 +20,8 @@ pub trait ControllerTrait: 'static {
     fn mouse_input(&mut self, _state: ElementState, _button: MouseButton) {}
 
     fn keyboard_input(&mut self, _key: KeyEvent) {}
+
+    fn modifiers_changed(&mut self, _mods: Modifiers) {}
 
     fn prepare_render(
         &mut self,

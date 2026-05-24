@@ -188,17 +188,21 @@ impl super::Controller {
     }
 
     pub(crate) fn modifier_key_factor(&self) -> f64 {
+        use super::keyboard::ModifiersExt as _;
         const SHIFT_FACTOR: f64 = core::f64::consts::E;
         const ALT_FACTOR: f64 = 1.0 / SHIFT_FACTOR;
-        const CTRL_SHIFT: f64 = SHIFT_FACTOR * SHIFT_FACTOR;
-        const CTRL_ALT: f64 = ALT_FACTOR * ALT_FACTOR;
-        match (self.shift_pressed, self.alt_pressed, self.ctrl_pressed) {
-            (true, false, false) => SHIFT_FACTOR,
-            (true, false, true) => CTRL_SHIFT,
-            (false, true, false) => ALT_FACTOR,
-            (false, true, true) => CTRL_ALT,
-            (_, _, _) => 1.0,
+        let mut factor = match (
+            self.keyboard_modifiers.shift(),
+            self.keyboard_modifiers.alt(),
+        ) {
+            (true, false) => SHIFT_FACTOR,
+            (false, true) => ALT_FACTOR,
+            (_, _) => 1.0,
+        };
+        if self.keyboard_modifiers.ctrl() {
+            factor *= factor;
         }
+        factor
     }
 
     fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {

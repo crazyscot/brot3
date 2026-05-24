@@ -7,8 +7,8 @@
 use easy_shader_runner::{
     egui,
     winit::{
-        event::KeyEvent,
-        keyboard::{Key, NamedKey},
+        event::{KeyEvent, Modifiers},
+        keyboard::{Key, ModifiersState, NamedKey},
     },
 };
 
@@ -28,6 +28,26 @@ macro_rules! field_fn {
             }
         )*
     };
+}
+
+pub(crate) trait ModifiersExt {
+    fn shift(&self) -> bool;
+    fn ctrl(&self) -> bool;
+    fn alt(&self) -> bool;
+}
+
+impl ModifiersExt for ModifiersState {
+    fn shift(&self) -> bool {
+        self.contains(ModifiersState::SHIFT)
+    }
+
+    fn ctrl(&self) -> bool {
+        self.contains(ModifiersState::CONTROL)
+    }
+
+    fn alt(&self) -> bool {
+        self.contains(ModifiersState::ALT)
+    }
 }
 
 impl super::Controller {
@@ -82,24 +102,16 @@ impl super::Controller {
             });
     }
 
+    pub(super) fn modifiers_changed_impl(&mut self, mods: Modifiers) {
+        self.keyboard_modifiers = mods.state();
+    }
+
     #[allow(clippy::too_many_lines)]
     pub(super) fn keyboard_input_impl(&mut self, key: &KeyEvent) {
         use easy_shader_runner::winit::platform::modifier_supplement::KeyEventExtModifierSupplement as _;
 
         let pressed = key.state.is_pressed();
         match key.logical_key {
-            Key::Named(NamedKey::Control) => {
-                self.ctrl_pressed = pressed;
-            }
-            Key::Named(NamedKey::Shift) => {
-                self.shift_pressed = pressed;
-            }
-            Key::Named(NamedKey::Alt) => {
-                self.alt_pressed = pressed;
-            }
-            Key::Named(NamedKey::Super) => {
-                self.super_pressed = pressed;
-            }
             Key::Named(NamedKey::ArrowLeft) => {
                 if pressed {
                     self.movement.translate.x = -MOVE_SPEED;
@@ -154,7 +166,7 @@ impl super::Controller {
             }
 
             Key::Named(NamedKey::F11) if pressed => {
-                if self.ctrl_pressed {
+                if self.keyboard_modifiers.ctrl() {
                     // Perf test mode (undocumented) is Ctrl+F11 on all platforms.
                     self.fullscreen_requested = Some(true);
                     self.vsync = false;
@@ -175,32 +187,36 @@ impl super::Controller {
             let Some(c) = c.chars().next() else {
                 return; /* should never happen */
             };
+            let ctrl = self.keyboard_modifiers.contains(ModifiersState::CONTROL);
+            let shift = self.keyboard_modifiers.contains(ModifiersState::SHIFT);
+            #[cfg(target_os = "macos")]
+            let super_ = self.keyboard_modifiers.contains(ModifiersState::SUPER);
             match c {
                 'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
                 'e' | 'r' => self.expo_re(c == 'r', pressed),
                 #[cfg(target_os = "macos")]
                 // Fullscreen on Apple is implemented by the OS
-                'f' if self.ctrl_pressed && self.super_pressed => {}
+                'f' if ctrl && super_ => {}
 
                 // Quit
                 #[cfg(target_os = "macos")]
-                'q' if pressed && self.super_pressed => std::process::exit(0),
+                'q' if pressed && super_ => std::process::exit(0),
                 // SOMEDAY: It would be tidier to call event_loop.exit().
                 // Expose this in easy-shader-runner, or add a new CustomEvent
                 // and expose an EventLoopProxy.
                 #[cfg(not(target_os = "macos"))]
-                'q' if pressed && self.ctrl_pressed => std::process::exit(0),
+                'q' if pressed && ctrl => std::process::exit(0),
 
                 'y' | 'u' => self.gradient(c == 'u', pressed),
                 'h' | 'j' => self.offset(c == 'j', pressed),
                 'n' | 'm' => self.gamma(c == 'm', pressed),
                 'i' => self.saturation(false, pressed),
-                'o' if pressed && self.ctrl_pressed => self.show_open = true,
+                'o' if pressed && ctrl => self.show_open = true,
                 'o' => self.saturation(true, pressed),
                 'k' | 'l' => self.lightness(c == 'l', pressed),
                 'a' => self.show_about = true,
-                's' if pressed && self.ctrl_pressed => {
-                    if self.shift_pressed {
+                's' if pressed && ctrl => {
+                    if shift {
                         self.show_save_position = true;
                     } else {
                         self.show_save = true;
