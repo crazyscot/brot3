@@ -1,3 +1,98 @@
+## [3.5.0](https://github.com/crazyscot/brot3/releases/tag/v3.5.0) - 2026-05-24
+
+### 🚀 Features
+
+- *(!)* Remove Complex power support as the maths was not valid - ([9db6dd0](https://github.com/crazyscot/brot3/commit/9db6dd0971b601d507966ba86bc42102cdb4717e))
+- *(!)* Remove support for exponents below 2 - ([a2a5bae](https://github.com/crazyscot/brot3/commit/a2a5bae5f7610bcd9879cd47e1d07eea731b7189))
+
+### 🐛 Bug Fixes
+
+- *(build)* Runtime shader compilation - ([544a149](https://github.com/crazyscot/brot3/commit/544a149c94fa060b76f0212116350df24369c836))
+- *(build)* Build with --no-default-features - ([b7bf2fe](https://github.com/crazyscot/brot3/commit/b7bf2fed72f8ca4c94ba5f30b7b40916649631bb))
+- *(build)* Build ui with default features, drop prebuild2 step - ([ffe9051](https://github.com/crazyscot/brot3/commit/ffe9051ab0f7ef326265d23dae5c7e6c16200449))
+- *(windows)* When run on the command line, attach to that command line. - ([cfaf00a](https://github.com/crazyscot/brot3/commit/cfaf00aabaa173f96506edcc23496cc42e08b3b6))
+- In hot-reload mode, don't use a potentially-stale compute shader - ([ec626d7](https://github.com/crazyscot/brot3/commit/ec626d79ba8946f98be1a624f902e518d2339569))
+- Cope better with the range of get_current_texture() responses - ([e6e57fe](https://github.com/crazyscot/brot3/commit/e6e57fe0ac8db170583049587f1b11f70c29c7a3))
+- Gui startup crash on -i <file> - ([d854b40](https://github.com/crazyscot/brot3/commit/d854b4017cfb5eab9bb094315b367353c2322999))
+
+### ⚡ Performance
+
+- Use a compute shader to render PNG files - ([326f1dd](https://github.com/crazyscot/brot3/commit/326f1dd547cda8142cc50c40417e8eb7701eed3f))
+- Reduce cost of the short-circuit checks - ([dc726de](https://github.com/crazyscot/brot3/commit/dc726de9f34d5c4a22713f32a885e106e76d1ab3))
+- Ditch the point cache - ([243b0e2](https://github.com/crazyscot/brot3/commit/243b0e262a0a9037a42dbedf08638971cdeec6fb))
+- Make log(log(escape threshold)) a compile-time constant - ([454c07a](https://github.com/crazyscot/brot3/commit/454c07a22a68371c76b429dc8a20bc1e7c7bb42b))
+- Don't compute expensive distance estimate values unless we need to - ([6aaa8ce](https://github.com/crazyscot/brot3/commit/6aaa8ce639e261a36584b3b5c4b729fab2d4053e))
+- Distance estimate calculation - ([e4f9164](https://github.com/crazyscot/brot3/commit/e4f91643ad6e8e331b3cc850069f902e7a1cfcb6))
+- Colourer implementations - ([5e03acd](https://github.com/crazyscot/brot3/commit/5e03acd0ff1e849886a94760540f7154ed17b698))
+
+### 🚜 Refactor
+
+- Split out write_png logic from do_save_image - ([0cb216c](https://github.com/crazyscot/brot3/commit/0cb216c5b7de2d8b18a5f0c27d4d9ebd953d7780))
+- Do_save_image doesn't need both UiState and FragmentConstants - ([9d00118](https://github.com/crazyscot/brot3/commit/9d001180cd0d16b3594b873cc1a9e68fe04a63b2))
+- Move min/max zoom constants and clamping into ViewportZoom - ([c143feb](https://github.com/crazyscot/brot3/commit/c143feb54fe5e9f5c3a59e8af62c291f91662723))
+- Seam out rendering from do_save_image - ([2135533](https://github.com/crazyscot/brot3/commit/213553346cd2fd826d027a1b26e67f6e6252d8bb))
+- Replace the parallel flag in do_save_image with an enum - ([91fd10e](https://github.com/crazyscot/brot3/commit/91fd10e33317a8e1da80cb4748ecf4a912d11170))
+- Move the SPIR-V entrypoints into feat(engine)::entrypoints - ([14acc81](https://github.com/crazyscot/brot3/commit/14acc81fe64d62478329ea4b7b9e3de0dcf6a716))
+- Untangle the hot-reload-shader startup code - ([6e66248](https://github.com/crazyscot/brot3/commit/6e662482572b7ce0f9df0f222b6d16505ca4917f))
+- Move CPU-based render loops into util - ([2d7a645](https://github.com/crazyscot/brot3/commit/2d7a64598774aa725eecef955b188667ceb1dd32))
+- Remove incorrect assumption in render_chunk - ([43de37d](https://github.com/crazyscot/brot3/commit/43de37dd06779c71a5f656e56482e6eb3dd1f78e))
+- Reshape point result cache logic to simplify the spirv CFG - ([210c5c2](https://github.com/crazyscot/brot3/commit/210c5c2e82341ee63b615bf70cf045d01ace9903))
+
+### 🎨 Styling
+
+- Update about image, remove unused icon files - ([ef161f5](https://github.com/crazyscot/brot3/commit/ef161f54527945224ae6cbd4ec4c3c2b3a9deb7f))
+
+### 🧪 Testing
+
+- Add whole_frame cycle counting benchmark - ([6dcf822](https://github.com/crazyscot/brot3/commit/6dcf82222a9fcbff2390cd2861205037fae4f2db))
+- Add some specific test cases to colourspace conversions - ([3587d54](https://github.com/crazyscot/brot3/commit/3587d54525cd13e69b0cdc52b1551f1f4e6fb939))
+
+### 🏗️  Build, packaging & CI
+
+- Incorporate easy-shader-runner into this repository for convenience - ([bede730](https://github.com/crazyscot/brot3/commit/bede730709e185c95428d761ac35e1c1b0346b39))
+- Deny warnings from shader builds - ([c523fff](https://github.com/crazyscot/brot3/commit/c523fff92b5cb5616ba015f93c3461b4522c490c))
+- Only run coverage tests on brot3-lib - ([5e8c328](https://github.com/crazyscot/brot3/commit/5e8c328d0a91c6cae4fd68b0743e11141ad7fbcb))
+- Update job timeouts - ([bf4f96c](https://github.com/crazyscot/brot3/commit/bf4f96c7ed2157d49e099c74b028bcc3099573a2))
+- Update/improve cargo-deny config - ([e4fae41](https://github.com/crazyscot/brot3/commit/e4fae41fe6b21f8f8b8bfc04878f197454700cd1))
+- Update upload-rust-binary-action - ([bff44e6](https://github.com/crazyscot/brot3/commit/bff44e6df38e14a5581d9cd3f1bce1e3118801f5))
+- Cargo build --verbose - ([c82d4ff](https://github.com/crazyscot/brot3/commit/c82d4ff1dadbf5fe9ed361bbe1c6d09ce1ba0da8))
+- Cache-workspace-crates on the shader build - ([eac99b2](https://github.com/crazyscot/brot3/commit/eac99b2721d7834e3b0ef480bfe6c434e87850a1))
+- Turn off unnecessary features - ([6db47d5](https://github.com/crazyscot/brot3/commit/6db47d5508134ef9c5ab820b793482721dece881))
+- Build multiple UI feature flag combinations - ([d208d2d](https://github.com/crazyscot/brot3/commit/d208d2d2a69a1e9d7c999540daeecfe89611e25c))
+- Tidy up rust-toolchain overrides - ([d7e90af](https://github.com/crazyscot/brot3/commit/d7e90af7136ac77054e105235e1c33673a7b3b21))
+- Drop the runtime-compilation feature flag - ([1440ec8](https://github.com/crazyscot/brot3/commit/1440ec8d7e732f6ec017d938cbdf78f4592caccc))
+- Remove runtime_compile cfg_alias - ([d8b1426](https://github.com/crazyscot/brot3/commit/d8b14263fe1948e32f66bfb3c13b5c8cb644f5c6))
+- Remove wasm cfg_alias - ([7075712](https://github.com/crazyscot/brot3/commit/70757120d2ddfb55462d9b0ff9eab3bb2f03e755))
+- Refactor away suppress-shader-build feature flag - ([4267291](https://github.com/crazyscot/brot3/commit/426729185c02bcd9e32e729fe4920a9131ce6423))
+- Refactor clippy job, check only what matters - ([72103ad](https://github.com/crazyscot/brot3/commit/72103ad47814f37413aa9812b38e6ac0ed9270d5))
+- Add use-(compiled,installed)-tools feature flags to crates that use spirv-builder - ([2ca9ae8](https://github.com/crazyscot/brot3/commit/2ca9ae85fee6281cdd8c3aa8501475363aa91d7a))
+- Strip debuginfo from release builds to reduce artifact bloat - ([8871447](https://github.com/crazyscot/brot3/commit/88714473cb104d647b2f8df64616c57e6fa14001))
+- Split shader build into two jobs - ([639f4df](https://github.com/crazyscot/brot3/commit/639f4df8c59e92b381736a3b603e62947ba11fae))
+- Cache the built shader artifact - ([23b3bb4](https://github.com/crazyscot/brot3/commit/23b3bb4bb0abf73ce483641333118339b9aa9461))
+- Merge ui_build_prep action back into the main ui job - ([d327d74](https://github.com/crazyscot/brot3/commit/d327d745c3b0d6f7d70a8ade3a48f3181f25589f))
+- Consolidate copy-paste toolchain config steps into a copy-paste action - ([5ddd51c](https://github.com/crazyscot/brot3/commit/5ddd51c029e44c2361a365445fab642f2a667daf))
+- Combine the two clippy jobs - ([4809d88](https://github.com/crazyscot/brot3/commit/4809d88fa1b82db74c26b5eca5693cc06cb7aa60))
+- Add feature flags use-installed-tools, use-compiled-tools - ([36bc200](https://github.com/crazyscot/brot3/commit/36bc200e3c93cc62f86290647d8b4717fa99ca48))
+- Refactor ui-hot-reload job to use the prebuilt shader and not build rustc_codegen_spirv - ([e7961b6](https://github.com/crazyscot/brot3/commit/e7961b60383daf094577b9c9df0214ccfa39bccf))
+- Don't include debug info on spirv builds - ([829fbfa](https://github.com/crazyscot/brot3/commit/829fbfa3b1037878cad77264b7bcf225d217034e))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ui)* Remove untested emulate_constants stub feature from compute controller - ([f84a172](https://github.com/crazyscot/brot3/commit/f84a1723ba358e462e43e4b5ea5caea83aa9c864))
+- Build fix easy-shader-runner with compute feature flag - ([926cf6b](https://github.com/crazyscot/brot3/commit/926cf6b246f5e61f4b8c42c9160ac41c36824c63))
+- Impl UVec2 -> Size conversion - ([355306a](https://github.com/crazyscot/brot3/commit/355306aa26f6730153535e14df01c0d1bb2ff9d4))
+- Build fix the runtime_compile feature - ([ef4f8fe](https://github.com/crazyscot/brot3/commit/ef4f8feda8db3d4d02a14d80788dd5f0c958ff04))
+- FragmentConstants conversion to UiState - ([e015863](https://github.com/crazyscot/brot3/commit/e0158639df7746d77814b2e8c568f7b982830ca4))
+- Add helper for wgpu QuerySets - ([6c8e9d1](https://github.com/crazyscot/brot3/commit/6c8e9d1e344a5e080ffca39c3180e441facb3316))
+- Move MAX_MAX_ITERATIONS to root of the ui crate - ([e090a9a](https://github.com/crazyscot/brot3/commit/e090a9a5feb7ace8bbc06a80486548b47df6b43c))
+- Tidy up traits and casting, make good use of easy_cast - ([0257505](https://github.com/crazyscot/brot3/commit/0257505c70f96d84daab4edd87a6e8207b072d3d))
+- Update rust-gpu to latest (toolchain now nightly-2026-04-11) - ([72fb569](https://github.com/crazyscot/brot3/commit/72fb56977c71600d50180cfd5fe0f03164ceb281))
+- Upgrade to wgpu 29, egui 0.34 - ([64088d9](https://github.com/crazyscot/brot3/commit/64088d9dd12753e8cb6ebad7aafbb7411a9018de))
+- Clippy - ([7528515](https://github.com/crazyscot/brot3/commit/75285153a789954dad2dd596769e14944a91606d))
+- Refactor away cfg-if, we don't need a crate import for that right now - ([24910d9](https://github.com/crazyscot/brot3/commit/24910d9724770bfda06e260937344002b9e285bd))
+- Improve GPU feature/limit checking - ([d9e1154](https://github.com/crazyscot/brot3/commit/d9e1154e82627266c5d4b0b25a889a0ccac5540d))
+- Vec_sin and vec_cos are no longer necessary - ([4e58566](https://github.com/crazyscot/brot3/commit/4e58566fbf9420ad1428cc09aaeaeeefb34c7672))
+
 ## [3.4.0](https://github.com/crazyscot/brot3/releases/tag/v3.4.0) - 2026-04-05
 
 ### 🚀 Features
