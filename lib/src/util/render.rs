@@ -19,9 +19,8 @@ pub fn render_frame(
     perturbation_points: &[Vec2],
     parallel: bool,
 ) -> (Vec<u8>, bool) {
-    let width = constants.size.width as usize;
-    let height = constants.size.height as usize;
-    let total_bytes = width * height * 4;
+    use easy_cast::Cast as _;
+    let total_bytes = (constants.size.element_product() * 4).cast();
     let mut pixels = vec![0u8; total_bytes];
 
     let chunk_pixels = 128; // by experiment, this seems to be a good balance between overhead and parallelism. It's not a multiple of typical SIMD widths, but it keeps the CPU busy without too much overhead.

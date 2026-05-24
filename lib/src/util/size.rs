@@ -78,6 +78,11 @@ impl Size {
     pub fn as_uvec2(self) -> UVec2 {
         uvec2(self.width, self.height)
     }
+
+    #[must_use]
+    pub fn element_product(self) -> u32 {
+        self.width * self.height
+    }
 }
 
 impl From<UVec2> for Size {

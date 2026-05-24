@@ -78,9 +78,11 @@ fn render_gpu(
     constants: &FragmentConstants,
     perturbation_points: &[Vec2],
 ) -> Result<Vec<u8>, LoadSaveError> {
+    use easy_cast::Cast as _;
     let render_size = constants.size.into();
     let mut controller = ComputeController::new(render_size, 1)?;
-    let mut frame_data = Vec::with_capacity(render_size.element_product() as usize);
+    let total_bytes = constants.size.element_product() * 4;
+    let mut frame_data = Vec::with_capacity(total_bytes.cast());
     let times = controller.run(
         *constants,
         render_size.extend(1),
@@ -121,8 +123,9 @@ fn render_gpu(
 /// Writes the given pixel data to a PNG file, embedding metadata about the UI state and
 /// software version.
 pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveError> {
+    let file = File::create(path)?;
     let mut encoder = png::Encoder::new(
-        File::create(path)?,
+        std::io::BufWriter::new(file),
         state.viewport_size.x,
         state.viewport_size.y,
     );
