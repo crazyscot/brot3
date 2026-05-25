@@ -180,7 +180,7 @@ where
     consts: RunningConstants<'a, E>,
 }
 
-/// This struct is created once for each [`Runner`] and is constant for that run.
+/// This struct is created once for each Runner and is constant for that run.
 #[allow(missing_debug_implementations)] // pub only in cfg(test)
 #[derive(Clone, Copy)]
 pub struct RunningConstants<'a, E>
