@@ -15,10 +15,14 @@ use crate::{GraphicsContext, controller::ControllerTrait, fps_counter::FpsCounte
 #[derive(Debug, Clone, Copy)]
 pub struct Options {
     pub escape_exits: bool,
+    pub default_shader_key: Option<&'static str>,
 }
 impl Default for Options {
     fn default() -> Self {
-        Self { escape_exits: true }
+        Self {
+            escape_exits: true,
+            default_shader_key: None,
+        }
     }
 }
 

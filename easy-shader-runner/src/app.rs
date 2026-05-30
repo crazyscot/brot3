@@ -1,4 +1,4 @@
-use std::{borrow::Cow, sync::Arc};
+use std::sync::Arc;
 
 use egui_winit::winit::{
     application::ApplicationHandler,
@@ -12,7 +12,7 @@ use egui_winit::winit::{
 };
 
 use crate::{
-    Parameters,
+    Parameters, ShaderDescriptor,
     context::GraphicsContext,
     controller::ControllerTrait,
     render_pass::RenderPass,
@@ -31,7 +31,7 @@ pub(crate) struct Graphics<C: ControllerTrait> {
 
 pub(crate) struct Builder<C: ControllerTrait + Send> {
     event_proxy: EventLoopProxy<CustomEvent<C>>,
-    shader_bytes: Cow<'static, [u8]>,
+    shaders: Vec<ShaderDescriptor>,
     params: Parameters<C>,
 }
 
@@ -44,12 +44,12 @@ pub(crate) enum App<C: ControllerTrait + Send> {
 impl<C: ControllerTrait + Send> App<C> {
     pub(crate) fn new(
         event_proxy: EventLoopProxy<CustomEvent<C>>,
-        shader_bytes: Cow<'static, [u8]>,
+        shaders: Vec<ShaderDescriptor>,
         params: crate::Parameters<C>,
     ) -> Self {
         Self::Builder(Builder {
             event_proxy,
-            shader_bytes,
+            shaders,
             params,
         })
     }
@@ -192,13 +192,21 @@ impl<C: ControllerTrait + Send> App<C> {
     }
 
     #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
-    pub(crate) fn new_module(&mut self, shader_path: &std::path::Path) {
+    pub(crate) fn new_module(&mut self, shader_key: &'static str, shader_path: &std::path::Path) {
         let Self::Graphics(gfx) = self else {
             return;
         };
-        gfx.rpass.new_module(&gfx.ctx, shader_path);
-        gfx.controller.new_shader_module();
-        gfx.window.request_redraw();
+        match gfx.rpass.new_module(&gfx.ctx, shader_key, shader_path) {
+            Ok(active_shader_changed) => {
+                gfx.controller.new_shader_module(shader_key);
+                if active_shader_changed {
+                    gfx.window.request_redraw();
+                }
+            }
+            Err(error) => {
+                log::error!("{error}");
+            }
+        }
     }
 }
 
@@ -311,7 +319,10 @@ impl<C: ControllerTrait + Send> ApplicationHandler<CustomEvent<C>> for App<C> {
                 };
             }
             #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
-            CustomEvent::NewModule(shader_path) => self.new_module(&shader_path),
+            CustomEvent::NewModule {
+                shader_key,
+                shader_path,
+            } => self.new_module(shader_key, &shader_path),
         }
     }
 }
@@ -322,15 +333,22 @@ async fn create_graphics<C: ControllerTrait + Send>(
     window: Window,
     display: OwnedDisplayHandle,
 ) {
+    let options = builder.params.options;
+    let default_shader_key = options.default_shader_key.unwrap_or(builder.shaders[0].key);
     let mut controller = builder.params.controller;
     let window = Arc::new(window);
     let ctx = GraphicsContext::new(window.clone(), initial_size, &controller, display).await;
 
     let ui = Ui::new(&window);
 
-    let ui_state = UiState::new(builder.params.options);
-
-    let rpass = RenderPass::new(&ctx, &builder.shader_bytes, &mut controller);
+    let ui_state = UiState::new(options);
+    let rpass = match RenderPass::new(&ctx, builder.shaders, default_shader_key, &mut controller) {
+        Ok(rpass) => rpass,
+        Err(error) => {
+            log::error!("{error}");
+            return;
+        }
+    };
 
     let gfx = Graphics {
         rpass,

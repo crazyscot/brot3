@@ -315,7 +315,7 @@ impl ControllerTrait for Controller {
     }
 
     #[cfg(feature = "hot-reload-shader")]
-    fn new_shader_module(&mut self) {
+    fn new_shader_module(&mut self, _shader_key: &'static str) {
         self.reiterate = true;
     }
 

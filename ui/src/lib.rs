@@ -35,7 +35,44 @@ const CANDIDATE_SHADER_PATHS: &[&str] = &["./lib", "../lib"];
 pub use save::write_png; // exported for use by compute_shader integration test
 use version::version_string;
 
-const SHADER_BYTES: &[u8] = shader_assets::prebuilt_shader_bytes(ShaderVariant::General);
+pub(crate) const SHADER_BYTES: &[u8] = shader_assets::prebuilt_shader_bytes(ShaderVariant::General);
+
+#[cfg(feature = "ui")]
+const PREBUILT_SHADERS: &[easy_shader_runner::PrebuiltShader] = &[
+    easy_shader_runner::PrebuiltShader::new(
+        ShaderVariant::General.key(),
+        shader_assets::prebuilt_shader_bytes(ShaderVariant::General),
+    ),
+    easy_shader_runner::PrebuiltShader::new(
+        ShaderVariant::MandelbrotPow2.key(),
+        shader_assets::prebuilt_shader_bytes(ShaderVariant::MandelbrotPow2),
+    ),
+    easy_shader_runner::PrebuiltShader::new(
+        ShaderVariant::MandelbrotPow2Deep.key(),
+        shader_assets::prebuilt_shader_bytes(ShaderVariant::MandelbrotPow2Deep),
+    ),
+];
+
+#[cfg(feature = "hot-reload-shader")]
+const RUNTIME_GENERAL_SHADER: easy_shader_runner::RuntimeCompilationShader =
+    easy_shader_runner::RuntimeCompilationShader::new(
+        ShaderVariant::General.key(),
+        ShaderVariant::General.shader_crate_features(),
+    );
+
+#[cfg(false)] // TEMP for now as not yet used
+#[cfg(feature = "hot-reload-shader")]
+const RUNTIME_SHADERS: &[easy_shader_runner::RuntimeCompilationShader] = &[
+    RUNTIME_GENERAL_SHADER,
+    easy_shader_runner::RuntimeCompilationShader::new(
+        ShaderVariant::MandelbrotPow2.key(),
+        ShaderVariant::MandelbrotPow2.shader_crate_features(),
+    ),
+    easy_shader_runner::RuntimeCompilationShader::new(
+        ShaderVariant::MandelbrotPow2Deep.key(),
+        ShaderVariant::MandelbrotPow2Deep.shader_crate_features(),
+    ),
+];
 
 /// Absolute limit on the number of iterations, which also limits the size of the perturbation
 /// buffer.
@@ -109,7 +146,8 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
     let controller = controller::Controller::new(args);
     #[allow(unused_variables, reason = "false positive")]
     let params = easy_shader_runner::Parameters::new(controller, version_string("brot3 "))
-        .esc_key_exits(false);
+        .esc_key_exits(false)
+        .default_shader_key(ShaderVariant::General.key());
 
     #[cfg(feature = "hot-reload-shader")]
     if !args.static_shader {
@@ -122,15 +160,15 @@ fn ui_main(args: &cli::Args) -> Result<(), MainError> {
                 return run_with_hot_reload(args, &path, params);
             }
             Err(MainError::FallbackToPrebuiltShader) => {
-                log::warn!("Shader source directory not found, running with prebuilt shader");
+                log::warn!("Shader source directory not found, running with prebuilt shaders");
             }
             Err(e) => return Err(e),
         }
     }
     // runtime compilation configured out, or it didn't succeed
-    Ok(easy_shader_runner::run_with_prebuilt_shader(
+    Ok(easy_shader_runner::run_with_prebuilt_shaders(
         params,
-        SHADER_BYTES,
+        PREBUILT_SHADERS,
     )?)
 }
 
@@ -199,9 +237,11 @@ fn run_with_hot_reload<C: easy_shader_runner::ControllerTrait + Send>(
 
     easy_shader_runner::run_with_runtime_compilation(
         params,
+        &[RUNTIME_GENERAL_SHADER], /* TODO: Ensure that hot reload selects the correct variant.
+                                    * RUNTIME_SHADERS comes into play. */
         path,
         relative_to_manifest,
-        args.spirv_tools.clone(),
+        args.spirv_tools.as_ref(),
     )?;
     Ok(())
 }

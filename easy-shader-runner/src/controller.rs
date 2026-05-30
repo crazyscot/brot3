@@ -84,8 +84,12 @@ pub trait ControllerTrait: 'static {
     ) {
     }
 
+    fn current_shader_key(&self) -> Option<&'static str> {
+        None
+    }
+
     #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
-    fn new_shader_module(&mut self) {}
+    fn new_shader_module(&mut self, _shader_key: &'static str) {}
 
     /// This callback is invoked during initialision, before the wgpu context is created.
     /// For example, it allows you to detect the available screen resolutions before the shader is

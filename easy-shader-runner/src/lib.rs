@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-use std::{borrow::Cow, path::PathBuf};
+use std::path::PathBuf;
 
 pub use context::GraphicsContext;
 pub use controller::ControllerTrait;
@@ -31,16 +31,75 @@ pub enum Error {
     EventLoopError(#[from] egui_winit::winit::error::EventLoopError),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
+    #[error("No shaders were provided")]
+    EmptyShaderSet,
+    #[error("Duplicate shader key {0}")]
+    DuplicateShaderKey(&'static str),
     #[error("Missing CARGO_MANIFEST_DIR")]
     MissingCargoManifest,
     #[error("Shader directory {0} not found")]
     ShaderDirectoryNotFound(PathBuf),
+    #[error("Shader key {0} not found")]
+    UnknownShaderKey(&'static str),
     #[cfg(all(
         any(feature = "runtime-compilation", feature = "hot-reload-shader"),
         not(target_arch = "wasm32")
     ))]
     #[error(transparent)]
     BuildFailed(spirv_builder::SpirvBuilderError),
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct PrebuiltShader {
+    pub key: &'static str,
+    pub bytes: &'static [u8],
+}
+
+impl PrebuiltShader {
+    #[must_use]
+    pub const fn new(key: &'static str, bytes: &'static [u8]) -> Self {
+        Self { key, bytes }
+    }
+}
+
+#[cfg(all(
+    any(feature = "runtime-compilation", feature = "hot-reload-shader"),
+    not(target_arch = "wasm32")
+))]
+#[derive(Clone, Copy, Debug)]
+pub struct RuntimeCompilationShader {
+    pub key: &'static str,
+    pub crate_features: &'static [&'static str],
+}
+
+#[cfg(all(
+    any(feature = "runtime-compilation", feature = "hot-reload-shader"),
+    not(target_arch = "wasm32")
+))]
+impl RuntimeCompilationShader {
+    #[must_use]
+    pub const fn new(key: &'static str, crate_features: &'static [&'static str]) -> Self {
+        Self {
+            key,
+            crate_features,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct ShaderDescriptor {
+    pub(crate) key: &'static str,
+    pub(crate) source: ShaderSource,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) enum ShaderSource {
+    Prebuilt(&'static [u8]),
+    #[cfg(all(
+        any(feature = "runtime-compilation", feature = "hot-reload-shader"),
+        not(target_arch = "wasm32")
+    ))]
+    RuntimePath(PathBuf),
 }
 
 /// Common parameters and options for all shader runs.
@@ -72,6 +131,12 @@ impl<C: ControllerTrait + Send> Parameters<C> {
         self.options.escape_exits = enable;
         self
     }
+
+    #[must_use]
+    pub fn default_shader_key(mut self, key: &'static str) -> Self {
+        self.options.default_shader_key = Some(key);
+        self
+    }
 }
 
 /// Run with runtime compilation
@@ -84,43 +149,95 @@ impl<C: ControllerTrait + Send> Parameters<C> {
 ))]
 pub fn run_with_runtime_compilation<C: ControllerTrait + Send>(
     params: Parameters<C>,
+    shaders: &'static [RuntimeCompilationShader],
     // Path of shader crate (see `relative_to_manifest`!)
     shader_crate_path: impl AsRef<std::path::Path>,
     // If true, shader_crate_path is relative to CARGO_MANIFEST_DIR
     relative_to_manifest: bool,
     // Location of librustc_codegen_spirv.so, if it's not on SHARED_LIBRARY_PATH
-    rustc_codegen_spirv_location: Option<PathBuf>,
+    rustc_codegen_spirv_location: Option<&PathBuf>,
 ) -> Result<(), Error> {
     setup_logging();
     let event_loop = EventLoop::with_user_event().build()?;
-    // Build the shader before we pop open a window, since it might take a while.
-    let shader_path = shader::compile_shader(
+    // Build the shaders before we pop open a window, since it might take a while.
+    let shaders = shader::compile_shaders(
         #[cfg(feature = "hot-reload-shader")]
-        event_loop.create_proxy(),
+        &event_loop.create_proxy(),
+        shaders,
         shader_crate_path,
         relative_to_manifest,
         rustc_codegen_spirv_location,
     )?;
-    let shader_bytes = std::fs::read(shader_path)?;
-    start(event_loop, shader_bytes, params)
+    start(
+        event_loop,
+        shaders
+            .into_iter()
+            .map(|shader| ShaderDescriptor {
+                key: shader.key,
+                source: ShaderSource::RuntimePath(shader.path),
+            })
+            .collect(),
+        params,
+    )
 }
 
-pub fn run_with_prebuilt_shader<C: ControllerTrait + Send>(
+pub fn run_with_prebuilt_shaders<C: ControllerTrait + Send>(
     params: Parameters<C>,
-    shader_bytes: &'static [u8],
+    shaders: &'static [PrebuiltShader],
 ) -> Result<(), Error> {
     setup_logging();
     let event_loop = EventLoop::with_user_event().build()?;
-    start(event_loop, shader_bytes, params)
+    start(
+        event_loop,
+        shaders
+            .iter()
+            .map(|shader| ShaderDescriptor {
+                key: shader.key,
+                source: ShaderSource::Prebuilt(shader.bytes),
+            })
+            .collect(),
+        params,
+    )
 }
 
 fn start<C: ControllerTrait + Send>(
     event_loop: EventLoop<CustomEvent<C>>,
-    shader_bytes: impl Into<Cow<'static, [u8]>>,
+    shaders: Vec<ShaderDescriptor>,
     params: Parameters<C>,
 ) -> Result<(), Error> {
-    let mut app = app::App::new(event_loop.create_proxy(), shader_bytes.into(), params);
+    validate_shaders(
+        &shaders,
+        params
+            .options
+            .default_shader_key
+            .unwrap_or_else(|| shaders.first().map_or("", |shader| shader.key)),
+    )?;
+    let mut app = app::App::new(event_loop.create_proxy(), shaders, params);
     Ok(event_loop.run_app(&mut app)?)
+}
+
+fn validate_shaders(
+    shaders: &[ShaderDescriptor],
+    default_shader_key: &'static str,
+) -> Result<(), Error> {
+    if shaders.is_empty() {
+        return Err(Error::EmptyShaderSet);
+    }
+
+    for (index, shader) in shaders.iter().enumerate() {
+        if shaders[..index].iter().any(|other| other.key == shader.key) {
+            return Err(Error::DuplicateShaderKey(shader.key));
+        }
+    }
+
+    if shaders
+        .iter()
+        .all(|shader| shader.key != default_shader_key)
+    {
+        return Err(Error::UnknownShaderKey(default_shader_key));
+    }
+
+    Ok(())
 }
 
 #[allow(unsafe_code, clippy::disallowed_methods)]

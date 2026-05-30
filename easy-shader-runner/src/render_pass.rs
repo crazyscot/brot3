@@ -3,6 +3,7 @@ use num_traits::AsPrimitive as _;
 use wgpu::{CurrentSurfaceTexture, PipelineCompilationOptions};
 
 use crate::{
+    Error, ShaderDescriptor, ShaderSource,
     context::GraphicsContext,
     controller::ControllerTrait,
     ui::{Ui, UiState},
@@ -29,23 +30,25 @@ struct PipelineLayouts {
 
 pub(crate) struct RenderPass {
     pipelines: Pipelines,
-    #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
     pipeline_layouts: PipelineLayouts,
+    shaders: Vec<ShaderDescriptor>,
+    active_shader_key: &'static str,
+    default_shader_key: &'static str,
     ui_renderer: egui_wgpu::Renderer,
     bind_groups: Vec<wgpu::BindGroup>,
     shader_viewport: egui::Rect,
     #[cfg(feature = "emulate_constants")]
     emulate_constants_buffer: EmulateConstantsBuffer,
-    #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
     vertex_buffer_layouts: Vec<wgpu::VertexBufferLayout<'static>>,
 }
 
 impl RenderPass {
     pub(crate) fn new<C: ControllerTrait>(
         ctx: &GraphicsContext,
-        shader_bytes: &[u8],
+        shaders: Vec<ShaderDescriptor>,
+        default_shader_key: &'static str,
         controller: &mut C,
-    ) -> Self {
+    ) -> Result<Self, Error> {
         let (layouts, bind_groups) = controller.describe_bind_groups(ctx);
         let bind_group_layouts = layouts.iter();
 
@@ -63,12 +66,15 @@ impl RenderPass {
         let vertex_buffer_layouts = controller.describe_vertex_buffer_layouts(ctx);
         let pipeline_layouts =
             create_pipeline_layouts(ctx, &bind_group_layouts.map(Some).collect::<Vec<_>>());
+        let active_shader_key = controller
+            .current_shader_key()
+            .unwrap_or(default_shader_key);
         let pipelines = create_pipelines(
             &ctx.device,
             &pipeline_layouts,
             ctx.config.format,
             &vertex_buffer_layouts,
-            shader_bytes,
+            load_shader_bytes(find_shader(&shaders, active_shader_key)?)?.as_ref(),
         );
 
         let ui_renderer = egui_wgpu::Renderer::new(
@@ -82,18 +88,19 @@ impl RenderPass {
             },
         );
 
-        Self {
+        Ok(Self {
             pipelines,
-            #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
             pipeline_layouts,
+            shaders,
+            active_shader_key,
+            default_shader_key,
             ui_renderer,
             bind_groups,
             shader_viewport: egui::Rect::NAN,
             #[cfg(feature = "emulate_constants")]
             emulate_constants_buffer,
-            #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
             vertex_buffer_layouts,
-        }
+        })
     }
 
     #[cfg(feature = "compute")]
@@ -173,7 +180,9 @@ impl RenderPass {
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
-        self.render_ui(ctx, &output_view, window, ui, ui_state, controller);
+        if !self.render_ui(ctx, &output_view, window, ui, ui_state, controller) {
+            return false;
+        }
         texture.present();
         true
     }
@@ -254,11 +263,18 @@ impl RenderPass {
         ui: &mut Ui,
         ui_state: &mut UiState,
         controller: &mut C,
-    ) {
+    ) -> bool {
         let (clipped_primitives, textures_delta, available_rect, pixels_per_point) =
             ui.prepare(window, ui_state, controller, ctx);
 
         if available_rect.width() > 0.0 && available_rect.height() > 0.0 {
+            let shader_key = controller
+                .current_shader_key()
+                .unwrap_or(self.default_shader_key);
+            if let Err(error) = self.select_shader(ctx, shader_key) {
+                log::error!("{error}");
+                return false;
+            }
             self.render_shader(
                 ctx,
                 output_view,
@@ -321,21 +337,88 @@ impl RenderPass {
         }
 
         let _ = ctx.queue.submit(Some(encoder.finish()));
+        true
+    }
+
+    pub(crate) fn select_shader(
+        &mut self,
+        ctx: &GraphicsContext,
+        shader_key: &'static str,
+    ) -> Result<(), Error> {
+        if shader_key == self.active_shader_key {
+            return Ok(());
+        }
+        self.rebuild_pipelines(ctx, shader_key)
     }
 
     #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
-    pub(crate) fn new_module(&mut self, ctx: &GraphicsContext, shader_path: &std::path::Path) {
+    pub(crate) fn new_module(
+        &mut self,
+        ctx: &GraphicsContext,
+        shader_key: &'static str,
+        shader_path: &std::path::Path,
+    ) -> Result<bool, Error> {
+        let shader = find_shader_mut(&mut self.shaders, shader_key)?;
+        shader.source = ShaderSource::RuntimePath(shader_path.to_path_buf());
+        if shader_key == self.active_shader_key {
+            self.rebuild_pipelines(ctx, shader_key)?;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+
+    pub(crate) fn shader_offset(&self) -> glam::Vec2 {
+        glam::vec2(self.shader_viewport.left(), self.shader_viewport.top())
+    }
+
+    fn rebuild_pipelines(
+        &mut self,
+        ctx: &GraphicsContext,
+        shader_key: &'static str,
+    ) -> Result<(), Error> {
+        let shader_bytes = load_shader_bytes(find_shader(&self.shaders, shader_key)?)?;
         self.pipelines = create_pipelines(
             &ctx.device,
             &self.pipeline_layouts,
             ctx.config.format,
             &self.vertex_buffer_layouts,
-            &std::fs::read(shader_path).unwrap(),
+            shader_bytes.as_ref(),
         );
+        self.active_shader_key = shader_key;
+        Ok(())
     }
+}
 
-    pub(crate) fn shader_offset(&self) -> glam::Vec2 {
-        glam::vec2(self.shader_viewport.left(), self.shader_viewport.top())
+fn find_shader<'a>(
+    shaders: &'a [ShaderDescriptor],
+    shader_key: &'static str,
+) -> Result<&'a ShaderDescriptor, Error> {
+    shaders
+        .iter()
+        .find(|shader| shader.key == shader_key)
+        .ok_or(Error::UnknownShaderKey(shader_key))
+}
+
+#[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
+fn find_shader_mut<'a>(
+    shaders: &'a mut [ShaderDescriptor],
+    shader_key: &'static str,
+) -> Result<&'a mut ShaderDescriptor, Error> {
+    shaders
+        .iter_mut()
+        .find(|shader| shader.key == shader_key)
+        .ok_or(Error::UnknownShaderKey(shader_key))
+}
+
+fn load_shader_bytes(shader: &ShaderDescriptor) -> Result<std::borrow::Cow<'_, [u8]>, Error> {
+    match &shader.source {
+        ShaderSource::Prebuilt(bytes) => Ok(std::borrow::Cow::Borrowed(*bytes)),
+        #[cfg(all(
+            any(feature = "runtime-compilation", feature = "hot-reload-shader"),
+            not(target_arch = "wasm32")
+        ))]
+        ShaderSource::RuntimePath(path) => Ok(std::borrow::Cow::Owned(std::fs::read(path)?)),
     }
 }
 
