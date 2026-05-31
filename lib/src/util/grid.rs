@@ -338,12 +338,186 @@ where
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use super::GridRef;
+    use super::{Grid, GridRef, GridRefMut};
     use crate::uvec2;
 
     #[test]
     fn larger_buf_ok() {
         let buf = vec![1, 2, 3, 4, 5];
         let _gr = GridRef::new(uvec2(2, 1), &buf);
+    }
+
+    #[test]
+    fn gridref_get_in_bounds() {
+        let buf = vec![1, 2, 3, 4];
+        let gr = GridRef::new(uvec2(2, 2), &buf);
+
+        assert_eq!(gr.get(uvec2(0, 0)), 1);
+        assert_eq!(gr.get(uvec2(1, 0)), 2);
+        assert_eq!(gr.get(uvec2(0, 1)), 3);
+        assert_eq!(gr.get(uvec2(1, 1)), 4);
+    }
+
+    #[test]
+    fn gridref_get_out_of_bounds() {
+        let buf = vec![1, 2, 3, 4];
+        let gr = GridRef::new(uvec2(2, 2), &buf);
+
+        assert_eq!(gr.get(uvec2(5, 5)), 0); // default value
+        assert_eq!(gr.get(uvec2(2, 0)), 0); // x out of bounds
+        assert_eq!(gr.get(uvec2(0, 2)), 0); // y out of bounds
+    }
+
+    #[test]
+    fn gridrefmut_get_and_set() {
+        let mut buf = vec![0, 0, 0, 0];
+        let mut grm = GridRefMut::new(uvec2(2, 2), &mut buf);
+
+        grm.set(uvec2(0, 0), 42);
+        assert_eq!(grm.get(uvec2(0, 0)), 42);
+
+        grm.set(uvec2(1, 1), 99);
+        assert_eq!(grm.get(uvec2(1, 1)), 99);
+    }
+
+    #[test]
+    fn gridrefmut_set_out_of_bounds() {
+        let mut buf = vec![0, 0, 0, 0];
+        let mut grm = GridRefMut::new(uvec2(2, 2), &mut buf);
+
+        // Set out of bounds should be ignored (no panic)
+        grm.set(uvec2(5, 5), 42);
+        assert_eq!(grm.get(uvec2(5, 5)), 0); // still returns default
+    }
+
+    #[test]
+    fn gridrefmut_swap() {
+        let mut buf = vec![1, 2, 3, 4];
+        let mut grm = GridRefMut::new(uvec2(2, 2), &mut buf);
+
+        grm.swap(uvec2(0, 0), uvec2(1, 1));
+
+        assert_eq!(grm.get(uvec2(0, 0)), 4); // was 1, now 4
+        assert_eq!(grm.get(uvec2(1, 1)), 1); // was 4, now 1
+        assert_eq!(grm.get(uvec2(1, 0)), 2); // unchanged
+        assert_eq!(grm.get(uvec2(0, 1)), 3); // unchanged
+    }
+
+    #[test]
+    fn gridrefmut_swap_same_position() {
+        let mut buf = vec![1, 2, 3, 4];
+        let mut grm = GridRefMut::new(uvec2(2, 2), &mut buf);
+
+        grm.swap(uvec2(0, 0), uvec2(0, 0));
+
+        // Swapping with itself should leave value unchanged
+        assert_eq!(grm.get(uvec2(0, 0)), 1);
+    }
+
+    #[test]
+    fn gridrefmut_as_ref() {
+        let mut buf = vec![10, 20, 30, 40];
+        let mut grm = GridRefMut::new(uvec2(2, 2), &mut buf);
+        grm.set(uvec2(0, 0), 99);
+
+        let gr = grm.as_ref();
+        assert_eq!(gr.get(uvec2(0, 0)), 99);
+        assert_eq!(gr.get(uvec2(1, 1)), 40);
+    }
+
+    #[test]
+    fn grid_new() {
+        let grid: Grid<i32> = Grid::new(uvec2(3, 4));
+        assert_eq!(grid.size, uvec2(3, 4));
+        assert_eq!(grid.buffer.len(), 12);
+        // All elements should be default-initialized (0 for i32)
+        assert!(grid.buffer.iter().all(|&x| x == 0));
+    }
+
+    #[test]
+    fn grid_get_and_set() {
+        let mut grid: Grid<i32> = Grid::new(uvec2(2, 2));
+
+        grid.set(uvec2(0, 0), 42);
+        assert_eq!(grid.get(uvec2(0, 0)), 42);
+
+        grid.set(uvec2(1, 1), 99);
+        assert_eq!(grid.get(uvec2(1, 1)), 99);
+    }
+
+    #[test]
+    fn grid_swap() {
+        let mut grid: Grid<i32> = Grid::new(uvec2(2, 2));
+        grid.buffer = vec![1, 2, 3, 4];
+
+        grid.swap(uvec2(0, 0), uvec2(1, 1));
+
+        assert_eq!(grid.get(uvec2(0, 0)), 4);
+        assert_eq!(grid.get(uvec2(1, 1)), 1);
+    }
+
+    #[test]
+    fn grid_resize_expand() {
+        let mut grid: Grid<i32> = Grid::new(uvec2(2, 2));
+        grid.buffer = vec![1, 2, 3, 4];
+
+        grid.resize(uvec2(3, 3)); // 9 elements
+
+        assert_eq!(grid.size, uvec2(3, 3));
+        assert_eq!(grid.buffer.len(), 9);
+        // First 4 should be preserved
+        assert_eq!(grid.get(uvec2(0, 0)), 1);
+        // New elements should be default
+        assert_eq!(grid.get(uvec2(2, 2)), 0);
+    }
+
+    #[test]
+    fn grid_resize_shrink() {
+        let mut grid: Grid<i32> = Grid::new(uvec2(3, 3));
+        grid.buffer = (1..=9).collect();
+
+        grid.resize(uvec2(2, 2)); // requested 4 elements
+
+        assert_eq!(grid.size, uvec2(2, 2)); // size is updated
+        // But resize only grows the buffer, doesn't shrink it
+        assert_eq!(grid.buffer.len(), 9);
+    }
+
+    #[test]
+    fn grid_as_ref() {
+        let mut grid: Grid<i32> = Grid::new(uvec2(2, 2));
+        grid.buffer = vec![1, 2, 3, 4];
+
+        let gr = grid.as_ref();
+        assert_eq!(gr.get(uvec2(0, 0)), 1);
+        assert_eq!(gr.get(uvec2(1, 1)), 4);
+    }
+
+    #[test]
+    fn grid_as_ref_mut() {
+        let mut grid: Grid<i32> = Grid::new(uvec2(2, 2));
+
+        {
+            let mut grm = grid.as_ref_mut();
+            grm.set(uvec2(0, 0), 42);
+        }
+
+        assert_eq!(grid.get(uvec2(0, 0)), 42);
+    }
+
+    #[test]
+    fn grid_coordinate_mapping() {
+        // Verify that (y,x) coordinate order is correctly mapped
+        let mut grid: Grid<i32> = Grid::new(uvec2(3, 2)); // 3 width, 2 height
+        grid.buffer = vec![0, 1, 2, 3, 4, 5];
+
+        // Row 0: [0, 1, 2]
+        // Row 1: [3, 4, 5]
+        assert_eq!(grid.get(uvec2(0, 0)), 0);
+        assert_eq!(grid.get(uvec2(1, 0)), 1);
+        assert_eq!(grid.get(uvec2(2, 0)), 2);
+        assert_eq!(grid.get(uvec2(0, 1)), 3);
+        assert_eq!(grid.get(uvec2(1, 1)), 4);
+        assert_eq!(grid.get(uvec2(2, 1)), 5);
     }
 }

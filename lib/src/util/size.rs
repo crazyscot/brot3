@@ -178,4 +178,41 @@ mod tests {
         let _ = "123".parse::<Size>().unwrap_err();
         let _ = "123,456,789".parse::<Size>().unwrap_err();
     }
+
+    #[test]
+    fn element_product() {
+        let sz = Size::new(10, 20);
+        assert_eq!(sz.element_product(), 200);
+
+        let sz = Size::new(1, 1);
+        assert_eq!(sz.element_product(), 1);
+
+        let sz = Size::ZERO;
+        assert_eq!(sz.element_product(), 0);
+
+        let sz = Size::new(1920, 1080);
+        assert_eq!(sz.element_product(), 2_073_600);
+    }
+
+    #[test]
+    fn display_impl() {
+        let sz = Size::new(1920, 1080);
+        assert_eq!(sz.to_string(), "1920,1080");
+
+        let sz = Size::new(100, 200);
+        assert_eq!(sz.to_string(), "100,200");
+
+        let sz = Size::ZERO;
+        assert_eq!(sz.to_string(), "0,0");
+    }
+
+    #[test]
+    fn display_and_parse_roundtrip() {
+        let original = Size::new(640, 480);
+        let displayed = original.to_string();
+        let parsed: Size = displayed.parse().unwrap();
+
+        assert_eq!(original.width, parsed.width);
+        assert_eq!(original.height, parsed.height);
+    }
 }

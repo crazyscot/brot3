@@ -71,4 +71,50 @@ mod tests {
         assert_eq!(channel.recv(), 57);
         assert_eq!(channel.try_recv(), None);
     }
+
+    #[test]
+    fn update_field_from_channel_with_message() {
+        let channel: Channel<i32> = Channel::default();
+        let sender = channel.sender();
+        let mut field: Option<i32> = None;
+
+        sender.send(42).unwrap();
+        update_field_from_channel(&channel, &mut field);
+
+        assert_eq!(field, Some(42));
+    }
+
+    #[test]
+    fn update_field_from_channel_no_message() {
+        let channel: Channel<i32> = Channel::default();
+        let mut field: Option<i32> = None;
+
+        update_field_from_channel(&channel, &mut field);
+
+        assert_eq!(field, None);
+    }
+
+    #[test]
+    fn update_field_from_channel_overwrites_existing() {
+        let channel: Channel<i32> = Channel::default();
+        let sender = channel.sender();
+        let mut field: Option<i32> = Some(10);
+
+        sender.send(42).unwrap();
+        update_field_from_channel(&channel, &mut field);
+
+        assert_eq!(field, Some(42));
+    }
+
+    #[test]
+    fn update_field_from_channel_with_conversion() {
+        let channel: Channel<i32> = Channel::default();
+        let sender = channel.sender();
+        let mut field: Option<i64> = None;
+
+        sender.send(42i32).unwrap();
+        update_field_from_channel(&channel, &mut field);
+
+        assert_eq!(field, Some(42i64));
+    }
 }

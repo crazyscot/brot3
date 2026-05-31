@@ -561,3 +561,231 @@ mod serde_tests {
         let _ = UiState::try_from(f).expect_err("unknown version");
     }
 }
+
+#[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
+mod conversion_tests {
+    use glam::uvec2;
+
+    use super::*;
+    use crate::data::Modifier;
+
+    fn test_ui_state() -> UiState {
+        UiState {
+            viewport_translate: BigVec2::try_new(-0.75, 0.1).expect("failed to create BigVec2"),
+            viewport_zoom: ViewportZoom::from(2.5_f32),
+            algorithm: Algorithm::Mandelbrot,
+            max_iter: 256,
+            palette: Palette::default(),
+            exponent: PushExponent::from(2),
+            iteration_cull: false,
+            viewport_size: uvec2(800, 600),
+        }
+    }
+
+    fn test_frag_consts() -> FragmentConstants {
+        FragmentConstants {
+            flags: Flags::empty(),
+            viewport_translate: crate::vec2(-0.75, 0.1),
+            viewport_zoom: 2.5,
+            size: Size::new(800, 600),
+            buffer_size: Size::ZERO,
+            algorithm: Algorithm::Mandelbrot,
+            max_iter: 256,
+            exponent: PushExponent::from(2),
+            palette: Palette::default(),
+            inspector_point_pixel_address: Vec2::ZERO,
+        }
+    }
+
+    #[test]
+    fn uistate_from_fragment_constants() {
+        let consts = test_frag_consts();
+        let state = UiState::try_from(&consts).expect("conversion failed");
+
+        assert_eq!(state.viewport_zoom, consts.viewport_zoom.into());
+        assert_eq!(state.algorithm, consts.algorithm);
+        assert_eq!(state.max_iter, consts.max_iter);
+        assert_eq!(state.palette, consts.palette);
+        assert_eq!(state.exponent, consts.exponent);
+        assert!(!state.iteration_cull);
+        assert_eq!(state.viewport_size, consts.size.into());
+    }
+
+    #[test]
+    fn uistate_from_fragment_constants_with_iteration_cull() {
+        let mut consts = test_frag_consts();
+        consts.flags |= Flags::ITERATION_CULL;
+        let state = UiState::try_from(&consts).expect("conversion failed");
+
+        assert!(state.iteration_cull);
+    }
+
+    #[test]
+    fn fragment_constants_from_uistate() {
+        #![allow(clippy::float_cmp, clippy::cast_possible_truncation)]
+        let state = test_ui_state();
+        let consts = FragmentConstants::from(&state);
+
+        assert_eq!(consts.viewport_zoom, state.viewport_zoom.0 as f32);
+        assert_eq!(consts.algorithm, state.algorithm);
+        assert_eq!(consts.max_iter, state.max_iter);
+        assert_eq!(consts.palette, state.palette);
+        assert_eq!(consts.exponent, state.exponent);
+        assert!(!consts.flags.contains(Flags::ITERATION_CULL));
+    }
+
+    #[test]
+    fn fragment_constants_from_uistate_with_flags() {
+        let mut state = test_ui_state();
+        state.iteration_cull = true;
+        let consts = FragmentConstants::from(&state);
+
+        assert!(consts.flags.contains(Flags::ITERATION_CULL));
+    }
+
+    #[test]
+    fn fragment_constants_from_uistate_with_distance_estimate_flag() {
+        let mut state = test_ui_state();
+        let palette = Palette {
+            brightness_style: Modifier::Filaments,
+            ..Palette::default()
+        };
+        state.palette = palette;
+        let consts = FragmentConstants::from(&state);
+
+        assert!(consts.flags.contains(Flags::DISTANCE_ESTIMATE));
+    }
+
+    #[test]
+    fn fragment_constants_saturation_filaments_triggers_distance_estimate() {
+        let mut state = test_ui_state();
+        let palette = Palette {
+            saturation_style: Modifier::Filaments,
+            ..Palette::default()
+        };
+        state.palette = palette;
+        let consts = FragmentConstants::from(&state);
+
+        assert!(consts.flags.contains(Flags::DISTANCE_ESTIMATE));
+    }
+
+    #[test]
+    fn uistate_merge_preserves_viewport_size() {
+        let mut state1 = test_ui_state();
+        state1.viewport_size = uvec2(1024, 768);
+
+        let mut state2 = test_ui_state();
+        state2.viewport_size = uvec2(640, 480);
+        state2.max_iter = 512;
+        state2.algorithm = Algorithm::BurningShip;
+
+        state1.merge(state2);
+
+        assert_eq!(
+            state1.viewport_size,
+            uvec2(1024, 768),
+            "merge should preserve viewport_size"
+        );
+        assert_eq!(state1.max_iter, 512);
+        assert_eq!(state1.algorithm, Algorithm::BurningShip);
+    }
+
+    #[test]
+    fn uistate_merge_overwrites_other_fields() {
+        let mut state1 = test_ui_state();
+        state1.max_iter = 256;
+
+        let mut state2 = test_ui_state();
+        state2.max_iter = 1024;
+
+        state1.merge(state2);
+
+        assert_eq!(state1.max_iter, 1024);
+    }
+
+    #[test]
+    fn uistate_display_string() {
+        let state = test_ui_state();
+        let display = state.display_string('-');
+
+        // display_string should be non-empty and contain algorithm name, max_iter, exponent
+        assert!(!display.is_empty());
+        assert!(display.contains("Mandelbrot"));
+        assert!(display.contains("256")); // max_iter
+        assert!(display.contains("exp2")); // exponent
+    }
+
+    #[test]
+    fn uistate_display_string_with_different_separator() {
+        let state = test_ui_state();
+        let display_dash = state.display_string('-');
+        let display_space = state.display_string(' ');
+
+        // Both should have content but with different separators
+        assert!(!display_dash.is_empty());
+        assert!(!display_space.is_empty());
+        assert!(display_dash.contains('-'));
+        assert!(display_space.contains(' '));
+    }
+
+    #[test]
+    fn uistate_save_and_load_json() {
+        use std::fs;
+
+        let state = test_ui_state();
+        let temp_file = std::env::temp_dir().join("test_state.json");
+
+        // Save
+        state.save(&temp_file).expect("save failed");
+        assert!(temp_file.exists());
+
+        // Load
+        let loaded = UiState::load_json(&temp_file).expect("load failed");
+
+        assert_eq!(state, loaded);
+
+        // Cleanup
+        let _ = fs::remove_file(temp_file);
+    }
+
+    #[test]
+    fn uistate_load_magic_with_json() {
+        use std::fs;
+
+        let state = test_ui_state();
+        let temp_file = std::env::temp_dir().join("test_magic.json");
+
+        state.save(&temp_file).expect("save failed");
+
+        let loaded = UiState::load_magic(&temp_file).expect("load_magic failed");
+
+        assert_eq!(state, loaded);
+
+        let _ = fs::remove_file(temp_file);
+    }
+
+    #[test]
+    fn uistate_save_file_versioning() {
+        let state = test_ui_state();
+        let save_file = UiStateSaveFile::from(state.clone());
+
+        assert_eq!(save_file.version, 1);
+        assert_eq!(save_file.state, state);
+    }
+
+    #[test]
+    fn uistate_save_file_unsupported_version() {
+        let bad_save_file = UiStateSaveFile {
+            version: 999,
+            state: test_ui_state(),
+        };
+
+        let result: Result<UiState, _> = bad_save_file.try_into();
+        assert!(result.is_err());
+        assert!(
+            matches!(result.unwrap_err(), LibError::UnsupportedVersion(999)),
+            "should be UnsupportedVersion(999)"
+        );
+    }
+}

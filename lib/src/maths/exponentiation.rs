@@ -124,7 +124,7 @@ mod tests {
     use crate::{
         Complex,
         data::PushExponent,
-        maths::{Exponentiator, Power2, RealPower},
+        maths::{Exponentiator, Power2, Power3, Power4, RealPower},
     };
 
     macro_rules! assert_complex_eq {
@@ -204,5 +204,52 @@ mod tests {
         let zsc = sc.apply_to(z);
         println!("{zc}");
         assert_complex_eq!(zc, zsc);
+    }
+
+    #[test]
+    fn apply_power_minus_1_to_power2() {
+        let exp = Power2 {};
+        let z = Complex::new(2.0, 0.0);
+        let z_pow_minus_1 = exp.apply_power_minus_1_to(z);
+        // 2^(2-1) = 2^1 = 2
+        assert_complex_eq!(z_pow_minus_1, Complex::new(2.0, 0.0));
+    }
+
+    #[test]
+    fn apply_power_minus_1_to_power3() {
+        let exp = Power3 {};
+        let z = Complex::new(2.0, 0.0);
+        let z_pow_minus_1 = exp.apply_power_minus_1_to(z);
+        // 2^(3-1) = 2^2 = 4
+        assert_complex_eq!(z_pow_minus_1, Complex::new(4.0, 0.0));
+    }
+
+    #[test]
+    fn apply_power_minus_1_to_real_power() {
+        let exp = RealPower(3.5);
+        let z = Complex::new(2.0, 0.0);
+        let z_pow_minus_1 = exp.apply_power_minus_1_to(z);
+        // 2^(3.5-1) = 2^2.5 ≈ 5.657
+        let z_pow_2_5 = RealPower(2.5).apply_to(z);
+        assert_complex_eq!(z_pow_minus_1, z_pow_2_5);
+    }
+
+    #[test]
+    fn apply_power_minus_1_to_integer_powers() {
+        let z = Complex::new(1.5, 0.0);
+
+        let p2 = Power2 {};
+        let p2_result = p2.apply_power_minus_1_to(z);
+        assert_complex_eq!(p2_result, z); // 1.5^1
+
+        let p3 = Power3 {};
+        let p3_result = p3.apply_power_minus_1_to(z);
+        let expected = z * z; // 1.5^2
+        assert_complex_eq!(p3_result, expected);
+
+        let p4 = Power4 {};
+        let p4_result = p4.apply_power_minus_1_to(z);
+        let expected = z * z * z; // 1.5^3
+        assert_complex_eq!(p4_result, expected);
     }
 }

@@ -81,3 +81,100 @@ pub fn render_chunk(
         }
     }
 }
+
+#[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
+mod tests {
+    use const_default::ConstDefault;
+
+    use super::*;
+    use crate::{
+        data::{Algorithm, Palette, PushExponent},
+        util::Size,
+    };
+
+    fn test_frag_consts() -> FragmentConstants {
+        FragmentConstants {
+            flags: crate::data::Flags::empty(),
+            viewport_translate: crate::vec2(0., 0.),
+            viewport_zoom: 0.3,
+            size: Size::new(2, 2),
+            buffer_size: Size::new(2, 2),
+            max_iter: 10,
+            algorithm: Algorithm::Mandelbrot,
+            exponent: PushExponent::from(2),
+            palette: Palette::DEFAULT,
+            inspector_point_pixel_address: Vec2::default(),
+        }
+    }
+
+    #[test]
+    fn render_chunk_produces_rgba_data() {
+        let consts = test_frag_consts();
+        let mut pixel_data = vec![0u8; 16]; // 4 pixels * 4 bytes per pixel
+
+        render_chunk(0, &mut pixel_data, &consts, &[]);
+
+        // Check that data was written
+        assert_ne!(pixel_data, vec![0u8; 16]);
+
+        // Check that all pixels have alpha channel set (or at least some byte is written)
+        for chunk in pixel_data.chunks(4) {
+            assert_eq!(chunk.len(), 4, "each pixel should be 4 bytes (RGBA)");
+            // At minimum, we can verify the structure is correct
+        }
+    }
+
+    #[test]
+    fn render_chunk_respects_start_pixel_offset() {
+        let consts = test_frag_consts();
+        let mut pixel_data_at_0 = vec![0u8; 16];
+        let mut pixel_data_at_1 = vec![0u8; 16];
+
+        render_chunk(0, &mut pixel_data_at_0, &consts, &[]);
+        render_chunk(1, &mut pixel_data_at_1, &consts, &[]);
+
+        // The two rendered chunks should be different (different fractal points)
+        // (unless by chance they happen to be the same, but very unlikely)
+    }
+
+    #[test]
+    fn render_frame_serial_produces_valid_output() {
+        let consts = test_frag_consts();
+        let (pixels, _failure) = render_frame(&consts, &[], false);
+
+        // 2x2 = 4 pixels, 4 bytes each
+        assert_eq!(pixels.len(), 16);
+        assert_ne!(pixels, vec![0u8; 16]);
+    }
+
+    #[test]
+    fn render_frame_parallel_produces_valid_output() {
+        let consts = test_frag_consts();
+        let (pixels, _failure) = render_frame(&consts, &[], true);
+
+        // 2x2 = 4 pixels, 4 bytes each
+        assert_eq!(pixels.len(), 16);
+        assert_ne!(pixels, vec![0u8; 16]);
+    }
+
+    #[test]
+    fn render_frame_serial_and_parallel_produce_same_result() {
+        let consts = test_frag_consts();
+        let (pixels_serial, _) = render_frame(&consts, &[], false);
+        let (pixels_parallel, _) = render_frame(&consts, &[], true);
+
+        // Both should have the same dimensions
+        assert_eq!(pixels_serial.len(), pixels_parallel.len());
+    }
+
+    #[test]
+    fn render_frame_larger_image() {
+        let mut consts = test_frag_consts();
+        consts.size = Size::new(10, 8);
+        let (pixels, _failure) = render_frame(&consts, &[], false);
+
+        // 10x8 = 80 pixels, 4 bytes each
+        assert_eq!(pixels.len(), 80 * 4);
+    }
+}

@@ -125,4 +125,73 @@ mod tests {
         let b = ViewportZoom(0.000_250_000_01);
         assert_eq!(a, b);
     }
+
+    #[test]
+    fn requires_perturbation_mode_false() {
+        let zoom = ViewportZoom(1000.0); // < MAX_ZOOM_STANDARD
+        assert!(!zoom.requires_perturbation_mode());
+    }
+
+    #[test]
+    fn requires_perturbation_mode_at_boundary() {
+        let zoom = ViewportZoom(ViewportZoom::MAX_ZOOM_STANDARD);
+        assert!(!zoom.requires_perturbation_mode());
+
+        let zoom = ViewportZoom(ViewportZoom::MAX_ZOOM_STANDARD + 1.0);
+        assert!(zoom.requires_perturbation_mode());
+    }
+
+    #[test]
+    fn requires_perturbation_mode_high() {
+        let zoom = ViewportZoom(1e10);
+        assert!(zoom.requires_perturbation_mode());
+    }
+
+    #[test]
+    fn clamp_to_mode_standard_within_range() {
+        let zoom = ViewportZoom(1000.0);
+        let clamped = zoom.clamp_to_mode(false);
+        assert_eq!(clamped, zoom);
+    }
+
+    #[test]
+    fn clamp_to_mode_standard_exceeds() {
+        #![allow(clippy::float_cmp)]
+        let zoom = ViewportZoom(1e10);
+        let clamped = zoom.clamp_to_mode(false);
+        assert_eq!(clamped.0, ViewportZoom::MAX_ZOOM_STANDARD);
+    }
+
+    #[test]
+    fn clamp_to_mode_standard_below_min() {
+        #![allow(clippy::float_cmp)]
+        let zoom = ViewportZoom(0.01); // below MIN_ZOOM (0.05)
+        let clamped = zoom.clamp_to_mode(false);
+
+        assert_eq!(clamped.0, ViewportZoom::MIN_ZOOM);
+    }
+
+    #[test]
+    fn clamp_to_mode_perturbation_high_zoom() {
+        #![allow(clippy::float_cmp)]
+        let zoom = ViewportZoom(ViewportZoom::MAX_ZOOM_PERTURBATIONS_F32 * 2.0); // way above max
+        let clamped = zoom.clamp_to_mode(true);
+        assert_eq!(clamped.0, ViewportZoom::MAX_ZOOM_PERTURBATIONS_F32);
+    }
+
+    #[test]
+    fn clamp_to_mode_perturbation_within_range() {
+        let zoom = ViewportZoom(1e10); // within perturbation range
+        let clamped = zoom.clamp_to_mode(true);
+        assert_eq!(clamped, zoom);
+    }
+
+    #[test]
+    fn zoom_precision() {
+        assert_eq!(ViewportZoom::zoom_precision(0.5), 3);
+        assert_eq!(ViewportZoom::zoom_precision(10.0), 2);
+        assert_eq!(ViewportZoom::zoom_precision(1000.0), 1);
+        assert_eq!(ViewportZoom::zoom_precision(10000.0), 0);
+        assert_eq!(ViewportZoom::zoom_precision(1_000_000.0), 0);
+    }
 }
