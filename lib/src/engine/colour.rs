@@ -60,12 +60,6 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spaci
         pixel_spacing,
         &data,
     );
-    hsl.s = factor_for(
-        hsl.s,
-        constants.palette.saturation_style,
-        pixel_spacing,
-        &data,
-    );
     hsl.into()
 }
 

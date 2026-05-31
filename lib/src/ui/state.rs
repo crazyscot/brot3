@@ -60,8 +60,7 @@ impl Default for UiState {
 
 impl From<&UiState> for FragmentConstants {
     fn from(state: &UiState) -> Self {
-        let dist_est_required = state.palette.brightness_style == Modifier::Filaments
-            || state.palette.saturation_style == Modifier::Filaments;
+        let dist_est_required = state.palette.brightness_style == Modifier::Filaments;
         Self {
             // caution; this flags value is overridden by Controller::fragment_constants() if we've
             // come that way
@@ -433,7 +432,7 @@ mod serde_tests {
             "viewport_zoom": 2.0,
             "algorithm": "Mandelbrot",
             "max_iter": "not_a_number",
-            "palette": {"colourer":"BlackFade","colour_style":"Continuous","brightness_style":"Standard","saturation_style":"Standard","gradient":1.0,"offset":0.0,"saturation":100.0,"lightness":50.0,"gamma":1.9},
+            "palette": {"colourer":"BlackFade","colour_style":"Continuous","brightness_style":"Standard","gradient":1.0,"offset":0.0,"saturation":100.0,"lightness":50.0,"gamma":1.9},
             "exponent": {"integer":2},
             "iteration_cull": true
         }"#;
@@ -453,7 +452,7 @@ mod serde_tests {
             "viewport_zoom": 2.0,
             "algorithm": "Mandelbrot",
             "max_iter": 1000,
-            "palette": {"colourer":"BlackFade","colour_style":"Continuous","brightness_style":"Standard","saturation_style":"Standard","gradient":1.0,"offset":0.0,"saturation":100.0,"lightness":50.0,"gamma":1.9},
+            "palette": {"colourer":"BlackFade","colour_style":"Continuous","brightness_style":"Standard","gradient":1.0,"offset":0.0,"saturation":100.0,"lightness":50.0,"gamma":1.9},
             "exponent": {"integer":2},
             "iteration_cull": 1
         }"#;
@@ -649,19 +648,6 @@ mod conversion_tests {
         let mut state = test_ui_state();
         let palette = Palette {
             brightness_style: Modifier::Filaments,
-            ..Palette::default()
-        };
-        state.palette = palette;
-        let consts = FragmentConstants::from(&state);
-
-        assert!(consts.flags.contains(Flags::DISTANCE_ESTIMATE));
-    }
-
-    #[test]
-    fn fragment_constants_saturation_filaments_triggers_distance_estimate() {
-        let mut state = test_ui_state();
-        let palette = Palette {
-            saturation_style: Modifier::Filaments,
             ..Palette::default()
         };
         state.palette = palette;

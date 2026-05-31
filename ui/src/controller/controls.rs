@@ -132,18 +132,6 @@ impl super::Controller {
                                         }
                                 }
                             });
-                        egui::ComboBox::from_label("Saturation Style")
-                            .selected_text(format!("{:?}", self.state.palette.saturation_style))
-                            .show_ui(ui, |ui| {
-                                for it in Modifier::iter() {
-                                    let label: &'static str = it.into();
-                                    if ui.selectable_value(&mut self.state.palette.saturation_style, it, label)
-                                        .on_hover_text(it.get_documentation().unwrap_or_default()).clicked() {
-                                            self.reiterate = true;
-                                            self.inspector.stale = true;
-                                        }
-                                }
-                            });
 
                         macro_rules! palette_slider {
                             ($($id:ident), * ) => {

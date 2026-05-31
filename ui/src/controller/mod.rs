@@ -181,8 +181,7 @@ impl Controller {
             | Flags::flag_if(self.perturbation_mode, Flags::PERTURBATION_MODE)
             | Flags::flag_if(self.state.iteration_cull, Flags::ITERATION_CULL)
             | Flags::flag_if(
-                self.state.palette.brightness_style == Modifier::Filaments
-                    || self.state.palette.saturation_style == Modifier::Filaments,
+                self.state.palette.brightness_style == Modifier::Filaments,
                 Flags::DISTANCE_ESTIMATE,
             );
         FragmentConstants {

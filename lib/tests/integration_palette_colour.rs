@@ -82,13 +82,4 @@ fn distance_estimate_flag_with_filaments_modifier() {
         consts.flags.contains(Flags::DISTANCE_ESTIMATE),
         "Distance estimate should be enabled with Filaments brightness"
     );
-
-    // Reset and add filaments to saturation_style
-    state.palette.brightness_style = Modifier::Standard;
-    state.palette.saturation_style = Modifier::Filaments;
-    let consts = FragmentConstants::from(&state);
-    assert!(
-        consts.flags.contains(Flags::DISTANCE_ESTIMATE),
-        "Distance estimate should be enabled with Filaments saturation"
-    );
 }

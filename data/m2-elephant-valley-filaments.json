@@ -18,7 +18,6 @@
       "colourer": "Monochrome2",
       "colour_style": "Continuous",
       "brightness_style": "Filaments",
-      "saturation_style": "Standard",
       "gradient": 1.0,
       "offset": 0.0,
       "saturation": 100.0,
