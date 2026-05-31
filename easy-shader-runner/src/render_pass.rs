@@ -348,7 +348,10 @@ impl RenderPass {
         if shader_key == self.active_shader_key {
             return Ok(());
         }
-        self.rebuild_pipelines(ctx, shader_key)
+        match self.rebuild_pipelines(ctx, shader_key) {
+            Err(Error::IoError(error)) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            result => result,
+        }
     }
 
     #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]

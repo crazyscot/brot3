@@ -159,11 +159,17 @@ pub fn run_with_runtime_compilation<C: ControllerTrait + Send>(
 ) -> Result<(), Error> {
     setup_logging();
     let event_loop = EventLoop::with_user_event().build()?;
+    let initial_shader_key = params
+        .controller
+        .current_shader_key()
+        .or(params.options.default_shader_key)
+        .unwrap_or_else(|| shaders.first().map_or("", |shader| shader.key));
     // Build the shaders before we pop open a window, since it might take a while.
     let shaders = shader::compile_shaders(
         #[cfg(feature = "hot-reload-shader")]
         &event_loop.create_proxy(),
         shaders,
+        initial_shader_key,
         shader_crate_path,
         relative_to_manifest,
         rustc_codegen_spirv_location,
