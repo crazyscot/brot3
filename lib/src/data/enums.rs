@@ -80,14 +80,10 @@ enumdef!(
     ///
     /// Inspired by the `iceblue` theme by David Bau <https://github.com/davidbau/mandelbrot/blob/main/index.html>
     IcyBlue,
-    /// Rainbow gradient with logarithmic scaling
-    LogRainbow,
     /// Gradient from white, through pulsing deep hues
     ///
     /// Based on Richard Kettlewell's "mandy". <http://www.greenend.org.uk/rjk/mandy/>
     Mandy,
-    /// Colourless, with a gradient from black to white.
-    Monochrome,
     /// Colourless, with a gradient from white to black to white.
     Monochrome2,
     /// Bright colours with high contrast and saturation
@@ -191,7 +187,7 @@ mod tests {
     #[test]
     fn increment() {
         use super::Colourer;
-        let mut c = Colourer::LogRainbow;
+        let mut c = Colourer::IcyBlue;
         c += 1;
         assert_eq!(c, Colourer::Mandy);
     }

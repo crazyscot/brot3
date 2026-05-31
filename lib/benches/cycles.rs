@@ -172,10 +172,8 @@ static COLOUR_DATA: LazyLock<PointResult> = LazyLock::new(|| {
 });
 
 #[library_benchmark]
-#[bench::mono(col(Colourer::Monochrome), &COLOUR_DATA)]
 #[bench::icyblue(col(Colourer::IcyBlue), &COLOUR_DATA)]
 #[bench::olc(col(Colourer::OneLoneCoder), &COLOUR_DATA)]
-#[bench::log_rainbow(col(Colourer::LogRainbow), &COLOUR_DATA)]
 #[bench::neon(col(Colourer::Neon), &COLOUR_DATA)]
 #[bench::blackfade(col(Colourer::BlackFade), &COLOUR_DATA)]
 #[bench::whitefade(col(Colourer::WhiteFade), &COLOUR_DATA)]

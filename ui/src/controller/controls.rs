@@ -145,20 +145,6 @@ impl super::Controller {
                         palette_slider!(gradient);
                         ui.label(egui::RichText::new("Offset"));
                         palette_slider!(offset);
-                        // Hide parameters when they don't apply
-                        match self.state.palette.colourer {
-                            Colourer::LogRainbow => {
-                                ui.label(egui::RichText::new("Saturation"));
-                                palette_slider!(saturation);
-                                ui.label(egui::RichText::new("Lightness"));
-                                palette_slider!(lightness);
-                            }
-                            Colourer::Monochrome | Colourer::IcyBlue => {
-                                ui.label(egui::RichText::new("Gamma"));
-                                palette_slider!(gamma);
-                            }
-                            _ => (),
-                        }
                         if ui.checkbox(&mut self.state.iteration_cull, egui::RichText::new("Iteration cull")).clicked()
                         {
                             self.reiterate = true;

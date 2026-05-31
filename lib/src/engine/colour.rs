@@ -19,8 +19,6 @@ macro_rules! deprintln {
 
 use core::f32::consts::{E, PI, TAU};
 
-use easy_cast::Conv as _;
-
 #[cfg(spirv)]
 use crate::Real;
 use crate::{
@@ -37,12 +35,10 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spaci
     let iters = data.iters(constants.palette.colour_style);
     let mut hsl = if cfg!(feature = "all-colourers") {
         match constants.palette.colourer {
-            C::LogRainbow => log_rainbow(constants, iters, &data),
             C::WhiteFade => white_fade(constants, iters, &data),
             C::BlackFade => black_fade(constants, iters, &data),
             C::Mandy => mandy(constants, iters, &data),
             C::OneLoneCoder => one_lone_coder(constants, iters, &data),
-            C::Monochrome => monochrome(constants, iters, &data),
             C::Monochrome2 => monochrome2(constants, iters, &data),
             C::Neon => neon(constants, iters, &data),
             C::IcyBlue => icyblue(constants, iters, &data),
@@ -81,29 +77,6 @@ fn factor_for(input: f32, style: Modifier, _pixel_spacing: f32, data: &PointResu
         Modifier::Standard => 1.0,
     };
     factor * input
-}
-
-fn log_rainbow(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
-    // Why check pixel.inside() twice?
-    // On GPU, the early return forces warp divergence, so we don't do that on spirv.
-    // (On CPU, it's a cheap check that saves us doing the rest of the calculations, so we do it
-    // first.)
-    // Checking at the end should compile to an OpSelect instruction on spirv, which does not
-    // cause warp divergence.
-    #[cfg(not(spirv))]
-    if pixel.inside() {
-        return Hsl::BLACK;
-    }
-    // Input offset range is 0..10. As we're operating with a hue angle, scale it so that 0.0 ===
-    // 360.
-    let offset = constants.palette.offset * 36.;
-    let angle: f32 = iters.ln() * constants.palette.gradient * 100. + offset; // DEGREES
-    let colour = Hsl::new(
-        angle,
-        constants.palette.saturation,
-        constants.palette.lightness,
-    );
-    if pixel.inside() { Hsl::BLACK } else { colour }
 }
 
 /// Based on Tony Finch's "White Fade" colourer
@@ -179,21 +152,6 @@ fn one_lone_coder(constants: &FragmentConstants, iters: f32, pixel: &PointResult
     let v2 = vec3(0.0, TAU / 3.0, 2.0 * TAU / 3.0);
     let v3 = (v1 + v2).sin() * 0.5 + 0.5;
     let colour = RgbVec(v3).into();
-    if pixel.inside() { Hsl::BLACK } else { colour }
-}
-
-fn monochrome(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
-    #[cfg(not(spirv))]
-    if pixel.inside() {
-        return Hsl::BLACK;
-    }
-    // Compute an input from 0..1, relative to max_iter
-    let input = iters.ln() / f32::conv(constants.max_iter).ln();
-    // Scale the offset down to -2..2
-    let offset = constants.palette.offset / 5.;
-    // This palette has a gamma transfer function
-    let shade: f32 = input.powf(constants.palette.gamma) * constants.palette.gradient + offset;
-    let colour = Hsl::new(0., 0., shade * 100.0);
     if pixel.inside() { Hsl::BLACK } else { colour }
 }
 
@@ -295,13 +253,11 @@ mod tests {
     fn known_answers() {
         #[cfg(feature = "all-colourers")]
         let cases = [
-            (Colourer::LogRainbow, 100, 0.0, [0.325, 1., 0.]),
             (Colourer::WhiteFade, 10, 0.31876, [0.166, 0.006, 0.296]),
             (Colourer::WhiteFade, 0, 0.1, [1.0, 1.0, 1.0]),
             (Colourer::BlackFade, 100, 0.0, [0.569, 0.981, 0.299]),
             (Colourer::BlackFade, 0, 0.1, [0.0, 0.0, 0.0]),
             (Colourer::OneLoneCoder, 100, 0.0, [0.228, 0.2725, 0.999]),
-            (Colourer::Monochrome, 100, 0.0, [0.175, 0.175, 0.175]),
             (Colourer::Monochrome2, 100, 0.0, [0.01883, 0.01883, 0.01883]),
             (Colourer::Neon, 100, 0.0, [0.609, 1.0, 0.078]),
             (Colourer::Mandy, 100, 0.0, [0.991, 0.083, 0.8797]),
