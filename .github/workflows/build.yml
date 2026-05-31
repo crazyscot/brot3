@@ -376,8 +376,8 @@ jobs:
           path: ${{ steps.bundle-mac.outputs.zipfile }}
       # TODO: Someday, make a DMG
 
-  ui-hot-reload:
-    # This build is not shipped, but confirming that it hasn't broken is valuable.
+  ui-variants:
+    # These builds are not shipped, but confirming that they haven't broken is valuable.
     # This is a separate build due to its size. (The hot-reload-shader feature flag pulls in spirv-tools.)
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -397,7 +397,15 @@ jobs:
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
-      - name: build
+      # As these builds are not shipped, build as debug builds for speed.
+      # no-default-features means we don't build librustc_codegen_spirv.
+      # We don't even need to install the spirv-tools deb in this runner instance, as we don't run them (not right now,
+      # but maybe unit tests in future? If so, use the artifact from shader_builder.)
+      - name: build (headless)
+        run: cargo build --bin brot3 --locked --package brot3-ui --verbose --no-default-features
+        env:
+          BROT3_PREBUILD_SHADERS_DIR: ${{ github.workspace }}/.temp/prebuilt-shader
+      - name: build (hot-reload)
         # As this build is not shipped, build it as a debug build for speed.
         # no-default-features means we don't build librustc_codegen_spirv.
         # We don't even need to install the spirv-tools deb in this runner instance, as we don't run them (not right now,
