@@ -29,7 +29,7 @@ bytemuck.workspace = true
 cfg-if.workspace = true
 egui.workspace = true
 egui-wgpu.workspace = true
-glam.workspace = true
+glam = { workspace = true, features = ["std"] }
 log.workspace = true
 num-traits.workspace = true
 thiserror.workspace = true

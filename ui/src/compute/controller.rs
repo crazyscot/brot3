@@ -1,6 +1,7 @@
 use brot3_lib::{
     COMPUTE_SHADER_THREADS,
     data::{FragmentConstants, PointResult},
+    ui::ShaderVariant,
 };
 use easy_cast::{Cast as _, Conv as _};
 use glam::{UVec2, UVec3, Vec2};
@@ -46,7 +47,11 @@ struct InitDeviceResult {
 
 impl ComputeController {
     /// Creates a new `ComputeController` with the specified render size and number of passes.
-    pub fn new(render_size: UVec2, n_passes: u32) -> Result<Self, Error> {
+    pub fn new(
+        render_size: UVec2,
+        n_passes: u32,
+        shader_variant: ShaderVariant,
+    ) -> Result<Self, Error> {
         let InitDeviceResult {
             device,
             queue,
@@ -64,7 +69,7 @@ impl ComputeController {
             &bind_group_layouts.map(Some).collect::<Vec<_>>(),
         );
 
-        let shader = Self::load_shader(&device);
+        let shader = Self::load_shader(&device, shader_variant);
         let pipeline = Self::create_pipeline(&device, &pipeline_layout, &shader);
         let queries = if timestamps_supported {
             Some(Queries::new(&device, 2 * n_passes + 2))
@@ -364,9 +369,10 @@ impl ComputeController {
         (vec![layout], vec![bind_group])
     }
 
-    fn load_shader(device: &Device) -> wgpu::ShaderModule {
-        let spirv = wgpu::util::make_spirv(crate::SHADER_BYTES);
-        let label = "b3compute";
+    fn load_shader(device: &Device, shader_variant: ShaderVariant) -> wgpu::ShaderModule {
+        let spirv =
+            wgpu::util::make_spirv(crate::shader_assets::prebuilt_shader_bytes(shader_variant));
+        let label = shader_variant.key();
         device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some(label),
             source: spirv,

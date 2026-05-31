@@ -72,6 +72,12 @@ impl super::Controller {
                     }
                 });
 
+                if self.show_shader {
+                    ui.separator();
+                    ui.label(egui::RichText::new("Shader").italics());
+                    ui.label(self.current_shader_variant().key());
+                }
+
                 if self.inspector.active {
                     ui.separator();
                     ui.label(egui::RichText::new("Marked position").italics());

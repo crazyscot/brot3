@@ -109,7 +109,6 @@ fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: ControllerTrait + Sen
             .expect("Configuration is incorrect for watching");
         let first_compile = watcher.recv().map_err(ESRError::BuildFailed)?;
         let shader_key = shader.key;
-        //let mut thread_watcher = watcher.forget_lifetime();
         let _jh = std::thread::spawn(move || {
             loop {
                 let compile_result = match watcher.recv() {
@@ -119,11 +118,18 @@ fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: ControllerTrait + Sen
                         continue;
                     }
                 };
+                let shader_path = match stage_compile_result(shader_key, compile_result) {
+                    Ok(shader_path) => shader_path,
+                    Err(e) => {
+                        log::error!("Failed to stage shader build for {shader_key}: {e}");
+                        continue;
+                    }
+                };
                 std::assert!(
                     event_proxy
                         .send_event(CustomEvent::NewModule {
                             shader_key,
-                            shader_path: handle_compile_result(compile_result),
+                            shader_path,
                         })
                         .is_ok()
                 );
@@ -136,7 +142,7 @@ fn compile_shader<#[cfg(feature = "hot-reload-shader")] C: ControllerTrait + Sen
     let initial_result = builder.build().map_err(ESRError::BuildFailed)?;
     Ok(CompiledShader {
         key: shader.key,
-        path: handle_compile_result(initial_result),
+        path: stage_compile_result(shader.key, initial_result)?,
     })
 }
 
@@ -148,6 +154,16 @@ fn handle_compile_result(compile_result: CompileResult) -> PathBuf {
             panic!("expected `ModuleResult::SingleModule")
         }
     }
+}
+
+fn stage_compile_result(
+    shader_key: &str,
+    compile_result: CompileResult,
+) -> Result<PathBuf, ESRError> {
+    let compiled_shader_path = handle_compile_result(compile_result);
+    let staged_shader_path = shader_out_dir(shader_key).join("shader.spv");
+    let _copied = std::fs::copy(&compiled_shader_path, &staged_shader_path)?;
+    Ok(staged_shader_path)
 }
 
 fn shader_out_dir(shader_key: &str) -> PathBuf {

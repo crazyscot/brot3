@@ -79,6 +79,7 @@ impl super::Controller {
 
                     ui.menu_button("Debug", |ui| {
                         checkbox!(ui, self.show_fps, "Show FPS");
+                        checkbox!(ui, self.show_shader, "Show selected shader");
 
                         checkbox!(ui, self.vsync, "vsync");
                         checkbox!(ui, self.always_reiterate, "Always reiterate");

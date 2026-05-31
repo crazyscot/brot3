@@ -14,7 +14,7 @@ use brot3_lib::{
     BigVec2,
     data::{Flags, FragmentConstants, Modifier, PointResult},
     engine::PixelSpacing as _,
-    ui::{BIGNUM_PRECISION_LIMIT, Channel, UiState as BrotUiState, ViewportZoom},
+    ui::{BIGNUM_PRECISION_LIMIT, Channel, ShaderVariant, UiState as BrotUiState, ViewportZoom},
 };
 use easy_cast::Conv as _;
 use easy_shader_runner::{
@@ -52,6 +52,7 @@ pub(crate) struct Controller {
     show_coords_window: bool,
     show_scale_bar: bool,
     show_fps: bool,
+    show_shader: bool,
     vsync: bool,
     show_controls: bool,
     keyboard_help: bool,
@@ -137,6 +138,7 @@ impl Controller {
             keyboard_help: false,
             show_about: false,
             show_license: false,
+            show_shader: false,
             show_save: false,
             show_save_position: false,
             show_open: false,
@@ -209,6 +211,13 @@ impl Controller {
         self.state.viewport_zoom =
             ViewportZoom(new_zoom).clamp_to_mode(self.perturbation_mode || self.force_perturb);
     }
+
+    fn current_shader_variant(&self) -> ShaderVariant {
+        ShaderVariant::from_ui_state_with_perturbation_mode(
+            &self.state,
+            self.perturbation_mode && self.perturb_implemented(),
+        )
+    }
 }
 
 struct Movement {
@@ -239,6 +248,10 @@ impl Default for Movement {
 }
 
 impl ControllerTrait for Controller {
+    fn current_shader_key(&self) -> Option<&'static str> {
+        Some(self.current_shader_variant().key())
+    }
+
     fn resize(&mut self, size: UVec2) {
         self.state.viewport_size = size;
         self.reiterate = true;

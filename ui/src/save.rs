@@ -9,7 +9,7 @@ use std::{
 
 use brot3_lib::{
     data::{Flags, FragmentConstants, RenderMode},
-    ui::{Error as LibError, UiState},
+    ui::{Error as LibError, ShaderVariant, UiState},
     util::render_frame,
 };
 use glam::{Vec2, uvec2};
@@ -53,7 +53,7 @@ pub(crate) fn do_save_image(
     let (pixels, partial_failure) = match mode {
         RenderMode::Cpu => render_frame(&constants, perturbation_points, false),
         RenderMode::CpuParallel => render_frame(&constants, perturbation_points, true),
-        RenderMode::Gpu => render_gpu(&constants, perturbation_points)
+        RenderMode::Gpu => render_gpu(state, &constants, perturbation_points)
             .inspect_err(|e| log::warn!("Failed to render on GPU, falling back to CPU: {e}"))
             .map_or_else(
                 |_| render_frame(&constants, perturbation_points, true),
@@ -75,12 +75,14 @@ pub(crate) fn do_save_image(
 }
 
 fn render_gpu(
+    state: &UiState,
     constants: &FragmentConstants,
     perturbation_points: &[Vec2],
 ) -> Result<Vec<u8>, LoadSaveError> {
     use easy_cast::Cast as _;
     let render_size = constants.size.into();
-    let mut controller = ComputeController::new(render_size, 1)?;
+    let mut controller =
+        ComputeController::new(render_size, 1, ShaderVariant::from_ui_state(state))?;
     let total_bytes = constants.size.element_product() * 4;
     let mut frame_data = Vec::with_capacity(total_bytes.cast());
     let times = controller.run(

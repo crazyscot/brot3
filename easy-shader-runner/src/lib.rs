@@ -240,6 +240,50 @@ fn validate_shaders(
     Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::{Error, ShaderDescriptor, ShaderSource, validate_shaders};
+
+    fn shader(key: &'static str) -> ShaderDescriptor {
+        ShaderDescriptor {
+            key,
+            source: ShaderSource::Prebuilt(&[]),
+        }
+    }
+
+    #[test]
+    fn rejects_empty_shader_sets() {
+        assert!(matches!(
+            validate_shaders(&[], "default"),
+            Err(Error::EmptyShaderSet)
+        ));
+    }
+
+    #[test]
+    fn rejects_duplicate_shader_keys() {
+        let shaders = [shader("first"), shader("first")];
+        assert!(matches!(
+            validate_shaders(&shaders, "first"),
+            Err(Error::DuplicateShaderKey("first"))
+        ));
+    }
+
+    #[test]
+    fn rejects_missing_default_shader_key() {
+        let shaders = [shader("first"), shader("second")];
+        assert!(matches!(
+            validate_shaders(&shaders, "missing"),
+            Err(Error::UnknownShaderKey("missing"))
+        ));
+    }
+
+    #[test]
+    fn accepts_unique_shader_keys_with_present_default() {
+        let shaders = [shader("first"), shader("second")];
+        assert!(validate_shaders(&shaders, "first").is_ok());
+    }
+}
+
 #[allow(unsafe_code, clippy::disallowed_methods)]
 pub fn setup_logging() {
     use std::fmt::Write;

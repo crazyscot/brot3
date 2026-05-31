@@ -35,8 +35,6 @@ const CANDIDATE_SHADER_PATHS: &[&str] = &["./lib", "../lib"];
 pub use save::write_png; // exported for use by compute_shader integration test
 use version::version_string;
 
-pub(crate) const SHADER_BYTES: &[u8] = shader_assets::prebuilt_shader_bytes(ShaderVariant::General);
-
 #[cfg(feature = "ui")]
 const PREBUILT_SHADERS: &[easy_shader_runner::PrebuiltShader] = &[
     easy_shader_runner::PrebuiltShader::new(
@@ -54,16 +52,11 @@ const PREBUILT_SHADERS: &[easy_shader_runner::PrebuiltShader] = &[
 ];
 
 #[cfg(feature = "hot-reload-shader")]
-const RUNTIME_GENERAL_SHADER: easy_shader_runner::RuntimeCompilationShader =
+const RUNTIME_SHADERS: &[easy_shader_runner::RuntimeCompilationShader] = &[
     easy_shader_runner::RuntimeCompilationShader::new(
         ShaderVariant::General.key(),
         ShaderVariant::General.shader_crate_features(),
-    );
-
-#[cfg(false)] // TEMP for now as not yet used
-#[cfg(feature = "hot-reload-shader")]
-const RUNTIME_SHADERS: &[easy_shader_runner::RuntimeCompilationShader] = &[
-    RUNTIME_GENERAL_SHADER,
+    ),
     easy_shader_runner::RuntimeCompilationShader::new(
         ShaderVariant::MandelbrotPow2.key(),
         ShaderVariant::MandelbrotPow2.shader_crate_features(),
@@ -237,8 +230,7 @@ fn run_with_hot_reload<C: easy_shader_runner::ControllerTrait + Send>(
 
     easy_shader_runner::run_with_runtime_compilation(
         params,
-        &[RUNTIME_GENERAL_SHADER], /* TODO: Ensure that hot reload selects the correct variant.
-                                    * RUNTIME_SHADERS comes into play. */
+        RUNTIME_SHADERS,
         path,
         relative_to_manifest,
         args.spirv_tools.as_ref(),

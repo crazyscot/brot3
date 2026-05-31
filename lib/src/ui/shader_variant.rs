@@ -7,10 +7,20 @@ impl ShaderVariant {
     /// Chooses the preferred shader variant for a given UI state.
     #[must_use]
     pub fn from_ui_state(state: &UiState) -> Self {
+        Self::from_ui_state_with_perturbation_mode(
+            state,
+            state.viewport_zoom.requires_perturbation_mode(),
+        )
+    }
+
+    /// Chooses the preferred shader variant for a given UI state plus the active perturbation
+    /// mode.
+    #[must_use]
+    pub fn from_ui_state_with_perturbation_mode(state: &UiState, perturbation_mode: bool) -> Self {
         if state.algorithm != Algorithm::Mandelbrot || !state.exponent.is_two() {
             return Self::General;
         }
-        if state.viewport_zoom.requires_perturbation_mode() {
+        if perturbation_mode {
             Self::MandelbrotPow2Deep
         } else {
             Self::MandelbrotPow2
@@ -123,6 +133,25 @@ mod tests {
         assert_eq!(
             ShaderVariant::from_ui_state(&state),
             ShaderVariant::MandelbrotPow2Deep
+        );
+    }
+
+    #[test]
+    fn picks_deep_specialized_shader_when_perturbation_is_forced() {
+        let state = base_state();
+        assert_eq!(
+            ShaderVariant::from_ui_state_with_perturbation_mode(&state, true),
+            ShaderVariant::MandelbrotPow2Deep
+        );
+    }
+
+    #[test]
+    fn forced_perturbation_still_falls_back_to_general_for_unsupported_states() {
+        let mut state = base_state();
+        state.algorithm = Algorithm::BurningShip;
+        assert_eq!(
+            ShaderVariant::from_ui_state_with_perturbation_mode(&state, true),
+            ShaderVariant::General
         );
     }
 }

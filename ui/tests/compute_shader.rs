@@ -2,7 +2,10 @@
 
 use std::{path::Path, time::Instant};
 
-use brot3_lib::{data::FragmentConstants, ui::UiState};
+use brot3_lib::{
+    data::FragmentConstants,
+    ui::{ShaderVariant, UiState},
+};
 use brot3_ui::compute::ComputeController;
 use glam::uvec2;
 
@@ -13,12 +16,14 @@ fn compute_shader_test() -> Result<(), Box<dyn std::error::Error>> {
     let render_size = uvec2(3840, 2160);
     let mut times = Vec::new();
     let start = Instant::now();
-    let mut controller = ComputeController::new(render_size, n_passes)?;
-    times.push(("initialization", start.elapsed()));
     let consts = FragmentConstants {
         size: render_size.into(),
         ..Default::default()
     };
+    let state = UiState::try_from(&consts).unwrap();
+    let mut controller =
+        ComputeController::new(render_size, n_passes, ShaderVariant::from_ui_state(&state))?;
+    times.push(("initialization", start.elapsed()));
     let mut frame_data = Vec::with_capacity(render_size.element_product() as usize);
 
     let start = Instant::now();
@@ -39,7 +44,6 @@ fn compute_shader_test() -> Result<(), Box<dyn std::error::Error>> {
     // Tune the workload & dispatch size to suit.
 
     let start = Instant::now();
-    let state = UiState::try_from(&consts).unwrap();
     brot3_ui::write_png(Path::new("compute_test_output.png"), &state, &frame_data)?;
     times.push(("save PNG", start.elapsed()));
 
