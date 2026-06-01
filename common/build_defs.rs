@@ -10,14 +10,13 @@ pub enum ShaderVariant {
 }
 
 const GENERAL_FEATURES: &[&str] = &[
-    "all-colourers",
     "all-fractals",
     "variable-exponent",
     "perturbation-mode",
     "standard-mode",
 ];
-const MANDELBROT_POW2_FEATURES: &[&str] = &["all-colourers", "standard-mode"];
-const MANDELBROT_POW2_DEEP_FEATURES: &[&str] = &["all-colourers", "perturbation-mode"];
+const MANDELBROT_POW2_FEATURES: &[&str] = &["standard-mode"];
+const MANDELBROT_POW2_DEEP_FEATURES: &[&str] = &["perturbation-mode"];
 
 impl ShaderVariant {
     #[must_use]

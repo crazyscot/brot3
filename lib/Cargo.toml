@@ -27,8 +27,6 @@ harness = false
 default = []
 ## Emulate push constants. Useful if the GPU does not support PUSH_CONSTANTS.
 emulate_constants = []
-## Build support for all colourers into the shader. If not set, builds only neon.
-all-colourers = []
 ## Include support for all fractals in the shader. If not set, builds only the original Mandelbrot set and Mandeldrop.
 all-fractals = []
 ## Include support for variable exponents in the shader. If not set, builds for the fixed standard exponent of 2.

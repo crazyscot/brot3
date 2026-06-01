@@ -313,7 +313,6 @@ mod tests {
 
     #[test]
     fn known_answers() {
-        #[cfg(feature = "all-colourers")]
         let cases = [
             (Colourer::WhiteFade, 0, 0.1, [1.0, 1.0, 1.0]),
             (Colourer::BlackFade, 100, 0.0, [0.569, 0.981, 0.299]),
@@ -324,8 +323,6 @@ mod tests {
             (Colourer::Neon2, 100, 0.0, [0.702, 0.97, 0.063]),
             (Colourer::IcyBlue, 100, 0.0, [0.146, 0.146, 0.979]),
         ];
-        #[cfg(not(feature = "all-colourers"))]
-        let cases = [(Colourer::Neon2, 100, 0.0, [0.702, 0.97, 0.063])];
         for (colourer, iters, iters_fraction, expected) in cases {
             let consts = FragmentConstants {
                 max_iter: 100_000,
@@ -373,7 +370,6 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "all-colourers")]
     #[test]
     fn family_partition_captures_the_two_cosine_families() {
         for colourer in [
@@ -409,7 +405,6 @@ mod tests {
         }
     }
 
-    #[cfg(feature = "all-colourers")]
     #[test]
     fn filaments() {
         let mut consts = FragmentConstants {
@@ -432,7 +427,6 @@ mod tests {
         assert_eq!(result, RgbVec(Vec3::splat(0.1)),);
     }
 
-    #[cfg(feature = "all-colourers")]
     #[test]
     fn filaments2() {
         let mut consts = FragmentConstants {
@@ -456,7 +450,6 @@ mod tests {
         assert_eq!(result, RgbVec(Vec3::splat(0.1)));
     }
 
-    #[cfg(feature = "all-colourers")]
     #[test]
     fn filaments3() {
         let mut consts = FragmentConstants {
@@ -480,7 +473,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "all-colourers")]
     fn radius() {
         let mut consts = FragmentConstants {
             max_iter: 200,

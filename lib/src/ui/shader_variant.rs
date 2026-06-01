@@ -76,7 +76,6 @@ mod tests {
         assert_eq!(
             ShaderVariant::General.shader_crate_features(),
             &[
-                "all-colourers",
                 "all-fractals",
                 "variable-exponent",
                 "perturbation-mode",
@@ -85,11 +84,11 @@ mod tests {
         );
         assert_eq!(
             ShaderVariant::MandelbrotPow2.shader_crate_features(),
-            &["all-colourers", "standard-mode"]
+            &["standard-mode"]
         );
         assert_eq!(
             ShaderVariant::MandelbrotPow2Deep.shader_crate_features(),
-            &["all-colourers", "perturbation-mode"]
+            &["perturbation-mode"]
         );
     }
 
