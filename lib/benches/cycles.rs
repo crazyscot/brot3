@@ -174,13 +174,12 @@ static COLOUR_DATA: LazyLock<PointResult> = LazyLock::new(|| {
 #[library_benchmark]
 #[bench::icyblue(col(Colourer::IcyBlue), &COLOUR_DATA)]
 #[bench::olc(col(Colourer::OneLoneCoder), &COLOUR_DATA)]
-#[bench::neon(col(Colourer::Neon), &COLOUR_DATA)]
+#[bench::neon2(col(Colourer::Neon2), &COLOUR_DATA)]
 #[bench::blackfade(col(Colourer::BlackFade), &COLOUR_DATA)]
 #[bench::whitefade(col(Colourer::WhiteFade), &COLOUR_DATA)]
 #[bench::mandy(col(Colourer::Mandy), &COLOUR_DATA)]
 fn colour_pt(consts: FragmentConstants, data: &PointResult) {
-    let spacing = consts.pixel_spacing();
-    let colour = engine::colour_data(black_box(*data), black_box(&consts), black_box(spacing));
+    let colour = engine::colour_data(black_box(*data), black_box(&consts));
     let _ = black_box(colour);
 }
 

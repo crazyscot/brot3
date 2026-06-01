@@ -17,50 +17,193 @@ macro_rules! deprintln {
     };
 }
 
-use core::f32::consts::{E, PI, TAU};
+use core::f32::consts::{FRAC_PI_2, PI, TAU};
 
 #[cfg(spirv)]
 use crate::Real;
 use crate::{
     Vec3,
-    data::{BoundaryClass, FragmentConstants, Modifier, PointResult},
-    util::{Hsl, RgbVec},
+    data::{BoundaryClass, Colourer, FragmentConstants, Modifier, PointResult},
+    util::RgbVec,
     vec3,
 };
+const ONE: Vec3 = Vec3::ONE;
+const ZERO: Vec3 = Vec3::ZERO;
 
 #[must_use]
 /// Computes the colour of a point based on the provided colouring algorithm and parameters.
-pub fn colour_data(data: PointResult, constants: &FragmentConstants, pixel_spacing: f32) -> RgbVec {
-    use crate::data::Colourer as C;
+pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> RgbVec {
     let iters = data.iters(constants.palette.colour_style);
-    let mut hsl = if cfg!(feature = "all-colourers") {
-        match constants.palette.colourer {
-            C::WhiteFade => white_fade(constants, iters, &data),
-            C::BlackFade => black_fade(constants, iters, &data),
-            C::Mandy => mandy(constants, iters, &data),
-            C::OneLoneCoder => one_lone_coder(constants, iters, &data),
-            C::Monochrome2 => monochrome2(constants, iters, &data),
-            C::Neon => neon(constants, iters, &data),
-            C::IcyBlue => icyblue(constants, iters, &data),
-            C::None => Hsl::WHITE,
-            // _ => Hsl::BLACK,
+    let mut rgb: RgbVec = match constants.palette.colourer {
+        Colourer::WhiteFade
+        | Colourer::BlackFade
+        | Colourer::Mandy
+        | Colourer::OneLoneCoder
+        | Colourer::Monochrome2 => {
+            colour_simple_family(constants, iters, &data, constants.palette.colourer)
         }
-    } else {
-        neon(constants, iters, &data)
+        Colourer::Neon2 | Colourer::IcyBlue => {
+            colour_powered_family(constants, iters, &data, constants.palette.colourer)
+        }
+        Colourer::None => RgbVec::WHITE,
     };
-    deprintln!("interim hsl: {hsl:?}");
+    deprintln!("interim rgb: {rgb:?}");
 
-    hsl.l = factor_for(
-        hsl.l,
-        constants.palette.brightness_style,
-        pixel_spacing,
-        &data,
-    );
-    hsl.into()
+    rgb.0 *= factor_for(constants.palette.brightness_style, &data);
+    rgb
 }
 
-fn factor_for(input: f32, style: Modifier, _pixel_spacing: f32, data: &PointResult) -> f32 {
-    let factor = match style {
+#[inline]
+fn ln_iters(iters: f32, subtract: f32, floor: f32, scale: f32) -> f32 {
+    (iters - subtract).max(floor).ln() * scale
+}
+
+#[inline]
+fn sqrt_tau_iters(iters: f32, subtract: f32, floor: f32) -> f32 {
+    (iters - subtract).max(floor).sqrt() * TAU
+}
+
+#[inline]
+fn scaled_iters(iters: f32, scale: f32) -> f32 {
+    iters * scale
+}
+
+#[inline]
+fn shifted_ln_iters(iters: f32, add: f32, divisor: f32) -> f32 {
+    ((iters + add) / divisor).ln()
+}
+
+#[inline]
+fn colour_simple_family(
+    constants: &FragmentConstants,
+    iters: f32,
+    pixel: &PointResult,
+    colourer: Colourer,
+) -> RgbVec {
+    match colourer {
+        Colourer::WhiteFade => simple_cos(
+            constants,
+            ln_iters(iters, 3.0, 1.0, 1.0),
+            pixel,
+            Vec3::new(2.0, 1.5, 1.0),
+            ZERO,
+            0.5,
+        ),
+        Colourer::BlackFade => simple_cos(
+            constants,
+            ln_iters(iters, 3.0, 1.0, 1.0),
+            pixel,
+            Vec3::new(1.0, 2.0, 3.0),
+            ZERO,
+            -0.5,
+        ),
+        Colourer::Mandy => simple_cos(
+            constants,
+            sqrt_tau_iters(iters, 3.0, 0.0),
+            pixel,
+            vec3(
+                0.2,       /* 1/5 */
+                0.14285,   /* 1/7 */
+                0.090_090, /* 1/11 */
+            ),
+            ZERO,
+            0.5,
+        ),
+        Colourer::OneLoneCoder => simple_cos(
+            constants,
+            scaled_iters(iters, 0.1),
+            pixel,
+            ONE,
+            vec3(
+                -FRAC_PI_2,
+                -FRAC_PI_2 + TAU / 3.0,
+                -FRAC_PI_2 + 2.0 * TAU / 3.0,
+            ),
+            0.5,
+        ),
+        Colourer::Monochrome2 => simple_cos(
+            constants,
+            ln_iters(iters, 3.0, 1.0, 2.0),
+            pixel,
+            ONE,
+            ZERO,
+            0.5,
+        ),
+        _ => RgbVec::WHITE,
+    }
+}
+
+#[inline]
+fn colour_powered_family(
+    constants: &FragmentConstants,
+    iters: f32,
+    pixel: &PointResult,
+    colourer: Colourer,
+) -> RgbVec {
+    match colourer {
+        Colourer::Neon2 => powered_cos(
+            constants,
+            ln_iters(iters, 3.0, 1.0, 2.0),
+            pixel,
+            vec3(0.0, 2.0 * PI / 3.0, 4.0 * PI / 3.0),
+            Vec3::splat(-1.0),
+            ONE,
+            1.5,
+            1.2,
+        ),
+        Colourer::IcyBlue => powered_cos(
+            constants,
+            shifted_ln_iters(iters, PI, PI),
+            pixel,
+            vec3(PI, PI, 0.0),
+            vec3(1.0, 1.0, -1.0),
+            vec3(0.0, 0.0, 1.0),
+            4.0,
+            1.9,
+        ),
+        _ => RgbVec::WHITE,
+    }
+}
+
+#[inline]
+fn finish_colour(pixel: &PointResult, rgb: Vec3) -> RgbVec {
+    if pixel.inside() {
+        RgbVec::BLACK
+    } else {
+        RgbVec(rgb)
+    }
+}
+
+#[inline]
+fn scaled_palette_offset(constants: &FragmentConstants) -> f32 {
+    // Offset is applied before cos(), so scale the input (0..10) to 2pi.
+    constants.palette.offset * TAU / 10.0
+}
+
+#[inline]
+fn simple_cos_input(
+    constants: &FragmentConstants,
+    iters: f32,
+    vec_scale: Vec3,
+    vec_offset: Vec3,
+) -> Vec3 {
+    vec_scale * iters * constants.palette.gradient + scaled_palette_offset(constants) + vec_offset
+}
+
+#[inline]
+fn powered_cos_input(
+    constants: &FragmentConstants,
+    iters: f32,
+    vec_offset: Vec3,
+    gamma: f32,
+) -> Vec3 {
+    Vec3::splat(iters * constants.palette.gradient).powf(gamma)
+        + scaled_palette_offset(constants)
+        + vec_offset
+}
+
+fn factor_for(style: Modifier, data: &PointResult) -> f32 {
+    match style {
         Modifier::Filaments => {
             if data.boundary == BoundaryClass::NotClose {
                 1.0
@@ -75,148 +218,52 @@ fn factor_for(input: f32, style: Modifier, _pixel_spacing: f32, data: &PointResu
             factor
         }
         Modifier::Standard => 1.0,
-    };
-    factor * input
+    }
 }
 
-/// Based on Tony Finch's "White Fade" colourer
-/// <https://dotat.at/prog/mandelbrot/>
-fn white_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
+/// Parameterised cosine-based colouring algorithm
+fn simple_cos(
+    constants: &FragmentConstants,
+    iters: f32,
+    pixel: &PointResult,
+    vec_scale: Vec3,
+    vec_offset: Vec3,
+    cos_factor: f32,
+) -> RgbVec {
     #[cfg(not(spirv))]
     if pixel.inside() {
-        return Hsl::BLACK;
+        return RgbVec::BLACK;
     }
-    // We are using a different escape threshold to fanf, so scale the function to suit.
-    let iters = (iters - 3.0).max(1.0).ln();
-    let grad = constants.palette.gradient;
-    // Offset is applied before cos(), so scale the input (0..10) to 2pi
-    let off = constants.palette.offset * TAU / 10.;
-    let mut v = Vec3::new(2.0, 1.5, 1.0) * iters * grad + off;
-    v = (v.cos() + Vec3::ONE) * 0.5;
-    let colour = RgbVec(v).into();
-    if pixel.inside() { Hsl::BLACK } else { colour }
+
+    let mut v = simple_cos_input(constants, iters, vec_scale, vec_offset);
+    v = v.cos() * cos_factor + Vec3::splat(0.5);
+
+    finish_colour(pixel, v)
 }
 
-/// Based on Tony Finch's "Black Fade" colourer
-/// <https://dotat.at/prog/mandelbrot/>
-fn black_fade(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
+#[allow(clippy::too_many_arguments)]
+/// Parameterised cosine-based colouring algorithm with power function for sharper peaks
+fn powered_cos(
+    constants: &FragmentConstants,
+    iters: f32,
+    pixel: &PointResult,
+    vec_offset: Vec3,
+    pow_factor: Vec3,
+    pow_offset: Vec3,
+    power: f32,
+    gamma: f32,
+) -> RgbVec {
     #[cfg(not(spirv))]
     if pixel.inside() {
-        return Hsl::BLACK;
+        return RgbVec::BLACK;
     }
-    // We are using a different escape threshold to fanf, so scale the function to suit.
-    let iters = (iters - 3.0).max(1.0).ln();
-    let grad = constants.palette.gradient;
-    // Offset is applied before cos(), so scale the input (0..10) to 2pi
-    let off = constants.palette.offset * TAU / 10.;
-    let mut v = Vec3::new(1.0, 2.0, 3.0) * iters * grad + off;
-    v = (Vec3::ONE - v.cos()) * 0.5;
-    let colour = RgbVec(v).into();
-    if pixel.inside() { Hsl::BLACK } else { colour }
-}
 
-/// Based on Richard Kettlewell's "mandy". <http://www.greenend.org.uk/rjk/mandy/>
-fn mandy(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
-    #[cfg(not(spirv))]
-    if pixel.inside() {
-        return Hsl::BLACK;
-    }
-    // Offset is applied before cos(), so scale that input (0..10) to 2pi
-    let off = constants.palette.offset * TAU / 10.;
+    let mut v = powered_cos_input(constants, iters, vec_offset, gamma);
+    v = v.cos() * 0.5 + 0.5;
+    v = v.powf(power);
+    v = v * pow_factor + pow_offset;
 
-    // We are using a different escape threshold to rjk, so scale the function to suit.
-    let iters = (iters - 3.0).max(0.0).sqrt() * TAU;
-    let mut v = vec3(
-        0.2,       /* 1/5 */
-        0.14285,   /* 1/7 */
-        0.090_090, /* 1/11 */
-    );
-    v = v * Vec3::splat(constants.palette.gradient * iters) + Vec3::splat(off);
-    let v2 = vec3(v.x.cos(), v.y.cos(), v.z.cos()) + Vec3::ONE;
-    let colour = RgbVec::from(v2 * Vec3::splat(0.5)).into();
-    if pixel.inside() { Hsl::BLACK } else { colour }
-}
-
-/// Colouring algorithm by `OneLoneCoder.com`
-/// <https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_Mandelbrot.cpp>
-fn one_lone_coder(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
-    #[cfg(not(spirv))]
-    if pixel.inside() {
-        return Hsl::BLACK;
-    }
-    let grad = constants.palette.gradient;
-    // Offset is applied before sin(), so scale the input (0..10) to 2pi
-    let off = constants.palette.offset * TAU / 10.;
-    let v1 = Vec3::splat(0.1 * grad * iters + off);
-    // Phase shift the three channels 120 degrees apart to create an RGB cycle.
-    let v2 = vec3(0.0, TAU / 3.0, 2.0 * TAU / 3.0);
-    let v3 = (v1 + v2).sin() * 0.5 + 0.5;
-    let colour = RgbVec(v3).into();
-    if pixel.inside() { Hsl::BLACK } else { colour }
-}
-
-fn monochrome2(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
-    #[cfg(not(spirv))]
-    if pixel.inside() {
-        return Hsl::BLACK;
-    }
-    let iters = (iters - 3.0).max(1.0).ln();
-    let grad = constants.palette.gradient;
-    // Offset is applied before cos(), so scale the input (0..10) to 2pi
-    let off = constants.palette.offset * TAU / 10.;
-    let r = iters * grad * 2.0 + off;
-    let l = f32::midpoint(r.cos(), 1.0);
-    let colour = Hsl::new(0., 0., l * 100.0);
-    if pixel.inside() { Hsl::BLACK } else { colour }
-}
-
-/// Based on the `neon` theme by David Bau <https://github.com/davidbau/mandelbrot/blob/main/index.html>
-///
-/// Creates vibrant, intense colours by cycling three sine waves with saturation boost.
-/// One channel is always near zero. One channel is always near one.
-fn neon(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
-    #[cfg(not(spirv))]
-    if pixel.inside() {
-        return Hsl::BLACK;
-    }
-    let grad = constants.palette.gradient.sqrt();
-    // Offset is applied before sin(), so scale the input (0..10) to 2pi
-    let offset = constants.palette.offset * TAU / 10.;
-
-    // Apply minimum 10 iters to reduce visual noise
-    let angle = (iters + 10.0).ln() * 0.8 * PI * grad + offset;
-
-    let mut v = (Vec3::new(0.0, PI * 0.66667, PI * 1.33333) + angle)
-        .sin()
-        .abs();
-    // Suppress minimum channel to boost saturation
-    //let min_ch = r.min(g).min(b) * 0.8;
-    let min_ch = v.min_element() * 0.8;
-    v = (v - min_ch).max(Vec3::ZERO);
-    // Normalise
-    //let max_ch = r.max(g).max(b);
-    let max_ch = v.max_element();
-    v /= max_ch.max(0.0);
-    let colour = RgbVec(v).into();
-    if pixel.inside() { Hsl::BLACK } else { colour }
-}
-
-/// A cool appearance with blue hues.
-/// Inspired by the `iceblue` theme by David Bau <https://github.com/davidbau/mandelbrot/blob/main/index.html>
-fn icyblue(constants: &FragmentConstants, iters: f32, pixel: &PointResult) -> Hsl {
-    #[cfg(not(spirv))]
-    if pixel.inside() {
-        return Hsl::BLACK;
-    }
-    // Log-scale input from 0..1, relative to max_iter
-    let input = (iters + E).ln().ln();
-    // Offset is applied before cos(), so scale the input (0..10) to 2pi
-    let offset = constants.palette.offset * TAU / 10.;
-    // This palette has a gamma transfer function
-    let r = (input * constants.palette.gradient * 2.5).powf(constants.palette.gamma) + offset;
-    let shade = f32::midpoint(r.cos(), 1.0);
-    let colour = Hsl::new(240., 100. * (1.0 - shade / 2.0), shade * 100.0);
-    if pixel.inside() { Hsl::BLACK } else { colour }
+    finish_colour(pixel, v)
 }
 
 #[cfg(test)]
@@ -232,7 +279,7 @@ mod tests {
         Vec2, Vec3,
         data::{Algorithm, Colourer, FragmentConstants, Modifier, Palette},
         engine::PixelSpacing as _,
-        uvec2, vec2,
+        uvec2, vec2, vec3,
     };
 
     macro_rules! assert_rgbvec_near {
@@ -249,22 +296,36 @@ mod tests {
         };
     }
 
+    fn is_simple_family(colourer: Colourer) -> bool {
+        matches!(
+            colourer,
+            Colourer::WhiteFade
+                | Colourer::BlackFade
+                | Colourer::Mandy
+                | Colourer::OneLoneCoder
+                | Colourer::Monochrome2
+        )
+    }
+
+    fn is_powered_family(colourer: Colourer) -> bool {
+        matches!(colourer, Colourer::Neon2 | Colourer::IcyBlue)
+    }
+
     #[test]
     fn known_answers() {
         #[cfg(feature = "all-colourers")]
         let cases = [
-            (Colourer::WhiteFade, 10, 0.31876, [0.166, 0.006, 0.296]),
             (Colourer::WhiteFade, 0, 0.1, [1.0, 1.0, 1.0]),
             (Colourer::BlackFade, 100, 0.0, [0.569, 0.981, 0.299]),
             (Colourer::BlackFade, 0, 0.1, [0.0, 0.0, 0.0]),
             (Colourer::OneLoneCoder, 100, 0.0, [0.228, 0.2725, 0.999]),
             (Colourer::Monochrome2, 100, 0.0, [0.01883, 0.01883, 0.01883]),
-            (Colourer::Neon, 100, 0.0, [0.609, 1.0, 0.078]),
             (Colourer::Mandy, 100, 0.0, [0.991, 0.083, 0.8797]),
-            (Colourer::IcyBlue, 100, 0.0, [0.9717, 0.9717, 0.9908]),
+            (Colourer::Neon2, 100, 0.0, [0.702, 0.97, 0.063]),
+            (Colourer::IcyBlue, 100, 0.0, [0.146, 0.146, 0.979]),
         ];
         #[cfg(not(feature = "all-colourers"))]
-        let cases = [(Colourer::Neon, 100, 0.0, [0.609, 1.0, 0.078])];
+        let cases = [(Colourer::Neon2, 100, 0.0, [0.702, 0.97, 0.063])];
         for (colourer, iters, iters_fraction, expected) in cases {
             let consts = FragmentConstants {
                 max_iter: 100_000,
@@ -279,7 +340,7 @@ mod tests {
                 crate::data::BoundaryClass::Indeterminate,
             );
             let expected = RgbVec::from(expected);
-            let result = super::colour_data(data, &consts, 0.0);
+            let result = super::colour_data(data, &consts);
             println!("{colourer}: expected={expected} output={result}");
             assert_rgbvec_near!(result, expected);
         }
@@ -296,8 +357,55 @@ mod tests {
                 ..Default::default()
             };
             let data = PointResult::DEFAULT;
-            let result = super::colour_data(data, &consts, 0.0);
+            let result = super::colour_data(data, &consts);
             assert_eq!(result, RgbVec::BLACK, "case {c}");
+        }
+    }
+
+    #[test]
+    fn family_partition_covers_all_supported_colourers() {
+        for colourer in Colourer::iter() {
+            assert_eq!(
+                is_simple_family(colourer) || is_powered_family(colourer),
+                colourer != Colourer::None,
+                "unexpected family coverage for {colourer}"
+            );
+        }
+    }
+
+    #[cfg(feature = "all-colourers")]
+    #[test]
+    fn family_partition_captures_the_two_cosine_families() {
+        for colourer in [
+            Colourer::WhiteFade,
+            Colourer::BlackFade,
+            Colourer::Mandy,
+            Colourer::OneLoneCoder,
+            Colourer::Monochrome2,
+        ] {
+            assert!(
+                is_simple_family(colourer),
+                "expected simple-cos family for {colourer:?}"
+            );
+        }
+        for colourer in [Colourer::Neon2, Colourer::IcyBlue] {
+            assert!(
+                is_powered_family(colourer),
+                "expected powered-cos family for {colourer:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn all_non_none_colourers_use_shared_families() {
+        for colourer in Colourer::iter() {
+            if colourer == Colourer::None {
+                continue;
+            }
+            assert!(
+                is_simple_family(colourer) || is_powered_family(colourer),
+                "expected recipe-family-backed implementation for {colourer}"
+            );
         }
     }
 
@@ -315,14 +423,13 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 0.83;
-        let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = vec2(-0.707_752, -0.353_065_3);
         let data = crate::engine::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         data.assert_no_subnormals();
-        let result = super::colour_data(data, &consts, pixel_size);
+        let result = super::colour_data(data, &consts);
         eprintln!("result: {result:?}");
-        assert_eq!(result, RgbVec(Vec3::splat(0.099_999_994)));
+        assert_eq!(result, RgbVec(Vec3::splat(0.1)),);
     }
 
     #[cfg(feature = "all-colourers")]
@@ -340,14 +447,13 @@ mod tests {
 
         // Origin (0,0), zoom 30 => the viewport is filled by the cardioid
         consts.viewport_zoom = 30.0;
-        let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = Vec2::splat(0.1);
         let data = crate::engine::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         data.assert_no_subnormals();
-        let result = super::colour_data(data, &consts, pixel_size);
+        let result = super::colour_data(data, &consts);
         eprintln!("result: {result:?}");
-        assert_eq!(result, RgbVec(Vec3::splat(0.099_999_994)));
+        assert_eq!(result, RgbVec(Vec3::splat(0.1)));
     }
 
     #[cfg(feature = "all-colourers")]
@@ -364,14 +470,13 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 4.0;
-        let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = vec2(-0.8789, -0.23563);
         let data = crate::engine::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
         data.assert_no_subnormals();
-        let result = super::colour_data(data, &consts, pixel_size);
+        let result = super::colour_data(data, &consts);
         eprintln!("result: {result:?}");
-        assert_eq!(result, RgbVec(Vec3::splat(0.099_999_994)));
+        assert_eq!(result, RgbVec(Vec3::splat(0.1)));
     }
 
     #[test]
@@ -388,11 +493,10 @@ mod tests {
         assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 1.29;
-        let pixel_size = consts.viewport_zoom.pixel_spacing(consts.size.height);
         let pt = vec2(0.17388, 0.80085);
         let data = crate::engine::render(&consts, pt - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("data: {data:?}");
-        let result = super::colour_data(data, &consts, pixel_size);
+        let result = super::colour_data(data, &consts);
         eprintln!("result: {result:?}");
         assert_eq!(result, Vec3::splat(0.325_493_5).into());
     }

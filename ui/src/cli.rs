@@ -69,7 +69,7 @@ pub(crate) struct Args {
         long,
         alias = "colorer",
         value_name = "NAME",
-        default_value = "neon",
+        default_value = "neon2",
         help_heading("Colouring")
     )]
     pub colourer: Colourer,

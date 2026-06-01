@@ -87,7 +87,7 @@ enumdef!(
     /// Colourless, with a gradient from white to black to white.
     Monochrome2,
     /// Bright colours with high contrast and saturation
-    Neon,
+    Neon2,
     /// Slightly muted gradient
     ///
     /// Based on the colouring algorithm by `OneLoneCoder.com`

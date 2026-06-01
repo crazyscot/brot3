@@ -51,7 +51,7 @@ fn palette_saturation_lightness_preserved() {
 
 #[test]
 fn palette_colourer_variants() {
-    let colourers = vec![Colourer::BlackFade, Colourer::IcyBlue, Colourer::Neon];
+    let colourers = vec![Colourer::BlackFade, Colourer::IcyBlue, Colourer::Neon2];
 
     for colourer in colourers {
         let mut state = test_ui_state();

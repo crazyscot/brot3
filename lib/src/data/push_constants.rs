@@ -113,7 +113,7 @@ pub struct Palette {
 }
 impl ConstDefault for Palette {
     const DEFAULT: Self = Self {
-        colourer: Colourer::Neon,
+        colourer: Colourer::Neon2,
         colour_style: ColourStyle::DEFAULT,
         brightness_style: Modifier::DEFAULT,
         // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.

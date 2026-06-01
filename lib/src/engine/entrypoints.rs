@@ -35,7 +35,7 @@ pub(crate) fn main_fs(
 
     let render_data = engine::render(constants, complex_offset, perturbation_reference_points);
 
-    let mut colour = engine::colour_data(render_data, constants, pixel_spacing);
+    let mut colour = engine::colour_data(render_data, constants);
 
     // Draw the inspector marker
     if constants.flags.contains(Flags::INSPECTOR_ACTIVE) {
@@ -82,7 +82,7 @@ pub(crate) fn main_cs(
     let complex_offset = (coord - 0.5 * size) * pixel_spacing;
 
     let render_data = engine::render(constants, complex_offset, perturbation_reference_points);
-    let colour = engine::colour_data(render_data, constants, pixel_spacing);
+    let colour = engine::colour_data(render_data, constants);
 
     // no inspector marker in compute shader
 
@@ -134,7 +134,7 @@ mod tests {
             algorithm: Algorithm::Mandelbrot,
             exponent: PushExponent::from(2),
             palette: Palette {
-                colourer: Colourer::Neon,
+                colourer: Colourer::Neon2,
                 ..Default::default()
             },
             inspector_point_pixel_address: Vec2::default(),
@@ -153,7 +153,7 @@ mod tests {
             ((7.0, 0.0), (1.0, 1.0, 1.0)),
             ((8.0, 0.0), (1.0, 1.0, 1.0)),
             // 10 or more pixels out is unaltered
-            ((9.0, 0.0), (0.073_526_144, 0.632_362_3, 1.0)),
+            ((9.0, 0.0), (0.0, 0.875, 0.875)),
         ];
         let mut empty = vec![]; // Complex
 
@@ -206,8 +206,7 @@ mod tests {
             &perturbation_reference_points,
         );
 
-        let expected_colour =
-            PackedRgba8::from(RgbVec::from(vec3(0.073_526_144, 0.632_362_3, 1.0))).0;
+        let expected_colour = PackedRgba8::from(RgbVec::from(vec3(0.0, 0.8745, 0.8745))).0;
         assert_eq!(pixels[0], expected_colour);
     }
 }
