@@ -226,9 +226,6 @@ struct Movement {
     exponent: f32,
     gradient: f32,
     offset: f32,
-    gamma: f32,
-    saturation: f32,
-    lightness: f32,
 }
 
 impl Default for Movement {
@@ -239,9 +236,6 @@ impl Default for Movement {
             exponent: Default::default(),
             gradient: Default::default(),
             offset: Default::default(),
-            gamma: Default::default(),
-            saturation: Default::default(),
-            lightness: Default::default(),
         }
     }
 }

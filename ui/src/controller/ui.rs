@@ -184,7 +184,7 @@ impl super::Controller {
                 )*
             }
         }
-        palette_fields!(gradient, offset, gamma, saturation, lightness);
+        palette_fields!(gradient, offset);
     }
 
     pub(crate) fn modifier_key_factor(&self) -> f64 {

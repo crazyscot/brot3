@@ -38,18 +38,6 @@ fn palette_gradient_preserved_in_constants() {
 }
 
 #[test]
-fn palette_saturation_lightness_preserved() {
-    let mut state = test_ui_state();
-    state.palette.saturation = 75.0;
-    state.palette.lightness = 55.0;
-
-    let consts = FragmentConstants::from(&state);
-
-    assert_eq!(consts.palette.saturation, 75.0);
-    assert_eq!(consts.palette.lightness, 55.0);
-}
-
-#[test]
 fn palette_colourer_variants() {
     let colourers = vec![Colourer::BlackFade, Colourer::IcyBlue, Colourer::Neon2];
 

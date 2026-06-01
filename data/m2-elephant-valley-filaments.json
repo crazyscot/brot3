@@ -19,10 +19,7 @@
       "colour_style": "Continuous",
       "brightness_style": "Filaments",
       "gradient": 1.0,
-      "offset": 0.0,
-      "saturation": 100.0,
-      "lightness": 50.738907,
-      "gamma": 1.9
+      "offset": 0.0
     },
     "exponent": {
       "integer": 2

@@ -107,9 +107,6 @@ pub struct Palette {
     pub brightness_style: Modifier,
     pub gradient: f32,
     pub offset: f32,
-    pub saturation: f32,
-    pub lightness: f32,
-    pub gamma: f32,
 }
 impl ConstDefault for Palette {
     const DEFAULT: Self = Self {
@@ -119,9 +116,6 @@ impl ConstDefault for Palette {
         // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
         gradient: 1.,
         offset: 0.,
-        saturation: 100., // Not available on all palette algorithms
-        lightness: 50.,   // Not available on all palette algorithms
-        gamma: 1.9,
     };
 }
 impl Default for Palette {
@@ -137,9 +131,6 @@ impl Palette {
         brightness_style: Modifier::DEFAULT,
         gradient: 10.,
         offset: 10.,
-        saturation: 100.,
-        lightness: 100.,
-        gamma: 4.0,
     };
     pub const MINIMA: Palette = Palette {
         colourer: Colourer::DEFAULT,
@@ -147,9 +138,6 @@ impl Palette {
         brightness_style: Modifier::DEFAULT,
         gradient: 0.1,
         offset: -10.0,
-        saturation: 0.,
-        lightness: 0.,
-        gamma: 0.,
     };
 
     #[must_use]

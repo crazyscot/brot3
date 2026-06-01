@@ -382,18 +382,15 @@ mod serde_tests {
         let json = serde_json::to_string(&state).expect("serialization failed");
         let deserialized: UiState = serde_json::from_str(&json).expect("deserialization failed");
         assert_eq!(state.palette.colourer, deserialized.palette.colourer);
-        assert_eq!(state.palette.gamma, deserialized.palette.gamma);
 
         // Test with modified palette values
         palette.gradient = 5.0;
         palette.offset = 2.5;
-        palette.saturation = 75.0;
         state.palette = palette;
         let json = serde_json::to_string(&state).expect("serialization failed");
         let deserialized: UiState = serde_json::from_str(&json).expect("deserialization failed");
         assert_eq!(state.palette.gradient, deserialized.palette.gradient);
         assert_eq!(state.palette.offset, deserialized.palette.offset);
-        assert_eq!(state.palette.saturation, deserialized.palette.saturation);
 
         // Test all the colourer variants
         for colourer in Colourer::VARIANTS {
@@ -432,7 +429,7 @@ mod serde_tests {
             "viewport_zoom": 2.0,
             "algorithm": "Mandelbrot",
             "max_iter": "not_a_number",
-            "palette": {"colourer":"BlackFade","colour_style":"Continuous","brightness_style":"Standard","gradient":1.0,"offset":0.0,"saturation":100.0,"lightness":50.0,"gamma":1.9},
+            "palette": {"colourer":"BlackFade","colour_style":"Continuous","brightness_style":"Standard","gradient":1.0,"offset":0.0},
             "exponent": {"integer":2},
             "iteration_cull": true
         }"#;
@@ -452,7 +449,7 @@ mod serde_tests {
             "viewport_zoom": 2.0,
             "algorithm": "Mandelbrot",
             "max_iter": 1000,
-            "palette": {"colourer":"BlackFade","colour_style":"Continuous","brightness_style":"Standard","gradient":1.0,"offset":0.0,"saturation":100.0,"lightness":50.0,"gamma":1.9},
+            "palette": {"colourer":"BlackFade","colour_style":"Continuous","brightness_style":"Standard","gradient":1.0,"offset":0.0},
             "exponent": {"integer":2},
             "iteration_cull": 1
         }"#;

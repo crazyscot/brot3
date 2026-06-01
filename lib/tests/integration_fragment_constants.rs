@@ -74,14 +74,10 @@ fn fragment_constants_max_iter_roundtrip() {
 fn fragment_constants_palette_preserved() {
     let mut state = test_ui_state();
     state.palette.gradient = 2.5;
-    state.palette.saturation = 75.0;
-    state.palette.lightness = 55.0;
 
     let consts = FragmentConstants::from(&state);
 
     assert_eq!(consts.palette.gradient, 2.5);
-    assert_eq!(consts.palette.saturation, 75.0);
-    assert_eq!(consts.palette.lightness, 55.0);
 }
 
 #[test]

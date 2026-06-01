@@ -72,7 +72,7 @@ impl ModifiersExt for ModifiersState {
 }
 
 impl super::Controller {
-    field_fn!(gradient, offset, gamma, saturation, lightness);
+    field_fn!(gradient, offset);
 
     pub(super) fn keyboard_help_window(ctx: &egui::Context) {
         egui::Window::new("keyboard")
@@ -109,9 +109,6 @@ impl super::Controller {
                         row!("E R", "Exponent");
                         row!("Y U", "Gradient");
                         row!("H J", "Offset");
-                        row!("N M", "Gamma");
-                        row!("I O", "Saturation");
-                        row!("K L", "Lightness");
 
                         ui.separator();
                         ui.separator();
@@ -220,11 +217,7 @@ impl super::Controller {
 
                 'y' | 'u' => self.gradient(c == 'u', pressed),
                 'h' | 'j' => self.offset(c == 'j', pressed),
-                'n' | 'm' => self.gamma(c == 'm', pressed),
-                'i' => self.saturation(false, pressed),
                 'o' if pressed && self.keyboard_modifiers.ctrl_or_cmd() => self.show_open = true,
-                'o' => self.saturation(true, pressed),
-                'k' | 'l' => self.lightness(c == 'l', pressed),
                 'a' => self.show_about = true,
                 's' if pressed && self.keyboard_modifiers.ctrl_or_cmd() => {
                     if self.keyboard_modifiers.shift() {

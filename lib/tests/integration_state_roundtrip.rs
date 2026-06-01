@@ -43,7 +43,6 @@ fn save_load_json_roundtrip_complex() {
     original.viewport_zoom = ViewportZoom::from(1e10_f32);
     original.max_iter = 10000;
     original.palette.gradient = 5.0;
-    original.palette.saturation = 75.0;
 
     let temp_file = std::env::temp_dir().join("test_roundtrip_complex.json");
 
