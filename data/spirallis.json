@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "state": {
+    "viewport_translate": {
+      "x": [
+        "2036948602724249955511339274996481238505057280869709404079",
+        -192
+      ],
+      "y": [
+        "9752313856707696265424534444075793034300165504426554707239",
+        -197
+      ]
+    },
+    "viewport_zoom": 287500000.0,
+    "algorithm": "Mandelbrot",
+    "max_iter": 1300,
+    "palette": {
+      "colourer": "Mandy",
+      "colour_style": "Continuous",
+      "brightness_style": "Standard",
+      "gradient": 1.0,
+      "offset": 0.0
+    },
+    "exponent": {
+      "integer": 2
+    },
+    "iteration_cull": true
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "state": {
+    "viewport_translate": {
+      "x": [
+        "-1",
+        0
+      ],
+      "y": [
+        "0",
+        0
+      ]
+    },
+    "viewport_zoom": 0.25,
+    "algorithm": "Mandelbrot",
+    "palette": {
+      "colourer": "Neon2",
+      "colour_style": "Continuous",
+      "brightness_style": "Standard",
+      "gradient": 1.0,
+      "offset": 0.0
+    },
+    "exponent": {
+      "integer": 2
+    },
+    "iteration_cull": false
+  }
+}
