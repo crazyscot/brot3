@@ -16,7 +16,7 @@ abels-complex = { version = "0.5.1", default-features = false }
 anyhow = "1.0.102"
 assert_matches = "1.5.0"
 average = "0.17.0"
-bitflags = "2.11.1"
+bitflags = "2.12.1"
 brot3-lib = { path = "lib" }
 build-print = "1.0.1"
 bytemuck = { version = "1.25.0", default-features = false }
@@ -26,7 +26,7 @@ chrono = { version = "0.4.44", default-features = false }
 clap = { version = "4.6.1", features = ["derive"] }
 const-default = { version = "1.0.0", default-features = false }
 criterion = "0.8.2"
-dashu = { version = "0.4.2", default-features = false }
+dashu = { version = "0.4.3", default-features = false }
 dashu-float = { version = "0.4.3", default-features = false }
 derive_more = { version = "2.1.1", default-features = false }
 dirs = "6.0.0"
@@ -34,9 +34,9 @@ document-features = "0.2.12"
 dunce = "1.0.5"
 easy-cast = { version = "0.5.4", default-features = false }
 easy-shader-runner = { path = "easy-shader-runner", default-features = false }
-egui = "0.34.2"
-egui-wgpu = "0.34.2"
-egui-winit = { version = "0.34.2", default-features = false }
+egui = "0.34.3"
+egui-wgpu = "0.34.3"
+egui-winit = { version = "0.34.3", default-features = false }
 egui_extras = "0.34.2"
 env_logger = "0.11.10"
 flate2 = "1.1.9"
@@ -44,11 +44,11 @@ float_eq = { version = "1.0.1", default-features = false }
 futures = { version = "0.3.32", default-features = false }
 futures-channel = "0.3.32"
 glam = { version = "0.32.1", default-features = false }
-gungraun = "0.18.2"
+gungraun = "0.19.1"
 image = { version = "0.25.10", default-features = false }
 itertools = "0.14.0"
-log = "0.4.29"
-mimalloc = "0.1.50"
+log = "0.4.31"
+mimalloc = "0.1.52"
 num-derive = "0.4.2"
 num-traits = { version = "0.2.19", default-features = false, features = ["libm"] }
 paste = "1.0.15"
@@ -59,10 +59,10 @@ rayon = "1.12.0"
 rfd = "0.17.2"
 scopeguard = "1.2.0"
 serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.134"
+serde_json = "1.0.150"
 strum = { version = "0.28.0", default-features = false }
 thiserror = { version = "2.0.18", default-features = false }
-tokio = "1.52.1"
+tokio = "1.52.3"
 wgpu = { version = "29.0", default-features = false }
 windows = { version = "0.62.2", default-features = false }
 
