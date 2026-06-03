@@ -5,7 +5,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use brot3_lib::{
     BigComplex,
-    data::{Algorithm, ColourStyle, Colourer, Modifier, Palette, RenderMode},
+    data::{Algorithm, ColourStyle, Colourer, Modifier, Palette, PushExponent, RenderMode},
     engine::DEFAULT_FRACTAL_PLANE_SIZE,
     ui::UiState,
     util::Size,
@@ -148,6 +148,17 @@ pub(crate) struct Args {
     /// The zoom depth of the plot, e.g. 1e16
     #[arg(short = 'z', long, value_name = "NUMBER", help_heading("Fractal"))]
     pub(crate) zoom: Option<f64>,
+
+    /// The exponent to use for the fractal algorithm, e.g. 2 for the standard Mandelbrot set, 3
+    /// for the cubic variant, etc.
+    #[arg(
+        short = 'e',
+        long,
+        value_name = "NUMBER",
+        default_value = "2",
+        help_heading("Fractal")
+    )]
+    pub exponent: PushExponent,
 }
 
 // A simple tuple struct to represent a 2D u32 vector.
@@ -203,6 +214,7 @@ impl From<&Args> for UiState {
             viewport_zoom: args.zoom.map_or(UiState::default().viewport_zoom, |z| {
                 (z / DEFAULT_FRACTAL_PLANE_SIZE).into()
             }),
+            exponent: args.exponent,
             ..UiState::default()
         }
     }

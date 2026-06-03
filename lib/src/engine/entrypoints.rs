@@ -132,7 +132,7 @@ mod tests {
             buffer_size: TEST_GRID_SIZE.into(),
             max_iter: 10,
             algorithm: Algorithm::Mandelbrot,
-            exponent: PushExponent::from(2),
+            exponent: PushExponent::default(),
             palette: Palette {
                 colourer: Colourer::Neon2,
                 ..Default::default()

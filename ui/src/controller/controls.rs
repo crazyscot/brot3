@@ -1,7 +1,9 @@
 //! Controls window
 // (c) 2025 Ross Younger
 
-use brot3_lib::data::{Algorithm, ColourStyle, Colourer, Modifier, NumericType, Palette};
+use brot3_lib::data::{
+    Algorithm, ColourStyle, Colourer, Modifier, NumericType, Palette, PushExponent,
+};
 use easy_cast::{Cast as _, CastFloat as _};
 use easy_shader_runner::egui;
 use strum::{EnumMessage as _, IntoEnumIterator as _};
@@ -64,7 +66,7 @@ impl super::Controller {
                         NumericType::Integer => {
                             if ui.add(egui::Slider::new(
                                     &mut self.state.exponent.int,
-                                    Self::EXPONENT_MIN_INT..=Self::EXPONENT_MAX_INT,
+                                    PushExponent::MIN_INT..=PushExponent::MAX_INT,
                                 ))
                                 .changed()
                             {
@@ -76,7 +78,7 @@ impl super::Controller {
                             if ui.add(
                                     egui::Slider::new(
                                         &mut self.state.exponent.real,
-                                        Self::EXPONENT_MIN..=Self::EXPONENT_MAX,
+                                        PushExponent::MIN..=PushExponent::MAX,
                                     )
                                     .step_by(0.1),
                                 )

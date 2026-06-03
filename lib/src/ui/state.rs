@@ -260,7 +260,7 @@ mod serde_tests {
             algorithm: Algorithm::Mandelbrot,
             max_iter: 1000,
             palette: Palette::default(),
-            exponent: PushExponent::from(2),
+            exponent: PushExponent::default(),
             iteration_cull: true,
             viewport_size: NOMINAL_WINDOW_SIZE,
         }
@@ -573,7 +573,7 @@ mod conversion_tests {
             algorithm: Algorithm::Mandelbrot,
             max_iter: 256,
             palette: Palette::default(),
-            exponent: PushExponent::from(2),
+            exponent: PushExponent::default(),
             iteration_cull: false,
             viewport_size: uvec2(800, 600),
         }
@@ -588,7 +588,7 @@ mod conversion_tests {
             buffer_size: Size::ZERO,
             algorithm: Algorithm::Mandelbrot,
             max_iter: 256,
-            exponent: PushExponent::from(2),
+            exponent: PushExponent::default(),
             palette: Palette::default(),
             inspector_point_pixel_address: Vec2::ZERO,
         }

@@ -5,7 +5,7 @@
 use std::sync::atomic::Ordering;
 
 use brot3_lib::{
-    data::{Algorithm, NumericType, Palette},
+    data::{Algorithm, NumericType, Palette, PushExponent},
     engine,
 };
 use easy_cast::{Cast as _, CastApprox as _, CastFloat as _};
@@ -14,13 +14,6 @@ use easy_shader_runner::{UiState, egui};
 use super::{DVec2, Instant};
 
 impl super::Controller {
-    #[allow(clippy::cast_precision_loss)]
-    pub(super) const EXPONENT_MAX: f32 = Self::EXPONENT_MAX_INT as f32;
-    pub(super) const EXPONENT_MAX_INT: i32 = 20;
-    #[allow(clippy::cast_precision_loss)]
-    pub(super) const EXPONENT_MIN: f32 = Self::EXPONENT_MIN_INT as f32;
-    pub(super) const EXPONENT_MIN_INT: i32 = 2;
-
     pub(super) fn perturb_implemented(&self) -> bool {
         self.state.algorithm == Algorithm::Mandelbrot && self.state.exponent.is_two()
     }
@@ -163,7 +156,7 @@ impl super::Controller {
                 NumericType::Float => self.state.exponent.real,
             };
             let new_exp = (current + factor32 * movement.exponent)
-                .clamp(Self::EXPONENT_MIN, Self::EXPONENT_MAX);
+                .clamp(PushExponent::MIN, PushExponent::MAX);
             if self.state.exponent.real != new_exp {
                 self.reiterate = true;
                 self.state.exponent.real = new_exp;

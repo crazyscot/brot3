@@ -15,7 +15,7 @@ fn test_fragment_constants() -> FragmentConstants {
         algorithm: Algorithm::Mandelbrot,
         max_iter: 256,
         palette: Palette::default(),
-        exponent: PushExponent::from(2),
+        exponent: PushExponent::default(),
         iteration_cull: false,
         viewport_size: uvec2(100, 100),
     };

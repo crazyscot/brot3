@@ -102,7 +102,7 @@ mod tests {
             buffer_size: Size::new(2, 2),
             max_iter: 10,
             algorithm: Algorithm::Mandelbrot,
-            exponent: PushExponent::from(2),
+            exponent: PushExponent::default(),
             palette: Palette::DEFAULT,
             inspector_point_pixel_address: Vec2::default(),
         }

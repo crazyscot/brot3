@@ -40,7 +40,7 @@ mod tests {
     fn base_state() -> UiState {
         UiState {
             algorithm: Algorithm::Mandelbrot,
-            exponent: PushExponent::from(2),
+            exponent: PushExponent::default(),
             ..UiState::default()
         }
     }
@@ -102,14 +102,14 @@ mod tests {
     #[test]
     fn picks_general_for_non_power_two_states() {
         let mut state = base_state();
-        state.exponent = PushExponent::from(3);
+        state.exponent = PushExponent::try_from(3).unwrap();
         assert_eq!(ShaderVariant::from_ui_state(&state), ShaderVariant::General);
     }
 
     #[test]
     fn picks_specialized_shader_for_float_two() {
         let mut state = base_state();
-        state.exponent = PushExponent::from(2.0_f32);
+        state.exponent = PushExponent::try_from(2.0_f32).unwrap();
         assert_eq!(
             ShaderVariant::from_ui_state(&state),
             ShaderVariant::MandelbrotPow2
