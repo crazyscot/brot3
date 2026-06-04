@@ -246,6 +246,28 @@ fn validate_shaders(
     Ok(())
 }
 
+#[allow(unsafe_code, clippy::disallowed_methods)]
+pub fn setup_logging() {
+    use std::fmt::Write;
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+            let _ = console_log::init();
+        } else {
+            let mut rust_log = std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_owned());
+            for loud_crate in ["naga", "wgpu_core", "wgpu_hal"] {
+                if !rust_log.contains(&format!("{loud_crate}=")) {
+                    let _ = write!(&mut rust_log, ",{loud_crate}=warn");
+                }
+            }
+            unsafe {
+                std::env::set_var("RUST_LOG", rust_log);
+            }
+            let _ = env_logger::try_init();
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{Error, ShaderDescriptor, ShaderSource, validate_shaders};
@@ -287,27 +309,5 @@ mod tests {
     fn accepts_unique_shader_keys_with_present_default() {
         let shaders = [shader("first"), shader("second")];
         assert!(validate_shaders(&shaders, "first").is_ok());
-    }
-}
-
-#[allow(unsafe_code, clippy::disallowed_methods)]
-pub fn setup_logging() {
-    use std::fmt::Write;
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            let _ = console_log::init();
-        } else {
-            let mut rust_log = std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_owned());
-            for loud_crate in ["naga", "wgpu_core", "wgpu_hal"] {
-                if !rust_log.contains(&format!("{loud_crate}=")) {
-                    let _ = write!(&mut rust_log, ",{loud_crate}=warn");
-                }
-            }
-            unsafe {
-                std::env::set_var("RUST_LOG", rust_log);
-            }
-            let _ = env_logger::try_init();
-        }
     }
 }
