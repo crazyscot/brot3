@@ -130,7 +130,8 @@ jobs:
           components: clippy,rustc-dev
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       - name: clippy (no-default-features)
-        run: cargo clippy --locked --no-deps -p brot3-lib -p brot3-ui --no-default-features
+        run: cargo clippy --locked --no-deps --all-targets -p brot3-lib -p brot3-ui --no-default-features
       - name: clippy (ui + hot-reload)
-        run: cargo clippy --locked --no-deps -p brot3-lib -p brot3-ui -F ui -F hot-reload-shader
+        run: cargo clippy --locked --no-deps --all-targets -p brot3-lib -p brot3-ui -F ui -F hot-reload-shader
+        if: ${{ !cancelled() }}
       # There's no need to run clippy on use-installed-tools or use-compiled-tools as they are simple passthroughs
