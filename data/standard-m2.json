@@ -15,7 +15,7 @@
     "algorithm": "Mandelbrot",
     "max_iter": 250,
     "palette": {
-      "colourer": "Neon",
+      "colourer": "Neon2",
       "colour_style": "Continuous",
       "brightness_style": "Standard",
       "gradient": 1.0,
