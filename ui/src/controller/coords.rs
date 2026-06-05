@@ -70,6 +70,14 @@ impl super::Controller {
                         ui.label("(Forced!)");
                         ui.end_row();
                     }
+                    if self.perturbation_mode {
+                        ui.label("... points");
+                        ui.monospace(self.perturbation.points.len().to_string());
+                        ui.end_row();
+                        ui.label("... time");
+                        ui.monospace(format!("{:.2?}", self.last_perturb_time));
+                        ui.end_row();
+                    }
                 });
 
                 if self.show_shader {
@@ -80,49 +88,53 @@ impl super::Controller {
 
                 if self.inspector.active {
                     ui.separator();
-                    ui.label(egui::RichText::new("Marked position").italics());
-                    egui::Grid::new("inspect_position").show(ui, |ui| {
-                        let pixel_address = self
-                            .complex_point_to_pixel(&self.inspector.position)
-                            .as_uvec2();
-                        ui.label("Pixel");
-                        ui.monospace(format!("{}, {}", pixel_address.x, pixel_address.y));
-                        ui.end_row();
-
-                        let complex_pos = &self.inspector.position;
-                        ui.label("X (Re)");
-                        ui.monospace(dynfmt!(complex_pos.x.to_f64().value(), precision));
-                        ui.end_row();
-                        ui.label("Y (Im)");
-                        ui.monospace(dynfmt!(complex_pos.y.to_f64().value(), precision));
-                        ui.end_row();
-                        let inside: bool = self.inspector.data.inside();
-                        ui.label("Iterations");
-                        if inside {
-                            ui.monospace("∞");
-                        } else {
-                            // We only need to report in standard precision for iterations
-                            ui.monospace(dynfmt!(
-                                self.inspector.data.iters(self.state.palette.colour_style),
-                                6
-                            ));
-                        }
-                        ui.end_row();
-                        ui.label("Boundary");
-                        ui.monospace(self.inspector.data.boundary.to_string());
-                        ui.end_row();
-                        ui.label("Final angle");
-                        ui.monospace(dynfmt!(self.inspector.data.angle()));
-                        ui.end_row();
-                        ui.label("Final radius");
-                        ui.monospace(dynfmt!(self.inspector.data.radius_sqr().sqrt()));
-                        ui.end_row();
-                    });
-                    if ui.button("Close inspector").clicked() {
-                        self.inspector.active = false;
-                    }
+                    self.show_inspector_data(ui, precision);
                 }
             });
+    }
+
+    fn show_inspector_data(&mut self, ui: &mut egui::Ui, precision: usize) {
+        ui.label(egui::RichText::new("Marked position").italics());
+        egui::Grid::new("inspect_position").show(ui, |ui| {
+            let pixel_address = self
+                .complex_point_to_pixel(&self.inspector.position)
+                .as_uvec2();
+            ui.label("Pixel");
+            ui.monospace(format!("{}, {}", pixel_address.x, pixel_address.y));
+            ui.end_row();
+
+            let complex_pos = &self.inspector.position;
+            ui.label("X (Re)");
+            ui.monospace(dynfmt!(complex_pos.x.to_f64().value(), precision));
+            ui.end_row();
+            ui.label("Y (Im)");
+            ui.monospace(dynfmt!(complex_pos.y.to_f64().value(), precision));
+            ui.end_row();
+            let inside: bool = self.inspector.data.inside();
+            ui.label("Iterations");
+            if inside {
+                ui.monospace("∞");
+            } else {
+                // We only need to report in standard precision for iterations
+                ui.monospace(dynfmt!(
+                    self.inspector.data.iters(self.state.palette.colour_style),
+                    6
+                ));
+            }
+            ui.end_row();
+            ui.label("Boundary");
+            ui.monospace(self.inspector.data.boundary.to_string());
+            ui.end_row();
+            ui.label("Final angle");
+            ui.monospace(dynfmt!(self.inspector.data.angle()));
+            ui.end_row();
+            ui.label("Final radius");
+            ui.monospace(dynfmt!(self.inspector.data.radius_sqr().sqrt()));
+            ui.end_row();
+        });
+        if ui.button("Close inspector").clicked() {
+            self.inspector.active = false;
+        }
     }
 
     pub(crate) fn mouse_on_marker(&self) -> bool {

@@ -201,6 +201,7 @@ impl super::Controller {
     fn recompute_perturbation(&mut self, graphics_context: &easy_shader_runner::GraphicsContext) {
         let mut dest = Vec::with_capacity(crate::MAX_MAX_ITERATIONS.cast());
 
+        let start = Instant::now();
         engine::mandelbrot_perturbed_compute_reference_iters(
             &mut dest,
             &self.state.viewport_translate,
@@ -213,5 +214,6 @@ impl super::Controller {
             bytemuck::cast_slice(&dest),
         );
         self.perturbation.points = std::mem::take(&mut dest);
+        self.last_perturb_time = start.elapsed();
     }
 }

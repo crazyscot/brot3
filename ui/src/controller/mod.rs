@@ -77,6 +77,7 @@ pub(crate) struct Controller {
     context_menu: Option<DVec2>,
     inspector: Inspector,
     render_pass: u32,
+    last_perturb_time: std::time::Duration,
 
     // Loading & saving
     load_save_active: Arc<AtomicBool>,
@@ -164,6 +165,7 @@ impl Controller {
             error_message: error_message.map(Arc::new),
             error_message_channel: Channel::default(),
             loading_task: None,
+            last_perturb_time: std::time::Duration::default(),
         };
         c.just_loaded();
         c
