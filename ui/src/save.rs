@@ -12,6 +12,7 @@ use brot3_lib::{
     ui::{Error as LibError, ShaderVariant, UiState},
     util::render_frame,
 };
+use easy_cast::CastApprox;
 use glam::{Vec2, uvec2};
 use thiserror::Error;
 
@@ -79,7 +80,7 @@ fn render_gpu(
     constants: &FragmentConstants,
     perturbation_points: &[Vec2],
 ) -> Result<Vec<u8>, LoadSaveError> {
-    use easy_cast::Cast as _;
+    use easy_cast::{Cast as _, Conv as _};
     let render_size = constants.size.into();
     let mut controller =
         ComputeController::new(render_size, 1, ShaderVariant::from_ui_state(state))?;
@@ -101,10 +102,13 @@ fn render_gpu(
         // compute, teardown. These in turn can be resolved into phases: setup, compute,
         // teardown.
         let overall = Duration::from_nanos(times.last().unwrap() - times[0]);
+        let resolution = controller.get_timestamp_period();
         let deltas = times
             .into_iter()
             .tuple_windows()
-            .map(|(start, end)| Duration::from_nanos(end - start))
+            .map(|(start, end)| {
+                Duration::from_nanos((f64::conv(end - start) * resolution).cast_approx())
+            })
             .collect::<Vec<_>>();
         log::debug!(
             "GPU timing: setup {:?}, compute {:?}, teardown {:?}, overall {:?}",

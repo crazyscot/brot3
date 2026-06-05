@@ -404,4 +404,8 @@ impl ComputeController {
             cache: None,
         })
     }
+
+    pub(crate) fn get_timestamp_period(&self) -> f64 {
+        self.queue.get_timestamp_period().into()
+    }
 }
