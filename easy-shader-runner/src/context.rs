@@ -11,6 +11,7 @@ pub struct GraphicsContext {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub config: wgpu::SurfaceConfiguration,
+    pub timestamps: bool,
 }
 
 impl GraphicsContext {
@@ -62,8 +63,16 @@ impl GraphicsContext {
             .await
             .unwrap();
 
-        let (features, limits) =
+        let (mut features, limits) =
             controller.describe_wgpu_features_and_limits(adapter.features(), adapter.limits());
+        if adapter.features().contains(wgpu::Features::TIMESTAMP_QUERY) {
+            log::info!("Device supports timestamp queries, enabling benchmarking features");
+            features |= wgpu::Features::TIMESTAMP_QUERY;
+        } else {
+            log::info!(
+                "Device does not support timestamp queries, benchmarking features will be unavailable"
+            );
+        }
         let (features, limits) = if cfg!(feature = "emulate_constants") {
             (features, limits)
         } else {
@@ -93,6 +102,7 @@ impl GraphicsContext {
             device,
             queue,
             config,
+            timestamps: adapter.features().contains(wgpu::Features::TIMESTAMP_QUERY),
         }
     }
 

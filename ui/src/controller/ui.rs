@@ -26,6 +26,7 @@ impl super::Controller {
     ) {
         self.render_pass = self.render_pass.wrapping_add(1);
         self.service_channels();
+        self.shader_last_elapsed = ui_state.last_elapsed;
 
         if self.perturbation_mode && !self.perturb_implemented() {
             let _ = egui::Window::new("Unimplemented")
@@ -78,7 +79,11 @@ impl super::Controller {
             self.scale_bar(ctx);
         }
         if self.show_fps {
-            Self::fps_window(ctx, *ui_state);
+            Self::fps_window(
+                ctx,
+                *ui_state,
+                self.shader_last_elapsed.filter(|_| self.show_timings),
+            );
         }
         if self.keyboard_help {
             Self::keyboard_help_window(ctx);

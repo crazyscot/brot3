@@ -40,6 +40,11 @@ pub(crate) struct RenderPass {
     #[cfg(feature = "emulate_constants")]
     emulate_constants_buffer: EmulateConstantsBuffer,
     vertex_buffer_layouts: Vec<wgpu::VertexBufferLayout<'static>>,
+    query_set: Option<wgpu::QuerySet>,
+    resolve_buffer: Option<wgpu::Buffer>,
+    destination_buffer: Option<wgpu::Buffer>,
+    destination_buffer_size: u64,
+    pub(crate) last_elapsed: Option<std::time::Duration>,
 }
 
 impl RenderPass {
@@ -88,6 +93,36 @@ impl RenderPass {
             },
         );
 
+        let query_set;
+        let resolve_buffer;
+        let destination_buffer;
+        let destination_buffer_size;
+        if ctx.timestamps {
+            destination_buffer_size = 16; // 2 timestamps * 8 bytes (u64)
+            query_set = Some(ctx.device.create_query_set(&wgpu::QuerySetDescriptor {
+                label: Some("benchmark-query-set"),
+                ty: wgpu::QueryType::Timestamp,
+                count: 2, // 1 for start, 1 for end
+            }));
+            resolve_buffer = Some(ctx.device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("query-resolve-buffer"),
+                size: destination_buffer_size,
+                usage: wgpu::BufferUsages::QUERY_RESOLVE | wgpu::BufferUsages::COPY_SRC,
+                mapped_at_creation: false,
+            }));
+            destination_buffer = Some(ctx.device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("query-read-buffer"),
+                size: destination_buffer_size,
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                mapped_at_creation: false,
+            }));
+        } else {
+            query_set = None;
+            resolve_buffer = None;
+            destination_buffer = None;
+            destination_buffer_size = 0;
+        }
+
         Ok(Self {
             pipelines,
             pipeline_layouts,
@@ -100,6 +135,11 @@ impl RenderPass {
             #[cfg(feature = "emulate_constants")]
             emulate_constants_buffer,
             vertex_buffer_layouts,
+            query_set,
+            resolve_buffer,
+            destination_buffer,
+            destination_buffer_size,
+            last_elapsed: None,
         })
     }
 
@@ -146,6 +186,32 @@ impl RenderPass {
         ui_state: &mut UiState,
         controller: &mut C,
     ) -> bool {
+        // Deal with the previous timestamps, if any
+        if let Some(destination_buffer) = &self.destination_buffer {
+            destination_buffer
+                .slice(..)
+                .map_async(wgpu::MapMode::Read, |_| ());
+            let _ = ctx
+                .device
+                .poll(wgpu::PollType::wait_indefinitely())
+                .unwrap();
+            let timestamp_view = destination_buffer
+                .slice(..self.destination_buffer_size)
+                .get_mapped_range();
+            let timestamps: &[u64] = bytemuck::cast_slice(&timestamp_view);
+            let ticks = timestamps[1].saturating_sub(timestamps[0]);
+            let resolution = ctx.queue.get_timestamp_period();
+            #[allow(
+                clippy::cast_possible_truncation,
+                clippy::cast_sign_loss,
+                clippy::cast_precision_loss
+            )]
+            let nanos = (ticks as f64 * f64::from(resolution)) as u64;
+            drop(timestamp_view);
+            destination_buffer.unmap();
+            self.last_elapsed = Some(std::time::Duration::from_nanos(nanos));
+        }
+
         let state = ctx.surface.get_current_texture();
         let texture = match state {
             CurrentSurfaceTexture::Success(texture) => texture,
@@ -200,10 +266,19 @@ impl RenderPass {
                 label: Some("Shader Encoder"),
             });
         {
+            let timestamp_writes = if ctx.timestamps {
+                Some(wgpu::RenderPassTimestampWrites {
+                    query_set: self.query_set.as_ref().unwrap(),
+                    beginning_of_pass_write_index: Some(0), // Slot 0
+                    end_of_pass_write_index: Some(1),       // Slot 1
+                })
+            } else {
+                None
+            };
             let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Shader Render Pass"),
                 occlusion_query_set: None,
-                timestamp_writes: None,
+                timestamp_writes,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: output_view,
                     depth_slice: None,
@@ -250,6 +325,21 @@ impl RenderPass {
             } else {
                 rpass.draw(0..3, 0..1);
             }
+        }
+        if ctx.timestamps {
+            encoder.resolve_query_set(
+                self.query_set.as_ref().unwrap(),
+                0..2, // Resolve both the start and end timestamps
+                self.resolve_buffer.as_ref().unwrap(),
+                0,
+            );
+            encoder.copy_buffer_to_buffer(
+                self.resolve_buffer.as_ref().unwrap(),
+                0,
+                self.destination_buffer.as_ref().unwrap(),
+                0,
+                16,
+            );
         }
 
         let _ = ctx.queue.submit(Some(encoder.finish()));

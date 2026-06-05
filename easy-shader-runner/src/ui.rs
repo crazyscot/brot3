@@ -42,6 +42,8 @@ pub struct UiState {
     /// once actioned.
     pub fullscreen_requested: Option<bool>,
     pub escape_exits: bool,
+
+    pub last_elapsed: Option<std::time::Duration>,
 }
 
 impl UiState {
@@ -54,6 +56,7 @@ impl UiState {
             fullscreen_active: false,
             fullscreen_requested: None,
             escape_exits: options.escape_exits,
+            last_elapsed: None,
         }
     }
 

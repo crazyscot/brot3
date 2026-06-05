@@ -155,6 +155,7 @@ impl<C: ControllerTrait + Send> App<C> {
         );
         #[cfg(not(target_arch = "wasm32"))]
         gfx.ctx.set_vsync(gfx.ui_state.vsync);
+        gfx.ui_state.last_elapsed = gfx.rpass.last_elapsed;
 
         // Fullscreen is tricky!
         // On macOS, the keypress Ctrl+Command+F (fullscreen) is handled by the OS.

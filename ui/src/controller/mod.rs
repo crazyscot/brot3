@@ -61,6 +61,7 @@ pub(crate) struct Controller {
     show_save: bool,
     show_save_position: bool,
     show_open: bool,
+    show_timings: bool,
 
     // UI operational data
     last_instant: Instant,
@@ -78,6 +79,7 @@ pub(crate) struct Controller {
     inspector: Inspector,
     render_pass: u32,
     last_perturb_time: std::time::Duration,
+    shader_last_elapsed: Option<std::time::Duration>,
 
     // Loading & saving
     load_save_active: Arc<AtomicBool>,
@@ -143,6 +145,7 @@ impl Controller {
             show_save: false,
             show_save_position: false,
             show_open: false,
+            show_timings: false,
 
             last_instant: Instant::now(),
             mouse_position: DVec2::default(),
@@ -166,6 +169,7 @@ impl Controller {
             error_message_channel: Channel::default(),
             loading_task: None,
             last_perturb_time: std::time::Duration::default(),
+            shader_last_elapsed: None,
         };
         c.just_loaded();
         c

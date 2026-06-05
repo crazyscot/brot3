@@ -81,7 +81,11 @@ impl super::Controller {
         });
     }
 
-    pub(crate) fn fps_window(ctx: &egui::Context, ui_state: EsrUiState) {
+    pub(crate) fn fps_window(
+        ctx: &egui::Context,
+        ui_state: EsrUiState,
+        shader_time: Option<std::time::Duration>,
+    ) {
         egui::Window::new("fps")
             .title_bar(false)
             .resizable(false)
@@ -89,6 +93,11 @@ impl super::Controller {
             .anchor(egui::Align2::LEFT_BOTTOM, egui::Vec2::new(10., -10.))
             .show(ctx, |ui| {
                 ui.label(format!("FPS: {}", ui_state.fps()));
+                ui.end_row();
+                if let Some(elapsed) = shader_time {
+                    ui.label(format!("Shader time: {elapsed:.2?}"));
+                    ui.end_row();
+                }
             });
     }
 

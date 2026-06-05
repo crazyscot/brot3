@@ -71,12 +71,15 @@ impl super::Controller {
                         ui.end_row();
                     }
                     if self.perturbation_mode {
-                        ui.label("... points");
+                        ui.label("Ref points");
                         ui.monospace(self.perturbation.points.len().to_string());
                         ui.end_row();
-                        ui.label("... time");
-                        ui.monospace(format!("{:.2?}", self.last_perturb_time));
-                        ui.end_row();
+
+                        if self.show_timings {
+                            ui.label("Ref time");
+                            ui.monospace(format!("{:.2?}", self.last_perturb_time));
+                            ui.end_row();
+                        }
                     }
                 });
 

@@ -57,8 +57,7 @@ impl super::Controller {
                     checkbox!(ui, self.show_coords_window, "Data read-out", "F3");
                     checkbox!(ui, self.show_scale_bar, "Scale bar", "F4");
 
-                    // Fullscreen is tricky. On OSX the OS may change the state; we are not the sole
-                    // arbiters.
+                    // Fullscreen is tricky. On OSX the OS may change the state.
                     if checkbox!(
                         ui,
                         self.fullscreen_checkbox,
@@ -80,7 +79,9 @@ impl super::Controller {
                     ui.menu_button("Debug", |ui| {
                         checkbox!(ui, self.show_fps, "Show FPS");
                         checkbox!(ui, self.show_shader, "Show selected shader");
+                        checkbox!(ui, self.show_timings, "Show timings");
 
+                        ui.separator();
                         checkbox!(ui, self.vsync, "vsync");
                         checkbox!(ui, self.always_reiterate, "Always reiterate");
                         ui.separator();

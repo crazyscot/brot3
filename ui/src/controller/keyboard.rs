@@ -193,6 +193,7 @@ impl super::Controller {
                     self.show_coords_window = false;
                     self.show_scale_bar = false;
                     self.always_reiterate = true;
+                    self.show_timings = true;
                 } else if cfg!(not(target_os = "macos")) {
                     // F11 only operates fullscreen on Windows and Linux; Apple uses Ctrl+Cmd+F, and
                     // that's implemented by the OS.
