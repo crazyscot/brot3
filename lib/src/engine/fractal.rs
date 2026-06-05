@@ -645,17 +645,26 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     dz_p.re = if use_z_re_abs { zz_re_abs } else { zz_re };
     */
 
-    // Now we can compute this iteration's value of `z`
-    vars.ref_iter += 1;
-    if vars.ref_iter == consts.n_reference {
-        vars.ref_iter = 0;
-    }
-    let z = Complex::from(consts.reference_points[vars.ref_iter]) + dz_p;
+    // Advance the reference orbit index, wrapping around if needed.
+    // Track `wrapped` as a bool so it can be reused in the rebase condition below,
+    // avoiding a redundant comparison.
+    let ref_iter_next = vars.ref_iter + 1;
+    let wrapped = ref_iter_next == consts.n_reference;
+    let ref_iter_next = if wrapped { 0 } else { ref_iter_next };
+
+    let z = Complex::from(consts.reference_points[ref_iter_next]) + dz_p;
     vars.norm_sqr = z.abs_sq();
-    if vars.norm_sqr < dz_p.abs_sq() || vars.ref_iter == 0 {
-        dz_p = z;
-        vars.ref_iter = 0;
-    }
+
+    // Rebase when |z| < |dz| (glitch detection) or when the reference orbit just wrapped.
+    // - dz_p.abs_sq() is computed once and reused (saves 2 multiplications per iteration).
+    // - Non-short-circuit `|` prevents a conditional branch on the bool expression.
+    // - if/else expressions for the assignments compile to OpSelect rather than branches,
+    //   eliminating a source of GPU warp divergence in the main loop.
+    let dz_p_abs_sq = dz_p.abs_sq();
+    let rebase = (vars.norm_sqr < dz_p_abs_sq) | wrapped;
+    dz_p = if rebase { z } else { dz_p };
+    vars.ref_iter = if rebase { 0 } else { ref_iter_next };
+
     vars.z = z;
     vars.dz_perturb = dz_p;
 }
