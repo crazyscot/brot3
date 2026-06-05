@@ -176,8 +176,6 @@ pub enum BoundaryClass {
     VeryClose,
     Close,
     NotClose,
-    /// We don't care about boundary classes right now
-    Ignored,
 }
 
 #[cfg(test)]

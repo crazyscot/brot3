@@ -37,6 +37,8 @@ perturbation-mode = []
 ## Support for standard mode in the shader.
 ## At least one of standard-mode and perturbation-mode must be set.
 standard-mode = []
+## Support for distance estimate calculations in the shader (which are moderately expensive)
+distance-estimate = []
 
 [dependencies]
 bitflags = { workspace = true, features = ["bytemuck"] }

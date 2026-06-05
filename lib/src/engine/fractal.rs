@@ -40,7 +40,9 @@ use crate::{
 };
 
 // *sigh* these are constants are pub(crate) in core
+#[cfg(feature = "distance-estimate")]
 const EXP_MASK_F32: u32 = 0x7F80_0000;
+#[cfg(feature = "distance-estimate")]
 const MAN_MASK_F32: u32 = 0x7F_FFFF;
 /// Infinity test lifted from `core::f32`.
 ///
@@ -53,6 +55,7 @@ const MAN_MASK_F32: u32 = 0x7F_FFFF;
 /// So we rawdog it ourselves.
 ///
 /// However, `f32::is_nan()` appears to be GPU-safe.
+#[cfg(feature = "distance-estimate")]
 fn f32_is_infinite(f: f32) -> bool {
     let b = f.to_bits();
     (b & EXP_MASK_F32 == EXP_MASK_F32) && (b & MAN_MASK_F32 == 0)
@@ -247,6 +250,7 @@ impl<E: Exponentiator> RunningConstants<'_, E> {
 #[allow(missing_debug_implementations)]
 pub struct RunningVariables {
     z: Complex,
+    #[cfg(feature = "distance-estimate")]
     dz_dist: Complex,
     #[doc(hidden)]
     pub norm_sqr: f32,
@@ -324,7 +328,7 @@ where
         let mut iters = 0;
         let mut vars = RunningVariables::default();
         if !self.frag.flags.contains(Flags::DISTANCE_ESTIMATE) {
-            vars.boundary = BoundaryClass::Ignored;
+            vars.boundary = BoundaryClass::Indeterminate;
         }
 
         let mut prev_z = Complex::ZERO;
@@ -355,7 +359,7 @@ where
                     smoothed,
                     self.consts.c.arg(),
                     self.consts.c.abs_sq(),
-                    BoundaryClass::Ignored,
+                    BoundaryClass::Indeterminate,
                 );
             }
             return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, BoundaryClass::Inside);
@@ -390,27 +394,31 @@ where
             F::iterate_algorithm(&self.consts, &mut vars, iters);
             iters += 1;
             deprintln!(
-                "DBG: iters={iters}, z={z}, dz_dist={dz_dist}, |z|^2={norm_sqr}",
+                "DBG: iters={iters}, z={z}, |z|^2={norm_sqr}",
                 z = vars.z,
-                dz_dist = vars.dz_dist,
                 norm_sqr = vars.norm_sqr,
             );
+            #[cfg(feature = "distance-estimate")]
+            deprintln!("dz_dist={}", vars.dz_dist);
         }
 
         // distance estimate, angle, radius
+        #[cfg(feature = "distance-estimate")]
         let za = vars.z.abs();
         // Branchless ln(za): when za==0, iters==max_iter (escape requires norm_sqr >= threshold),
         // so ln_za is never used in the final boundary result; .max() keeps all lanes finite
         // and avoids the 0*(-inf)=NaN that the old conditional guarded against.
+        #[cfg(feature = "distance-estimate")]
         let ln_za = za.max(f32::MIN_POSITIVE).ln();
 
         // This section used to be three nested branches, which caused warp divergence on GPU.
         // This way round, all lanes execute the same instructions and there is no warp divergence.
         //
-        // Lanes with boundary==VeryClose or Ignored have their computed indeterminate_class
+        // Lanes with boundary==VeryClose or Indeterminate have their computed indeterminate_class
         // unconditionally discarded by the outermost select, so computing it for them is safe.
 
         // abs() overflows on deeper zooms, so use geometry to calculate |dz_dist| differently.
+        #[cfg(feature = "distance-estimate")]
         if vars.boundary == BoundaryClass::Indeterminate {
             let abs_dz = vars.dz_dist.abs();
             let distance = 2.0 * ln_za * za / abs_dz;
@@ -470,6 +478,7 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     vars: &mut RunningVariables,
     #[allow(unused_variables)] iters: u32,
 ) {
+    #[cfg(feature = "distance-estimate")]
     let power = consts.exponentiator.power();
     let z_in = vars.z;
 
@@ -496,6 +505,7 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     // Send output
     vars.z = z;
     vars.norm_sqr = z.abs_sq();
+    #[cfg(feature = "distance-estimate")]
     if vars.boundary == BoundaryClass::Indeterminate {
         vars.dz_dist =
             consts.exponentiator.apply_power_minus_1_to(z_in) * vars.dz_dist * power + 1.0;
@@ -626,6 +636,7 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
         + consts.dc;
 
     // TODO: Non-2 exponents are not yet verified.
+    #[cfg(feature = "distance-estimate")]
     if vars.boundary == BoundaryClass::Indeterminate {
         vars.dz_dist = 2.0 * vars.z * vars.dz_dist + 1.0;
         if f32_is_infinite(vars.dz_dist.re) || f32_is_infinite(vars.dz_dist.im) {
@@ -734,9 +745,11 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use super::Flags;
+    #[cfg(feature = "distance-estimate")]
+    use crate::{BigVec2, data::BoundaryClass};
     use crate::{
-        BigVec2, Vec2,
-        data::{Algorithm, BoundaryClass, FragmentConstants, Palette, PushExponent},
+        Vec2,
+        data::{Algorithm, FragmentConstants, Palette, PushExponent},
         engine,
         util::Size,
         vec2,
@@ -782,6 +795,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "distance-estimate")]
     fn distance_estimator_boundary_classification() {
         let centre = vec2(-1.5, 0.0);
         let centre_big = BigVec2::try_new(centre.x, centre.y).unwrap();

@@ -14,6 +14,7 @@ const GENERAL_FEATURES: &[&str] = &[
     "variable-exponent",
     "perturbation-mode",
     "standard-mode",
+    "distance-estimate",
 ];
 const MANDELBROT_POW2_FEATURES: &[&str] = &["standard-mode"];
 const MANDELBROT_POW2_DEEP_FEATURES: &[&str] = &["perturbation-mode"];

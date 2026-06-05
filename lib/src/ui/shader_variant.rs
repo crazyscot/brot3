@@ -17,7 +17,10 @@ impl ShaderVariant {
     /// mode.
     #[must_use]
     pub fn from_ui_state_with_perturbation_mode(state: &UiState, perturbation_mode: bool) -> Self {
-        if state.algorithm != Algorithm::Mandelbrot || !state.exponent.is_two() {
+        if state.algorithm != Algorithm::Mandelbrot
+            || !state.exponent.is_two()
+            || state.palette.brightness_style == crate::data::Modifier::Filaments
+        {
             return Self::General;
         }
         if perturbation_mode {
@@ -80,6 +83,7 @@ mod tests {
                 "variable-exponent",
                 "perturbation-mode",
                 "standard-mode",
+                "distance-estimate",
             ]
         );
         assert_eq!(
@@ -133,6 +137,13 @@ mod tests {
             ShaderVariant::from_ui_state(&state),
             ShaderVariant::MandelbrotPow2Deep
         );
+    }
+
+    #[test]
+    fn picks_general_for_distance_estimate() {
+        let mut state = base_state();
+        state.palette.brightness_style = crate::data::Modifier::Filaments;
+        assert_eq!(ShaderVariant::from_ui_state(&state), ShaderVariant::General);
     }
 
     #[test]
