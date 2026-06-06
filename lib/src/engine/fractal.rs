@@ -4,6 +4,7 @@
 //! (c) 2025-6 Ross Younger
 
 #![allow(missing_docs)]
+#![allow(clippy::needless_bitwise_bool)] // This makes sense in reducing warp divergence on GPU, even if it looks weird on CPU.
 
 #[cfg(not(spirv))]
 const DEBUG_FRACTAL: bool = false;
@@ -58,7 +59,7 @@ const MAN_MASK_F32: u32 = 0x7F_FFFF;
 #[cfg(feature = "distance-estimate")]
 fn f32_is_infinite(f: f32) -> bool {
     let b = f.to_bits();
-    (b & EXP_MASK_F32 == EXP_MASK_F32) && (b & MAN_MASK_F32 == 0)
+    (b & EXP_MASK_F32 == EXP_MASK_F32) & (b & MAN_MASK_F32 == 0)
 }
 
 #[macro_export]
@@ -347,8 +348,8 @@ where
         // divergence cost). Only valid when no algorithm modifiers alter the orbit.
         #[cfg(feature = "DISABLED_power_zero_short_circuit")]
         #[allow(clippy::float_cmp)]
-        if self.consts.exponentiator.power() == 0.0
-            && self.consts.algorithm == Algorithm::Mandelbrot
+        if (self.consts.exponentiator.power() == 0.0)
+            & (self.consts.algorithm == Algorithm::Mandelbrot)
         {
             let fixed_point = Complex::ONE + self.consts.c;
             let fp_norm_sq = fixed_point.abs_sq();
@@ -377,22 +378,22 @@ where
         //   Main cardioid:    q·(q + (re-¼)) ≤ ¼·im²,  where q = (re-¼)² + im²
         //   Period-2 bulb:    (re+1)² + im² < 1/16
         #[allow(clippy::float_cmp)]
-        if self.consts.exponentiator.power() == 2.0
-            && self.consts.algorithm == Algorithm::Mandelbrot
+        if (self.consts.exponentiator.power() == 2.0)
+            & (self.consts.algorithm == Algorithm::Mandelbrot)
         {
             let c = self.consts.c;
             let cr14 = c.re - 0.25;
             let im2 = c.im * c.im;
             let q = cr14 * cr14 + im2;
             let cr1 = c.re + 1.0;
-            if q * (q + cr14) <= 0.25 * im2 || cr1 * cr1 + im2 < 0.0625 {
+            if (q * (q + cr14) <= 0.25 * im2) | (cr1 * cr1 + im2 < 0.0625) {
                 return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, BoundaryClass::Inside);
             }
         }
 
         let mut norm_sqr = 0.0;
 
-        while iters < self.frag.max_iter && norm_sqr < ESCAPE_THRESHOLD_SQ {
+        while (iters < self.frag.max_iter) & (norm_sqr < ESCAPE_THRESHOLD_SQ) {
             #[cfg(feature = "all-fractals")]
             F::pre_modify_point(&self.consts, &mut vars);
             prev_z = vars.z;
@@ -499,7 +500,7 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
         let z_re_abs = z_re.abs();
         let is_odd = !iters.is_multiple_of(2);
 
-        let use_z_re_abs = params.iter_re_abs || (params.iter_re_variant && is_odd);
+        let use_z_re_abs = params.iter_re_abs | (params.iter_re_variant & is_odd);
         z.re = if use_z_re_abs { z_re_abs } else { z_re };
     }
 
@@ -513,7 +514,7 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
         let power = consts.exponentiator.power();
         vars.dz_dist =
             consts.exponentiator.apply_power_minus_1_to(z_in) * vars.dz_dist * power + 1.0;
-        if f32_is_infinite(vars.dz_dist.re) || f32_is_infinite(vars.dz_dist.im) {
+        if f32_is_infinite(vars.dz_dist.re) | f32_is_infinite(vars.dz_dist.im) {
             vars.boundary = BoundaryClass::VeryClose;
         }
     }
@@ -647,7 +648,7 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     #[cfg(feature = "distance-estimate")]
     if vars.boundary == BoundaryClass::Indeterminate {
         vars.dz_dist = 2.0 * vars.z * vars.dz_dist + 1.0;
-        if f32_is_infinite(vars.dz_dist.re) || f32_is_infinite(vars.dz_dist.im) {
+        if f32_is_infinite(vars.dz_dist.re) | f32_is_infinite(vars.dz_dist.im) {
             vars.boundary = BoundaryClass::VeryClose;
         }
     }
@@ -660,7 +661,7 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     let zz_re = dz_p.re;
     let zz_re_abs = zz_re.abs();
     let is_odd = !iter.is_multiple_of(2);
-    let use_z_re_abs = params.iter_re_abs || (params.iter_re_variant && is_odd);
+    let use_z_re_abs = params.iter_re_abs | (params.iter_re_variant & is_odd);
     dz_p.re = if use_z_re_abs { zz_re_abs } else { zz_re };
     */
 
@@ -716,7 +717,7 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
     points.push(Vec2::ZERO);
     let mut iter = 0;
 
-    while iter < max_iter && z.norm_squared() < threshold_sq {
+    while (iter < max_iter) & (z.norm_squared() < threshold_sq) {
         #[cfg(feature = "all-fractals")]
         mandelbrot_family_pre_modify_point_inner_big(&mut z, modifiers);
 
@@ -731,8 +732,8 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
             // Celtic uses z_re_abs instead of z_re.
             // Variant may or may not take z_re_abs depending on the iters count.
             let is_odd = !iter.is_multiple_of(2);
-            let use_z_re_abs = modifiers.iter_re_abs || (modifiers.iter_re_variant && is_odd);
-            if use_z_re_abs && z.x.sign() == Sign::Negative {
+            let use_z_re_abs = modifiers.iter_re_abs | (modifiers.iter_re_variant & is_odd);
+            if use_z_re_abs & (z.x.sign() == Sign::Negative) {
                 z.x *= Sign::Negative;
             }
         }
@@ -833,7 +834,8 @@ mod tests {
             );
             let result = super::render(&consts, offset, &ref_points);
             println!("{result:?}");
-            result.boundary == BoundaryClass::Close || result.boundary == BoundaryClass::VeryClose
+            (result.boundary == BoundaryClass::Close)
+                | (result.boundary == BoundaryClass::VeryClose)
         };
         assert!(!run_case(0));
         assert!(!run_case(15));
