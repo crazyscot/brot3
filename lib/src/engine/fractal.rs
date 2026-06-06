@@ -252,8 +252,6 @@ pub struct RunningVariables {
     z: Complex,
     #[cfg(feature = "distance-estimate")]
     dz_dist: Complex,
-    #[doc(hidden)]
-    pub norm_sqr: f32,
     dz_perturb: Complex,
     ref_iter: usize,
     boundary: BoundaryClass,
@@ -386,18 +384,17 @@ where
             }
         }
 
-        while iters < self.frag.max_iter && vars.norm_sqr < ESCAPE_THRESHOLD_SQ {
+        let mut norm_sqr = 0.0;
+
+        while iters < self.frag.max_iter && norm_sqr < ESCAPE_THRESHOLD_SQ {
             #[cfg(feature = "all-fractals")]
             F::pre_modify_point(&self.consts, &mut vars);
             prev_z = vars.z;
-            prev_norm_sqr = vars.norm_sqr;
+            prev_norm_sqr = norm_sqr;
             F::iterate_algorithm(&self.consts, &mut vars, iters);
             iters += 1;
-            deprintln!(
-                "DBG: iters={iters}, z={z}, |z|^2={norm_sqr}",
-                z = vars.z,
-                norm_sqr = vars.norm_sqr,
-            );
+            norm_sqr = vars.z.abs_sq();
+            deprintln!("DBG: iters={iters}, z={z}, |z|^2={norm_sqr}", z = vars.z);
             #[cfg(feature = "distance-estimate")]
             deprintln!("dz_dist={}", vars.dz_dist);
         }
@@ -435,7 +432,6 @@ where
             };
         }
         let angle = prev_z.arg();
-        let norm_sqr = vars.norm_sqr;
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
         // The log(exponent) term is necessary for powers other than 2.
@@ -501,7 +497,6 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
 
     // Send output
     vars.z = z;
-    vars.norm_sqr = z.abs_sq();
     #[cfg(feature = "distance-estimate")]
     if vars.boundary == BoundaryClass::Indeterminate {
         let power = consts.exponentiator.power();
@@ -666,15 +661,13 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     let ref_iter_next = if wrapped { 0 } else { ref_iter_next };
 
     let z = Complex::from(consts.reference_points[ref_iter_next]) + dz_p;
-    vars.norm_sqr = z.abs_sq();
 
     // Rebase when |z| < |dz| (glitch detection) or when the reference orbit just wrapped.
     // - dz_p.abs_sq() is computed once and reused (saves 2 multiplications per iteration).
     // - Non-short-circuit `|` prevents a conditional branch on the bool expression.
     // - if/else expressions for the assignments compile to OpSelect rather than branches,
     //   eliminating a source of GPU warp divergence in the main loop.
-    let dz_p_abs_sq = dz_p.abs_sq();
-    let rebase = (vars.norm_sqr < dz_p_abs_sq) | wrapped;
+    let rebase = (z.abs_sq() < dz_p.abs_sq()) | wrapped;
     dz_p = if rebase { z } else { dz_p };
     vars.ref_iter = if rebase { 0 } else { ref_iter_next };
 
