@@ -193,21 +193,24 @@ where
 {
     /// Absolute complex address of the point we are rendering
     c: Complex,
-    /// Relative complex address of the point we are rendering (relative to the centre of the
-    /// viewport). Used only in perturbation mode.
-    dc: Complex,
     algorithm: Algorithm,
     #[cfg(feature = "all-fractals")]
     modifiers: AlgorithmModifiers,
+    #[cfg(feature = "perturbation-mode")]
+    /// Relative complex address of the point we are rendering (relative to the centre of the
+    /// viewport). Used only in perturbation mode.
+    dc: Complex,
     /// Reference points (only used in perturbation mode)
+    #[cfg(feature = "perturbation-mode")]
     #[doc(hidden)]
     pub reference_points: &'a [Vec2],
     /// Number of reference points (only used in perturbation mode)
+    #[cfg(feature = "perturbation-mode")]
     #[doc(hidden)]
     pub n_reference: usize,
     #[cfg(feature = "variable-exponent")]
     exponentiator: E,
-    phantom: PhantomData<E>,
+    phantom: PhantomData<&'a E>,
 }
 
 impl<'a, E: Exponentiator> RunningConstants<'a, E> {
@@ -219,11 +222,14 @@ impl<'a, E: Exponentiator> RunningConstants<'a, E> {
     ) -> Self {
         Self {
             c,
-            dc: Complex::ZERO,
             algorithm,
             #[cfg(feature = "all-fractals")]
             modifiers: AlgorithmModifiers::from(algorithm),
+            #[cfg(feature = "perturbation-mode")]
+            dc: Complex::ZERO,
+            #[cfg(feature = "perturbation-mode")]
             reference_points: &[],
+            #[cfg(feature = "perturbation-mode")]
             n_reference: 0,
             #[cfg(feature = "variable-exponent")]
             exponentiator,
@@ -236,18 +242,21 @@ impl<'a, E: Exponentiator> RunningConstants<'a, E> {
         c: Complex,
         #[allow(unused_variables)] exponentiator: E,
         algorithm: Algorithm,
-        dc: Complex,
-        reference_points: &'a [Vec2],
+        #[allow(unused_variables)] dc: Complex,
+        #[allow(unused_variables)] reference_points: &'a [Vec2],
     ) -> RunningConstants<'a, E> {
         RunningConstants {
             c,
-            dc,
             algorithm,
             #[cfg(feature = "all-fractals")]
             modifiers: AlgorithmModifiers::from(algorithm),
             #[cfg(feature = "variable-exponent")]
             exponentiator,
+            #[cfg(feature = "perturbation-mode")]
+            dc,
+            #[cfg(feature = "perturbation-mode")]
             reference_points,
+            #[cfg(feature = "perturbation-mode")]
             n_reference: reference_points.len(),
             phantom: PhantomData,
         }
@@ -264,10 +273,12 @@ pub struct RunningVariables {
     z: Complex,
     #[cfg(feature = "distance-estimate")]
     dz_dist: Complex,
-    dz_perturb: Complex,
-    ref_iter: usize,
     #[cfg(feature = "distance-estimate")]
     boundary: BoundaryClass,
+    #[cfg(feature = "perturbation-mode")]
+    dz_perturb: Complex,
+    #[cfg(feature = "perturbation-mode")]
+    ref_iter: usize,
 }
 
 /// Having a match expression in a hot loop hurts performance pretty badly,
@@ -642,6 +653,7 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
 
 #[doc(hidden)]
 #[inline]
+#[cfg(feature = "perturbation-mode")]
 pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     vars: &mut RunningVariables,
