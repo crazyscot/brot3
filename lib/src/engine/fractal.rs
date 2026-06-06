@@ -629,8 +629,12 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
 
     // Here's our old friend z := z^n + c, in perturbation form:
     // TODO: Do the maths for non-2 exponents.
-    dz_p = 2.0 * dz_p * Complex::from(consts.reference_points[vars.ref_iter])
-        + dz_p * dz_p
+    // dz_p = 2.0 * dz_p * Complex::from(consts.reference_points[vars.ref_iter]) + dz_p * dz_p
+    let refpt = consts.reference_points[vars.ref_iter];
+    dz_p = Complex {
+        re: 2.0 * refpt.x + dz_p.re,
+        im: 2.0 * refpt.y + dz_p.im,
+    } * dz_p
         + consts.dc;
 
     // TODO: Non-2 exponents are not yet verified.
