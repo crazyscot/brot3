@@ -18,10 +18,12 @@ crate-type = ["dylib", "rlib"]
 [[bench]]
 name = "cycles"
 harness = false
+required-features = ["perturbation-mode", "standard-mode"]
 
 [[bench]]
 name = "criterion"
 harness = false
+required-features = ["perturbation-mode"]
 
 [features]
 default = []

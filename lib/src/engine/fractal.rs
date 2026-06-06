@@ -157,12 +157,15 @@ pub fn render(
             }
         } else if #[cfg(feature = "perturbation-mode")] {
             // This is a perturbation-only shader, which only supports power 2 right now; ignore variable-exponent
+            debug_assert!(constants.flags.contains(Flags::PERTURBATION_MODE));
             result = run_fractal!(crate::maths::Power2 {}, MandelbrotPerturbed);
         } else if #[cfg(feature = "variable-exponent")] {
             // Standard mode (or no mode selected)
+            debug_assert!(!constants.flags.contains(Flags::PERTURBATION_MODE));
             result = exponent_monomorph!(constants.exponent, run_fractal, MandelbrotFamily);
         } else {
             // Standard mode with no variable exponent support: just power 2
+            debug_assert!(!constants.flags.contains(Flags::PERTURBATION_MODE));
             result = run_fractal!(crate::maths::Power2 {}, MandelbrotFamily);
         }
     }
