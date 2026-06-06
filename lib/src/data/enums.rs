@@ -176,6 +176,7 @@ pub enum BoundaryClass {
     VeryClose,
     Close,
     NotClose,
+    DontCare,
 }
 
 #[cfg(test)]

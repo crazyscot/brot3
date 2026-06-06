@@ -254,6 +254,7 @@ pub struct RunningVariables {
     dz_dist: Complex,
     dz_perturb: Complex,
     ref_iter: usize,
+    #[cfg(feature = "distance-estimate")]
     boundary: BoundaryClass,
 }
 
@@ -325,8 +326,10 @@ where
     fn run(self) -> PointResult {
         let mut iters = 0;
         let mut vars = RunningVariables::default();
+        #[cfg(feature = "distance-estimate")]
         if !self.frag.flags.contains(Flags::DISTANCE_ESTIMATE) {
-            vars.boundary = BoundaryClass::Indeterminate;
+            // Set to something other than Indeterminate to skip the calculation
+            vars.boundary = BoundaryClass::DontCare;
         }
 
         let mut prev_z = Complex::ZERO;
@@ -408,8 +411,11 @@ where
         // unconditionally discarded by the outermost select, so computing it for them is safe.
 
         // abs() overflows on deeper zooms, so use geometry to calculate |dz_dist| differently.
+
+        #[cfg(not(feature = "distance-estimate"))]
+        let boundary = BoundaryClass::Indeterminate;
         #[cfg(feature = "distance-estimate")]
-        if vars.boundary == BoundaryClass::Indeterminate {
+        let boundary = if vars.boundary == BoundaryClass::Indeterminate {
             let za = vars.z.abs();
             // Branchless ln(za): when za==0, iters==max_iter (escape requires norm_sqr >=
             // threshold), so ln_za is never used in the final boundary result; .max()
@@ -425,12 +431,14 @@ where
             } else {
                 BoundaryClass::NotClose
             };
-            vars.boundary = if iters == self.frag.max_iter {
+            if iters == self.frag.max_iter {
                 BoundaryClass::Inside
             } else {
                 dist_class
-            };
-        }
+            }
+        } else {
+            vars.boundary
+        };
         let angle = prev_z.arg();
 
         // Fractional escape count: See http://linas.org/art-gallery/escape/escape.html
@@ -449,7 +457,7 @@ where
         // sigh! saturating_add is not currently implemented, so do it ourselves:
         let inside = norm_sqr < ESCAPE_THRESHOLD_SQ;
         iters = if inside { u32::MAX } else { iters };
-        PointResult::new(iters, smoothed_iters, angle, prev_norm_sqr, vars.boundary)
+        PointResult::new(iters, smoothed_iters, angle, prev_norm_sqr, boundary)
     }
 }
 
