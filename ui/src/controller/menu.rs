@@ -25,6 +25,14 @@ macro_rules! checkbox {
     };
 }
 
+macro_rules! item {
+    ($label:expr, $accel:expr) => {
+        egui::Button::new($label)
+            .shortcut_text($accel)
+            .min_size(vec2(ITEM_WIDTH, 0.0))
+    };
+}
+
 #[allow(unused_results)]
 impl super::Controller {
     pub(crate) fn main_menu(&mut self, ctx: &egui::Context) {
@@ -46,13 +54,6 @@ impl super::Controller {
                     #[cfg(not(target_os = "macos"))]
                     let shift_plus = "Shift+";
 
-                    macro_rules! item {
-                        ($label:expr, $accel:expr) => {
-                            egui::Button::new($label)
-                                .shortcut_text($accel)
-                                .min_size(vec2(ITEM_WIDTH, 0.0))
-                        };
-                    }
                     checkbox!(ui, self.show_controls, "Controls", "F2");
                     checkbox!(ui, self.show_coords_window, "Data read-out", "F3");
                     checkbox!(ui, self.show_scale_bar, "Scale bar", "F4");
