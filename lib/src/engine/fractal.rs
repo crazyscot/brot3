@@ -402,14 +402,7 @@ where
             deprintln!("dz_dist={}", vars.dz_dist);
         }
 
-        // distance estimate, angle, radius
-        #[cfg(feature = "distance-estimate")]
-        let za = vars.z.abs();
-        // Branchless ln(za): when za==0, iters==max_iter (escape requires norm_sqr >= threshold),
-        // so ln_za is never used in the final boundary result; .max() keeps all lanes finite
-        // and avoids the 0*(-inf)=NaN that the old conditional guarded against.
-        #[cfg(feature = "distance-estimate")]
-        let ln_za = za.max(f32::MIN_POSITIVE).ln();
+        // Compute distance estimate, angle, radius
 
         // This section used to be three nested branches, which caused warp divergence on GPU.
         // This way round, all lanes execute the same instructions and there is no warp divergence.
@@ -420,6 +413,12 @@ where
         // abs() overflows on deeper zooms, so use geometry to calculate |dz_dist| differently.
         #[cfg(feature = "distance-estimate")]
         if vars.boundary == BoundaryClass::Indeterminate {
+            let za = vars.z.abs();
+            // Branchless ln(za): when za==0, iters==max_iter (escape requires norm_sqr >=
+            // threshold), so ln_za is never used in the final boundary result; .max()
+            // keeps all lanes finite.
+            let ln_za = za.max(f32::MIN_POSITIVE).ln();
+
             let abs_dz = vars.dz_dist.abs();
             let distance = 2.0 * ln_za * za / abs_dz;
             let threshold = self.frag.pixel_spacing() / 4.0;
@@ -478,8 +477,6 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     vars: &mut RunningVariables,
     #[allow(unused_variables)] iters: u32,
 ) {
-    #[cfg(feature = "distance-estimate")]
-    let power = consts.exponentiator.power();
     let z_in = vars.z;
 
     // Raise z to the given power ...
@@ -507,6 +504,7 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     vars.norm_sqr = z.abs_sq();
     #[cfg(feature = "distance-estimate")]
     if vars.boundary == BoundaryClass::Indeterminate {
+        let power = consts.exponentiator.power();
         vars.dz_dist =
             consts.exponentiator.apply_power_minus_1_to(z_in) * vars.dz_dist * power + 1.0;
         if f32_is_infinite(vars.dz_dist.re) || f32_is_infinite(vars.dz_dist.im) {
