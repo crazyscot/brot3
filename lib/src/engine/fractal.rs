@@ -110,12 +110,12 @@ pub fn render(
     reference_points: &[Vec2],
 ) -> PointResult {
     let point = offset + constants.viewport_translate;
+    let dc = Complex::from(offset);
 
-    let (c, dc) = if cfg!(feature = "all-fractals") && constants.algorithm == Algorithm::Mandeldrop
-    {
-        (Complex::from(point).recip(), offset)
+    let c = if cfg!(feature = "all-fractals") && constants.algorithm == Algorithm::Mandeldrop {
+        Complex::from(point).recip()
     } else {
-        (Complex::from(point), offset)
+        Complex::from(point)
     };
 
     macro_rules! run_fractal {
@@ -125,7 +125,7 @@ pub fn render(
                 algorithm: PhantomData::<$alg>,
                 consts: RunningConstants {
                     c,
-                    dc: dc.into(),
+                    dc,
                     algorithm: constants.algorithm,
                     #[cfg(feature = "all-fractals")]
                     modifiers: AlgorithmModifiers::from(constants),
