@@ -43,7 +43,13 @@ fn it_alg_setup(algorithm: Algorithm) -> RunningConstants<'static, Power2> {
 //#[bench::bird(&it_alg_setup(Algorithm::BirdOfPrey))] // same result as m2
 fn iterate_std<E: Exponentiator>(consts: &RunningConstants<'_, E>) {
     let mut vars = RunningVariables::default();
-    mandelbrot_family_iterate_algorithm(black_box(consts), black_box(&mut vars), black_box(0));
+    let mut z = Complex::ZERO;
+    mandelbrot_family_iterate_algorithm(
+        black_box(consts),
+        black_box(&mut z),
+        black_box(&mut vars),
+        black_box(0),
+    );
 }
 
 static CONSTS_M2_DEFAULT: LazyLock<FragmentConstants> = LazyLock::new(|| FragmentConstants {
@@ -138,10 +144,16 @@ impl PerturbedSetup<'_> {
 fn iterate_perturbed(setup: &PerturbedSetup<'_>) {
     let mut vars = RunningVariables::default();
     let mut consts = setup.constants;
+    let mut z = Complex::ZERO;
     consts.n_reference = setup.reference_points.len();
     consts.reference_points = &setup.reference_points;
     // This is a single iteration, so the numbers are quite small.
-    mandelbrot_perturbed_iterate_algorithm(black_box(&consts), black_box(&mut vars), black_box(0));
+    mandelbrot_perturbed_iterate_algorithm(
+        black_box(&consts),
+        &mut z,
+        black_box(&mut vars),
+        black_box(0),
+    );
 }
 
 library_benchmark_group!(

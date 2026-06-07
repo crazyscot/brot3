@@ -273,7 +273,6 @@ impl<'a, E: Exponentiator> RunningConstants<'a, E> {
 /// may not modify it.
 #[allow(missing_debug_implementations)]
 pub struct RunningVariables {
-    z: Complex,
     #[cfg(feature = "distance-estimate")]
     dz_dist: Complex,
     #[cfg(feature = "distance-estimate")]
@@ -358,6 +357,7 @@ where
             vars.boundary = BoundaryClass::DontCare;
         }
 
+        let mut z = Complex::ZERO;
         let mut prev_z;
         let mut prev_norm_sqr;
 
@@ -425,13 +425,13 @@ where
 
         loop {
             #[cfg(feature = "all-fractals")]
-            F::pre_modify_point(&self.consts, &mut vars);
-            prev_z = vars.z;
+            F::pre_modify_point(&self.consts, &mut z);
+            prev_z = z;
             prev_norm_sqr = norm_sqr;
-            F::iterate_algorithm(&self.consts, &mut vars, iters);
+            F::iterate_algorithm(&self.consts, &mut z, iters, &mut vars);
             iters += 1;
-            norm_sqr = vars.z.abs_sq();
-            deprintln!("DBG: iters={iters}, z={z}, |z|^2={norm_sqr}", z = vars.z);
+            norm_sqr = z.abs_sq();
+            deprintln!("DBG: iters={iters}, z={z}, |z|^2={norm_sqr}");
             #[cfg(feature = "distance-estimate")]
             deprintln!("dz_dist={}", vars.dz_dist);
             if (iters >= self.frag.max_iter) | (norm_sqr >= ESCAPE_THRESHOLD_SQ) {
@@ -453,7 +453,7 @@ where
         let boundary = BoundaryClass::Indeterminate;
         #[cfg(feature = "distance-estimate")]
         let boundary = if vars.boundary == BoundaryClass::Indeterminate {
-            let za = vars.z.abs();
+            let za = z.abs();
             // Branchless ln(za): when za==0, iters==max_iter (escape requires norm_sqr >=
             // threshold), so ln_za is never used in the final boundary result; .max()
             // keeps all lanes finite.
@@ -507,23 +507,29 @@ trait AlgorithmDetail<'a, E: Exponentiator> {
     ///
     /// Override as necessary.
     #[cfg(feature = "all-fractals")]
-    fn pre_modify_point(_consts: &RunningConstants<'a, E>, _vars: &mut RunningVariables) {}
+    fn pre_modify_point(_consts: &RunningConstants<'a, E>, _z_io: &mut Complex) {}
 
     /// One iteration of the fractal algorithm.
     ///
     /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
     /// suit all algorithms. Override as necessary.
     #[allow(clippy::trivially_copy_pass_by_ref)]
-    fn iterate_algorithm(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables, iters: u32);
+    fn iterate_algorithm(
+        consts: &RunningConstants<'a, E>,
+        z: &mut Complex,
+        iters: u32,
+        vars: &mut RunningVariables,
+    );
 }
 
 #[inline]
 pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
-    vars: &mut RunningVariables,
+    z_buf: &mut Complex,
+    #[allow(unused_variables)] vars: &mut RunningVariables,
     #[allow(unused_variables)] iters: u32,
 ) {
-    let z_in = vars.z;
+    let z_in = *z_buf;
 
     // Raise z to the given power ...
     #[cfg(feature = "variable-exponent")]
@@ -549,7 +555,7 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     z += consts.c;
 
     // Send output
-    vars.z = z;
+    *z_buf = z;
     #[cfg(feature = "distance-estimate")]
     if vars.boundary == BoundaryClass::Indeterminate {
         let power = consts.exponentiator.power();
@@ -565,9 +571,9 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
 #[cfg(feature = "all-fractals")]
 fn mandelbrot_family_pre_modify_point<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
-    vars: &mut RunningVariables,
+    z: &mut Complex,
 ) {
-    mandelbrot_family_pre_modify_point_inner(&mut vars.z, consts.modifiers);
+    mandelbrot_family_pre_modify_point_inner(z, consts.modifiers);
 }
 
 #[cfg(feature = "all-fractals")]
@@ -626,17 +632,18 @@ struct MandelbrotFamily {}
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
     #[inline]
     #[cfg(feature = "all-fractals")]
-    fn pre_modify_point(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables) {
-        mandelbrot_family_pre_modify_point(consts, vars);
+    fn pre_modify_point(consts: &RunningConstants<'a, E>, z_io: &mut Complex) {
+        mandelbrot_family_pre_modify_point(consts, z_io);
     }
 
     #[inline]
     fn iterate_algorithm(
         consts: &RunningConstants<'a, E>,
-        vars: &mut RunningVariables,
+        z_io: &mut Complex,
         iters: u32,
+        vars: &mut RunningVariables,
     ) {
-        mandelbrot_family_iterate_algorithm(consts, vars, iters);
+        mandelbrot_family_iterate_algorithm(consts, z_io, vars, iters);
     }
 }
 
@@ -646,17 +653,18 @@ struct MandelbrotPerturbed {}
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
     #[inline]
     #[cfg(feature = "all-fractals")]
-    fn pre_modify_point(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables) {
-        mandelbrot_family_pre_modify_point(consts, vars);
+    fn pre_modify_point(consts: &RunningConstants<'a, E>, z_io: &mut Complex) {
+        mandelbrot_family_pre_modify_point(consts, z_io);
     }
 
     #[inline]
     fn iterate_algorithm(
         consts: &RunningConstants<'a, E>,
-        vars: &mut RunningVariables,
+        z_io: &mut Complex,
         iters: u32,
+        vars: &mut RunningVariables,
     ) {
-        mandelbrot_perturbed_iterate_algorithm(consts, vars, iters);
+        mandelbrot_perturbed_iterate_algorithm(consts, z_io, vars, iters);
     }
 }
 
@@ -665,6 +673,7 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
 #[cfg(feature = "perturbation-mode")]
 pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
+    z_io: &mut Complex,
     vars: &mut RunningVariables,
     _iter: u32,
 ) {
@@ -689,7 +698,7 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     // TODO: Non-2 exponents are not yet verified.
     #[cfg(feature = "distance-estimate")]
     if vars.boundary == BoundaryClass::Indeterminate {
-        vars.dz_dist = 2.0 * vars.z * vars.dz_dist + 1.0;
+        vars.dz_dist = 2.0 * *z_io * vars.dz_dist + 1.0;
         if f32_is_infinite(vars.dz_dist.re) | f32_is_infinite(vars.dz_dist.im) {
             vars.boundary = BoundaryClass::VeryClose;
         }
@@ -725,7 +734,7 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     dz_p = if rebase { z } else { dz_p };
     vars.ref_iter = if rebase { 0 } else { ref_iter_next };
 
-    vars.z = z;
+    *z_io = z;
     vars.dz_perturb = dz_p;
 }
 

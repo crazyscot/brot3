@@ -117,11 +117,13 @@ fn iterate_perturbed(c: &mut Criterion) {
         |b, s| {
             b.iter(|| {
                 let mut vars = vars;
+                let mut z = brot3_lib::Complex::ZERO;
                 // This is a single iteration, so the numbers are quite small.
                 mandelbrot_perturbed_iterate_algorithm(
                     black_box(s),
+                    black_box(&mut z),
                     black_box(&mut vars),
-                    black_box(0),
+                    0,
                 );
                 let _ = black_box(vars);
             });
