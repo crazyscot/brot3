@@ -336,8 +336,8 @@ where
             vars.boundary = BoundaryClass::DontCare;
         }
 
-        let mut prev_z = Complex::ZERO;
-        let mut prev_norm_sqr = 0.0;
+        let mut prev_z;
+        let mut prev_norm_sqr;
 
         deprintln!("DBG: run for c={:?}", self.consts.c);
 
@@ -393,7 +393,7 @@ where
 
         let mut norm_sqr = 0.0;
 
-        while (iters < self.frag.max_iter) & (norm_sqr < ESCAPE_THRESHOLD_SQ) {
+        loop {
             #[cfg(feature = "all-fractals")]
             F::pre_modify_point(&self.consts, &mut vars);
             prev_z = vars.z;
@@ -404,6 +404,9 @@ where
             deprintln!("DBG: iters={iters}, z={z}, |z|^2={norm_sqr}", z = vars.z);
             #[cfg(feature = "distance-estimate")]
             deprintln!("dz_dist={}", vars.dz_dist);
+            if (iters >= self.frag.max_iter) | (norm_sqr >= ESCAPE_THRESHOLD_SQ) {
+                break;
+            }
         }
 
         // Compute distance estimate, angle, radius
