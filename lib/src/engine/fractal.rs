@@ -349,48 +349,7 @@ where
     E: Exponentiator,
 {
     fn run(self) -> PointResult {
-        let mut iters = 0;
-        let mut vars = RunningVariables::default();
-        #[cfg(feature = "distance-estimate")]
-        if !self.frag.flags.contains(Flags::DISTANCE_ESTIMATE) {
-            // Set to something other than Indeterminate to skip the calculation
-            vars.boundary = BoundaryClass::DontCare;
-        }
-
-        let mut z = Complex::ZERO;
-        let mut prev_z;
-        let mut prev_norm_sqr;
-
         deprintln!("DBG: run for c={:?}", self.consts.c);
-
-        // Power-zero short-circuit: for f(z) = z^0 + c (no modifiers), the orbit is:
-        //   z₀=0, z₁=c, z₂=1+c, z₃=1+c, ...  (fixed point from iteration 2 onward)
-        // This is analytically solvable; no iteration loop is needed.
-        // `power()` is a push constant → the outer check is a *uniform* branch (no warp
-        // divergence cost). Only valid when no algorithm modifiers alter the orbit.
-        #[cfg(feature = "DISABLED_power_zero_short_circuit")]
-        #[allow(clippy::float_cmp)]
-        if (self.consts.exponentiator.power() == 0.0)
-            & (self.consts.algorithm == Algorithm::Mandelbrot)
-        {
-            let fixed_point = Complex::ONE + self.consts.c;
-            let fp_norm_sq = fixed_point.abs_sq();
-            if fp_norm_sq >= ESCAPE_THRESHOLD_SQ {
-                // Orbit escapes at iteration 2.
-                // prev_z=c, prev_norm_sqr=|c|² (values just before the escaping iteration).
-                let log_log_zn = (fp_norm_sq.log2() * 0.5).log2();
-                let smoothed =
-                    1.0 + ESCAPE_THRESHOLD_LOGLOG2 - log_log_zn / self.consts.exponentiator.log2();
-                return PointResult::new(
-                    2,
-                    smoothed,
-                    self.consts.c.arg(),
-                    self.consts.c.abs_sq(),
-                    BoundaryClass::Indeterminate,
-                );
-            }
-            return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, BoundaryClass::Inside);
-        }
 
         // Cardioid and period-2 bulb short-circuit for standard Mandelbrot (power=2, no
         // modifiers). Points in these regions are analytically guaranteed to be inside the
@@ -420,6 +379,20 @@ where
                 return PointResult::new(u32::MAX, 0.0, 0.0, 0.0, BoundaryClass::Inside);
             }
         }
+        self.hot_loop()
+    }
+
+    fn hot_loop(self) -> PointResult {
+        let mut iters = 0;
+        let mut vars = RunningVariables::default();
+        #[cfg(feature = "distance-estimate")]
+        if !self.frag.flags.contains(Flags::DISTANCE_ESTIMATE) {
+            // Set to something other than Indeterminate to skip the calculation
+            vars.boundary = BoundaryClass::DontCare;
+        }
+        let mut z = Complex::ZERO;
+        let mut prev_z;
+        let mut prev_norm_sqr;
 
         let mut norm_sqr = 0.0;
 
