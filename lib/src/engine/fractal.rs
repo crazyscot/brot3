@@ -193,6 +193,7 @@ where
 {
     /// Absolute complex address of the point we are rendering
     c: Complex,
+    #[cfg(feature = "all-fractals")]
     algorithm: Algorithm,
     #[cfg(feature = "all-fractals")]
     modifiers: AlgorithmModifiers,
@@ -218,10 +219,11 @@ impl<'a, E: Exponentiator> RunningConstants<'a, E> {
     pub fn standard_with(
         c: Complex,
         #[allow(unused_variables)] exponentiator: E,
-        algorithm: Algorithm,
+        #[allow(unused_variables)] algorithm: Algorithm,
     ) -> Self {
         Self {
             c,
+            #[cfg(feature = "all-fractals")]
             algorithm,
             #[cfg(feature = "all-fractals")]
             modifiers: AlgorithmModifiers::from(algorithm),
@@ -241,12 +243,13 @@ impl<'a, E: Exponentiator> RunningConstants<'a, E> {
     pub fn perturbed_with(
         c: Complex,
         #[allow(unused_variables)] exponentiator: E,
-        algorithm: Algorithm,
+        #[allow(unused_variables)] algorithm: Algorithm,
         #[allow(unused_variables)] dc: Complex,
         #[allow(unused_variables)] reference_points: &'a [Vec2],
     ) -> RunningConstants<'a, E> {
         RunningConstants {
             c,
+            #[cfg(feature = "all-fractals")]
             algorithm,
             #[cfg(feature = "all-fractals")]
             modifiers: AlgorithmModifiers::from(algorithm),
@@ -401,8 +404,13 @@ where
         #[cfg(not(feature = "variable-exponent"))]
         let power_is_two = true;
 
+        #[cfg(feature = "all-fractals")]
+        let standard_mandelbrot = self.consts.algorithm == Algorithm::Mandelbrot;
+        #[cfg(not(feature = "all-fractals"))]
+        let standard_mandelbrot = true;
+
         #[allow(clippy::float_cmp)]
-        if power_is_two & (self.consts.algorithm == Algorithm::Mandelbrot) {
+        if power_is_two & standard_mandelbrot {
             let c = self.consts.c;
             let cr14 = c.re - 0.25;
             let im2 = c.im * c.im;
@@ -505,6 +513,7 @@ trait AlgorithmDetail<'a, E: Exponentiator> {
     ///
     /// The provided implementation computes `z := z.pow(e) + c`, but this doesn't
     /// suit all algorithms. Override as necessary.
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn iterate_algorithm(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables, iters: u32);
 }
 
