@@ -124,16 +124,13 @@ pub fn render(
             Runner {
                 frag: constants,
                 algorithm: PhantomData::<$alg>,
-                consts: RunningConstants {
+                consts: RunningConstants::perturbed_with(
                     c,
-                    dc,
-                    algorithm: constants.algorithm,
-                    #[cfg(feature = "all-fractals")]
-                    modifiers: AlgorithmModifiers::from(constants),
-                    exponentiator: $expo,
+                    $expo,
+                    constants.algorithm,
+                    dc.into(),
                     reference_points,
-                    n_reference: reference_points.len(),
-                },
+                ),
             }
             .run()
         };
@@ -202,46 +199,57 @@ where
     algorithm: Algorithm,
     #[cfg(feature = "all-fractals")]
     modifiers: AlgorithmModifiers,
-    exponentiator: E,
     /// Reference points (only used in perturbation mode)
     #[doc(hidden)]
     pub reference_points: &'a [Vec2],
     /// Number of reference points (only used in perturbation mode)
     #[doc(hidden)]
     pub n_reference: usize,
+    #[cfg(feature = "variable-exponent")]
+    exponentiator: E,
+    phantom: PhantomData<E>,
 }
 
-impl<E: Exponentiator> RunningConstants<'_, E> {
+impl<'a, E: Exponentiator> RunningConstants<'a, E> {
     #[doc(hidden)]
-    pub fn standard_with(c: Complex, exponentiator: E, algorithm: Algorithm) -> Self {
+    pub fn standard_with(
+        c: Complex,
+        #[allow(unused_variables)] exponentiator: E,
+        algorithm: Algorithm,
+    ) -> Self {
         Self {
             c,
             dc: Complex::ZERO,
             algorithm,
             #[cfg(feature = "all-fractals")]
             modifiers: AlgorithmModifiers::from(algorithm),
-            exponentiator,
             reference_points: &[],
             n_reference: 0,
+            #[cfg(feature = "variable-exponent")]
+            exponentiator,
+            phantom: PhantomData,
         }
     }
 
     #[doc(hidden)]
     pub fn perturbed_with(
         c: Complex,
-        exponentiator: E,
+        #[allow(unused_variables)] exponentiator: E,
         algorithm: Algorithm,
         dc: Complex,
-    ) -> RunningConstants<'static, E> {
+        reference_points: &'a [Vec2],
+    ) -> RunningConstants<'a, E> {
         RunningConstants {
             c,
             dc,
             algorithm,
             #[cfg(feature = "all-fractals")]
             modifiers: AlgorithmModifiers::from(algorithm),
+            #[cfg(feature = "variable-exponent")]
             exponentiator,
-            reference_points: &[],
-            n_reference: 0,
+            reference_points,
+            n_reference: reference_points.len(),
+            phantom: PhantomData,
         }
     }
 }
@@ -377,10 +385,13 @@ where
         // arithmetic that avoids running max_iter iterations for a large fraction of pixels.
         //   Main cardioid:    q·(q + (re-¼)) ≤ ¼·im²,  where q = (re-¼)² + im²
         //   Period-2 bulb:    (re+1)² + im² < 1/16
+        #[cfg(feature = "variable-exponent")]
+        let power_is_two = self.consts.exponentiator.power() == 2.0;
+        #[cfg(not(feature = "variable-exponent"))]
+        let power_is_two = true;
+
         #[allow(clippy::float_cmp)]
-        if (self.consts.exponentiator.power() == 2.0)
-            & (self.consts.algorithm == Algorithm::Mandelbrot)
-        {
+        if power_is_two & (self.consts.algorithm == Algorithm::Mandelbrot) {
             let c = self.consts.c;
             let cr14 = c.re - 0.25;
             let im2 = c.im * c.im;
@@ -458,8 +469,12 @@ where
         // z.norm().log() === z.norm_sqr().log() * 0.5
         let log_log_zn = (norm_sqr.max(1.0 + f32::MIN_POSITIVE).log2() * 0.5).log2();
 
-        let smoothed_iters =
-            1. + ESCAPE_THRESHOLD_LOGLOG2 - log_log_zn / self.consts.exponentiator.log2();
+        #[cfg(feature = "variable-exponent")]
+        let log_term = log_log_zn / self.consts.exponentiator.log2();
+        #[cfg(not(feature = "variable-exponent"))]
+        let log_term = log_log_zn;
+
+        let smoothed_iters = 1. + ESCAPE_THRESHOLD_LOGLOG2 - log_term;
 
         // sigh! saturating_add is not currently implemented, so do it ourselves:
         let inside = norm_sqr < ESCAPE_THRESHOLD_SQ;
@@ -491,7 +506,10 @@ pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     let z_in = vars.z;
 
     // Raise z to the given power ...
+    #[cfg(feature = "variable-exponent")]
     let mut z = consts.exponentiator.apply_to(z_in);
+    #[cfg(not(feature = "variable-exponent"))]
+    let mut z = z_in * z_in;
 
     #[cfg(feature = "all-fractals")]
     {

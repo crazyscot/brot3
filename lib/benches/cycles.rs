@@ -126,6 +126,7 @@ impl PerturbedSetup<'_> {
                 Power2 {},
                 Algorithm::Mandelbrot,
                 complex_offset.into(),
+                &[],
             ),
             reference_points,
         }
