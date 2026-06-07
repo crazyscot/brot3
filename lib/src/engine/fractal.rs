@@ -486,7 +486,16 @@ where
         // take two logs, avoiding NaN.
         // by the logarithm of a power law,
         // z.norm().log() === z.norm_sqr().log() * 0.5
-        let log_log_zn = (norm_sqr.max(1.0 + f32::MIN_POSITIVE).log2() * 0.5).log2();
+        let floored = if norm_sqr < 1.000_001 {
+            // For points that escape immediately, the log-log term is negative, and the escape
+            // count is very close to 1.0. This can cause precision issues and even NaNs when we
+            // divide by the exponent log2 below. Clamp it (branchlessly - forcing a SPIR-V
+            // OpSelect) so the log-log term ends up as a small positive number.
+            1.000_001
+        } else {
+            norm_sqr
+        };
+        let log_log_zn = (floored.log2() * 0.5).log2();
 
         #[cfg(feature = "variable-exponent")]
         let log_term = log_log_zn / self.consts.exponentiator.log2();
