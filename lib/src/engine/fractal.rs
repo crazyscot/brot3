@@ -393,8 +393,8 @@ where
         let mut z = Complex::ZERO;
         let mut prev_z;
         let mut prev_norm_sqr;
-
         let mut norm_sqr = 0.0;
+        let max_iter = self.frag.max_iter;
 
         loop {
             #[cfg(feature = "all-fractals")]
@@ -407,7 +407,7 @@ where
             deprintln!("DBG: iters={iters}, z={z}, |z|^2={norm_sqr}");
             #[cfg(feature = "distance-estimate")]
             deprintln!("dz_dist={}", vars.dz_dist);
-            if (iters >= self.frag.max_iter) | (norm_sqr >= ESCAPE_THRESHOLD_SQ) {
+            if (iters >= max_iter) | (norm_sqr >= ESCAPE_THRESHOLD_SQ) {
                 break;
             }
         }
@@ -441,7 +441,7 @@ where
             } else {
                 BoundaryClass::NotClose
             };
-            if iters == self.frag.max_iter {
+            if iters == max_iter {
                 BoundaryClass::Inside
             } else {
                 dist_class
@@ -478,8 +478,8 @@ where
         let smoothed_iters = 1. + ESCAPE_THRESHOLD_LOGLOG2 - log_term;
 
         // sigh! saturating_add is not currently implemented, so do it ourselves:
-        let inside = norm_sqr < ESCAPE_THRESHOLD_SQ;
-        iters = if inside { u32::MAX } else { iters };
+        let outside = norm_sqr >= ESCAPE_THRESHOLD_SQ;
+        iters = if outside { iters } else { u32::MAX };
         PointResult::new(iters, smoothed_iters, angle, prev_norm_sqr, boundary)
     }
 }

@@ -42,9 +42,10 @@ impl PointResult {
         // (100,000), which is exactly representable in f32. The only issue that crops up is
         // our current use of `u32::MAX` to represent "infinity" for points inside the set.
         let whole = self.iters_whole().as_();
+        let fractional = whole + self.iters_fraction();
         match style {
             ColourStyle::Discrete => whole,
-            ColourStyle::Continuous => whole + self.iters_fraction(),
+            ColourStyle::Continuous => fractional,
         }
     }
 
