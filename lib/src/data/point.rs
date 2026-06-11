@@ -101,23 +101,31 @@ impl PointResult {
     /// typically found at zooms of factor 1000x or more).
     ///
     /// This function reimplements that effect.
+    ///
+    /// INPUT CONDITION: `self.inside() == false` (caller is expected to have checked this)
     pub fn cull_iterations(&mut self) {
-        if self.inside() {
-            return;
-        }
-
-        let mut passcount = 0;
-        let mut this_pass_maxiter = 256;
+        let mut odd_pass = true;
+        let mut this_pass_maxiter = 0;
         let mut maxiter_scale = 256;
+        let mut iters = self.iters;
 
-        while self.iters > this_pass_maxiter {
-            self.iters -= this_pass_maxiter;
-            passcount += 1;
-            if passcount & 1 == 1 {
-                maxiter_scale = this_pass_maxiter / 2;
-            }
+        // The slightly odd shape of this logic is to reduce branching and hence warp divergence in
+        // the GPU.
+        loop {
+            iters -= this_pass_maxiter;
+            odd_pass = !odd_pass;
+            let half_maxiter = this_pass_maxiter >> 1;
+            maxiter_scale = if odd_pass {
+                half_maxiter
+            } else {
+                maxiter_scale
+            };
             this_pass_maxiter += maxiter_scale;
+            if iters <= this_pass_maxiter {
+                break;
+            }
         }
+        self.iters = iters;
     }
 }
 

@@ -168,7 +168,7 @@ pub fn render(
         }
     }
 
-    if constants.flags.contains(Flags::ITERATION_CULL) {
+    if constants.flags.contains(Flags::ITERATION_CULL) & !result.inside() {
         result.cull_iterations();
     }
     result
