@@ -35,21 +35,26 @@ pub(crate) fn main_fs(
 
     let render_data = engine::render(constants, complex_offset, perturbation_reference_points);
 
-    let mut colour = engine::colour_data(render_data, constants);
+    let colour = engine::colour_data(render_data, constants);
 
     // Draw the inspector marker
-    if constants.flags.contains(Flags::INSPECTOR_ACTIVE) {
-        // New York distance from the reference point draws a diamond shape
-        let dist = engine::new_york_distance(constants.inspector_point_pixel_address, coord);
-        if dist < INSPECTOR_MARKER_SIZE * 0.667 {
-            // TODO Do something better here? Change pixels underneath?
-            colour = RgbVec::BLACK;
-        } else if dist < INSPECTOR_MARKER_SIZE {
-            colour = RgbVec::WHITE;
-        }
-    }
+    let dist = engine::new_york_distance(constants.inspector_point_pixel_address, coord);
+    let component = if dist < INSPECTOR_MARKER_SIZE * 0.667 {
+        0.0
+    } else {
+        1.0
+    };
+    let inspector_colour = RgbVec(crate::Vec3::splat(component));
 
-    *output = colour.0.extend(1.0);
+    #[allow(clippy::needless_bitwise_bool, reason = "saves a branch on spir-v")]
+    let inspected =
+        if constants.flags.contains(Flags::INSPECTOR_ACTIVE) & (dist < INSPECTOR_MARKER_SIZE) {
+            inspector_colour
+        } else {
+            colour
+        };
+
+    *output = inspected.0.extend(1.0);
 }
 
 /// SPIRV `vertex` entrypoint.
