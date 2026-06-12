@@ -702,7 +702,7 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     // Track `wrapped` as a bool so it can be reused in the rebase condition below,
     // avoiding a redundant comparison.
     let ref_iter_next = vars.ref_iter + 1;
-    let wrapped = ref_iter_next == consts.n_reference;
+    let wrapped = ref_iter_next >= consts.reference_points.len();
     let ref_iter_next = if wrapped { 0 } else { ref_iter_next };
 
     let z = Complex::from(consts.reference_points[ref_iter_next]) + dz_p;
@@ -713,11 +713,18 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     // - if/else expressions for the assignments compile to OpSelect rather than branches,
     //   eliminating a source of GPU warp divergence in the main loop.
     let rebase = (z.abs_sq() < dz_p.abs_sq()) | wrapped;
-    dz_p = if rebase { z } else { dz_p };
+    // slightly convoluted, split out to individual components to force OpSelect rather than a
+    // branch here, to reduce warp divergence on GPU.
+    let dz_p_re = if rebase { z.re } else { dz_p.re };
+    let dz_p_im = if rebase { z.im } else { dz_p.im };
+
     vars.ref_iter = if rebase { 0 } else { ref_iter_next };
 
     *z_io = z;
-    vars.dz_perturb = dz_p;
+    vars.dz_perturb = Complex {
+        re: dz_p_re,
+        im: dz_p_im,
+    };
 }
 
 /// Updates a vector of reference points.
