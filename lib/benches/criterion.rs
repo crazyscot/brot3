@@ -107,7 +107,6 @@ fn iterate_perturbed(c: &mut Criterion) {
         complex_offset.into(),
         &[],
     );
-    running_consts.n_reference = reference_points.len().cast();
     running_consts.reference_points = reference_points.as_slice();
     let vars = RunningVariables::default();
 

@@ -144,13 +144,13 @@ impl PerturbedSetup<'_> {
 fn iterate_perturbed(setup: &PerturbedSetup<'_>) {
     let mut vars = RunningVariables::default();
     let mut consts = setup.constants;
-    let mut z = Complex::ZERO;
-    consts.n_reference = setup.reference_points.len();
     consts.reference_points = &setup.reference_points;
+    MandelbrotPerturbed::prepare_vars(&consts, &mut vars);
+    let mut z = Complex::ZERO;
     // This is a single iteration, so the numbers are quite small.
     mandelbrot_perturbed_iterate_algorithm(
         black_box(&consts),
-        &mut z,
+        black_box(&mut z),
         black_box(&mut vars),
         black_box(0),
     );

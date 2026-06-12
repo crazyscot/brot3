@@ -205,10 +205,9 @@ where
     #[cfg(feature = "perturbation-mode")]
     #[doc(hidden)]
     pub reference_points: &'a [Vec2],
-    /// Number of reference points (only used in perturbation mode)
+    /// Cache of the first reference point (only used in perturbation mode)
     #[cfg(feature = "perturbation-mode")]
-    #[doc(hidden)]
-    pub n_reference: usize,
+    reference_point_0: Complex,
     #[cfg(feature = "variable-exponent")]
     exponentiator: E,
     phantom: PhantomData<&'a E>,
@@ -232,10 +231,29 @@ impl<'a, E: Exponentiator> RunningConstants<'a, E> {
             #[cfg(feature = "perturbation-mode")]
             reference_points: &[],
             #[cfg(feature = "perturbation-mode")]
-            n_reference: 0,
+            reference_point_0: Complex::ZERO,
             #[cfg(feature = "variable-exponent")]
             exponentiator,
             phantom: PhantomData,
+        }
+    }
+
+    #[cfg(feature = "perturbation-mode")]
+    #[cfg(spirv)]
+    fn first_of(ary: &[Vec2]) -> Complex {
+        // spir-v inserts a bounds check for us: if this fails the shader returns early
+        ary[0].into()
+    }
+
+    #[cfg(feature = "perturbation-mode")]
+    #[cfg(not(spirv))]
+    fn first_of(ary: &[Vec2]) -> Complex {
+        // outside of spir-v, there's a runtime check that panics, which we may not want to trigger
+        // (test/benchmark code)
+        if ary.is_empty() {
+            Complex::ZERO
+        } else {
+            ary[0].into()
         }
     }
 
@@ -260,7 +278,7 @@ impl<'a, E: Exponentiator> RunningConstants<'a, E> {
             #[cfg(feature = "perturbation-mode")]
             reference_points,
             #[cfg(feature = "perturbation-mode")]
-            n_reference: reference_points.len(),
+            reference_point_0: Self::first_of(reference_points),
             phantom: PhantomData,
         }
     }
@@ -281,6 +299,8 @@ pub struct RunningVariables {
     dz_perturb: Complex,
     #[cfg(feature = "perturbation-mode")]
     ref_iter: usize,
+    #[cfg(feature = "perturbation-mode")]
+    next_refpoint: Complex,
 }
 
 /// Having a match expression in a hot loop hurts performance pretty badly,
@@ -385,6 +405,7 @@ where
     fn hot_loop(self) -> PointResult {
         let mut iters = 0;
         let mut vars = RunningVariables::default();
+        F::prepare_vars(&self.consts, &mut vars);
         #[cfg(feature = "distance-estimate")]
         if !self.frag.flags.contains(Flags::DISTANCE_ESTIMATE) {
             // Set to something other than Indeterminate to skip the calculation
@@ -490,6 +511,15 @@ trait AlgorithmDetail<'a, E: Exponentiator> {
     /// Override as necessary.
     #[cfg(feature = "all-fractals")]
     fn pre_modify_point(_consts: &RunningConstants<'a, E>, _z_io: &mut Complex) {}
+
+    /// Sets up the running variables before the hot loop starts.
+    /// The variables have already been initialized to default, so this may be a no-op in some
+    /// cases.
+    #[allow(
+        clippy::trivially_copy_pass_by_ref,
+        reason = "false positive in some configurations"
+    )]
+    fn prepare_vars(_consts: &RunningConstants<'a, E>, _vars: &mut RunningVariables) {}
 
     /// One iteration of the fractal algorithm.
     ///
@@ -618,6 +648,8 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
         mandelbrot_family_pre_modify_point(consts, z_io);
     }
 
+    fn prepare_vars(_consts: &RunningConstants<'a, E>, _vars: &mut RunningVariables) {}
+
     #[inline]
     fn iterate_algorithm(
         consts: &RunningConstants<'a, E>,
@@ -639,6 +671,10 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
         mandelbrot_family_pre_modify_point(consts, z_io);
     }
 
+    fn prepare_vars(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables) {
+        vars.next_refpoint = consts.reference_point_0.into();
+    }
+
     #[inline]
     fn iterate_algorithm(
         consts: &RunningConstants<'a, E>,
@@ -653,6 +689,8 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
 #[doc(hidden)]
 #[inline]
 #[cfg(feature = "perturbation-mode")]
+#[allow(unsafe_code)]
+
 pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     z_io: &mut Complex,
@@ -670,8 +708,7 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     // Here's our old friend z := z^n + c, in perturbation form:
     // TODO: Do the maths for non-2 exponents.
     // dz_p = 2.0 * dz_p * Complex::from(consts.reference_points[vars.ref_iter]) + dz_p * dz_p
-    let refpt = Complex::from(consts.reference_points[vars.ref_iter]);
-    dz_p = dz_p * (2.0 * refpt + dz_p) + consts.dc;
+    dz_p = dz_p * (2.0 * vars.next_refpoint + dz_p) + consts.dc;
 
     // TODO: Non-2 exponents are not yet verified.
     #[cfg(feature = "distance-estimate")]
@@ -700,8 +737,11 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     let ref_iter_next = vars.ref_iter + 1;
     let wrapped = ref_iter_next >= consts.reference_points.len();
     let ref_iter_next = if wrapped { 0 } else { ref_iter_next };
+    // SAFETY: ref_iter_next is guaranteed to be a valid index at this point.
+    let mut next_refpoint =
+        unsafe { Complex::from(*consts.reference_points.get_unchecked(ref_iter_next)) };
 
-    let z = Complex::from(consts.reference_points[ref_iter_next]) + dz_p;
+    let z = next_refpoint + dz_p;
 
     // Rebase when |z| < |dz| (glitch detection) or when the reference orbit just wrapped.
     // - dz_p.abs_sq() is computed once and reused (saves 2 multiplications per iteration).
@@ -715,6 +755,18 @@ pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     let dz_p_im = if rebase { z.im } else { dz_p.im };
 
     vars.ref_iter = if rebase { 0 } else { ref_iter_next };
+    next_refpoint.re = if rebase {
+        consts.reference_point_0.re
+    } else {
+        next_refpoint.re
+    };
+    next_refpoint.im = if rebase {
+        consts.reference_point_0.im
+    } else {
+        next_refpoint.im
+    };
+
+    vars.next_refpoint = next_refpoint;
 
     *z_io = z;
     vars.dz_perturb = Complex {
