@@ -55,8 +55,11 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> RgbVec {
     };
     deprintln!("interim rgb: {rgb:?}");
 
-    rgb.0 *= factor_for(constants.palette.brightness_style, &data);
-    finish_colour(&data, rgb.0)
+    let mut factor = factor_for(constants.palette.brightness_style, &data);
+    // Short-circuit to black for points inside the set, regardless of modifier
+    factor = if data.inside() { 0.0 } else { factor };
+    rgb.0 *= factor;
+    rgb
 }
 
 struct Iterations(f32);
@@ -173,15 +176,6 @@ fn colour_powered_family(
 }
 
 #[inline]
-fn finish_colour(pixel: &PointResult, rgb: Vec3) -> RgbVec {
-    if pixel.inside() {
-        RgbVec::BLACK
-    } else {
-        RgbVec(rgb)
-    }
-}
-
-#[inline]
 fn scaled_palette_offset(constants: &FragmentConstants) -> f32 {
     // Offset is applied before cos(), so scale the input (0..10) to 2pi.
     constants.palette.offset * TAU / 10.0
@@ -211,13 +205,8 @@ fn powered_cos_input(
 
 fn factor_for(style: Modifier, data: &PointResult) -> f32 {
     match style {
-        Modifier::Filaments => {
-            if data.boundary == BoundaryClass::NotClose {
-                1.0
-            } else {
-                0.1
-            }
-        }
+        Modifier::Filaments if data.boundary == BoundaryClass::NotClose => 1.0,
+        Modifier::Filaments => 0.1,
         Modifier::FinalAngle => data.angle() / TAU + 0.5,
         Modifier::FinalRadius => {
             let factor = data.radius_sqr() / crate::ESCAPE_THRESHOLD_SQ;
