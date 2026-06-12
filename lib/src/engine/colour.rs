@@ -33,7 +33,7 @@ const ZERO: Vec3 = Vec3::ZERO;
 #[must_use]
 /// Computes the colour of a point based on the provided colouring algorithm and parameters.
 pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> RgbVec {
-    let iters = data.iters(constants.palette.colour_style);
+    let iters = Iterations(data.iters(constants.palette.colour_style));
     let mut rgb: RgbVec = match constants.palette.colourer {
         Colourer::WhiteFade
         | Colourer::BlackFade
@@ -53,37 +53,47 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> RgbVec {
     rgb
 }
 
-#[inline]
-fn ln_iters(iters: f32, subtract: f32, floor: f32, scale: f32) -> f32 {
-    (iters - subtract).max(floor).ln() * scale
-}
+struct Iterations(f32);
+impl Iterations {
+    #[inline]
+    fn add_with_floor(self, add: f32, floor: f32) -> Self {
+        let tmp = self.0 + add;
+        let tmp = if tmp < floor { floor } else { tmp };
+        Self(tmp)
+    }
 
-#[inline]
-fn sqrt_tau_iters(iters: f32, subtract: f32, floor: f32) -> f32 {
-    (iters - subtract).max(floor).sqrt() * TAU
-}
+    #[inline]
+    fn ln(self) -> Self {
+        Self(self.0.ln())
+    }
 
-#[inline]
-fn scaled_iters(iters: f32, scale: f32) -> f32 {
-    iters * scale
-}
+    #[inline]
+    fn sqrt(self) -> Self {
+        Self(self.0.sqrt())
+    }
 
-#[inline]
-fn shifted_ln_iters(iters: f32, add: f32, divisor: f32) -> f32 {
-    ((iters + add) / divisor).ln()
+    #[inline]
+    fn scale(self, factor: f32) -> Self {
+        Self(self.0 * factor)
+    }
+
+    #[inline]
+    fn add_div(self, add: f32, divisor: f32) -> Self {
+        Self((self.0 + add) / divisor)
+    }
 }
 
 #[inline]
 fn colour_simple_family(
     constants: &FragmentConstants,
-    iters: f32,
+    iters: Iterations,
     pixel: &PointResult,
     colourer: Colourer,
 ) -> RgbVec {
     match colourer {
         Colourer::WhiteFade => simple_cos(
             constants,
-            ln_iters(iters, 3.0, 1.0, 1.0),
+            &iters.add_with_floor(-3.0, 1.0).ln(),
             pixel,
             Vec3::new(2.0, 1.5, 1.0),
             ZERO,
@@ -91,7 +101,7 @@ fn colour_simple_family(
         ),
         Colourer::BlackFade => simple_cos(
             constants,
-            ln_iters(iters, 3.0, 1.0, 1.0),
+            &iters.add_with_floor(-3.0, 1.0).ln(),
             pixel,
             Vec3::new(1.0, 2.0, 3.0),
             ZERO,
@@ -99,7 +109,7 @@ fn colour_simple_family(
         ),
         Colourer::Mandy => simple_cos(
             constants,
-            sqrt_tau_iters(iters, 3.0, 0.0),
+            &iters.add_with_floor(-3.0, 0.0).sqrt().scale(TAU),
             pixel,
             vec3(
                 0.2,       /* 1/5 */
@@ -111,7 +121,7 @@ fn colour_simple_family(
         ),
         Colourer::OneLoneCoder => simple_cos(
             constants,
-            scaled_iters(iters, 0.1),
+            &iters.scale(0.1),
             pixel,
             ONE,
             vec3(
@@ -123,7 +133,7 @@ fn colour_simple_family(
         ),
         Colourer::Monochrome2 => simple_cos(
             constants,
-            ln_iters(iters, 3.0, 1.0, 2.0),
+            &iters.add_with_floor(-3.0, 1.0).ln().scale(2.0),
             pixel,
             ONE,
             ZERO,
@@ -136,14 +146,14 @@ fn colour_simple_family(
 #[inline]
 fn colour_powered_family(
     constants: &FragmentConstants,
-    iters: f32,
+    iters: Iterations,
     pixel: &PointResult,
     colourer: Colourer,
 ) -> RgbVec {
     match colourer {
         Colourer::Neon2 => powered_cos(
             constants,
-            ln_iters(iters, 3.0, 1.0, 2.0),
+            &iters.add_with_floor(-3.0, 1.0).ln().scale(2.0),
             pixel,
             vec3(0.0, 2.0 * PI / 3.0, 4.0 * PI / 3.0),
             Vec3::splat(-1.0),
@@ -153,7 +163,7 @@ fn colour_powered_family(
         ),
         Colourer::IcyBlue => powered_cos(
             constants,
-            shifted_ln_iters(iters, PI, PI),
+            &iters.add_div(PI, PI).ln(),
             pixel,
             vec3(PI, PI, 0.0),
             vec3(1.0, 1.0, -1.0),
@@ -183,21 +193,21 @@ fn scaled_palette_offset(constants: &FragmentConstants) -> f32 {
 #[inline]
 fn simple_cos_input(
     constants: &FragmentConstants,
-    iters: f32,
+    iters: &Iterations,
     vec_scale: Vec3,
     vec_offset: Vec3,
 ) -> Vec3 {
-    vec_scale * iters * constants.palette.gradient + scaled_palette_offset(constants) + vec_offset
+    vec_scale * iters.0 * constants.palette.gradient + scaled_palette_offset(constants) + vec_offset
 }
 
 #[inline]
 fn powered_cos_input(
     constants: &FragmentConstants,
-    iters: f32,
+    iters: &Iterations,
     vec_offset: Vec3,
     gamma: f32,
 ) -> Vec3 {
-    Vec3::splat(iters * constants.palette.gradient).powf(gamma)
+    Vec3::splat(iters.0 * constants.palette.gradient).powf(gamma)
         + scaled_palette_offset(constants)
         + vec_offset
 }
@@ -224,7 +234,7 @@ fn factor_for(style: Modifier, data: &PointResult) -> f32 {
 /// Parameterised cosine-based colouring algorithm
 fn simple_cos(
     constants: &FragmentConstants,
-    iters: f32,
+    iters: &Iterations,
     pixel: &PointResult,
     vec_scale: Vec3,
     vec_offset: Vec3,
@@ -245,7 +255,7 @@ fn simple_cos(
 /// Parameterised cosine-based colouring algorithm with power function for sharper peaks
 fn powered_cos(
     constants: &FragmentConstants,
-    iters: f32,
+    iters: &Iterations,
     pixel: &PointResult,
     vec_offset: Vec3,
     pow_factor: Vec3,
