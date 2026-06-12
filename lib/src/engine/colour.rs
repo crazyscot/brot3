@@ -40,19 +40,7 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> RgbVec {
     }
 
     let iters = Iterations(data.iters(constants.palette.colour_style));
-    let mut rgb: RgbVec = match constants.palette.colourer {
-        Colourer::WhiteFade
-        | Colourer::BlackFade
-        | Colourer::Mandy
-        | Colourer::OneLoneCoder
-        | Colourer::Monochrome2 => {
-            colour_simple_family(constants, iters, constants.palette.colourer)
-        }
-        Colourer::Neon2 | Colourer::IcyBlue => {
-            colour_powered_family(constants, iters, constants.palette.colourer)
-        }
-        Colourer::None => RgbVec::WHITE,
-    };
+    let mut rgb: RgbVec = colour_main(constants, iters, constants.palette.colourer);
     deprintln!("interim rgb: {rgb:?}");
 
     let mut factor = factor_for(constants.palette.brightness_style, &data);
@@ -93,12 +81,9 @@ impl Iterations {
 }
 
 #[inline]
-fn colour_simple_family(
-    constants: &FragmentConstants,
-    iters: Iterations,
-    colourer: Colourer,
-) -> RgbVec {
+fn colour_main(constants: &FragmentConstants, iters: Iterations, colourer: Colourer) -> RgbVec {
     match colourer {
+        Colourer::None => RgbVec::WHITE,
         Colourer::WhiteFade => simple_cos(
             constants,
             &iters.add_with_floor(-3.0, 1.0).ln(),
@@ -142,17 +127,6 @@ fn colour_simple_family(
             ZERO,
             0.5,
         ),
-        _ => RgbVec::WHITE,
-    }
-}
-
-#[inline]
-fn colour_powered_family(
-    constants: &FragmentConstants,
-    iters: Iterations,
-    colourer: Colourer,
-) -> RgbVec {
-    match colourer {
         Colourer::Neon2 => powered_cos(
             constants,
             &iters.add_with_floor(-3.0, 1.0).ln().scale(2.0),
@@ -171,7 +145,6 @@ fn colour_powered_family(
             4.0,
             1.9,
         ),
-        _ => RgbVec::WHITE,
     }
 }
 
