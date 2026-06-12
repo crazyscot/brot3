@@ -33,6 +33,12 @@ const ZERO: Vec3 = Vec3::ZERO;
 #[must_use]
 /// Computes the colour of a point based on the provided colouring algorithm and parameters.
 pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> RgbVec {
+    #[cfg(not(spirv))]
+    // Early short-cutting is good on CPU but bad on SPIR-V?
+    if data.inside() {
+        return RgbVec::BLACK;
+    }
+
     let iters = Iterations(data.iters(constants.palette.colour_style));
     let mut rgb: RgbVec = match constants.palette.colourer {
         Colourer::WhiteFade
@@ -40,17 +46,17 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> RgbVec {
         | Colourer::Mandy
         | Colourer::OneLoneCoder
         | Colourer::Monochrome2 => {
-            colour_simple_family(constants, iters, &data, constants.palette.colourer)
+            colour_simple_family(constants, iters, constants.palette.colourer)
         }
         Colourer::Neon2 | Colourer::IcyBlue => {
-            colour_powered_family(constants, iters, &data, constants.palette.colourer)
+            colour_powered_family(constants, iters, constants.palette.colourer)
         }
         Colourer::None => RgbVec::WHITE,
     };
     deprintln!("interim rgb: {rgb:?}");
 
     rgb.0 *= factor_for(constants.palette.brightness_style, &data);
-    rgb
+    finish_colour(&data, rgb.0)
 }
 
 struct Iterations(f32);
@@ -87,14 +93,12 @@ impl Iterations {
 fn colour_simple_family(
     constants: &FragmentConstants,
     iters: Iterations,
-    pixel: &PointResult,
     colourer: Colourer,
 ) -> RgbVec {
     match colourer {
         Colourer::WhiteFade => simple_cos(
             constants,
             &iters.add_with_floor(-3.0, 1.0).ln(),
-            pixel,
             Vec3::new(2.0, 1.5, 1.0),
             ZERO,
             0.5,
@@ -102,7 +106,6 @@ fn colour_simple_family(
         Colourer::BlackFade => simple_cos(
             constants,
             &iters.add_with_floor(-3.0, 1.0).ln(),
-            pixel,
             Vec3::new(1.0, 2.0, 3.0),
             ZERO,
             -0.5,
@@ -110,7 +113,6 @@ fn colour_simple_family(
         Colourer::Mandy => simple_cos(
             constants,
             &iters.add_with_floor(-3.0, 0.0).sqrt().scale(TAU),
-            pixel,
             vec3(
                 0.2,       /* 1/5 */
                 0.14285,   /* 1/7 */
@@ -122,7 +124,6 @@ fn colour_simple_family(
         Colourer::OneLoneCoder => simple_cos(
             constants,
             &iters.scale(0.1),
-            pixel,
             ONE,
             vec3(
                 -FRAC_PI_2,
@@ -134,7 +135,6 @@ fn colour_simple_family(
         Colourer::Monochrome2 => simple_cos(
             constants,
             &iters.add_with_floor(-3.0, 1.0).ln().scale(2.0),
-            pixel,
             ONE,
             ZERO,
             0.5,
@@ -147,14 +147,12 @@ fn colour_simple_family(
 fn colour_powered_family(
     constants: &FragmentConstants,
     iters: Iterations,
-    pixel: &PointResult,
     colourer: Colourer,
 ) -> RgbVec {
     match colourer {
         Colourer::Neon2 => powered_cos(
             constants,
             &iters.add_with_floor(-3.0, 1.0).ln().scale(2.0),
-            pixel,
             vec3(0.0, 2.0 * PI / 3.0, 4.0 * PI / 3.0),
             Vec3::splat(-1.0),
             ONE,
@@ -164,7 +162,6 @@ fn colour_powered_family(
         Colourer::IcyBlue => powered_cos(
             constants,
             &iters.add_div(PI, PI).ln(),
-            pixel,
             vec3(PI, PI, 0.0),
             vec3(1.0, 1.0, -1.0),
             vec3(0.0, 0.0, 1.0),
@@ -235,20 +232,13 @@ fn factor_for(style: Modifier, data: &PointResult) -> f32 {
 fn simple_cos(
     constants: &FragmentConstants,
     iters: &Iterations,
-    pixel: &PointResult,
     vec_scale: Vec3,
     vec_offset: Vec3,
     cos_factor: f32,
 ) -> RgbVec {
-    #[cfg(not(spirv))]
-    if pixel.inside() {
-        return RgbVec::BLACK;
-    }
-
     let mut v = simple_cos_input(constants, iters, vec_scale, vec_offset);
     v = v.cos() * cos_factor + Vec3::splat(0.5);
-
-    finish_colour(pixel, v)
+    RgbVec(v)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -256,24 +246,17 @@ fn simple_cos(
 fn powered_cos(
     constants: &FragmentConstants,
     iters: &Iterations,
-    pixel: &PointResult,
     vec_offset: Vec3,
     pow_factor: Vec3,
     pow_offset: Vec3,
     power: f32,
     gamma: f32,
 ) -> RgbVec {
-    #[cfg(not(spirv))]
-    if pixel.inside() {
-        return RgbVec::BLACK;
-    }
-
     let mut v = powered_cos_input(constants, iters, vec_offset, gamma);
     v = v.cos() * 0.5 + 0.5;
     v = v.powf(power);
     v = v * pow_factor + pow_offset;
-
-    finish_colour(pixel, v)
+    RgbVec(v)
 }
 
 #[cfg(test)]
@@ -457,7 +440,7 @@ mod tests {
         data.assert_no_subnormals();
         let result = super::colour_data(data, &consts);
         eprintln!("result: {result:?}");
-        assert_eq!(result, RgbVec(Vec3::splat(0.1)));
+        assert_eq!(result, RgbVec(Vec3::ZERO));
     }
 
     #[test]
