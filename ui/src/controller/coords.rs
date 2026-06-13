@@ -114,7 +114,11 @@ impl super::Controller {
             ui.monospace(dynfmt!(complex_pos.y.to_f64().value(), precision));
             ui.end_row();
             let inside: bool = self.inspector.data.inside();
-            ui.label("Iterations");
+            if self.state.iteration_cull {
+                ui.label("Iterations (culled)");
+            } else {
+                ui.label("Iterations");
+            }
             if inside {
                 ui.monospace("∞");
             } else {
