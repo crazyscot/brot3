@@ -170,6 +170,9 @@ impl super::Controller {
             Key::Named(NamedKey::F4) if pressed => {
                 self.show_scale_bar = !self.show_scale_bar;
             }
+            Key::Named(NamedKey::F5) if pressed => {
+                self.show_fps = !self.show_fps;
+            }
             Key::Named(NamedKey::F7) if pressed => {
                 self.fractal(false);
             }

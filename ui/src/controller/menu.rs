@@ -78,7 +78,7 @@ impl super::Controller {
                     ui.separator();
 
                     ui.menu_button("Debug", |ui| {
-                        checkbox!(ui, self.show_fps, "Show FPS");
+                        checkbox!(ui, self.show_fps, "Show FPS", "F5");
                         checkbox!(ui, self.show_shader, "Show selected shader");
                         checkbox!(ui, self.show_timings, "Show timings");
 
