@@ -379,6 +379,7 @@ where
         //   Main cardioid:    q·(q + (re-¼)) ≤ ¼·im²,  where q = (re-¼)² + im²
         //   Period-2 bulb:    (re+1)² + im² < 1/16
         #[cfg(feature = "variable-exponent")]
+        #[allow(clippy::float_cmp)]
         let power_is_two = self.consts.exponentiator.power() == 2.0;
         #[cfg(not(feature = "variable-exponent"))]
         let power_is_two = true;
@@ -681,7 +682,7 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
     }
 
     fn prepare_vars(consts: &RunningConstants<'a, E>, vars: &mut RunningVariables) {
-        vars.next_refpoint = consts.reference_point_0.into();
+        vars.next_refpoint = consts.reference_point_0;
     }
 
     #[inline]
