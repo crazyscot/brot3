@@ -101,8 +101,10 @@ fn render_gpu(
         // The compute controller provides 4 timestamps: start, start of compute, completion of
         // compute, teardown. These in turn can be resolved into phases: setup, compute,
         // teardown.
-        let overall = Duration::from_nanos(times.last().unwrap() - times[0]);
         let resolution = controller.get_timestamp_period();
+        let overall = Duration::from_nanos(
+            (f64::conv(times.last().unwrap() - times[0]) * resolution).cast_approx(),
+        );
         let deltas = times
             .into_iter()
             .tuple_windows()
