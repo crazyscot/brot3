@@ -45,7 +45,8 @@ ui = [
 ]
 
 [dependencies]
-brot3-lib = { workspace = true }
+# We need all features from brot3-lib so that the inspector works correctly
+brot3-lib = { workspace = true, features = ["standard-mode", "perturbation-mode", "variable-exponent", "all-fractals", "distance-estimate"] }
 bytemuck = { workspace = true }
 chrono = { workspace = true, features = ["clock"], optional = true }
 clap = { workspace = true, features = ["derive", "wrap_help"] }
