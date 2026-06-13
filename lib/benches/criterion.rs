@@ -6,7 +6,7 @@ use brot3_lib::{
     BigVec2,
     data::{Algorithm, FragmentConstants, PointResult},
     engine,
-    engine::{RunningConstants, RunningVariables, mandelbrot_perturbed_iterate_algorithm},
+    engine::{AlgorithmDetail as _, MandelbrotPerturbed, RunningConstants, RunningVariables},
     maths::Power2,
     ui::UiState,
     util::Size,
@@ -118,11 +118,11 @@ fn iterate_perturbed(c: &mut Criterion) {
                 let mut vars = vars;
                 let mut z = brot3_lib::Complex::ZERO;
                 // This is a single iteration, so the numbers are quite small.
-                mandelbrot_perturbed_iterate_algorithm(
+                MandelbrotPerturbed::iterate_algorithm(
                     black_box(s),
                     black_box(&mut z),
-                    black_box(&mut vars),
                     0,
+                    black_box(&mut vars),
                 );
                 let _ = black_box(vars);
             });

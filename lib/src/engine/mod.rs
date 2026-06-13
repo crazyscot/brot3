@@ -1,20 +1,22 @@
 //! Pixel-related calculations (generic by type)
 // (c) 2025-6 Ross Younger
 
+#![allow(unused_imports)]
+
 mod colour;
 pub(crate) mod entrypoints;
 pub(crate) mod fractal;
 pub use colour::colour_data;
 #[cfg(feature = "all-fractals")]
 pub use fractal::AlgorithmModifiers;
+#[cfg(feature = "perturbation-mode")]
+pub use fractal::MandelbrotPerturbed;
 #[cfg(not(spirv))]
 pub use fractal::mandelbrot_perturbed_compute_reference_iters;
-#[cfg(feature = "perturbation-mode")]
-pub use fractal::mandelbrot_perturbed_iterate_algorithm;
 pub use fractal::render;
 // Expose internals for use by benchmarks
 #[doc(hidden)]
-pub use fractal::{RunningConstants, RunningVariables, mandelbrot_family_iterate_algorithm};
+pub use fractal::{AlgorithmDetail, MandelbrotFamily, RunningConstants, RunningVariables};
 
 use crate::{UVec2, Vec2, uvec2};
 

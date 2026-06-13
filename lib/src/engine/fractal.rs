@@ -505,7 +505,8 @@ where
     }
 }
 
-trait AlgorithmDetail<'a, E: Exponentiator> {
+#[doc(hidden)]
+pub trait AlgorithmDetail<'a, E: Exponentiator> {
     /// Pre-modifies a point before applying the algorithm.
     ///
     /// Override as necessary.
@@ -535,7 +536,11 @@ trait AlgorithmDetail<'a, E: Exponentiator> {
 }
 
 #[inline]
-pub fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
+#[allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "false positive in some configurations"
+)]
+fn mandelbrot_family_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     z_buf: &mut Complex,
     #[allow(unused_variables)] vars: &mut RunningVariables,
@@ -639,8 +644,10 @@ fn mandelbrot_family_pre_modify_point_inner_big(
     }
 }
 
-#[allow(dead_code)] // used in some feature configurations
-struct MandelbrotFamily {}
+#[doc(hidden)]
+#[derive(Default, Copy, Clone, Debug)]
+pub struct MandelbrotFamily {}
+
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
     #[inline]
     #[cfg(feature = "all-fractals")]
@@ -662,7 +669,9 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotFamily {
 }
 
 #[cfg(feature = "perturbation-mode")]
-struct MandelbrotPerturbed {}
+#[doc(hidden)]
+#[derive(Default, Copy, Clone, Debug)]
+pub struct MandelbrotPerturbed {}
 #[cfg(feature = "perturbation-mode")]
 impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
     #[inline]
@@ -686,12 +695,10 @@ impl<'a, E: Exponentiator> AlgorithmDetail<'a, E> for MandelbrotPerturbed {
     }
 }
 
-#[doc(hidden)]
 #[inline]
-#[cfg(feature = "perturbation-mode")]
 #[allow(unsafe_code)]
-
-pub fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
+#[cfg(feature = "perturbation-mode")]
+fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
     consts: &RunningConstants<'_, E>,
     z_io: &mut Complex,
     vars: &mut RunningVariables,

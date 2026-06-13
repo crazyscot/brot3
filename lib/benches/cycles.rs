@@ -8,8 +8,8 @@ use brot3_lib::{
     BigVec2, Complex,
     data::{Algorithm, Colourer, FragmentConstants, PointResult, PushExponent},
     engine::{
-        self, RunningConstants, RunningVariables, mandelbrot_family_iterate_algorithm,
-        mandelbrot_perturbed_iterate_algorithm,
+        self, AlgorithmDetail as _, MandelbrotFamily, MandelbrotPerturbed, RunningConstants,
+        RunningVariables,
     },
     maths::{Exponentiator, Power2, Power3, Power4, Power5, Power6, RealPower},
     ui::UiState,
@@ -30,6 +30,11 @@ fn it_alg_setup(algorithm: Algorithm) -> RunningConstants<'static, Power2> {
     RunningConstants::standard_with(Complex::new(-0.75, 0.0), Power2 {}, algorithm)
 }
 
+const _: () = assert!(
+    cfg!(feature = "variable-exponent"),
+    "variable-exponent is required"
+);
+
 #[library_benchmark]
 #[bench::special2(&it_setup(Power2{}))]
 #[bench::special3(&it_setup(Power3{}))]
@@ -44,11 +49,11 @@ fn it_alg_setup(algorithm: Algorithm) -> RunningConstants<'static, Power2> {
 fn iterate_std<E: Exponentiator>(consts: &RunningConstants<'_, E>) {
     let mut vars = RunningVariables::default();
     let mut z = Complex::ZERO;
-    mandelbrot_family_iterate_algorithm(
+    MandelbrotFamily::iterate_algorithm(
         black_box(consts),
         black_box(&mut z),
-        black_box(&mut vars),
         black_box(0),
+        black_box(&mut vars),
     );
 }
 
@@ -148,11 +153,11 @@ fn iterate_perturbed(setup: &PerturbedSetup<'_>) {
     MandelbrotPerturbed::prepare_vars(&consts, &mut vars);
     let mut z = Complex::ZERO;
     // This is a single iteration, so the numbers are quite small.
-    mandelbrot_perturbed_iterate_algorithm(
+    MandelbrotPerturbed::iterate_algorithm(
         black_box(&consts),
         black_box(&mut z),
-        black_box(&mut vars),
         black_box(0),
+        black_box(&mut vars),
     );
 }
 

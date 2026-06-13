@@ -18,7 +18,7 @@ crate-type = ["dylib", "rlib"]
 [[bench]]
 name = "cycles"
 harness = false
-required-features = ["perturbation-mode", "standard-mode"]
+required-features = ["perturbation-mode", "standard-mode", "variable-exponent"]
 
 [[bench]]
 name = "criterion"
