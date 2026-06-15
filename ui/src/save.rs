@@ -56,14 +56,9 @@ pub(crate) fn do_save_image(
             .inspect_err(|e| log::warn!("Failed to render on GPU, falling back to CPU: {e}"))
             .unwrap_or_else(|_| render_frame(&constants, perturbation_points, true)),
     };
-    let duration = start.elapsed();
-    log::debug!("Rendered image in {duration:?}");
-
-    let pngstart = Instant::now();
-
-    assert_eq!(constants.size, state.viewport_size.into());
     write_png(path, state, &pixels)?;
-    log::debug!("Converted to PNG in {:?}", pngstart.elapsed());
+    let duration = start.elapsed();
+    log::debug!("Overall image save took {duration:?}");
     Ok(())
 }
 
@@ -123,6 +118,7 @@ fn render_gpu(
 /// Writes the given pixel data to a PNG file, embedding metadata about the UI state and
 /// software version.
 pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveError> {
+    let pngstart = Instant::now();
     let file = File::create(path)?;
     let mut encoder = png::Encoder::new(
         std::io::BufWriter::new(file),
@@ -142,5 +138,6 @@ pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), Load
     encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));
     let mut writer = encoder.write_header()?;
     writer.write_image_data(pixels)?;
+    log::debug!("Wrote PNG in {:?}", pngstart.elapsed());
     Ok(())
 }
