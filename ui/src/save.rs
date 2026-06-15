@@ -3,6 +3,7 @@
 
 use std::{
     fs::File,
+    io::Write,
     path::Path,
     time::{Duration, Instant},
 };
@@ -82,6 +83,7 @@ fn render_gpu(
     let render_size = constants.size.into();
     let mut controller =
         ComputeController::new(render_size, 1, ShaderVariant::from_ui_state(state))?;
+    let start = Instant::now();
     let times = controller.run(
         *constants,
         render_size.extend(1),
@@ -89,6 +91,7 @@ fn render_gpu(
         perturbation_points,
         |rgba| write_png(path, state, rgba),
     )?;
+    log::debug!("GPU render and save took {:?}", start.elapsed());
     if times.len() == 4 {
         use itertools::Itertools as _;
         // The compute controller provides 4 timestamps: start, start of compute, completion of
@@ -121,10 +124,13 @@ fn render_gpu(
     Ok(())
 }
 
-/// Writes the given pixel data to a PNG file, embedding metadata about the UI state and
-/// software version.
-pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveErrorInternal> {
-    let pngstart = Instant::now();
+/// Writes the header for a PNG file, returning a stream writer.
+///
+/// The caller is responsible for writing the pixel data and calling `finish()` on the writer.
+fn write_png_header<'a>(
+    path: &'a Path,
+    state: &'a UiState,
+) -> Result<png::StreamWriter<'a, std::io::BufWriter<File>>, LoadSaveErrorInternal> {
     let file = File::create(path)?;
     let mut encoder = png::Encoder::new(
         std::io::BufWriter::new(file),
@@ -142,8 +148,17 @@ pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), Load
             log::warn!("Failed to serialize UI state for embedding in PNG metadata");
         });
     encoder.set_source_gamma(png::ScaledFloat::new(1.0 / 2.2));
-    let mut writer = encoder.write_header()?;
-    writer.write_image_data(pixels)?;
+    let writer = encoder.write_header()?.into_stream_writer()?;
+    Ok(writer)
+}
+
+/// Writes the given pixel data to a PNG file, embedding metadata about the UI state and
+/// software version.
+pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveErrorInternal> {
+    let pngstart = Instant::now();
+    let mut writer = write_png_header(path, state)?;
+    writer.write_all(pixels)?;
+    writer.finish()?;
     log::debug!("Wrote PNG in {:?}", pngstart.elapsed());
     Ok(())
 }
