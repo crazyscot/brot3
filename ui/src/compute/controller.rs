@@ -8,7 +8,7 @@ use glam::{UVec2, UVec3, Vec2};
 use wgpu::{Device, Queue};
 
 use super::Queries;
-use crate::MAX_MAX_ITERATIONS;
+use crate::{MAX_MAX_ITERATIONS, save::LoadSaveErrorInternal};
 
 #[derive(thiserror::Error, Debug)]
 #[allow(missing_docs)]
@@ -21,6 +21,8 @@ pub enum Error {
     PollError(#[from] wgpu::PollError),
     #[error(transparent)]
     RequestDeviceError(#[from] wgpu::RequestDeviceError),
+    #[error(transparent)]
+    LoadSaveError(#[from] LoadSaveErrorInternal),
 }
 
 #[allow(missing_docs)]
@@ -100,7 +102,7 @@ impl ComputeController {
     // This compute shader is independent of a window.
     // If it is desirable to refactor ESR so we can use it, getting the API right will be
     // non-trivial. (Pipeline setup looks fairly similar and straightforward to align.)
-    pub fn run<F: FnMut(&[u8])>(
+    pub fn run<F: FnMut(&[u8]) -> Result<(), LoadSaveErrorInternal>>(
         &mut self,
         constants: FragmentConstants,
         dimensions: UVec3,
@@ -173,6 +175,7 @@ impl ComputeController {
             .map_async(wgpu::MapMode::Read, |result| {
                 sender.send(result).unwrap();
             });
+
         // wait for the result
         let st = self.device.poll(wgpu::PollType::Wait {
             submission_index: None,
@@ -184,6 +187,7 @@ impl ComputeController {
         futures::executor::block_on(receiver)??;
 
         // now we can access the result
+        let result;
         {
             let slice: &[u8] = &self.staging_buffer.slice(..).get_mapped_range();
             let rgba = bytemuck::cast_slice::<u8, u32>(slice);
@@ -192,9 +196,10 @@ impl ComputeController {
                 &rgba[0..10],
                 slice.len()
             );
-            frame_cb(slice);
+            result = frame_cb(slice);
         }
         self.staging_buffer.unmap();
+        result?;
 
         // Extract timing info from GPU
         if let Some(queries) = self.queries.as_mut() {

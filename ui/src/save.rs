@@ -18,18 +18,26 @@ use thiserror::Error;
 
 use crate::compute::ComputeController;
 
-/// The error type used by this module
+/// The primary error type used by this module
 #[derive(Error, Debug, strum::EnumIs)]
 #[allow(missing_docs)]
 pub enum LoadSaveError {
+    #[error(transparent)]
+    Internal(#[from] LoadSaveErrorInternal),
+    #[error("Compute shader controller failed: {0}")]
+    ComputeController(#[from] crate::compute::ComputeControllerError),
+}
+
+/// Internal errors related to saving files. (The hierarchy is necessary to avoid type recursion.)
+#[derive(Error, Debug, strum::EnumIs)]
+#[allow(missing_docs)]
+pub enum LoadSaveErrorInternal {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("PNG encoding error: {0}")]
     PngEncode(#[from] png::EncodingError),
     #[error("{0}")]
     Lib(#[from] LibError),
-    #[error("Compute shader controller failed: {0}")]
-    ComputeController(#[from] crate::compute::ComputeControllerError),
 }
 
 pub(crate) fn do_save_image(
@@ -49,14 +57,16 @@ pub(crate) fn do_save_image(
         constants.flags |= Flags::PERTURBATION_MODE;
     }
     let start = Instant::now();
-    let pixels = match mode {
-        RenderMode::Cpu => render_frame(&constants, perturbation_points, false),
-        RenderMode::CpuParallel => render_frame(&constants, perturbation_points, true),
-        RenderMode::Gpu => render_gpu(state, &constants, perturbation_points)
-            .inspect_err(|e| log::warn!("Failed to render on GPU, falling back to CPU: {e}"))
-            .unwrap_or_else(|_| render_frame(&constants, perturbation_points, true)),
-    };
-    write_png(path, state, &pixels)?;
+    match mode {
+        RenderMode::Cpu | RenderMode::CpuParallel => {
+            let parallel = matches!(mode, RenderMode::CpuParallel);
+            let pixels = render_frame(&constants, perturbation_points, parallel);
+            write_png(path, state, &pixels)?;
+        }
+        RenderMode::Gpu => {
+            render_gpu(state, &constants, perturbation_points, path)?;
+        }
+    }
     let duration = start.elapsed();
     log::debug!("Overall image save took {duration:?}");
     Ok(())
@@ -66,22 +76,18 @@ fn render_gpu(
     state: &UiState,
     constants: &FragmentConstants,
     perturbation_points: &[Vec2],
-) -> Result<Vec<u8>, LoadSaveError> {
-    use easy_cast::{Cast as _, Conv as _};
+    path: &Path,
+) -> Result<(), LoadSaveError> {
+    use easy_cast::Conv as _;
     let render_size = constants.size.into();
     let mut controller =
         ComputeController::new(render_size, 1, ShaderVariant::from_ui_state(state))?;
-    let total_bytes = constants.size.element_product() * 4;
-    let mut frame_data = Vec::with_capacity(total_bytes.cast());
     let times = controller.run(
         *constants,
         render_size.extend(1),
         1,
         perturbation_points,
-        |rgba| {
-            frame_data.clear();
-            frame_data.extend_from_slice(rgba);
-        },
+        |rgba| write_png(path, state, rgba),
     )?;
     if times.len() == 4 {
         use itertools::Itertools as _;
@@ -112,12 +118,12 @@ fn render_gpu(
             times.len()
         );
     } // else ignore: not all devices support timestamp queries, and the controller will simply return an empty Vec in that case.
-    Ok(frame_data)
+    Ok(())
 }
 
 /// Writes the given pixel data to a PNG file, embedding metadata about the UI state and
 /// software version.
-pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveError> {
+pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveErrorInternal> {
     let pngstart = Instant::now();
     let file = File::create(path)?;
     let mut encoder = png::Encoder::new(

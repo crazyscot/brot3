@@ -13,7 +13,7 @@ use rfd::FileDialog;
 use tokio::task::JoinHandle;
 
 use super::DVec2;
-use crate::save::{self, LoadSaveError};
+use crate::save::{self, LoadSaveError, LoadSaveErrorInternal};
 
 #[allow(unused_results)]
 impl super::Controller {
@@ -226,7 +226,7 @@ impl super::Controller {
             let state = self.state.clone();
             self.load_save_generic_workflow(
                 || save_dialog.save_file(),
-                move |filename| state.save(filename).map_err(LoadSaveError::Lib),
+                move |filename| Ok(state.save(filename).map_err(LoadSaveErrorInternal::Lib)?),
                 "saving state",
             );
         }
@@ -284,7 +284,7 @@ impl super::Controller {
 
             self.loading_task = Some(self.load_save_generic_workflow(
                 || open_dialog.pick_file(),
-                |path| UiState::load_magic(path).map_err(LoadSaveError::Lib),
+                |path| Ok(UiState::load_magic(path).map_err(LoadSaveErrorInternal::Lib)?),
                 "loading",
             ));
         }

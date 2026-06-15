@@ -35,6 +35,7 @@ fn compute_shader_test() -> Result<(), Box<dyn std::error::Error>> {
         |rgba| {
             frame_data.clear();
             frame_data.extend_from_slice(rgba);
+            Ok(())
         },
     )?;
     let compute_time = start.elapsed();
