@@ -8,6 +8,8 @@ use rayon::prelude::*;
 
 use crate::{FragmentConstants, Vec2, Vec4, vec4};
 
+const RENDER_BYTES_PER_PIXEL: usize = 4; // RGBA8
+
 #[must_use]
 /// Renders a frame on the CPU, returning the pixel data as a flat RGBA8 array. The boolean
 /// indicates whether any pixels failed to render (e.g. due to overflow), which may result in gaps
@@ -17,12 +19,12 @@ pub fn render_frame(
     perturbation_points: &[Vec2],
     parallel: bool,
 ) -> Vec<u8> {
-    use easy_cast::Cast as _;
-    let total_bytes = (constants.size.element_product() * 4).cast();
+    use easy_cast::Conv as _;
+    let total_bytes = usize::conv(constants.size.element_product()) * RENDER_BYTES_PER_PIXEL;
     let mut pixels = vec![0u8; total_bytes];
 
     let chunk_pixels = 128; // by experiment, this seems to be a good balance between overhead and parallelism. It's not a multiple of typical SIMD widths, but it keeps the CPU busy without too much overhead.
-    let chunk_bytes = chunk_pixels * 4; // RGBA8
+    let chunk_bytes = chunk_pixels * RENDER_BYTES_PER_PIXEL;
 
     if parallel {
         pixels
@@ -60,7 +62,7 @@ pub fn render_chunk(
     let mut y = start_pixel / width;
     let mut x = start_pixel % width;
 
-    for i in (0..pixel_data.len()).step_by(4) {
+    for i in (0..pixel_data.len()).step_by(RENDER_BYTES_PER_PIXEL) {
         let mut pixel = Vec4::default();
 
         let frag_coord = vec4(x.cast_approx(), y.cast_approx(), 0.0, 0.0);
@@ -68,7 +70,7 @@ pub fn render_chunk(
         // TODO: Is it still necessary to catch panics here? It would be less expensive to trap on
         // the chunk level, or even the entire render.
         let bytes = (pixel * 255.0).as_u8vec4().to_array();
-        pixel_data[i..i + 4].copy_from_slice(&bytes);
+        pixel_data[i..i + RENDER_BYTES_PER_PIXEL].copy_from_slice(&bytes);
 
         // Move to next pixel
         x += 1;
@@ -108,16 +110,20 @@ mod tests {
     #[test]
     fn render_chunk_produces_rgba_data() {
         let consts = test_frag_consts();
-        let mut pixel_data = vec![0u8; 16]; // 4 pixels * 4 bytes per pixel
+        let mut pixel_data = vec![0u8; 4 * RENDER_BYTES_PER_PIXEL]; // 4 pixels * 4 bytes per pixel
 
         render_chunk(0, &mut pixel_data, &consts, &[]);
 
         // Check that data was written
-        assert_ne!(pixel_data, vec![0u8; 16]);
+        assert_ne!(pixel_data, vec![0u8; 4 * RENDER_BYTES_PER_PIXEL]);
 
         // Check that all pixels have alpha channel set (or at least some byte is written)
-        for chunk in pixel_data.chunks(4) {
-            assert_eq!(chunk.len(), 4, "each pixel should be 4 bytes (RGBA)");
+        for chunk in pixel_data.chunks(RENDER_BYTES_PER_PIXEL) {
+            assert_eq!(
+                chunk.len(),
+                RENDER_BYTES_PER_PIXEL,
+                "each pixel should be {RENDER_BYTES_PER_PIXEL} bytes",
+            );
             // At minimum, we can verify the structure is correct
         }
     }
@@ -125,8 +131,8 @@ mod tests {
     #[test]
     fn render_chunk_respects_start_pixel_offset() {
         let consts = test_frag_consts();
-        let mut pixel_data_at_0 = vec![0u8; 16];
-        let mut pixel_data_at_1 = vec![0u8; 16];
+        let mut pixel_data_at_0 = vec![0u8; 4 * RENDER_BYTES_PER_PIXEL];
+        let mut pixel_data_at_1 = vec![0u8; 4 * RENDER_BYTES_PER_PIXEL];
 
         render_chunk(0, &mut pixel_data_at_0, &consts, &[]);
         render_chunk(1, &mut pixel_data_at_1, &consts, &[]);
@@ -141,8 +147,8 @@ mod tests {
         let pixels = render_frame(&consts, &[], false);
 
         // 2x2 = 4 pixels, 4 bytes each
-        assert_eq!(pixels.len(), 16);
-        assert_ne!(pixels, vec![0u8; 16]);
+        assert_eq!(pixels.len(), 4 * RENDER_BYTES_PER_PIXEL);
+        assert_ne!(pixels, vec![0u8; 4 * RENDER_BYTES_PER_PIXEL]);
     }
 
     #[test]
@@ -151,8 +157,8 @@ mod tests {
         let pixels = render_frame(&consts, &[], true);
 
         // 2x2 = 4 pixels, 4 bytes each
-        assert_eq!(pixels.len(), 16);
-        assert_ne!(pixels, vec![0u8; 16]);
+        assert_eq!(pixels.len(), 4 * RENDER_BYTES_PER_PIXEL);
+        assert_ne!(pixels, vec![0u8; 4 * RENDER_BYTES_PER_PIXEL]);
     }
 
     #[test]
@@ -172,6 +178,6 @@ mod tests {
         let pixels = render_frame(&consts, &[], false);
 
         // 10x8 = 80 pixels, 4 bytes each
-        assert_eq!(pixels.len(), 80 * 4);
+        assert_eq!(pixels.len(), 80 * RENDER_BYTES_PER_PIXEL);
     }
 }
