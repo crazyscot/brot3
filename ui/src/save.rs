@@ -28,8 +28,6 @@ pub enum LoadSaveError {
     PngEncode(#[from] png::EncodingError),
     #[error("{0}")]
     Lib(#[from] LibError),
-    #[error("Some pixels failed to render. The saved image may have gaps where this occurred.")]
-    PartialRenderFailure,
     #[error("Compute shader controller failed: {0}")]
     ComputeController(#[from] crate::compute::ComputeControllerError),
 }
@@ -51,15 +49,12 @@ pub(crate) fn do_save_image(
         constants.flags |= Flags::PERTURBATION_MODE;
     }
     let start = Instant::now();
-    let (pixels, partial_failure) = match mode {
+    let pixels = match mode {
         RenderMode::Cpu => render_frame(&constants, perturbation_points, false),
         RenderMode::CpuParallel => render_frame(&constants, perturbation_points, true),
         RenderMode::Gpu => render_gpu(state, &constants, perturbation_points)
             .inspect_err(|e| log::warn!("Failed to render on GPU, falling back to CPU: {e}"))
-            .map_or_else(
-                |_| render_frame(&constants, perturbation_points, true),
-                |vec| (vec, false),
-            ),
+            .unwrap_or_else(|_| render_frame(&constants, perturbation_points, true)),
     };
     let duration = start.elapsed();
     log::debug!("Rendered image in {duration:?}");
@@ -69,9 +64,6 @@ pub(crate) fn do_save_image(
     assert_eq!(constants.size, state.viewport_size.into());
     write_png(path, state, &pixels)?;
     log::debug!("Converted to PNG in {:?}", pngstart.elapsed());
-    if partial_failure {
-        return Err(LoadSaveError::PartialRenderFailure);
-    }
     Ok(())
 }
 

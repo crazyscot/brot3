@@ -59,7 +59,7 @@ fn render_frame_produces_valid_output() {
     let consts = test_fragment_constants();
     let perturbation_points = vec![];
 
-    let (pixels, _failure) = render_frame(&consts, &perturbation_points, false);
+    let pixels = render_frame(&consts, &perturbation_points, false);
 
     // Buffer should be populated
     let filled_pixels = pixels.iter().filter(|&&p| p != 0).count();
@@ -75,10 +75,10 @@ fn render_frame_parallel_vs_serial_produces_same_output() {
     let perturbation_points = vec![];
 
     // Render serially
-    let (pixels_serial, _) = render_frame(&consts, &perturbation_points, false);
+    let pixels_serial = render_frame(&consts, &perturbation_points, false);
 
     // Render in parallel
-    let (pixels_parallel, _) = render_frame(&consts, &perturbation_points, true);
+    let pixels_parallel = render_frame(&consts, &perturbation_points, true);
 
     // Both should produce the same output
     assert_eq!(

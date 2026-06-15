@@ -3,8 +3,6 @@
 
 #![cfg(not(target_arch = "spirv"))]
 
-use std::sync::atomic::{AtomicBool, Ordering};
-
 use easy_cast::CastApprox;
 use rayon::prelude::*;
 
@@ -18,14 +16,13 @@ pub fn render_frame(
     constants: &FragmentConstants,
     perturbation_points: &[Vec2],
     parallel: bool,
-) -> (Vec<u8>, bool) {
+) -> Vec<u8> {
     use easy_cast::Cast as _;
     let total_bytes = (constants.size.element_product() * 4).cast();
     let mut pixels = vec![0u8; total_bytes];
 
     let chunk_pixels = 128; // by experiment, this seems to be a good balance between overhead and parallelism. It's not a multiple of typical SIMD widths, but it keeps the CPU busy without too much overhead.
     let chunk_bytes = chunk_pixels * 4; // RGBA8
-    let failure = AtomicBool::new(false);
 
     if parallel {
         pixels
@@ -39,7 +36,7 @@ pub fn render_frame(
         // no point in iterating over chunks if we're not running in parallel
         render_chunk(0, &mut pixels, constants, perturbation_points);
     }
-    (pixels, failure.load(Ordering::Relaxed))
+    pixels
 }
 
 /// Renders a chunk of pixels as RGBA8 (i.e. 4 bytes per pixel).
@@ -141,7 +138,7 @@ mod tests {
     #[test]
     fn render_frame_serial_produces_valid_output() {
         let consts = test_frag_consts();
-        let (pixels, _failure) = render_frame(&consts, &[], false);
+        let pixels = render_frame(&consts, &[], false);
 
         // 2x2 = 4 pixels, 4 bytes each
         assert_eq!(pixels.len(), 16);
@@ -151,7 +148,7 @@ mod tests {
     #[test]
     fn render_frame_parallel_produces_valid_output() {
         let consts = test_frag_consts();
-        let (pixels, _failure) = render_frame(&consts, &[], true);
+        let pixels = render_frame(&consts, &[], true);
 
         // 2x2 = 4 pixels, 4 bytes each
         assert_eq!(pixels.len(), 16);
@@ -161,8 +158,8 @@ mod tests {
     #[test]
     fn render_frame_serial_and_parallel_produce_same_result() {
         let consts = test_frag_consts();
-        let (pixels_serial, _) = render_frame(&consts, &[], false);
-        let (pixels_parallel, _) = render_frame(&consts, &[], true);
+        let pixels_serial = render_frame(&consts, &[], false);
+        let pixels_parallel = render_frame(&consts, &[], true);
 
         // Both should have the same dimensions
         assert_eq!(pixels_serial.len(), pixels_parallel.len());
@@ -172,7 +169,7 @@ mod tests {
     fn render_frame_larger_image() {
         let mut consts = test_frag_consts();
         consts.size = Size::new(10, 8);
-        let (pixels, _failure) = render_frame(&consts, &[], false);
+        let pixels = render_frame(&consts, &[], false);
 
         // 10x8 = 80 pixels, 4 bytes each
         assert_eq!(pixels.len(), 80 * 4);
