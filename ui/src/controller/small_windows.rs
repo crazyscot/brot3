@@ -182,6 +182,8 @@ impl super::Controller {
             let state = self.state.clone();
             let save_busy = Arc::clone(&self.save_busy);
 
+            let compression = png::Compression::from(self.png_compression);
+
             self.load_save_generic_workflow(
                 || save_dialog.save_file(),
                 move |filename| {
@@ -201,7 +203,7 @@ impl super::Controller {
                         RenderMode::Gpu // TODO: allow user to choose?
                     };
 
-                    save::do_save_image(filename, &state, &perturbation_points, mode)
+                    save::do_save_image(filename, &state, &perturbation_points, mode, compression)
                 },
                 "saving image",
             );

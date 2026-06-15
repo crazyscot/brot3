@@ -45,7 +45,12 @@ fn compute_shader_test() -> Result<(), Box<dyn std::error::Error>> {
     // Tune the workload & dispatch size to suit.
 
     let start = Instant::now();
-    brot3_ui::write_png(Path::new("compute_test_output.png"), &state, &frame_data)?;
+    brot3_ui::write_png(
+        Path::new("compute_test_output.png"),
+        &state,
+        &frame_data,
+        png::Compression::Fast,
+    )?;
     times.push(("save PNG", start.elapsed()));
 
     println!("CPU Timing (wallclock):");

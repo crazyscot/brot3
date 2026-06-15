@@ -28,7 +28,7 @@ use easy_shader_runner::{
 };
 use glam::{DVec2, UVec2, Vec2, dvec2, uvec2};
 
-use crate::cli::Args;
+use crate::cli::{Args, PngCompression};
 
 mod about;
 mod controls;
@@ -95,6 +95,7 @@ pub(crate) struct Controller {
     // Spawned UI tasks use this channel to pass error messages
     error_message_channel: Channel<String>,
     loading_task: Option<tokio::task::JoinHandle<Option<BrotUiState>>>,
+    png_compression: PngCompression,
 }
 
 #[derive(Default)]
@@ -170,6 +171,7 @@ impl Controller {
             loading_task: None,
             last_perturb_time: std::time::Duration::default(),
             shader_last_elapsed: None,
+            png_compression: options.compress,
         };
         c.just_loaded();
         c

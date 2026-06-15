@@ -159,6 +159,44 @@ pub(crate) struct Args {
         help_heading("Fractal")
     )]
     pub exponent: PushExponent,
+
+    #[arg(
+        short = 'Z',
+        long,
+        default_value = "fast",
+        value_name = "LEVEL",
+        help_heading("Output")
+    )]
+    /// The compression level to use when saving PNG images.
+    pub compress: PngCompression,
+}
+
+// Sigh! png::Compression does not implement FromStr. So we map to it.
+#[derive(Debug, Default, Clone, Copy, PartialEq, clap::ValueEnum)]
+pub enum PngCompression {
+    /// No compression
+    None,
+    /// Extremely fast compression but relatively large files
+    Fastest,
+    #[default]
+    /// Very fast compression, with a good decompression ratio
+    Fast,
+    /// Balances encoding speed and compression ratio
+    Balanced,
+    /// Slow compression, slightly smaller files than Balanced
+    High,
+}
+
+impl From<PngCompression> for png::Compression {
+    fn from(value: PngCompression) -> Self {
+        match value {
+            PngCompression::None => png::Compression::NoCompression,
+            PngCompression::Fastest => png::Compression::Fastest,
+            PngCompression::Fast => png::Compression::Fast,
+            PngCompression::Balanced => png::Compression::Balanced,
+            PngCompression::High => png::Compression::High,
+        }
+    }
 }
 
 // A simple tuple struct to represent a 2D u32 vector.

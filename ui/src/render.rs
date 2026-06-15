@@ -33,8 +33,14 @@ pub(crate) fn main(args: &Args) -> Result<(), MainError> {
 
     let output = args.output.as_ref().unwrap();
     log::debug!("Render mode is {}", args.render_mode);
-    do_save_image(output, &state, &perturbation_points, args.render_mode)
-        .map_err(RenderError::SaveFailed)?;
+    do_save_image(
+        output,
+        &state,
+        &perturbation_points,
+        args.render_mode,
+        args.compress.into(),
+    )
+    .map_err(RenderError::SaveFailed)?;
     log::info!("Successfully rendered image to {}", output.display());
     Ok(())
 }

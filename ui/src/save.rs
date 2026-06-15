@@ -46,6 +46,7 @@ pub(crate) fn do_save_image(
     state: &UiState,
     perturbation_points: &[Vec2],
     mode: RenderMode,
+    compression: png::Compression,
 ) -> Result<(), LoadSaveError> {
     let mut constants = FragmentConstants::from(state);
     constants.flags |= Flags::NEEDS_REITERATE;
@@ -61,11 +62,13 @@ pub(crate) fn do_save_image(
     match mode {
         RenderMode::Cpu | RenderMode::CpuParallel => {
             let parallel = matches!(mode, RenderMode::CpuParallel);
+            let render = Instant::now();
             let pixels = render_frame(&constants, perturbation_points, parallel);
-            write_png(path, state, &pixels)?;
+            log::debug!("CPU render took {:?}", render.elapsed());
+            write_png(path, state, &pixels, compression)?;
         }
         RenderMode::Gpu => {
-            render_gpu(state, &constants, perturbation_points, path)?;
+            render_gpu(state, &constants, perturbation_points, path, compression)?;
         }
     }
     let duration = start.elapsed();
@@ -78,6 +81,7 @@ fn render_gpu(
     constants: &FragmentConstants,
     perturbation_points: &[Vec2],
     path: &Path,
+    compression: png::Compression,
 ) -> Result<(), LoadSaveError> {
     use easy_cast::Conv as _;
     let render_size = constants.size.into();
@@ -89,7 +93,7 @@ fn render_gpu(
         render_size.extend(1),
         1,
         perturbation_points,
-        |rgba| write_png(path, state, rgba),
+        |rgba| write_png(path, state, rgba, compression),
     )?;
     log::debug!("GPU render and save took {:?}", start.elapsed());
     if times.len() == 4 {
@@ -130,6 +134,7 @@ fn render_gpu(
 fn write_png_header<'a>(
     path: &'a Path,
     state: &'a UiState,
+    compression: png::Compression,
 ) -> Result<png::StreamWriter<'a, std::io::BufWriter<File>>, LoadSaveErrorInternal> {
     let file = File::create(path)?;
     let mut encoder = png::Encoder::new(
@@ -141,6 +146,16 @@ fn write_png_header<'a>(
     encoder.set_depth(png::BitDepth::Eight);
     encoder.add_text_chunk("software".to_string(), "brot3".to_string())?;
     encoder.add_text_chunk("comment".to_string(), state.display_string(' '))?;
+
+    encoder.set_compression(compression);
+    // We don't bother to set the filter.
+    // Experiments show that Fast compression is the sweet spot with images created by brot3.
+    // The default adaptive filter works well for our use case.
+    // Setting NoFilter on top of Fast gives marginally faster encoding (~10%) but much larger files
+    // (2x-10x).
+
+    log::debug!("PNG encoder configured with compression={compression:?}");
+
     serde_json::to_string(&state)
         .ok()
         .and_then(|s| encoder.add_text_chunk("uistate".to_string(), s).ok())
@@ -154,9 +169,14 @@ fn write_png_header<'a>(
 
 /// Writes the given pixel data to a PNG file, embedding metadata about the UI state and
 /// software version.
-pub fn write_png(path: &Path, state: &UiState, pixels: &[u8]) -> Result<(), LoadSaveErrorInternal> {
+pub fn write_png(
+    path: &Path,
+    state: &UiState,
+    pixels: &[u8],
+    compression: png::Compression,
+) -> Result<(), LoadSaveErrorInternal> {
     let pngstart = Instant::now();
-    let mut writer = write_png_header(path, state)?;
+    let mut writer = write_png_header(path, state, compression)?;
     writer.write_all(pixels)?;
     writer.finish()?;
     log::debug!("Wrote PNG in {:?}", pngstart.elapsed());
