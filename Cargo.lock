@@ -1088,6 +1088,7 @@ dependencies = [
  "cfg-if",
  "console_error_panic_hook",
  "console_log",
+ "easy-cast",
  "egui",
  "egui-wgpu",
  "egui-winit",

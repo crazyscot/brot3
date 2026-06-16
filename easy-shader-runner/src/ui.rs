@@ -26,6 +26,7 @@ impl Default for Options {
     }
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Copy, Clone)]
 pub struct UiState {
     fps: u32,
@@ -43,6 +44,10 @@ pub struct UiState {
     pub fullscreen_requested: Option<bool>,
     pub escape_exits: bool,
 
+    /// When true, hold the previous frame's rendered output and do not present new shader renders.
+    /// The flag is controlled by the controller/UI and must be cleared to resume normal rendering.
+    pub suppress_render: bool,
+
     pub last_elapsed: Option<std::time::Duration>,
 }
 
@@ -56,6 +61,7 @@ impl UiState {
             fullscreen_active: false,
             fullscreen_requested: None,
             escape_exits: options.escape_exits,
+            suppress_render: false,
             last_elapsed: None,
         }
     }

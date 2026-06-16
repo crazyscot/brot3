@@ -27,6 +27,7 @@ use-compiled-tools = ["spirv-builder?/use-compiled-tools"]
 [dependencies]
 bytemuck.workspace = true
 cfg-if.workspace = true
+easy-cast.workspace = true
 egui.workspace = true
 egui-wgpu.workspace = true
 glam = { workspace = true, features = ["std"] }

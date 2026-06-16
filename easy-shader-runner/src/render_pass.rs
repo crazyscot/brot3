@@ -1,3 +1,4 @@
+use easy_cast::ConvApprox as _;
 use egui_winit::winit::window::Window;
 use num_traits::AsPrimitive as _;
 use wgpu::{CurrentSurfaceTexture, PipelineCompilationOptions};
@@ -8,6 +9,40 @@ use crate::{
     controller::ControllerTrait,
     ui::{Ui, UiState},
 };
+
+// Minimal fullscreen blit WGSL moved to a const to keep function bodies short for clippy
+const BLIT_WGSL: &str = r"
+struct VSOutput {
+    @builtin(position) Position: vec4<f32>,
+    @location(0) fragUV: vec2<f32>,
+};
+
+@vertex
+fn vs_main(@builtin(vertex_index) VertexIndex: u32) -> VSOutput {
+    var pos = array<vec2<f32>, 6>(
+        vec2<f32>(-1.0, -1.0),
+        vec2<f32>(1.0, -1.0),
+        vec2<f32>(-1.0, 1.0),
+        vec2<f32>(-1.0, 1.0),
+        vec2<f32>(1.0, -1.0),
+        vec2<f32>(1.0, 1.0),
+    );
+    var out: VSOutput;
+    out.Position = vec4<f32>(pos[VertexIndex], 0.0, 1.0);
+    out.fragUV = (out.Position.xy * 0.5) + vec2<f32>(0.5, 0.5);
+    // flip Y so texture sampling matches UI coordinate space
+    out.fragUV.y = 1.0 - out.fragUV.y;
+    return out;
+}
+
+@group(0) @binding(0) var samp: sampler;
+@group(0) @binding(1) var tex: texture_2d<f32>;
+
+@fragment
+fn fs_main(in: VSOutput) -> @location(0) vec4<f32> {
+    return textureSample(tex, samp, in.fragUV);
+}
+";
 
 #[cfg(feature = "emulate_constants")]
 struct EmulateConstantsBuffer {
@@ -44,7 +79,116 @@ pub(crate) struct RenderPass {
     resolve_buffer: Option<wgpu::Buffer>,
     destination_buffer: Option<wgpu::Buffer>,
     destination_buffer_size: u64,
+
+    // Ping-pong offscreen render targets
+    ping_textures: Option<[wgpu::Texture; 2]>,
+    ping_views: Option<[wgpu::TextureView; 2]>,
+    current_ping: usize,
+    offscreen_size: (u32, u32),
+
+    // Blit pipeline to present an offscreen texture to the swapchain
+    blit_pipeline: wgpu::RenderPipeline,
+    blit_bind_group_layout: wgpu::BindGroupLayout,
+    blit_sampler: wgpu::Sampler,
+
     pub(crate) last_elapsed: Option<std::time::Duration>,
+}
+
+impl RenderPass {
+    fn create_blit_resources(
+        ctx: &GraphicsContext,
+    ) -> (wgpu::Sampler, wgpu::BindGroupLayout, wgpu::RenderPipeline) {
+        let blit_sampler = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("blit-sampler"),
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
+            ..Default::default()
+        });
+
+        let blit_bind_group_layout =
+            ctx.device
+                .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("blit-bind-group-layout"),
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                            count: None,
+                        },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Texture {
+                                multisampled: false,
+                                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                                view_dimension: wgpu::TextureViewDimension::D2,
+                            },
+                            count: None,
+                        },
+                    ],
+                });
+
+        let blit_pipeline_layout =
+            ctx.device
+                .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("blit-pipeline-layout"),
+                    bind_group_layouts: &[Some(&blit_bind_group_layout)],
+                    #[cfg(not(feature = "emulate_constants"))]
+                    immediate_size: 0,
+                    #[cfg(feature = "emulate_constants")]
+                    immediate_size: 0,
+                });
+
+        let blit_shader = ctx
+            .device
+            .create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: Some("blit-shader"),
+                source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(BLIT_WGSL)),
+            });
+
+        let blit_pipeline = ctx
+            .device
+            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some("blit-pipeline"),
+                layout: Some(&blit_pipeline_layout),
+                vertex: wgpu::VertexState {
+                    module: &blit_shader,
+                    entry_point: Some("vs_main"),
+                    buffers: &[],
+                    compilation_options: PipelineCompilationOptions::default(),
+                },
+                primitive: wgpu::PrimitiveState {
+                    topology: wgpu::PrimitiveTopology::TriangleList,
+                    strip_index_format: None,
+                    front_face: wgpu::FrontFace::Ccw,
+                    cull_mode: None,
+                    unclipped_depth: false,
+                    polygon_mode: wgpu::PolygonMode::Fill,
+                    conservative: false,
+                },
+                depth_stencil: None,
+                multisample: wgpu::MultisampleState::default(),
+                fragment: Some(wgpu::FragmentState {
+                    module: &blit_shader,
+                    entry_point: Some("fs_main"),
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format: ctx.config.format,
+                        blend: None,
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
+                    compilation_options: PipelineCompilationOptions::default(),
+                }),
+                multiview_mask: None,
+                cache: None,
+            });
+
+        (blit_sampler, blit_bind_group_layout, blit_pipeline)
+    }
 }
 
 impl RenderPass {
@@ -93,6 +237,10 @@ impl RenderPass {
             },
         );
 
+        // Create blit resources (sampler, bind group layout and fullscreen pipeline) via helper
+        let (blit_sampler, blit_bind_group_layout, blit_pipeline) =
+            Self::create_blit_resources(ctx);
+
         let query_set;
         let resolve_buffer;
         let destination_buffer;
@@ -123,6 +271,10 @@ impl RenderPass {
             destination_buffer_size = 0;
         }
 
+        // Create two offscreen textures for ping-pong via helper
+        let offscreen_size = (ctx.config.width, ctx.config.height);
+        let (ping_textures, ping_views) = Self::create_offscreen_textures(ctx, offscreen_size);
+
         Ok(Self {
             pipelines,
             pipeline_layouts,
@@ -139,6 +291,17 @@ impl RenderPass {
             resolve_buffer,
             destination_buffer,
             destination_buffer_size,
+
+            // Ping-pong targets
+            ping_textures: Some(ping_textures),
+            ping_views: Some(ping_views),
+            current_ping: 0,
+            offscreen_size,
+
+            blit_pipeline,
+            blit_bind_group_layout,
+            blit_sampler,
+
             last_elapsed: None,
         })
     }
@@ -259,6 +422,7 @@ impl RenderPass {
         output_view: &wgpu::TextureView,
         controller: &mut C,
         available_rect: egui::Rect,
+        target_ping: Option<usize>,
     ) {
         let mut encoder = ctx
             .device
@@ -275,12 +439,20 @@ impl RenderPass {
             } else {
                 None
             };
+            // Choose the render target: either an offscreen ping view (if requested) or the
+            // provided output view
+            let chosen_view: &wgpu::TextureView = if let Some(idx) = target_ping {
+                &self.ping_views.as_ref().unwrap()[idx]
+            } else {
+                output_view
+            };
+
             let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Shader Render Pass"),
                 occlusion_query_set: None,
                 timestamp_writes,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: output_view,
+                    view: chosen_view,
                     depth_slice: None,
                     resolve_target: None,
                     ops: wgpu::Operations {
@@ -298,7 +470,14 @@ impl RenderPass {
                 controller.resize(size.as_uvec2());
             }
             let offset = self.shader_offset();
-            rpass.set_viewport(offset.x, offset.y, size.x, size.y, 0.0, 1.0);
+            // Use the shader offset for the viewport so the shader draws to the correct
+            // region of the offscreen texture when ping-ponging. This maps the controller's
+            // coordinates correctly into the offscreen target.
+            // wgpu viewport Y origin is top-left; convert from UI coords (top-based) to
+            // wgpu viewport coordinates so dragging and mouse math remain consistent.
+
+            let vp_y = f32::conv_approx(ctx.config.height) - offset.y - size.y;
+            rpass.set_viewport(offset.x, vp_y, size.x, size.y, 0.0, 1.0);
 
             rpass.set_pipeline(&self.pipelines.render);
             {
@@ -365,12 +544,23 @@ impl RenderPass {
                 log::error!("{error}");
                 return false;
             }
-            self.render_shader(
-                ctx,
-                output_view,
-                controller,
-                available_rect * pixels_per_point,
-            );
+            // Render shader into the current offscreen target (if available) or directly to the
+            // output. If suppress_render is set, skip rendering so the previous texture remains
+            // unchanged and can be held for presentation.
+            let target_ping = if self.ping_views.is_some() {
+                Some(self.current_ping)
+            } else {
+                None
+            };
+            if !ui_state.suppress_render {
+                self.render_shader(
+                    ctx,
+                    output_view,
+                    controller,
+                    available_rect * pixels_per_point,
+                    target_ping,
+                );
+            }
         }
 
         let screen_descriptor = egui_wgpu::ScreenDescriptor {
@@ -378,6 +568,25 @@ impl RenderPass {
             pixels_per_point,
         };
 
+        self.finish_frame(
+            ctx,
+            output_view,
+            &clipped_primitives,
+            &textures_delta,
+            &screen_descriptor,
+            ui_state,
+        )
+    }
+
+    fn finish_frame(
+        &mut self,
+        ctx: &GraphicsContext,
+        output_view: &wgpu::TextureView,
+        clipped_primitives: &[egui::epaint::ClippedPrimitive],
+        textures_delta: &egui::epaint::textures::TexturesDelta,
+        screen_descriptor: &egui_wgpu::ScreenDescriptor,
+        ui_state: &UiState,
+    ) -> bool {
         for (id, delta) in &textures_delta.set {
             self.ui_renderer
                 .update_texture(&ctx.device, &ctx.queue, *id, delta);
@@ -393,9 +602,61 @@ impl RenderPass {
             &ctx.device,
             &ctx.queue,
             &mut encoder,
-            &clipped_primitives,
-            &screen_descriptor,
+            clipped_primitives,
+            screen_descriptor,
         );
+
+        // Recreate offscreen textures if surface size changed
+        if self.ping_views.is_some() && (ctx.config.width, ctx.config.height) != self.offscreen_size
+        {
+            self.recreate_offscreen(ctx);
+        }
+
+        // Blit the chosen offscreen texture (current or previous) to the swapchain output before UI
+        // draws
+        if let Some(views) = &self.ping_views {
+            let source_index = if ui_state.suppress_render {
+                (self.current_ping + 1) % 2
+            } else {
+                self.current_ping
+            };
+            let source_view = &views[source_index];
+            let blit_bind_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &self.blit_bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::Sampler(&self.blit_sampler),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::TextureView(source_view),
+                    },
+                ],
+                label: Some("blit-bind-group"),
+            });
+
+            let mut blit_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Blit Render Pass"),
+                occlusion_query_set: None,
+                timestamp_writes: None,
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: output_view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                multiview_mask: None,
+            });
+            blit_pass.set_pipeline(&self.blit_pipeline);
+            blit_pass.set_bind_group(0, &blit_bind_group, &[]);
+            // Draw two triangles (6 vertices) to cover the full screen
+            blit_pass.draw(0..6, 0..1);
+        }
 
         {
             let rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -421,9 +682,15 @@ impl RenderPass {
 
             self.ui_renderer.render(
                 &mut rpass.forget_lifetime(),
-                &clipped_primitives,
-                &screen_descriptor,
+                clipped_primitives,
+                screen_descriptor,
             );
+        }
+
+        // Advance ping index so next frame writes into the other texture, but only when not
+        // suppressed. When suppressed, we hold the previous texture contents.
+        if self.ping_views.is_some() && !ui_state.suppress_render {
+            self.current_ping = (self.current_ping + 1) % 2;
         }
 
         let _ = ctx.queue.submit(Some(encoder.finish()));
@@ -465,6 +732,15 @@ impl RenderPass {
         glam::vec2(self.shader_viewport.left(), self.shader_viewport.top())
     }
 
+    fn recreate_offscreen(&mut self, ctx: &GraphicsContext) {
+        let size = (ctx.config.width, ctx.config.height);
+        let (textures, views) = Self::create_offscreen_textures(ctx, size);
+        self.ping_textures = Some(textures);
+        self.ping_views = Some(views);
+        self.offscreen_size = size;
+        self.current_ping %= 2;
+    }
+
     fn rebuild_pipelines(
         &mut self,
         ctx: &GraphicsContext,
@@ -480,6 +756,49 @@ impl RenderPass {
         );
         self.active_shader_key = shader_key;
         Ok(())
+    }
+
+    fn create_offscreen_textures(
+        ctx: &GraphicsContext,
+        size: (u32, u32),
+    ) -> ([wgpu::Texture; 2], [wgpu::TextureView; 2]) {
+        let tex0_desc = wgpu::TextureDescriptor {
+            label: Some("ping-texture-0"),
+            size: wgpu::Extent3d {
+                width: size.0,
+                height: size.1,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: ctx.config.format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        };
+        let tex1_desc = wgpu::TextureDescriptor {
+            label: Some("ping-texture-1"),
+            size: wgpu::Extent3d {
+                width: size.0,
+                height: size.1,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: ctx.config.format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        };
+        let textures = [
+            ctx.device.create_texture(&tex0_desc),
+            ctx.device.create_texture(&tex1_desc),
+        ];
+        let views = [
+            textures[0].create_view(&wgpu::TextureViewDescriptor::default()),
+            textures[1].create_view(&wgpu::TextureViewDescriptor::default()),
+        ];
+        (textures, views)
     }
 }
 
