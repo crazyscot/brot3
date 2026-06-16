@@ -14,6 +14,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, derive_more::PartialEq, Serialize, Deserialize)]
+#[serde(default)] // Allow missing fields to default
 /// The state of the UI, which can be saved and loaded
 pub struct UiState {
     /// Viewport translation offset, in the complex plane. This is the point that the center of the
@@ -413,13 +414,8 @@ mod serde_tests {
     #[test]
     fn missing_required_fields() {
         let incomplete_json = r#"{"max_iter": 1000, "iteration_cull": true}"#;
-        let err = serde_json::from_str::<UiState>(incomplete_json)
-            .expect_err("deserialization failed")
-            .to_string();
-        assert!(
-            err.contains("missing field"),
-            "Failure message not as expected: {err}"
-        );
+        let _ = serde_json::from_str::<UiState>(incomplete_json)
+            .expect("deserialization should not have failed");
     }
 
     #[test]
@@ -525,7 +521,7 @@ mod serde_tests {
     #[test]
     fn empty_json_object() {
         let empty_json = r"{}";
-        let err = serde_json::from_str::<UiState>(empty_json)
+        let err = serde_json::from_str::<UiStateSaveFile>(empty_json)
             .expect_err("deserialization failed")
             .to_string();
         assert!(
