@@ -12,6 +12,7 @@ pub struct GraphicsContext {
     pub queue: wgpu::Queue,
     pub config: wgpu::SurfaceConfiguration,
     pub timestamps: bool,
+    pub(crate) invalid: bool,
 }
 
 impl GraphicsContext {
@@ -103,6 +104,7 @@ impl GraphicsContext {
             queue,
             config,
             timestamps: adapter.features().contains(wgpu::Features::TIMESTAMP_QUERY),
+            invalid: true,
         }
     }
 

@@ -343,7 +343,7 @@ impl RenderPass {
 
     pub(crate) fn render<C: ControllerTrait>(
         &mut self,
-        ctx: &GraphicsContext,
+        ctx: &mut GraphicsContext,
         window: &Window,
         ui: &mut Ui,
         ui_state: &mut UiState,
@@ -409,6 +409,13 @@ impl RenderPass {
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
+        // Recreate offscreen textures if surface size changed. This has to happen before the render
+        // pass.
+        if self.ping_views.is_some() && (ctx.config.width, ctx.config.height) != self.offscreen_size
+        {
+            self.recreate_offscreen(ctx);
+            ctx.invalid = true;
+        }
         if !self.render_ui(ctx, &output_view, window, ui, ui_state, controller) {
             return false;
         }
@@ -524,6 +531,10 @@ impl RenderPass {
         let _ = ctx.queue.submit(Some(encoder.finish()));
     }
 
+    fn render_suppressed(ui_state: &UiState, ctx: &GraphicsContext) -> bool {
+        ui_state.suppress_render && !ctx.invalid
+    }
+
     fn render_ui<C: ControllerTrait>(
         &mut self,
         ctx: &GraphicsContext,
@@ -535,6 +546,8 @@ impl RenderPass {
     ) -> bool {
         let (clipped_primitives, textures_delta, available_rect, pixels_per_point) =
             ui.prepare(window, ui_state, controller, ctx);
+
+        let suppress = Self::render_suppressed(ui_state, ctx);
 
         if available_rect.width() > 0.0 && available_rect.height() > 0.0 {
             let shader_key = controller
@@ -552,7 +565,7 @@ impl RenderPass {
             } else {
                 None
             };
-            if !ui_state.suppress_render {
+            if !suppress {
                 self.render_shader(
                     ctx,
                     output_view,
@@ -606,16 +619,12 @@ impl RenderPass {
             screen_descriptor,
         );
 
-        // Recreate offscreen textures if surface size changed
-        if self.ping_views.is_some() && (ctx.config.width, ctx.config.height) != self.offscreen_size
-        {
-            self.recreate_offscreen(ctx);
-        }
+        let suppress_render = Self::render_suppressed(ui_state, ctx);
 
         // Blit the chosen offscreen texture (current or previous) to the swapchain output before UI
         // draws
         if let Some(views) = &self.ping_views {
-            let source_index = if ui_state.suppress_render {
+            let source_index = if suppress_render {
                 (self.current_ping + 1) % 2
             } else {
                 self.current_ping
@@ -689,7 +698,7 @@ impl RenderPass {
 
         // Advance ping index so next frame writes into the other texture, but only when not
         // suppressed. When suppressed, we hold the previous texture contents.
-        if self.ping_views.is_some() && !ui_state.suppress_render {
+        if self.ping_views.is_some() && !suppress_render {
             self.current_ping = (self.current_ping + 1) % 2;
         }
 

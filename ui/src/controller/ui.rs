@@ -135,6 +135,8 @@ impl super::Controller {
         if reiterate && self.perturbation_mode {
             self.recompute_perturbation(graphics_context);
         }
+        ui_state.suppress_render = !reiterate;
+
         if self.inspector.active && self.inspector.stale {
             self.update_inspector();
         }
