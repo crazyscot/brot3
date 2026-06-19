@@ -255,6 +255,7 @@ impl ControllerTrait for Controller {
 
     fn resize(&mut self, size: UVec2) {
         self.state.viewport_size = size;
+        // ignore the busy_lockout() flag here
         self.reiterate = true;
         self.resized = true;
     }
@@ -362,6 +363,9 @@ impl ControllerTrait for Controller {
     }
 
     fn mouse_move(&mut self, position: DVec2) {
+        if self.busy_lockout() {
+            return;
+        }
         let prev_position = self.mouse_position;
         self.mouse_position = position;
         if self.inspector.dragging {
@@ -381,7 +385,7 @@ impl ControllerTrait for Controller {
     }
 
     fn mouse_scroll(&mut self, delta: DVec2) {
-        if delta.y == 0. {
+        if delta.y == 0. || self.busy_lockout() {
             return;
         }
 

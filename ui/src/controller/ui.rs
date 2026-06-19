@@ -18,6 +18,10 @@ impl super::Controller {
         self.state.algorithm == Algorithm::Mandelbrot && self.state.exponent.is_two()
     }
 
+    pub(super) fn busy_lockout(&self) -> bool {
+        self.save_busy.load(Ordering::Relaxed)
+    }
+
     pub(super) fn ui_impl(
         &mut self,
         ctx: &egui::Context,
@@ -62,7 +66,11 @@ impl super::Controller {
 
         egui_extras::install_image_loaders(ctx);
         ui_state.vsync = self.vsync;
-        self.apply_movement();
+        let busy_lockout = self.busy_lockout();
+
+        if !busy_lockout {
+            self.apply_movement();
+        }
 
         self.main_menu(ctx);
 
@@ -103,6 +111,7 @@ impl super::Controller {
         if self.show_open {
             self.open_ui(ctx);
         }
+        // Check the save_busy flag here, not the generic busy_lockout
         if self.save_busy.load(Ordering::Relaxed) {
             Self::save_busy_window(ctx);
         }
@@ -121,7 +130,9 @@ impl super::Controller {
 
         self.resized = false;
         self.set_mouse_pointer(ctx);
-        if (self.reiterate || self.always_reiterate) && self.perturbation_mode {
+        // reiterate if needed due to movement; but do not honour always_reiterate if we are saving
+        let reiterate = self.reiterate || (self.always_reiterate && !busy_lockout);
+        if reiterate && self.perturbation_mode {
             self.recompute_perturbation(graphics_context);
         }
         if self.inspector.active && self.inspector.stale {
