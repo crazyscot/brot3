@@ -319,7 +319,7 @@ dependencies = [
 
 [[package]]
 name = "brot3-lib"
-version = "3.5.0"
+version = "3.6.0"
 dependencies = [
  "abels-complex",
  "assert_matches",
@@ -354,7 +354,7 @@ dependencies = [
 
 [[package]]
 name = "brot3-ui"
-version = "3.5.0"
+version = "3.6.0"
 dependencies = [
  "average",
  "brot3-lib",

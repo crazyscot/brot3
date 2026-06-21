@@ -1,3 +1,99 @@
+## [3.6.0](https://github.com/crazyscot/brot3/releases/tag/v3.6.0) - 2026-06-21
+
+### 🚀 Features
+
+- *(cli)* Add --exponent - ([759bc3c](https://github.com/crazyscot/brot3/commit/759bc3c39f4c7d4dac228bd5638189b739167e05))
+- *(ui)* F5 shows/hides the FPS count - ([2933bf6](https://github.com/crazyscot/brot3/commit/2933bf6bd31cf4cd947062d8c9df3e8ead541600))
+- Make PNG compression setting a user-facing option, set sensible default - ([c3924b7](https://github.com/crazyscot/brot3/commit/c3924b77a06a26b1650e9dd12afe96a89565d9fe))
+
+### 🐛 Bug Fixes
+
+- *(debug)* Apply correct timestamp resolution to debug output - ([6b68149](https://github.com/crazyscot/brot3/commit/6b681497a67c7a7bdf3420d35634a1f07d80ce22))
+- *(load)* Allow JSON fields to be missing (they will default) - ([ca0151c](https://github.com/crazyscot/brot3/commit/ca0151cc02a1e5f0f99de25bd2503296875a07aa))
+- *(macos)* Use Command in menu accelerators - ([5802b80](https://github.com/crazyscot/brot3/commit/5802b8016612ed0381a7563013bf6788473ec486))
+- Use correct resolution on compute shader timestamps - ([ea4e007](https://github.com/crazyscot/brot3/commit/ea4e007b792d5d652d3e8355482f8fadc34a1b8d))
+- Inspector assertion failure in perturbation mode - ([3f77009](https://github.com/crazyscot/brot3/commit/3f77009b2f590ff1d6607c6c427a65875ac9a792))
+
+### 📚 Documentation
+
+- Create AGENTS.md, copilot-instructions.md - ([81daf08](https://github.com/crazyscot/brot3/commit/81daf081f66030a136e9b75ab36d94865cb3b83b))
+
+### ⚡ Performance
+
+- *(colour)* Reduce branching around colourer offset processing - ([8624662](https://github.com/crazyscot/brot3/commit/8624662a279c76521d06450ff36cc6a3ad1f9d30))
+- *(colour)* Refactor pixel short-cutting - ([fbe8207](https://github.com/crazyscot/brot3/commit/fbe8207d81d22d40f4d2b69f9b97ee9fba359e18))
+- *(colour)* Merge & debranch finish_colour - ([7168808](https://github.com/crazyscot/brot3/commit/716880847ba43bf2270a28d182855463c56f15b9))
+- *(colour)* Merge colour_simple_family and colour_powered_family - ([f6d96da](https://github.com/crazyscot/brot3/commit/f6d96daf68e4dd8c074693efa28b356010990241))
+- *(easy-shader-runner)* Add ability to suppress rendering - ([5d3e16c](https://github.com/crazyscot/brot3/commit/5d3e16cef7d380332d3e28da1f2a089ad62fcbf6))
+- *(fractal)* Remove bitwise short-cut operations where it makes sense to in the shader - ([27c26ef](https://github.com/crazyscot/brot3/commit/27c26ef7923ef1053c47439bd7a55fc644bfae29))
+- *(fractal)* Use loop..break instead of while in the shader hot loop - ([bc41a29](https://github.com/crazyscot/brot3/commit/bc41a29ff35c104e3c0a6e44a95e98134bc35309))
+- *(fractal)* Remove exponentiator from RunningConsts when not needed - ([d2daa53](https://github.com/crazyscot/brot3/commit/d2daa533551240295433edda748fbe672a48af63))
+- *(fractal)* Gate perturbation-mode items out of RunningConstants/RunningVariables - ([29d7569](https://github.com/crazyscot/brot3/commit/29d75693058252a9aa4c62c9240d46d9d7795b4a))
+- *(fractal)* Remove Algorithm from RunningConsts when not needed - ([ce2dbbc](https://github.com/crazyscot/brot3/commit/ce2dbbc956951359454592bb9deb6e9f9ac4a299))
+- *(fractal)* Remove z from RunningVariables - ([3060bec](https://github.com/crazyscot/brot3/commit/3060beca3d2e2b714d343d259914da2428dd297a))
+- *(fractal)* Refactor to remove a branch in calculating the smoothed iteration count - ([db65fdb](https://github.com/crazyscot/brot3/commit/db65fdb7e444b47e03737f1fa3b0e8c3f619e369))
+- *(fractal)* Small fractal optimisations - ([6251935](https://github.com/crazyscot/brot3/commit/6251935fac51ed0bf87ea70af6eb9c6c682a78b6))
+- *(fractal)* Optimise iteration cull for spirv - ([988fdbe](https://github.com/crazyscot/brot3/commit/988fdbe66f120d3a81f5b3f5e1698b4f51aa23a4))
+- *(fractal)* Reduce hot-loop branching in perturbation mode - ([f577165](https://github.com/crazyscot/brot3/commit/f577165858c2c60524ebe452cc695aa38bf7ace0))
+- *(fractal)* Cache the next refpoint ahead of time - ([e0b9fcd](https://github.com/crazyscot/brot3/commit/e0b9fcdd4d61ccb43a386c64f211a3378e2a7321))
+- *(hot-reload)* Build only the needed shader up front, background the others - ([6de4049](https://github.com/crazyscot/brot3/commit/6de40495e591336a308127616e490df4d72d1006))
+- *(shader)* Refactor inspector draw to be branchless - ([942b39f](https://github.com/crazyscot/brot3/commit/942b39f8a3c24f7accb05bcb23d09482863614f2))
+- Improve PNG write speed - ([7bcf0c8](https://github.com/crazyscot/brot3/commit/7bcf0c83fe9c5f41031f665de3e51e1689324f27))
+- Dynamically change shader given the current UI state - ([72b28bf](https://github.com/crazyscot/brot3/commit/72b28bf0e133919b36368aafe153fb2652820ed9))
+- Gather timestamps on shader render if available - ([4b9a51c](https://github.com/crazyscot/brot3/commit/4b9a51c165c6c215035bb957d1cb9b60a5b11311))
+- Optimize mandelbrot_perturbed_iterate_algorithm (slight gain) - ([a1989e4](https://github.com/crazyscot/brot3/commit/a1989e4ecd9d9d00bedbb53514671d671ced4719))
+- Feature-gate distance-estimate logic in shader - ([4f1cd82](https://github.com/crazyscot/brot3/commit/4f1cd821620eb5b31a54928f64105a88e01ebc79))
+- Streamline complex multiplication in the perturbation mode hot loop - ([1495b1f](https://github.com/crazyscot/brot3/commit/1495b1fd04d217b9545523b37dd642353e692b85))
+- Refactor norm_sqr out of RunningVariables - ([1b612cb](https://github.com/crazyscot/brot3/commit/1b612cbfee4d9639c963a06b98a9cd2b41309d42))
+- Remove boundary from RunningVariables when not needed - ([eb72560](https://github.com/crazyscot/brot3/commit/eb72560a664eaf5c1dfe60a4fd84fc7cb40e25a5))
+- Refactor save logic to remove unnecessary copies of pixel data - ([b4c90ba](https://github.com/crazyscot/brot3/commit/b4c90ba37368577071960dbf164c83bb03bdaed9))
+- Use a streamed writer when writing PNGs - ([8a81af6](https://github.com/crazyscot/brot3/commit/8a81af6cb105ce5cb7aedb6c390f5c4efb8a6c7b))
+- Improve UI responsiveness by suppressing render unless we need to reiterate - ([6cd5b97](https://github.com/crazyscot/brot3/commit/6cd5b972b6da3baf70901ec682f11ada9e94fbfe))
+
+### 🚜 Refactor
+
+- Use winit Modifiers to improve reliability of keyboard events - ([9c1b76a](https://github.com/crazyscot/brot3/commit/9c1b76a094d28bc537d3c6a201cf82d8e3f84fc6))
+- Rework and coalesce the colourers - ([6cae3b4](https://github.com/crazyscot/brot3/commit/6cae3b4fd376a430fde573e9a65b058db16d7a41))
+- Create RENDER_BYTES_PER_PIXEL const - ([5454fc0](https://github.com/crazyscot/brot3/commit/5454fc07334e4ce1a327c11214adf9d0d0531823))
+
+### 🎨 Styling
+
+- Add perturbation calculation metadata to data read-out - ([a107256](https://github.com/crazyscot/brot3/commit/a107256d17edc4f7cc793792af17680bb6dfbfd7))
+- Indicate that iterations are culled in the inspector read-out - ([973af65](https://github.com/crazyscot/brot3/commit/973af65c87aa4db477e1e7a87466245f5d84a09a))
+- Reorder debug menu - ([361f304](https://github.com/crazyscot/brot3/commit/361f304fb52cb24d61bb46d86232412d6ce4ed8b))
+
+### 🧪 Testing
+
+- Improve unit test coverage - ([75304d2](https://github.com/crazyscot/brot3/commit/75304d279b972403764ea9b0d584664c4480cc2d))
+- Add some integration tests - ([a514de6](https://github.com/crazyscot/brot3/commit/a514de60197e7ff38ea139390c20f5d3ec8b9af7))
+- Validate saved data files - ([94b98b4](https://github.com/crazyscot/brot3/commit/94b98b42864f7a4f567ad502aa2e24821dcf06bf))
+
+### 🏗️  Build, packaging & CI
+
+- Add cargo-shear to checks job - ([8fe78c3](https://github.com/crazyscot/brot3/commit/8fe78c3f445bc763b32dd59a9e5a2c422ce8adbe))
+- Add all-colourers feature gate - ([dee14c9](https://github.com/crazyscot/brot3/commit/dee14c94b0babcc16d6fef96e3c3109c52799388))
+- Add all-fractals feature gate - ([6cadb9f](https://github.com/crazyscot/brot3/commit/6cadb9f9aa619c8f0cedd05d926a4bef2c03244e))
+- Add feature gates: variable-exponent, perturbation-mode, standard-mode - ([9c87392](https://github.com/crazyscot/brot3/commit/9c873920ffed44678eb89d5a1aa545ae1ba116b4))
+- Multiple shader flavours - ([a3da4ce](https://github.com/crazyscot/brot3/commit/a3da4ce2ae82914bd412e41152176d16940394c1))
+- Add headless build - ([ff95e4d](https://github.com/crazyscot/brot3/commit/ff95e4dc62750623993d40fadcd04eae6d256db2))
+- Drop the all-colourers feature flag as no longer needed - ([3359b83](https://github.com/crazyscot/brot3/commit/3359b83f1f703693b2b20225644a909f125f7093))
+- Run lints on --all-targets - ([30707fa](https://github.com/crazyscot/brot3/commit/30707fa7cd2df6dae48083263a683e21732fa60e))
+
+### ⚙️ Miscellaneous Tasks
+
+- Create ShaderVariant - ([e157830](https://github.com/crazyscot/brot3/commit/e157830f6ae459e220296f02e45a4a64654cdb2a))
+- Extend easy-shader-runner to load multiple shaders, selectable at runtime - ([478f61e](https://github.com/crazyscot/brot3/commit/478f61e95bd2422b41e02d06e2264696bfd03eba))
+- Remove saturation_style modifier - ([fdd58d0](https://github.com/crazyscot/brot3/commit/fdd58d01fb9dfbeb787fc4e7dc7e28e076513db5))
+- Remove Monochrome, LogRainbow colourers - ([89070f2](https://github.com/crazyscot/brot3/commit/89070f26603eb23298392f9a57f68aab575e0694))
+- Remove palette gamma, saturation, lightness controls as defunct - ([9f1b489](https://github.com/crazyscot/brot3/commit/9f1b489fc1976db7edaf42ba7b3bbecf49def47d))
+- Split short-cutting out of Runner.run - ([e1c616e](https://github.com/crazyscot/brot3/commit/e1c616e0e8501eff5d90090792ebe7f2ff7139be))
+- Improve legibility of perturbed calculation - ([8beefdb](https://github.com/crazyscot/brot3/commit/8beefdbf489c365c09117257a07936de1be169af))
+- Tidy up undocumented engine exports, benchmark feature requirements - ([add96d8](https://github.com/crazyscot/brot3/commit/add96d8bfcc25b79a49563904b20537ac0a178b1))
+- When Show Timings is selected, show the FPS window if it's not already hidden - ([1502956](https://github.com/crazyscot/brot3/commit/15029569ac7af3b5e6f68abdbec8ea25b8b845aa))
+- Remove vestigial partial-failure handling when saving PNGs - ([c56ad7c](https://github.com/crazyscot/brot3/commit/c56ad7c696ae2afb483218103e5debc9a5c38ca0))
+- PNG render timing output - ([cb0b7e4](https://github.com/crazyscot/brot3/commit/cb0b7e4c335896e28c113598973aa600e0e00a5a))
+- Disallow viewport movement while saving - ([b2037fb](https://github.com/crazyscot/brot3/commit/b2037fb48fcaa5a16e07d5613ca85c347a842686))
+
 ## [3.5.0](https://github.com/crazyscot/brot3/releases/tag/v3.5.0) - 2026-05-24
 
 ### 🚀 Features
