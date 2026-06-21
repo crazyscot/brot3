@@ -1,3 +1,17 @@
+## [3.6.1](https://github.com/crazyscot/brot3/releases/tag/v3.6.1) - 2026-06-21
+
+### 🐛 Bug Fixes
+
+- *(macos)* Build fix - ([ad3b9f8](https://github.com/crazyscot/brot3/commit/ad3b9f819d992d4e12f3096923ae7b13a0964a91))
+
+### 🏗️  Build, packaging & CI
+
+- Don't attempt to upload a mac app bundle unless one was actually built - ([8ba6323](https://github.com/crazyscot/brot3/commit/8ba63238f5fe667348fa734c0469bc919e03a934))
+
+### ⚙️ Miscellaneous Tasks
+
+- Add more sample data files - ([1ce3d1d](https://github.com/crazyscot/brot3/commit/1ce3d1d695be29f752e6ca10aa99eaa48aa8ffd4))
+
 ## [3.6.0](https://github.com/crazyscot/brot3/releases/tag/v3.6.0) - 2026-06-21
 
 ### 🚀 Features
