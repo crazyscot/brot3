@@ -27,6 +27,8 @@ jobs:
   shader_builder:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - name: Base toolchain
@@ -71,6 +73,7 @@ jobs:
 
       # Send the artifact, whether we built it or it came from cache.
       - name: Upload artifact
+        id: upload
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: shader_builder
@@ -82,6 +85,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: shader_builder
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - name: Base toolchain
@@ -114,8 +119,8 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         if: ${{ steps.do-build.outputs.do-build == '1' }}
         with:
-          name: shader_builder
-          path: ${{ github.workspace }}/.temp/shader_builder
+          artifact-ids: ${{ needs.shader_builder.outputs.artifact_id }}
+          path: ${{ github.workspace }}/.temp/shader_builder/
       - name: Install spirv-tools, fix permissions
         run: |
           sudo apt update && sudo apt install spirv-tools
@@ -133,9 +138,10 @@ jobs:
 
       # This step is unconditional so the result can be used by later jobs
       - name: Upload artifact
+        id: upload
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: brot3_lib.spv
+          name: shaders
           path: .temp/shader/
           if-no-files-found: error
         # Try to upload on error, to provide maximum useful information for a human diagnostic
@@ -245,10 +251,10 @@ jobs:
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
-      - name: Download shader
+      - name: Download shader artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: brot3_lib.spv
+          artifact-ids: ${{ needs.shader.outputs.artifact_id }}
           path: ${{ env.BROT3_PREBUILD_SHADERS_DIR }}
 
       - name: status check
@@ -393,7 +399,7 @@ jobs:
       - name: Download shader
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: brot3_lib.spv
+          artifact-ids: ${{ needs.shader.outputs.artifact_id }}
           path: ${{ env.BROT3_PREBUILD_SHADERS_DIR }}
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
