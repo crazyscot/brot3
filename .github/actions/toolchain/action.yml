@@ -20,6 +20,7 @@ runs:
     - name: Set toolchain override file
       shell: bash
       run: |
+        # Set toolchain override file
         # sed strips leading whitespace
         sed 's/^ +//' > rust-toolchain.toml <<_EOT
           [toolchain]

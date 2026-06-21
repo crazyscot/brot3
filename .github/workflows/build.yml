@@ -45,6 +45,7 @@ jobs:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
           cache-directories: .temp/sb
           key: ${{ hashFiles('shader_builder/**') }}
+          cache-bin: false # Necessary as we are installing toolchain components after cache
 
       - name: Determine build status
         id: do-build
@@ -100,6 +101,7 @@ jobs:
           save-if: ${{ github.ref_type != 'tag' }}
           cache-directories: .temp/shader
           key: ${{ hashFiles('lib/**') }}
+          cache-bin: false # Necessary as we are installing toolchain components after cache
       - name: Determine build status
         id: do-build
         run: |
