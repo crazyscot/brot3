@@ -36,7 +36,7 @@ jobs:
         env:
           STEPS_DOWNLOAD1_OUTPUTS_DOWNLOAD_PATH: ${{ steps.download1.outputs.download-path }}
       - name: remove non-release artifacts
-        run: rm -vf brot3_lib.spv shader.spv *-raw.tar.gz
+        run: rm -vf *.spv *-raw.tar.gz shader_builder librustc_codegen_spirv.so
       - name: upload artifacts to gh release
         # Without a checkout, one must explicitly specify the repo to upload to (-R option).
         if: ${{ github.event.action == 'published' }}
