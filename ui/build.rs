@@ -25,7 +25,6 @@ fn main() {
         "cargo:rerun-if-env-changed={}",
         ShaderVariant::prebuild_shaders_dir_env_var()
     );
-    println!("cargo:rerun-if-env-changed=BROT3_SUPPRESS_SHADER_BUILD");
     if let Some(prebuilt_shaders_dir) = read_prebuilt_shaders_dir() {
         emit_prebuilt_shaders_dir(&prebuilt_shaders_dir);
     } else {
@@ -46,14 +45,12 @@ fn main() {
 }
 
 fn read_prebuilt_shaders_dir() -> Option<PathBuf> {
-    if env::var("BROT3_SUPPRESS_SHADER_BUILD").unwrap_or_else(|_| "0".to_string()) != "0" {
-        build_print::warn!(
-            "BROT3_SUPPRESS_SHADER_BUILD is set; skipping shader build and using dummy shaders. This is intended only for CI builds that are not shipped."
-        );
-        return Some(create_dummy_shader_dir());
-    }
     if cfg!(feature = "_cfg_test") {
         build_print::warn!("Test configuration detected; skipping shader build");
+        return Some(create_dummy_shader_dir());
+    }
+    if std::env::var("RUSTC_WORKSPACE_WRAPPER").is_ok_and(|v| v.contains("clippy")) {
+        build_print::warn!("clippy detected; skipping shader build");
         return Some(create_dummy_shader_dir());
     }
     if let Ok(shader_dir) = env::var(ShaderVariant::prebuild_shaders_dir_env_var()) {

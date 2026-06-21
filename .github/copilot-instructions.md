@@ -80,7 +80,7 @@ Treat all `cargo deny check` output as a blocking failure regardless of whether 
 - Host-only support code lives under `lib/src/ui`, `lib/src/bignum`, and other `#[cfg(not(spirv))]` paths so it can be unit-tested without paying the cost of rebuilding the shader pipeline every time.
 - `brot3-ui` has two top-level execution paths in `ui/src/lib.rs`: GUI mode and headless render mode. GUI mode instantiates `controller::Controller`, which derives `FragmentConstants` from `UiState` each frame and hands them to `easy-shader-runner`; headless mode loads a saved `UiState`, computes perturbation reference points if needed, renders via CPU or compute shader, and writes a PNG.
 - Shader compilation is wired through `ui/build.rs`.
-  1. Normal local build: leave `BROT3_SUPPRESS_SHADER_BUILD` and `BROT3_PREBUILD_SHADERS_DIR` unset. `ui/build.rs` runs `cargo run --release -p shader_builder` and embeds the resulting shaders using `include_bytes!(...)`.
+  1. Normal local build: `BROT3_PREBUILD_SHADERS_DIR` unset. `ui/build.rs` runs `cargo run --release -p shader_builder` and embeds the resulting shaders using `include_bytes!(...)`.
   2. Reproduce the CI shader path locally: set `BROT3_PREBUILD_SHADERS_DIR` to the directory containing previously built `.spv` files, then run `cargo build -p brot3-ui`.
   3. CI: `BROT3_PREBUILD_SHADERS_DIR` is set by the pipeline to a previously built artifact containing the `.spv` files.
 
