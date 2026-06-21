@@ -411,8 +411,4 @@ jobs:
       - name: build (headless)
         run: cargo build --bin brot3 --locked --package brot3-ui --verbose --no-default-features
       - name: build (hot-reload)
-        # As this build is not shipped, build it as a debug build for speed.
-        # no-default-features means we don't build librustc_codegen_spirv.
-        # We don't even need to install the spirv-tools deb in this runner instance, as we don't run them (not right now,
-        # but maybe unit tests in future? If so, use the artifact from shader_builder.)
         run: cargo build --bin brot3 --locked --package brot3-ui --verbose --no-default-features -F hot-reload-shader -F ui

@@ -43,17 +43,6 @@ jobs:
           rust-version: ${{ env.BROT3_RUST_VERSION }}
           # N.B. the cargo-deny-action container image installs 1.85.0 by default
 
-  cargo-fmt:
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
-      - uses: ./.github/actions/toolchain
-        with:
-          channel: ${{ env.BROT3_RUST_VERSION }}
-          components: rustfmt
-      - run: cargo fmt --all -- --check
-
   coverage:
     name: coverage (selected)
     runs-on: ubuntu-latest
@@ -89,8 +78,8 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  checks-stable-suite:
-    name: checks (stable suite)
+  checks:
+    name: checks
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -98,11 +87,14 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - uses: ./.github/actions/toolchain
         with:
-          channel: stable
+          channel: ${{ env.BROT3_RUST_VERSION }}
+          components: rustfmt
       - uses: taiki-e/install-action@dfcb1ee29051d97c8d0f2d437199570008fd5612 # v2.65.15
         with:
           tool: typos,dprint,cargo-machete,cargo-shear
           checksum: true
+      - run: cargo fmt --all -- --check
+        if: ${{ !cancelled() }}
       - run: typos
         if: ${{ !cancelled() }}
       - run: dprint check --list-different
