@@ -368,8 +368,7 @@ jobs:
           echo "zipfile=${WORKDIR}/${NEWSTEM}.zip" >> $GITHUB_OUTPUT
 
       - name: upload mac app bundle
-        # always try to do this, it allows the package to be checked
-        if: ${{ matrix.platform == 'mac' && ( success() || failure() ) }}
+        if: ${{ matrix.platform == 'mac' }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: brot3_${{ steps.version.outputs.version }}-${{ matrix.short_target }}-app
