@@ -133,7 +133,7 @@ jobs:
 
       # This step is unconditional so the result can be used by later jobs
       - name: Upload artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: brot3_lib.spv
           path: .temp/shader/
@@ -289,7 +289,7 @@ jobs:
       - name: Upload binary
         if: ${{ success() || failure() }}
         # always try to do this, it allows the package to be checked
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           # For this OUTER archive, we use -raw on Mac and -binary elsewhere.
           # The inner and outer names must be different to avoid archive overwrites, confusion
@@ -306,7 +306,7 @@ jobs:
         # this writes the output 'deb=<file>'
       - name: upload deb
         if: ${{ matrix.platform == 'linux' }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: brot3_${{ steps.version.outputs.version }}-deb-${{ matrix.runs_on }}
           path: ${{ steps.build_deb.outputs.deb }}
@@ -369,7 +369,7 @@ jobs:
 
       - name: upload mac app bundle
         if: ${{ matrix.platform == 'mac' }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: brot3_${{ steps.version.outputs.version }}-${{ matrix.short_target }}-app
           path: ${{ steps.bundle-mac.outputs.zipfile }}
