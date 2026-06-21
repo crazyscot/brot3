@@ -213,8 +213,8 @@ impl super::Controller {
                 'z' | 'x' => self.kbd_zoom(c == 'z', pressed),
                 'e' | 'r' => self.expo_re(c == 'r', pressed),
                 #[cfg(target_os = "macos")]
-                // Fullscreen on Apple is implemented by the OS
-                'f' if ctrl && self.keyboard_modifiers.super_() => {}
+                // Fullscreen (Ctrl + Cmd + F) on Apple is implemented by the OS, so we ignore it
+                'f' if self.keyboard_modifiers.ctrl() && self.keyboard_modifiers.super_() => {}
 
                 // Quit
                 'q' if pressed && self.keyboard_modifiers.ctrl_or_cmd() => std::process::exit(0),
