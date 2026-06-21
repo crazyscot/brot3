@@ -56,7 +56,7 @@ fn build_shader(path_to_crate: &str, variant: ShaderVariant) -> Result<PathBuf, 
     #[allow(clippy::disallowed_methods)]
     let shader_path = dunce::canonicalize(compile_result.module.unwrap_single())?;
     let final_path = shader_path.with_file_name(variant.shader_filename());
-    let _bytes_copied = std::fs::copy(&shader_path, &final_path)?;
+    std::fs::rename(&shader_path, &final_path)?;
     let final_path = dunce::canonicalize(final_path)?;
     build_print::info!("built shader variant {} at {:?}", variant.key(), final_path);
     Ok(final_path)
