@@ -22,6 +22,7 @@ impl super::Controller {
         self.save_busy.load(Ordering::Relaxed)
     }
 
+    #[allow(clippy::too_many_lines)]
     pub(super) fn ui_impl(
         &mut self,
         ctx: &egui::Context,
