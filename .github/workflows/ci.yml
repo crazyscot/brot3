@@ -36,11 +36,15 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
         with:
           persist-credentials: false
+      - name: Override toolchain
+        uses: ./.github/actions/toolchain
+        with:
+          channel: stable
       - name: cargo deny
         uses: EmbarkStudios/cargo-deny-action@3fd3802e88374d3fe9159b834c7714ec57d6c979 # 2.0.14
         with:
           command: check ${{ matrix.checks }}
-          rust-version: ${{ env.BROT3_RUST_VERSION }}
+          rust-version: stable
           # N.B. the cargo-deny-action container image installs 1.85.0 by default
 
   coverage:
