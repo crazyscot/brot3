@@ -115,6 +115,7 @@ impl super::Controller {
                 if ui.button("Inspector...").clicked() {
                     self.inspector.position = self.pixel_address_to_complex(pos);
                     self.inspector.active = true;
+                    self.reiterate = true;
                     self.context_menu = None;
                     self.inspector.stale = true;
                     self.show_coords_window = true;

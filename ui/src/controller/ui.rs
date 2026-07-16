@@ -131,7 +131,9 @@ impl super::Controller {
         self.resized = false;
         self.set_mouse_pointer(ctx);
         // reiterate if needed due to movement; but do not honour always_reiterate if we are saving
-        let reiterate = self.reiterate || (self.always_reiterate && !busy_lockout);
+        let reiterate = self.reiterate
+            || (self.inspector.active && self.inspector.stale)
+            || (self.always_reiterate && !busy_lockout);
         if reiterate && self.perturbation_mode {
             self.recompute_perturbation(graphics_context);
         }

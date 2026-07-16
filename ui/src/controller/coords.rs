@@ -141,6 +141,7 @@ impl super::Controller {
         });
         if ui.button("Close inspector").clicked() {
             self.inspector.active = false;
+            self.reiterate = true;
         }
     }
 
