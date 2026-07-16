@@ -60,16 +60,14 @@ impl super::Controller {
 
                     ui.label("Mode");
                     if self.perturbation_mode {
-                        ui.label("Perturbation");
+                        ui.label(format!(
+                            "Perturbation{}",
+                            if self.force_perturb { "*" } else { "" }
+                        ));
                     } else {
                         ui.label("Standard");
                     }
                     ui.end_row();
-                    if self.force_perturb {
-                        ui.label("");
-                        ui.label("(Forced!)");
-                        ui.end_row();
-                    }
                     if self.perturbation_mode {
                         ui.label("Ref points");
                         ui.monospace(self.perturbation.points.len().to_string());
@@ -80,6 +78,9 @@ impl super::Controller {
                             ui.monospace(format!("{:.2?}", self.last_perturb_time));
                             ui.end_row();
                         }
+                    } else if self.force_perturb {
+                        ui.label("");
+                        ui.end_row();
                     }
                 });
 
