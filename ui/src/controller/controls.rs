@@ -117,8 +117,12 @@ impl super::Controller {
                             .show_ui(ui, |ui| {
                                 for it in ColourStyle::iter() {
                                     let label: &'static str = it.into();
-                                    ui.selectable_value(&mut self.state.palette.colour_style, it, label)
-                                        .on_hover_text(it.get_documentation().unwrap_or_default());
+                                    if ui.selectable_value(&mut self.state.palette.colour_style, it, label)
+                                        .on_hover_text(it.get_documentation().unwrap_or_default())
+                                        .clicked() {
+                                            self.reiterate = true;
+                                            self.inspector.stale = true;
+                                        }
                                 }
                             });
                         egui::ComboBox::from_label("Brightness Style")
@@ -138,7 +142,12 @@ impl super::Controller {
                         macro_rules! palette_slider {
                             ($($id:ident), * ) => {
                                 $(
-                                    ui.add(egui::Slider::new(&mut self.state.palette.$id, Palette::MINIMA.$id ..= Palette::MAXIMA.$id));
+                                    if ui.add(egui::Slider::new(&mut self.state.palette.$id, Palette::MINIMA.$id ..= Palette::MAXIMA.$id))
+                                        .changed()
+                                    {
+                                        self.reiterate = true;
+                                        self.inspector.stale = true;
+                                    }
                                 )*
                             };
                         }
