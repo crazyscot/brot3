@@ -46,7 +46,7 @@ wgpu = { workspace = true, default-features = false, features = ["spirv", "vulka
 egui-winit = { workspace = true, default-features = false }
 wgpu = { workspace = true, default-features = false, features = ["spirv", "webgpu"] }
 console_error_panic_hook = "0.1.7"
-console_log = "1.0.0"
+console_log = "1.1.0"
 wasm-bindgen-futures = "0.4.50"
 web-sys = "0.3.77"
 
