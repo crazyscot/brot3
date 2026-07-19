@@ -61,6 +61,7 @@ abels-complex = { workspace = true, features = ["libm", "glam"] }
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 abels-complex = { workspace = true, features = ["std", "glam"] }
 clap = { workspace = true, features = ["derive"] }
+dashu-cmplx = { workspace = true, features = ["serde"] }
 dashu-float = { workspace = true }
 dashu = { workspace = true, features = ["serde"] }
 glam = { workspace = true, features = ["std", "bytemuck"] }

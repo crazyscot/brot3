@@ -5,7 +5,7 @@
 use std::{hint::black_box, sync::LazyLock};
 
 use brot3_lib::{
-    BigVec2, Complex,
+    BigComplexExt as _, CBig, Complex,
     data::{Algorithm, Colourer, FragmentConstants, PointResult, PushExponent},
     engine::{
         self, AlgorithmDetail as _, MandelbrotFamily, MandelbrotPerturbed, RunningConstants,
@@ -87,14 +87,14 @@ fn render_point(params: (Vec2, FragmentConstants)) {
 
 const MAXITER_REFPOINTS: usize = 250;
 
-fn prep_bigvec2(filename: &str) -> BigVec2 {
+fn prep_bigcomplex(filename: &str) -> CBig {
     let state = UiState::load_json(&filename).expect("Failed to load state");
     state.viewport_translate
 }
 
 #[library_benchmark]
-#[bench::in_set(&prep_bigvec2("../data/m2-minibrot-perturbation-neon.json"))]
-fn reference_points(centre: &BigVec2) {
+#[bench::in_set(&prep_bigcomplex("../data/m2-minibrot-perturbation-neon.json"))]
+fn reference_points(centre: &CBig) {
     let mut points = Vec::with_capacity(MAXITER_REFPOINTS);
     // Interestingly, we don't need to know the zoom to compute the reference points!
     engine::mandelbrot_perturbed_compute_reference_iters(

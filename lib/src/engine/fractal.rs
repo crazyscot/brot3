@@ -9,6 +9,11 @@
 #[cfg(not(spirv))]
 const DEBUG_FRACTAL: bool = false;
 
+#[cfg(not(spirv))]
+use dashu::base::Inverse;
+
+#[cfg(not(spirv))]
+use crate::CBig;
 pub(crate) use crate::{ESCAPE_THRESHOLD_LOGLOG2, ESCAPE_THRESHOLD_SQ};
 
 #[clippy::format_args]
@@ -328,6 +333,17 @@ pub struct AlgorithmModifiers {
     premod_im_conjugate: bool,
 }
 
+#[cfg(not(spirv))]
+impl AlgorithmModifiers {
+    fn premod_does_anything(self) -> bool {
+        self.premod_re_abs | self.premod_im_abs | self.premod_im_conjugate
+    }
+
+    fn iter_does_anything(self) -> bool {
+        self.iter_re_abs | self.iter_re_variant
+    }
+}
+
 #[cfg(feature = "all-fractals")]
 impl From<&FragmentConstants> for AlgorithmModifiers {
     fn from(consts: &FragmentConstants) -> Self {
@@ -633,10 +649,7 @@ fn mandelbrot_family_pre_modify_point_inner(z: &mut Complex, params: AlgorithmMo
 ///
 /// TODO: Someday, deduplicate this with `mandelbrot_family_pre_modify_point_inner`?
 #[cfg(feature = "all-fractals")]
-fn mandelbrot_family_pre_modify_point_inner_big(
-    z: &mut crate::BigComplex,
-    params: AlgorithmModifiers,
-) {
+fn mandelbrot_family_pre_modify_point_inner_big(z: CBig, params: AlgorithmModifiers) -> CBig {
     use dashu::base::Abs;
     // TODO: Perturbation mode is not yet verified.
 
@@ -644,16 +657,18 @@ fn mandelbrot_family_pre_modify_point_inner_big(
     // Mandelbar conjugates i.e. negates the imaginary part
     // BirdOfPrey applies abs() to the imaginary part
     // Burning Ship applies abs() to both parts
+    let (mut x, mut y) = z.into_parts();
 
     if params.premod_re_abs {
-        z.x = std::mem::take(&mut z.x).abs();
+        x = x.abs();
     }
     if params.premod_im_abs {
-        z.y = std::mem::take(&mut z.y).abs();
+        y = y.abs();
     }
     if params.premod_im_conjugate {
-        z.y *= dashu::float::FBig::NEG_ONE;
+        y *= dashu::float::FBig::NEG_ONE;
     }
+    CBig::from_parts(x, y)
 }
 
 #[doc(hidden)]
@@ -800,13 +815,13 @@ fn mandelbrot_perturbed_iterate_algorithm<E: Exponentiator>(
 #[cfg(not(spirv))]
 pub fn mandelbrot_perturbed_compute_reference_iters(
     points: &mut Vec<Vec2>,
-    centre: &crate::BigVec2,
+    centre: &CBig,
     algorithm: Algorithm,
     max_iter: u32,
 ) {
     use dashu_float::{FBig, round::mode as RoundingMode};
 
-    use crate::BigComplex;
+    use crate::BigComplexExt as _;
 
     points.clear();
     #[cfg(feature = "all-fractals")]
@@ -815,36 +830,43 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
 
     // In perturbation mode, we always use the centre of the viewport as the reference
     // iteration.
-    let mut ctemp = BigComplex::from(centre.clone());
+    let c_inv: CBig; // Holds inverse if needed, else unused.
+    let mut c_to_use = centre;
     if algorithm == Algorithm::Mandeldrop {
-        ctemp = ctemp.recip();
+        c_inv = centre.inv();
+        c_to_use = &c_inv;
     }
-    let c = ctemp;
-    let mut z = BigComplex::ZERO.with_precision(c.precision_larger()); // TODO: What precision do we need?
+    let mut z = CBig::ZERO;
     points.push(Vec2::ZERO);
     let mut iter = 0;
+    let premod_active = modifiers.premod_does_anything();
+    let iter_mod_active = modifiers.iter_does_anything();
 
-    while (iter < max_iter) & (z.norm_squared() < threshold_sq) {
+    while (iter < max_iter) & (z.norm() < threshold_sq) {
         #[cfg(feature = "all-fractals")]
-        mandelbrot_family_pre_modify_point_inner_big(&mut z, modifiers);
+        if premod_active {
+            z = mandelbrot_family_pre_modify_point_inner_big(z, modifiers);
+        }
 
         // <<< This is iterate_algorithm
         // TODO: Implement powers other than 2 (requires support in BigComplex)
-        z = z.square();
+        z = z.sqr();
 
         #[cfg(feature = "all-fractals")]
-        {
+        if iter_mod_active {
             use dashu::base::Sign;
             // Algorithm difference here:
             // Celtic uses z_re_abs instead of z_re.
             // Variant may or may not take z_re_abs depending on the iters count.
             let is_odd = !iter.is_multiple_of(2);
             let use_z_re_abs = modifiers.iter_re_abs | (modifiers.iter_re_variant & is_odd);
-            if use_z_re_abs & (z.x.sign() == Sign::Negative) {
-                z.x *= Sign::Negative;
+            if use_z_re_abs & (z.re().sign() == Sign::Negative) {
+                let (mut x, y) = z.into_parts();
+                x *= Sign::Negative;
+                z = CBig::from_parts(x, y);
             }
         }
-        z = z + &c;
+        z += c_to_use;
         // >>> End of iterate_algorithm analogue
 
         iter += 1;
@@ -859,8 +881,6 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use super::Flags;
-    #[cfg(feature = "distance-estimate")]
-    use crate::{BigVec2, data::BoundaryClass};
     use crate::{
         Vec2,
         data::{Algorithm, FragmentConstants, Palette, PushExponent},
@@ -868,6 +888,8 @@ mod tests {
         util::Size,
         vec2,
     };
+    #[cfg(feature = "distance-estimate")]
+    use crate::{data::BoundaryClass, make_bigcomplex};
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {
@@ -912,7 +934,7 @@ mod tests {
     #[cfg(feature = "distance-estimate")]
     fn distance_estimator_boundary_classification() {
         let centre = vec2(-1.5, 0.0);
-        let centre_big = BigVec2::try_new(centre.x, centre.y).unwrap();
+        let centre_big = make_bigcomplex!(centre.x, centre.y);
         let mut consts = FragmentConstants {
             flags: Flags::PERTURBATION_MODE | Flags::DISTANCE_ESTIMATE,
             viewport_translate: centre,

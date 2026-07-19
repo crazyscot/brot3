@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{Error as LibError, ViewportZoom};
 use crate::{
-    BigVec2, UVec2, Vec2,
+    BigComplexExt as _, CBig, UVec2, Vec2,
     data::{Algorithm, Flags, FragmentConstants, Modifier, Palette, PushExponent},
     engine::NOMINAL_WINDOW_SIZE,
     util::Size,
@@ -19,7 +19,8 @@ use crate::{
 pub struct UiState {
     /// Viewport translation offset, in the complex plane. This is the point that the center of the
     /// viewport corresponds to.
-    pub viewport_translate: BigVec2,
+    #[serde(with = "crate::bignum::custom_serde")]
+    pub viewport_translate: CBig,
     /// Zoom factor for the viewport. 1.0 means the default view, 2.0 means zoomed in by a factor
     /// of 2, etc.
     pub viewport_zoom: ViewportZoom,
@@ -45,9 +46,7 @@ pub struct UiState {
 impl Default for UiState {
     fn default() -> Self {
         Self {
-            viewport_translate: BigVec2::try_new(-1., 0.)
-                .unwrap()
-                .with_precision(super::BIGNUM_PRECISION_LIMIT),
+            viewport_translate: CBig::NEG_ONE,
             viewport_zoom: FragmentConstants::DEFAULT_ZOOM.into(),
             algorithm: Algorithm::Mandelbrot,
             max_iter: FragmentConstants::DEFAULT_MAX_ITER,
@@ -84,13 +83,10 @@ impl TryFrom<&FragmentConstants> for UiState {
     type Error = LibError;
 
     fn try_from(consts: &FragmentConstants) -> Result<Self, LibError> {
+        let xy = consts.viewport_translate;
         Ok(Self {
-            viewport_translate: BigVec2::try_new(
-                consts.viewport_translate.x,
-                consts.viewport_translate.y,
-            )
-            .map_err(|e| LibError::StateConversionFailed(e.to_string()))?
-            .with_precision(super::BIGNUM_PRECISION_LIMIT),
+            viewport_translate: CBig::try_new(xy.x, xy.y)
+                .map_err(|e| LibError::StateConversionFailed(e.to_string()))?,
             viewport_zoom: consts.viewport_zoom.into(),
             algorithm: consts.algorithm,
             max_iter: consts.max_iter,
@@ -252,11 +248,11 @@ mod serde_tests {
     use strum::VariantArray;
 
     use super::*;
-    use crate::data::Colourer;
+    use crate::{data::Colourer, make_bigcomplex};
 
     fn create_test_state() -> UiState {
         UiState {
-            viewport_translate: BigVec2::try_new(1.0, 2.0).expect("failed to create BigVec2"),
+            viewport_translate: make_bigcomplex!(1., 2.),
             viewport_zoom: ViewportZoom::from(2.0_f32),
             algorithm: Algorithm::Mandelbrot,
             max_iter: 1000,
@@ -300,13 +296,13 @@ mod serde_tests {
     }
 
     // ============================================================================
-    // Complex Number Handling (BigVec2)
+    // Complex Number Handling
     // ============================================================================
 
     #[test]
     fn complex_zero() {
         let mut state = create_test_state();
-        state.viewport_translate = BigVec2::try_new(0.0, 0.0).expect("failed to create BigVec2");
+        state.viewport_translate = make_bigcomplex!(0., 0.);
 
         let json = serde_json::to_string(&state).expect("serialization failed");
         let deserialized: UiState = serde_json::from_str(&json).expect("deserialization failed");
@@ -318,13 +314,13 @@ mod serde_tests {
         let mut state = create_test_state();
 
         // 1 + 0i
-        state.viewport_translate = BigVec2::try_new(1.0, 0.0).expect("failed to create BigVec2");
+        state.viewport_translate = make_bigcomplex!(1., 0.);
         let json = serde_json::to_string(&state).expect("serialization failed");
         let deserialized: UiState = serde_json::from_str(&json).expect("deserialization failed");
         assert_eq!(state, deserialized);
 
         // 0 + 1i
-        state.viewport_translate = BigVec2::try_new(0.0, 1.0).expect("failed to create BigVec2");
+        state.viewport_translate = make_bigcomplex!(0., 1.);
         let json = serde_json::to_string(&state).expect("serialization failed");
         let deserialized: UiState = serde_json::from_str(&json).expect("deserialization failed");
         assert_eq!(state, deserialized);
@@ -333,7 +329,7 @@ mod serde_tests {
     #[test]
     fn complex_large_values() {
         let mut state = create_test_state();
-        state.viewport_translate = BigVec2::try_new(1e15, -1e15).expect("failed to create BigVec2");
+        state.viewport_translate = make_bigcomplex!(1e15, -1e15);
 
         let json = serde_json::to_string(&state).expect("serialization failed");
         let deserialized: UiState = serde_json::from_str(&json).expect("deserialization failed");
@@ -343,7 +339,7 @@ mod serde_tests {
     #[test]
     fn complex_negative_values() {
         let mut state = create_test_state();
-        state.viewport_translate = BigVec2::try_new(-2.5, -3.7).expect("failed to create BigVec2");
+        state.viewport_translate = make_bigcomplex!(-2.5, -3.7);
 
         let json = serde_json::to_string_pretty(&state).expect("serialization failed");
         println!("Serialized JSON: {json}");
@@ -560,11 +556,11 @@ mod conversion_tests {
     use glam::uvec2;
 
     use super::*;
-    use crate::data::Modifier;
+    use crate::{data::Modifier, make_bigcomplex};
 
     fn test_ui_state() -> UiState {
         UiState {
-            viewport_translate: BigVec2::try_new(-0.75, 0.1).expect("failed to create BigVec2"),
+            viewport_translate: make_bigcomplex!(-0.75, 0.1),
             viewport_zoom: ViewportZoom::from(2.5_f32),
             algorithm: Algorithm::Mandelbrot,
             max_iter: 256,

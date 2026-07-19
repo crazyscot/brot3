@@ -16,15 +16,17 @@ pub use easy_cast;
 /// Local glam re-exports for convenience
 #[allow(unused_imports)] // Some are reused in tests
 pub(crate) use spirv_std::glam::{
-    UVec2, UVec3, Vec2, Vec3, Vec3Swizzles, Vec4, Vec4Swizzles, f32, uvec2, uvec3, uvec4, vec2,
-    vec3, vec4,
+    DVec2, UVec2, UVec3, Vec2, Vec3, Vec3Swizzles, Vec4, Vec4Swizzles, dvec2, f32, uvec2, uvec3,
+    uvec4, vec2, vec3, vec4,
 };
 #[cfg(spirv)]
 use spirv_std::num_traits::real::Real;
 #[allow(unused_imports)] // Some are reused in some configurations
 use spirv_std::spirv;
 
+#[cfg(not(spirv))]
 mod bignum;
+
 pub mod data;
 pub mod engine;
 pub mod maths;
@@ -32,10 +34,11 @@ pub mod ui;
 pub mod util;
 
 #[cfg(not(spirv))]
-pub use bignum::{
-    big_complex::{BigComplex, ParseError as BigComplexParseError},
-    big_vec2::{BigVec2, fbig_from_str},
-};
+pub use bignum::BigComplexExt;
+#[cfg(not(spirv))]
+pub use dashu_cmplx::CBig;
+#[cfg(not(spirv))]
+pub use dashu_float::FBig;
 
 use crate::data::FragmentConstants;
 

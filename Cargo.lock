@@ -333,6 +333,7 @@ dependencies = [
  "const-default",
  "criterion",
  "dashu",
+ "dashu-cmplx",
  "dashu-float",
  "derive_more 2.1.1",
  "document-features",
@@ -899,6 +900,8 @@ dependencies = [
  "dashu-base",
  "dashu-float",
  "dashu-int",
+ "num-modular",
+ "num-order",
  "rustversion",
  "serde",
 ]
@@ -911,6 +914,8 @@ checksum = "d43bcba9866582229a8832840158b2ef08fe1b5a803939e765eecc44a572cf39"
 dependencies = [
  "dashu-base",
  "dashu-int",
+ "num-modular",
+ "num-order",
  "rustversion",
  "serde",
  "static_assertions",
@@ -2497,6 +2502,15 @@ name = "num-modular"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc41a1374056e9672221567958a66c16be12d0e2c1b408761e14d901c237d5e0"
+
+[[package]]
+name = "num-order"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "537b596b97c40fcf8056d153049eb22f481c17ebce72a513ec9286e4986d1bb6"
+dependencies = [
+ "num-modular",
+]
 
 [[package]]
 name = "num-traits"
