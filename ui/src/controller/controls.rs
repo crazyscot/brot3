@@ -100,6 +100,7 @@ impl super::Controller {
 
                 ui.separator();
 
+                let palette_before = self.state.palette.colourer;
                 egui::ComboBox::from_label("Palette")
                     .selected_text(format!("{:?}", self.state.palette.colourer))
                     .show_ui(ui, |ui| {
@@ -109,6 +110,10 @@ impl super::Controller {
                                 .on_hover_text(it.get_documentation().unwrap_or_default());
                         }
                     });
+                if self.state.palette.colourer != palette_before {
+                    self.reiterate = true;
+                }
+
                 egui::CollapsingHeader::new("Palette controls")
                     .id_salt("palette-detail")
                     .show(ui, |ui| {

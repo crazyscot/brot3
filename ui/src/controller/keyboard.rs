@@ -24,6 +24,7 @@ macro_rules! field_fn {
                     let sign = if increase { 1. } else { -1. };
                     self.movement.$id = sign * 0.1;
                     // The slider clamps the value, so we don't need to worry about it here.
+                    self.reiterate = true;
                 }
             }
         )*
@@ -268,5 +269,6 @@ impl super::Controller {
     fn palette(&mut self, increment: bool) {
         let delta = if increment { 1 } else { -1 };
         self.state.palette.colourer += delta;
+        self.reiterate = true;
     }
 }
