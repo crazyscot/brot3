@@ -95,6 +95,7 @@ pub(crate) struct ShaderDescriptor {
 #[derive(Clone, Debug)]
 pub(crate) enum ShaderSource {
     Prebuilt(&'static [u8]),
+    Wgsl(std::borrow::Cow<'static, str>),
     #[cfg(all(
         any(feature = "runtime-compilation", feature = "hot-reload-shader"),
         not(target_arch = "wasm32")

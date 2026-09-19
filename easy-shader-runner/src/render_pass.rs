@@ -218,12 +218,13 @@ impl RenderPass {
         let active_shader_key = controller
             .current_shader_key()
             .unwrap_or(default_shader_key);
+        let shader = find_shader(&shaders, active_shader_key)?;
         let pipelines = create_pipelines(
             &ctx.device,
             &pipeline_layouts,
             ctx.config.format,
             &vertex_buffer_layouts,
-            load_shader_bytes(find_shader(&shaders, active_shader_key)?)?.as_ref(),
+            &shader.source,
         );
 
         let ui_renderer = egui_wgpu::Renderer::new(
@@ -755,13 +756,13 @@ impl RenderPass {
         ctx: &GraphicsContext,
         shader_key: &'static str,
     ) -> Result<(), Error> {
-        let shader_bytes = load_shader_bytes(find_shader(&self.shaders, shader_key)?)?;
+        let shader = find_shader(&self.shaders, shader_key)?.clone();
         self.pipelines = create_pipelines(
             &ctx.device,
             &self.pipeline_layouts,
             ctx.config.format,
             &self.vertex_buffer_layouts,
-            shader_bytes.as_ref(),
+            &shader.source,
         );
         self.active_shader_key = shader_key;
         Ok(())
@@ -835,6 +836,7 @@ fn find_shader_mut<'a>(
 fn load_shader_bytes(shader: &ShaderDescriptor) -> Result<std::borrow::Cow<'_, [u8]>, Error> {
     match &shader.source {
         ShaderSource::Prebuilt(bytes) => Ok(std::borrow::Cow::Borrowed(*bytes)),
+        ShaderSource::Wgsl(_) => Ok(std::borrow::Cow::Borrowed(&[])),
         #[cfg(all(
             any(feature = "runtime-compilation", feature = "hot-reload-shader"),
             not(target_arch = "wasm32")
@@ -870,18 +872,14 @@ fn create_pipelines(
     pipeline_layouts: &PipelineLayouts,
     surface_format: wgpu::TextureFormat,
     vertex_buffer_layouts: &[wgpu::VertexBufferLayout<'_>],
-    shader_bytes: &[u8],
+    shader_source: &ShaderSource,
 ) -> Pipelines {
-    let spirv = wgpu::util::make_spirv(shader_bytes);
-    let module = &device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: None,
-        source: spirv,
-    });
+    let module = create_shader_module(device, shader_source, None);
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: None,
         layout: Some(&pipeline_layouts.render),
         vertex: wgpu::VertexState {
-            module,
+            module: &module,
             entry_point: Some("main_vs"),
             buffers: vertex_buffer_layouts,
             compilation_options: PipelineCompilationOptions::default(),
@@ -902,7 +900,7 @@ fn create_pipelines(
             alpha_to_coverage_enabled: false,
         },
         fragment: Some(wgpu::FragmentState {
-            module,
+            module: &module,
             entry_point: Some("main_fs"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: surface_format,
@@ -918,7 +916,7 @@ fn create_pipelines(
     let compute_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: None,
         layout: Some(&pipeline_layouts.compute),
-        module,
+        module: &module,
         entry_point: Some("main_cs"),
         compilation_options: PipelineCompilationOptions::default(),
         cache: None,
@@ -928,6 +926,31 @@ fn create_pipelines(
         #[cfg(feature = "compute")]
         compute: compute_pipeline,
     }
+}
+
+fn create_shader_module(
+    device: &wgpu::Device,
+    shader_source: &ShaderSource,
+    label: Option<&str>,
+) -> wgpu::ShaderModule {
+    let source: wgpu::ShaderSource<'static> = match shader_source {
+        ShaderSource::Prebuilt(bytes) => wgpu::util::make_spirv(bytes),
+        ShaderSource::Wgsl(source) => wgpu::ShaderSource::Wgsl(source.clone()),
+        #[cfg(all(
+            any(feature = "runtime-compilation", feature = "hot-reload-shader"),
+            not(target_arch = "wasm32")
+        ))]
+        ShaderSource::RuntimePath(path) => {
+            let bytes = std::fs::read(path).expect("shader path must be readable");
+            let spirv = match wgpu::util::make_spirv(&bytes) {
+                wgpu::ShaderSource::SpirV(cow) => cow.into_owned(),
+                _ => unreachable!("SPIR-V creation should always yield a SpirV source"),
+            };
+            wgpu::ShaderSource::SpirV(std::borrow::Cow::Owned(spirv))
+        }
+    };
+
+    device.create_shader_module(wgpu::ShaderModuleDescriptor { label, source })
 }
 
 #[cfg(feature = "emulate_constants")]
