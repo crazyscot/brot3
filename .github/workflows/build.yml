@@ -90,6 +90,7 @@ jobs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+      - uses: crazyscot/gh-actions/apt-resilience@main
       - name: Base toolchain
         uses: ./.github/actions/toolchain
         with:
