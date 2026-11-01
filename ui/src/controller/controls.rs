@@ -45,10 +45,10 @@ impl super::Controller {
                 egui::CollapsingHeader::new("Exponent").show(ui, |ui| {
                     egui::Grid::new("exponent_grid").show(ui, |ui| {
                         let previous_typ = self.state.exponent.typ;
-                        ui.radio_value(&mut self.state.exponent.typ, NumericType::Integer, "Integer");
-                        ui.radio_value(&mut self.state.exponent.typ, NumericType::Float, "Float");
+                        ui.radio_value(&mut *self.state.exponent.typ,  NumericType::Integer, "Integer");
+                        ui.radio_value(&mut *self.state.exponent.typ,  NumericType::Float, "Float");
                         ui.end_row();
-                        match (previous_typ, self.state.exponent.typ) {
+                        match (*previous_typ, *self.state.exponent.typ) {
                             (NumericType::Integer, _) => {
                                 self.state.exponent.real = self.state.exponent.int.cast();
                             }
@@ -62,7 +62,7 @@ impl super::Controller {
                             self.reiterate = true;
                         }
                     });
-                    match self.state.exponent.typ {
+                    match *self.state.exponent.typ {
                         NumericType::Integer => {
                             if ui.add(egui::Slider::new(
                                     &mut self.state.exponent.int,
@@ -102,11 +102,11 @@ impl super::Controller {
 
                 let palette_before = self.state.palette.colourer;
                 egui::ComboBox::from_label("Palette")
-                    .selected_text(format!("{:?}", self.state.palette.colourer))
+                    .selected_text(format!("{:?}", *self.state.palette.colourer))
                     .show_ui(ui, |ui| {
                         for it in Colourer::iter() {
                             let label: &'static str = it.into();
-                            ui.selectable_value(&mut self.state.palette.colourer, it, label)
+                            ui.selectable_value(&mut self.state.palette.colourer, it.into(), label)
                                 .on_hover_text(it.get_documentation().unwrap_or_default());
                         }
                     });
@@ -118,11 +118,11 @@ impl super::Controller {
                     .id_salt("palette-detail")
                     .show(ui, |ui| {
                         egui::ComboBox::from_label("Colour Style")
-                            .selected_text(format!("{:?}", self.state.palette.colour_style))
+                            .selected_text(format!("{:?}", *self.state.palette.colour_style))
                             .show_ui(ui, |ui| {
                                 for it in ColourStyle::iter() {
                                     let label: &'static str = it.into();
-                                    if ui.selectable_value(&mut self.state.palette.colour_style, it, label)
+                                    if ui.selectable_value(&mut self.state.palette.colour_style, it.into(), label)
                                         .on_hover_text(it.get_documentation().unwrap_or_default())
                                         .clicked() {
                                             self.reiterate = true;
@@ -131,11 +131,11 @@ impl super::Controller {
                                 }
                             });
                         egui::ComboBox::from_label("Brightness Style")
-                            .selected_text(format!("{:?}", self.state.palette.brightness_style))
+                            .selected_text(format!("{:?}", *self.state.palette.brightness_style))
                             .show_ui(ui, |ui| {
                                 for it in Modifier::iter() {
                                     let label: &'static str = it.into();
-                                    if ui.selectable_value(&mut self.state.palette.brightness_style, it, label)
+                                    if ui.selectable_value(&mut self.state.palette.brightness_style, it.into(), label)
                                         .on_hover_text(it.get_documentation().unwrap_or_default())
                                         .clicked() {
                                             self.reiterate = true;

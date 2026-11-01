@@ -1,7 +1,9 @@
+use brot3_idl::Colourer;
 use brot3_lib::{
     COMPUTE_SHADER_THREADS,
     data::{FragmentConstants, PointResult},
-    ui::ShaderVariant,
+    ui::{ShaderKey, ShaderVariant},
+    wgsl::compute_shader,
 };
 use easy_cast::{Cast as _, Conv as _};
 use glam::{UVec2, UVec3, Vec2};
@@ -51,11 +53,7 @@ struct InitDeviceResult {
 
 impl ComputeController {
     /// Creates a new `ComputeController` with the specified render size and number of passes.
-    pub fn new(
-        render_size: UVec2,
-        n_passes: u32,
-        shader_variant: ShaderVariant,
-    ) -> Result<Self, Error> {
+    pub fn new(render_size: UVec2, n_passes: u32, key: ShaderKey) -> Result<Self, Error> {
         let InitDeviceResult {
             device,
             queue,
@@ -65,7 +63,7 @@ impl ComputeController {
             Self::create_buffers(&device, render_size);
 
         let (layouts, bind_groups) =
-            Self::describe_bind_groups(&device, render_size, &pixel_buffer, &reference_buffer);
+            crate::shader::describe_bind_groups(&device, &reference_buffer, Some(&pixel_buffer));
         let bind_group_layouts = layouts.iter();
 
         let pipeline_layout = Self::create_pipeline_layout(
@@ -73,7 +71,7 @@ impl ComputeController {
             &bind_group_layouts.map(Some).collect::<Vec<_>>(),
         );
 
-        let shader = Self::load_shader(&device, shader_variant);
+        let shader = Self::load_shader(&device, key.variant, key.colourer);
         let pipeline = Self::create_pipeline(&device, &pipeline_layout, &shader);
         let queries = if timestamps_supported {
             Some(Queries::new(&device, 2 * n_passes + 2))
@@ -139,7 +137,6 @@ impl ComputeController {
             });
             cpass.set_pipeline(&self.pipeline);
             cpass.set_immediates(0, bytemuck::bytes_of(&constants));
-
             self.queue.write_buffer(
                 &self.reference_buffer,
                 0,
@@ -327,66 +324,17 @@ impl ComputeController {
         )
     }
 
-    fn describe_bind_groups(
+    fn load_shader(
         device: &Device,
-        render_size: UVec2,
-        pixel_buffer: &wgpu::Buffer,
-        reference_buffer: &wgpu::Buffer,
-    ) -> (Vec<wgpu::BindGroupLayout>, Vec<wgpu::BindGroup>) {
-        let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    // Pixel buffer (output)
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::COMPUTE,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: false },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    // Perturbation reference buffer (input)
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::COMPUTE,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                },
-            ],
-            label: Some("b3compute bgl"),
-        });
-
-        assert!(render_size != UVec2::ZERO);
-
-        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: pixel_buffer.as_entire_binding(),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: reference_buffer.as_entire_binding(),
-                },
-            ],
-            label: Some("fractal_bind_group"),
-        });
-        (vec![layout], vec![bind_group])
-    }
-
-    fn load_shader(device: &Device, shader_variant: ShaderVariant) -> wgpu::ShaderModule {
-        let spirv =
-            wgpu::util::make_spirv(crate::shader_assets::prebuilt_shader_bytes(shader_variant));
-        let label = shader_variant.key();
+        variant: ShaderVariant,
+        colourer: Colourer,
+    ) -> wgpu::ShaderModule {
+        let label: &'static str = variant.into();
         device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some(label),
-            source: spirv,
+            source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(&compute_shader(
+                ShaderKey { variant, colourer },
+            ))),
         })
     }
 
@@ -418,5 +366,53 @@ impl ComputeController {
 
     pub(crate) fn get_timestamp_period(&self) -> f64 {
         self.queue.get_timestamp_period().into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use brot3_idl::WgslVec2;
+    use brot3_lib::{
+        data::{Flags, FragmentConstants},
+        ui::ShaderVariant,
+        util::Size,
+    };
+
+    use super::*;
+
+    #[test]
+    fn compute_controller_emits_non_black_gpu_output() {
+        let render_size = UVec2::new(16, 16);
+        let mut controller = ComputeController::new(render_size, 1, ShaderKey::default())
+            .expect("compute controller should initialize");
+
+        let mut constants = FragmentConstants::default();
+        constants.flags = WgslFlags::empty();
+        constants.viewport_size = Size::new(render_size.x, render_size.y);
+        constants.buffer_size = Size::new(render_size.x, render_size.y);
+        constants.viewport_translate = WgslVec2::ZERO;
+        constants.viewport_zoom = 0.25;
+        constants.max_iter = 96;
+
+        let mut pixels = Vec::new();
+        let _timings = controller
+            .run(constants, render_size.extend(1), 1, &[], |rgba| {
+                pixels.extend_from_slice(rgba);
+                Ok(())
+            })
+            .expect("compute controller should render successfully");
+
+        let first_pixel = &pixels[..4];
+        assert_ne!(
+            first_pixel,
+            &[0_u8, 0, 0, 0],
+            "pixel (0,0) should escape and produce non-black output"
+        );
+        assert!(
+            pixels.iter().any(|&byte| byte != 0),
+            "compute output should contain non-zero bytes"
+        );
+        assert_eq!(pixels.len(), (render_size.x * render_size.y * 4) as usize);
+        assert!(!pixels.is_empty());
     }
 }

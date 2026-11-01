@@ -20,7 +20,8 @@ pub fn render_frame(
     parallel: bool,
 ) -> Vec<u8> {
     use easy_cast::Conv as _;
-    let total_bytes = usize::conv(constants.size.element_product()) * RENDER_BYTES_PER_PIXEL;
+    let total_bytes =
+        usize::conv(constants.viewport_size.element_product()) * RENDER_BYTES_PER_PIXEL;
     let mut pixels = vec![0u8; total_bytes];
 
     let chunk_pixels = 128; // by experiment, this seems to be a good balance between overhead and parallelism. It's not a multiple of typical SIMD widths, but it keeps the CPU busy without too much overhead.
@@ -58,7 +59,7 @@ pub fn render_chunk(
     constants: &FragmentConstants,
     perturbation_points: &[Vec2],
 ) {
-    let width = constants.size.width as usize;
+    let width = constants.viewport_size.width as usize;
     let mut y = start_pixel / width;
     let mut x = start_pixel % width;
 
@@ -84,26 +85,16 @@ pub fn render_chunk(
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use const_default::ConstDefault;
-
     use super::*;
-    use crate::{
-        data::{Algorithm, Palette, PushExponent},
-        util::Size,
-    };
+    use crate::util::Size;
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {
-            flags: crate::data::Flags::empty(),
-            viewport_translate: crate::vec2(0., 0.),
             viewport_zoom: 0.3,
-            size: Size::new(2, 2),
+            viewport_size: Size::new(2, 2),
             buffer_size: Size::new(2, 2),
             max_iter: 10,
-            algorithm: Algorithm::Mandelbrot,
-            exponent: PushExponent::default(),
-            palette: Palette::DEFAULT,
-            inspector_point_pixel_address: Vec2::default(),
+            ..Default::default()
         }
     }
 
@@ -174,7 +165,7 @@ mod tests {
     #[test]
     fn render_frame_larger_image() {
         let mut consts = test_frag_consts();
-        consts.size = Size::new(10, 8);
+        consts.viewport_size = Size::new(10, 8);
         let pixels = render_frame(&consts, &[], false);
 
         // 10x8 = 80 pixels, 4 bytes each

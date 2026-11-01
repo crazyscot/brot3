@@ -11,8 +11,7 @@ env:
   CLICOLOR_FORCE: 1
   RUST_BACKTRACE: 1
   CARGO_INCREMENTAL: 0
-  BROT3_RUST_VERSION: nightly-2026-07-03
-  # BROT3_RUST_VERSION should match the version in rust-toolchain.toml & across all workflows
+  BROT3_NIGHTLY_VERSION: nightly-2026-10-01
 
 # N.B. github runners have `rustup set profile minimal` by default
 
@@ -36,10 +35,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
         with:
           persist-credentials: false
-      - name: Override toolchain
-        uses: ./.github/actions/toolchain
-        with:
-          channel: stable
       - name: cargo deny
         uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # 2.0.14
         with:
@@ -55,7 +50,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
       - uses: ./.github/actions/toolchain
         with:
-          channel: ${{ env.BROT3_RUST_VERSION }}
+          channel: ${{ env.BROT3_NIGHTLY_VERSION }}
           components: llvm-tools
       - uses: taiki-e/install-action@1919c4a95903d2c33e4a221102edca87309fc14b # v2.89.0
         with:
@@ -88,12 +83,8 @@ jobs:
     timeout-minutes: 5
     steps:
       # This job runs all its checks without stopping (unless cancelled)
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
-      - uses: ./.github/actions/toolchain
-        with:
-          channel: ${{ env.BROT3_RUST_VERSION }}
-          components: rustfmt
-      - uses: taiki-e/install-action@1919c4a95903d2c33e4a221102edca87309fc14b # v2.89.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
+      - uses: taiki-e/install-action@dfcb1ee29051d97c8d0f2d437199570008fd5612 # v2.65.15
         with:
           tool: typos,dprint,cargo-machete,cargo-shear
           checksum: true
@@ -114,18 +105,10 @@ jobs:
   clippy:
     runs-on: ubuntu-26.04
     timeout-minutes: 30
-    env:
-      RUSTGPU_SKIP_TOOLCHAIN_CHECK: 1
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
-      - uses: ./.github/actions/toolchain
-        with:
-          channel: ${{ env.BROT3_RUST_VERSION }}
-          components: clippy,rustc-dev
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       - name: clippy (no-default-features)
-        run: cargo clippy --locked --no-deps --all-targets -p brot3-lib -p brot3-ui --no-default-features
-      - name: clippy (ui + hot-reload)
-        run: cargo clippy --locked --no-deps --all-targets -p brot3-lib -p brot3-ui -F ui -F hot-reload-shader
-        if: ${{ !cancelled() }}
-      # There's no need to run clippy on use-installed-tools or use-compiled-tools as they are simple passthroughs
+        run: cargo clippy --locked --no-deps --all-targets --no-default-features
+      - name: clippy
+        run: cargo clippy --locked --no-deps --all-targets

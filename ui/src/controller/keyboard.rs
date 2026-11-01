@@ -268,7 +268,7 @@ impl super::Controller {
 
     fn palette(&mut self, increment: bool) {
         let delta = if increment { 1 } else { -1 };
-        self.state.palette.colourer += delta;
+        *self.state.palette.colourer += delta;
         self.reiterate = true;
     }
 }

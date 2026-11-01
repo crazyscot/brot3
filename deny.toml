@@ -78,6 +78,8 @@ ignore = [
   # Source of this quote about paste: https://github.com/rustsec/advisory-db/pull/2215#issuecomment-2709315704
 
   { id = "RUSTSEC-2026-0192", reason = "crate in maintenance mode; when winit uses sctk-adwaita we can depend on skrifa instead" },
+  { id = "RUSTSEC-2026-0344", reason = "we do not use the vulnerable features" },
+  { id = "RUSTSEC-2025-0057", reason = "crate is unmaintained, but not used for security" },
 ]
 
 # If this is true, then cargo deny will use the git executable to fetch advisory database.

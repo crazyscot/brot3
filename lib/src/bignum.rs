@@ -17,16 +17,22 @@ use crate::CBig;
 ///         pub some_field: CBig,
 /// ```
 pub trait BigComplexExt {
+    /// The error type to use
     type ParseErr;
+    /// Attempts to create a new complex number from the given real and imaginary parts.
     fn try_new<T>(re: T, im: T) -> Result<Self, <FBig as TryFrom<T>>::Error>
     where
         Self: Sized,
         FBig: std::convert::TryFrom<T>;
+    /// Converts the complex number to a 2D vector with `f32` components.
     fn as_vec2(&self) -> crate::Vec2;
+    /// Converts the complex number to a 2D vector with `f64` components.
     fn as_dvec2(&self) -> crate::DVec2;
+    /// Attempts to create a complex number from a 2D vector with `f64` components.
     fn try_from_dvec2(value: crate::DVec2) -> Result<Self, <FBig as TryFrom<f64>>::Error>
     where
         Self: Sized;
+    /// Adds a 2D vector with `f64` components to the complex number, updating it in place.
     fn add_assign_dvec2(
         &mut self,
         other: crate::DVec2,

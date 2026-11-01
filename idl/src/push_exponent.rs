@@ -7,31 +7,23 @@ use std::str::FromStr;
 use bytemuck::NoUninit;
 #[cfg(not(spirv))]
 use easy_cast::{CastTo as _, Floor};
+use my_wgsl::WgslCompatible;
 #[cfg(not(spirv))]
 use serde::{Deserialize, Serialize};
 
+use super::enums::NumericType;
 #[cfg(not(spirv))]
-use crate::ui::Exponent;
-
-/// The exponent type for the fractal
-#[derive(Copy, Clone, Debug, Default, PartialEq, NoUninit)]
-#[repr(u32)]
-#[allow(missing_docs)]
-#[cfg_attr(not(spirv), derive(Serialize, Deserialize))]
-pub enum NumericType {
-    #[default]
-    Integer,
-    Float,
-}
+use crate::Exponent;
+use crate::enums::WgslEnum;
 
 /// The exponent for the fractal, in a GPU-friendly format. It can be an integer or a real number.
-#[derive(Copy, Clone, Debug, PartialEq, NoUninit)]
+#[derive(Copy, Clone, Debug, PartialEq, NoUninit, WgslCompatible)]
 #[repr(C)]
 #[cfg_attr(not(spirv), derive(Serialize, Deserialize))]
 #[cfg_attr(not(spirv), serde(into = "Exponent", from = "Exponent"))]
 pub struct PushExponent {
     /// The type of the exponent, which determines which of the other fields are used.
-    pub typ: NumericType,
+    pub typ: WgslEnum<NumericType>,
     /// Only used when `typ` is Integer
     pub int: i32,
     /// Used when `typ` is Float
@@ -41,7 +33,7 @@ pub struct PushExponent {
 impl Default for PushExponent {
     fn default() -> Self {
         Self {
-            typ: NumericType::Integer,
+            typ: NumericType::Integer.into(),
             int: 2,
             real: 0.,
         }
@@ -57,7 +49,7 @@ impl TryFrom<i32> for PushExponent {
             return Err(format!("Exponent must be between 2 and 20, got {i}"));
         }
         Ok(Self {
-            typ: NumericType::Integer,
+            typ: NumericType::Integer.into(),
             int: i,
             ..Default::default()
         })
@@ -74,12 +66,12 @@ impl TryFrom<f32> for PushExponent {
         }
         Ok(match f.fract() {
             0. => Self {
-                typ: NumericType::Integer,
+                typ: NumericType::Integer.into(),
                 int: f.cast_to(Floor),
                 ..Default::default()
             },
             _ => Self {
-                typ: NumericType::Float,
+                typ: NumericType::Float.into(),
                 real: f,
                 ..Default::default()
             },
@@ -118,15 +110,15 @@ impl PushExponent {
     #[allow(clippy::float_cmp)]
     pub fn is_two(&self) -> bool {
         match self.typ {
-            NumericType::Integer => self.int == 2,
-            NumericType::Float => self.real == 2.0,
+            WgslEnum(NumericType::Integer) => self.int == 2,
+            WgslEnum(NumericType::Float) => self.real == 2.0,
         }
     }
 
     /// Get the step size for UI adjustments based on the type of exponent.
     #[must_use]
     pub fn ui_step(&self) -> f32 {
-        if self.typ == NumericType::Integer {
+        if self.typ == WgslEnum(NumericType::Integer) {
             1.
         } else {
             0.1
@@ -138,18 +130,29 @@ impl PushExponent {
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use assert_matches::assert_matches;
+    use my_wgsl::WgslCompatible;
 
     use super::{NumericType, PushExponent};
+    use crate::enums::WgslEnum;
     #[test]
     fn construct_exponent() {
         let pf = PushExponent::try_from(11.2).unwrap();
         assert_matches!(
             pf,
             PushExponent {
-                typ: NumericType::Float,
+                typ: WgslEnum(NumericType::Float),
                 real: 11.2,
                 ..
             }
         );
+    }
+
+    #[test]
+    fn test_wgsl_struct() {
+        println!("{}", PushExponent::WGSL_DEFINE);
+        assert!(PushExponent::WGSL_DEFINE.contains("struct PushExponent"));
+        assert!(PushExponent::WGSL_DEFINE.contains("typ:u32"));
+        assert!(PushExponent::WGSL_DEFINE.contains("int:i32"));
+        assert!(PushExponent::WGSL_DEFINE.contains("real:f32"));
     }
 }

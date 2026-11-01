@@ -7,11 +7,12 @@ use core::str::FromStr;
 
 use bytemuck::NoUninit;
 use easy_cast::Conv as _;
+use my_wgsl::WgslCompatible;
 
 use crate::{UVec2, Vec2, uvec2, vec2};
 
 /// GPU-friendly representation of a two-dimensional `u32` vector
-#[derive(Copy, Clone, Debug, NoUninit, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, NoUninit, PartialEq, Eq, WgslCompatible)]
 #[repr(C)]
 #[allow(missing_docs)] // self-explanatory !
 pub struct Size {
@@ -29,6 +30,7 @@ impl Default for Size {
 }
 
 impl Size {
+    #[allow(missing_docs)]
     pub const ZERO: Self = Self {
         width: 0,
         height: 0,
@@ -43,7 +45,7 @@ impl Size {
     /// Calculates the aspect ratio
     ///
     /// ```
-    /// # use brot3_lib::util::Size;
+    /// # use brot3_idl::Size;
     /// let sz = Size::new(100, 200);
     /// assert_eq!(sz.aspect_ratio(), 0.5);
     /// ```
@@ -55,7 +57,7 @@ impl Size {
     /// Converts to a [`Vec2`]
     ///
     /// ```
-    /// # use brot3_lib::util::Size;
+    /// # use brot3_idl::Size;
     /// let sz = Size::new(100, 200);
     /// let v = sz.as_vec2();
     /// assert_eq!(v.x, 100.0);
@@ -68,7 +70,7 @@ impl Size {
 
     /// Converts to a [`UVec2`]
     /// ```
-    /// # use brot3_lib::util::Size;
+    /// # use brot3_idl::Size;
     /// let sz = Size::new(100, 200);
     /// let v = sz.as_uvec2();
     /// assert_eq!(v.x, 100);
@@ -80,6 +82,7 @@ impl Size {
     }
 
     #[must_use]
+    #[allow(missing_docs)]
     pub fn element_product(self) -> u32 {
         self.width * self.height
     }
@@ -87,7 +90,7 @@ impl Size {
 
 impl From<UVec2> for Size {
     /// ```
-    /// # use brot3_lib::util::Size;
+    /// # use brot3_idl::Size;
     /// # use glam::uvec2;
     /// let uv = uvec2(200, 100);
     /// let sz: Size = uv.into();
@@ -103,7 +106,7 @@ impl From<UVec2> for Size {
 
 impl From<Size> for UVec2 {
     /// ```
-    /// # use brot3_lib::util::Size;
+    /// # use brot3_idl::Size;
     /// # use glam::UVec2;
     /// let sz = Size::new(100, 200);
     /// let uv: UVec2 = sz.into();

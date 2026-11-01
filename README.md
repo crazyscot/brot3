@@ -72,16 +72,6 @@ The default set of feature flags is the easiest way to run this program. It is r
 | Feature flag                   | Result                                                                                             |
 | ---------------------- | -------------------------------------------------------------------------------------------------- |
 | `ui`  (Default)        | Includes the graphical interactive browser. Without this, you are limited to the command line.     |
-| `hot-reload-shader`    | Allows you to edit the shader code at runtime without needing to rebuild the entire UI.            |
-| `use-compiled-tools`   | With `hot-reload-shader`, compiles and links the C++ code for the spirv-tools binaries itself.     |
-| `use-installed-tools`  | With `hot-reload-shader`, expects to find spirv-tools (spirv-as, etc.) on the PATH                 |
-
-Note that if you set `hot-reload-shader`, you must also do one of:
-* set `use-compiled-tools`
-* set `use-installed-tools`
-* provide your own `librustc_codegen_spirv.so` and specify its path at runtime with `--spirv-tools ...`. (This is not a recommended configuration, as it can be tricky to get the shared library compatibility right.)
-
-**Note that debug builds of the spirv builder can be quite slow.** It's usually a good idea to `cargo run --release -F hot-reload-shader`.
 
 There are limited unit tests and benchmarks. More may be added later.
 

@@ -117,6 +117,7 @@ impl Exponentiator for RealPower {
 mod tests {
     #![allow(clippy::cognitive_complexity)]
 
+    use brot3_idl::WgslEnum;
     use easy_cast::Conv as _;
     use float_eq::{assert_float_eq, float_ne};
     use pretty_assertions::assert_eq;
@@ -158,7 +159,7 @@ mod tests {
         for i in 2..=7 {
             let (z, pow, log2) = crate::exponent_monomorph!(
                 PushExponent {
-                    typ: crate::data::NumericType::Integer,
+                    typ: WgslEnum(crate::data::NumericType::Integer),
                     int: i,
                     ..Default::default()
                 },

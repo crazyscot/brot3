@@ -73,8 +73,6 @@ macro_rules! dynfmt {
 #[cfg(test)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
-    use core::f32;
-
     use pretty_assertions::assert_eq;
 
     // testcase helper macro: run both positive and negative versions of input data

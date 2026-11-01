@@ -6,13 +6,17 @@ Fractal explorer and toolkit for the Mandelbrot set and related algorithms, offe
 - Interactive GUI mode
 - Command-line rendering. Fractal parameters may be specified on the command line, or using a save file.
 
-This software is written in Rust. Part of it runs on the GPU, using rust-gpu.
+This software is written in Rust. Part of it is a GPU shader, written in wgsl.
+(The shader code used to be written in rust-gpu.)
+
+The shader WGSL has many possible flavours, assembled on demand from a series of fragments and loaded dynamically for efficiency.
+Each fragment in the final WGSL serves a separate purpose (fractal algorithm, colouring algorithm, and more).
 
 Crate structure:
-- lib (`brot3-lib`): Fractal implementations. This crate includes all the GPU-resident code and shared structures
-- ui (`brot3-ui`): GUI and command-line interface only
+- idl (`brot3-idl`): Data definitions shared between Rust and WGSL
+- lib (`brot3-lib`): Fractal implementations. This crate includes all the WGSL code fragments that don't live in idl.
+- ui (`brot3-ui`): GUI and command-line interface
 - easy-shader-runner: Framework for running shader
-- shader_builder: Builds the shader
 - xtask: Miscellaneous build helpers
 
 Save file formats:

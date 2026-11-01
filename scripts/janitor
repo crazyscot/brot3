@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-RUST_VERSION="+nightly-2026-07-03"
+RUST_VERSION="+stable"
 
 cargo +nightly fmt
 

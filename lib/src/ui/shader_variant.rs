@@ -1,7 +1,30 @@
 //! Shader variant selection for runtime and build orchestration.
 
-use super::{UiState, build_defs::ShaderVariant};
+use super::UiState;
 use crate::data::Algorithm;
+
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Hash,
+    strum::EnumString,
+    strum::Display,
+    strum::IntoStaticStr,
+    strum::FromRepr,
+    strum::EnumIter,
+)]
+#[allow(missing_docs)]
+/// Represents the different shader variants available for rendering
+pub enum ShaderVariant {
+    General,
+    #[default]
+    MandelbrotPow2,
+    MandelbrotPow2Deep,
+}
 
 impl ShaderVariant {
     /// Chooses the preferred shader variant for a given UI state.
@@ -19,7 +42,7 @@ impl ShaderVariant {
     pub fn from_ui_state_with_perturbation_mode(state: &UiState, perturbation_mode: bool) -> Self {
         if state.algorithm != Algorithm::Mandelbrot
             || !state.exponent.is_two()
-            || state.palette.brightness_style == crate::data::Modifier::Filaments
+            || *state.palette.brightness_style == crate::data::Modifier::Filaments
         {
             return Self::General;
         }
@@ -28,6 +51,15 @@ impl ShaderVariant {
         } else {
             Self::MandelbrotPow2
         }
+    }
+}
+
+impl From<&UiState> for ShaderVariant {
+    fn from(state: &UiState) -> Self {
+        Self::from_ui_state_with_perturbation_mode(
+            state,
+            state.viewport_zoom.requires_perturbation_mode(),
+        )
     }
 }
 
@@ -46,54 +78,6 @@ mod tests {
             exponent: PushExponent::default(),
             ..UiState::default()
         }
-    }
-
-    #[test]
-    fn variant_keys_are_stable() {
-        assert_eq!(ShaderVariant::General.key(), "general");
-        assert_eq!(ShaderVariant::MandelbrotPow2.key(), "mandelbrot_pow2");
-        assert_eq!(
-            ShaderVariant::MandelbrotPow2Deep.key(),
-            "mandelbrot_pow2_deep"
-        );
-        assert_eq!(
-            ShaderVariant::prebuild_shaders_dir_env_var(),
-            "BROT3_PREBUILD_SHADERS_DIR"
-        );
-        assert_eq!(
-            ShaderVariant::General.shader_filename(),
-            "brot3_general.spv"
-        );
-        assert_eq!(
-            ShaderVariant::MandelbrotPow2.shader_filename(),
-            "brot3_mandelbrot_pow2.spv"
-        );
-        assert_eq!(
-            ShaderVariant::MandelbrotPow2Deep.shader_filename(),
-            "brot3_mandelbrot_pow2_deep.spv"
-        );
-    }
-
-    #[test]
-    fn feature_sets_match_the_planned_matrix() {
-        assert_eq!(
-            ShaderVariant::General.shader_crate_features(),
-            &[
-                "all-fractals",
-                "variable-exponent",
-                "perturbation-mode",
-                "standard-mode",
-                "distance-estimate",
-            ]
-        );
-        assert_eq!(
-            ShaderVariant::MandelbrotPow2.shader_crate_features(),
-            &["standard-mode"]
-        );
-        assert_eq!(
-            ShaderVariant::MandelbrotPow2Deep.shader_crate_features(),
-            &["perturbation-mode"]
-        );
     }
 
     #[test]
@@ -142,7 +126,7 @@ mod tests {
     #[test]
     fn picks_general_for_distance_estimate() {
         let mut state = base_state();
-        state.palette.brightness_style = crate::data::Modifier::Filaments;
+        *state.palette.brightness_style = crate::data::Modifier::Filaments;
         assert_eq!(ShaderVariant::from_ui_state(&state), ShaderVariant::General);
     }
 

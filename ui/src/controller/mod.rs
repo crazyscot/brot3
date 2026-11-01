@@ -6,15 +6,18 @@
 //! </div>
 
 use std::{
+    borrow::Cow,
+    str::FromStr,
     sync::{Arc, atomic::AtomicBool},
     time::Instant,
 };
 
+use brot3_idl::PixelSpacing as _;
 use brot3_lib::{
     BigComplexExt, CBig,
     data::{Flags, FragmentConstants, Modifier, PointResult},
-    engine::PixelSpacing as _,
-    ui::{Channel, ShaderVariant, UiState as BrotUiState, ViewportZoom},
+    ui::{Channel, ShaderKey, UiState as BrotUiState, ViewportZoom},
+    wgsl::fragment_shader,
 };
 use easy_cast::Conv as _;
 use easy_shader_runner::{
@@ -189,15 +192,16 @@ impl Controller {
             | Flags::flag_if(self.perturbation_mode, Flags::PERTURBATION_MODE)
             | Flags::flag_if(self.state.iteration_cull, Flags::ITERATION_CULL)
             | Flags::flag_if(
-                self.state.palette.brightness_style == Modifier::Filaments,
+                *self.state.palette.brightness_style == Modifier::Filaments,
                 Flags::DISTANCE_ESTIMATE,
             );
         FragmentConstants {
-            flags,
+            flags: flags.into(),
             buffer_size: self.cache_size.into(),
             inspector_point_pixel_address: self
                 .complex_point_to_pixel(&self.inspector.position)
-                .as_vec2(),
+                .as_vec2()
+                .into(),
             ..FragmentConstants::from(&self.state)
         }
     }
@@ -217,13 +221,6 @@ impl Controller {
         // Apply the limits
         self.state.viewport_zoom =
             ViewportZoom(new_zoom).clamp_to_mode(self.perturbation_mode || self.force_perturb);
-    }
-
-    fn current_shader_variant(&self) -> ShaderVariant {
-        ShaderVariant::from_ui_state_with_perturbation_mode(
-            &self.state,
-            self.perturbation_mode && self.perturb_implemented(),
-        )
     }
 }
 
@@ -249,8 +246,15 @@ impl Default for Movement {
 }
 
 impl ControllerTrait for Controller {
-    fn current_shader_key(&self) -> Option<&'static str> {
-        Some(self.current_shader_variant().key())
+    fn current_shader_key(&self) -> Option<Cow<'static, str>> {
+        let k = ShaderKey::from(&self.state);
+        Some(k.interned())
+    }
+
+    fn shader_source(&mut self, key: &str) -> Option<String> {
+        let k = ShaderKey::from_str(key).ok()?;
+        log::debug!("shader source requested for {key} -> {k} {k:?}");
+        Some(fragment_shader(k))
     }
 
     fn resize(&mut self, size: UVec2) {
@@ -296,41 +300,21 @@ impl ControllerTrait for Controller {
         gfx_ctx: &GraphicsContext,
     ) -> (Vec<wgpu::BindGroupLayout>, Vec<wgpu::BindGroup>) {
         let device = &gfx_ctx.device;
-        let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Storage { read_only: true },
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-            label: Some("bind_group_layout"),
-        });
 
-        let perturbation_points_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("perturbation_points_buffer"),
+        let reference_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("reference_buffer"),
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
             size: u64::conv(std::mem::size_of::<Vec2>() * (crate::MAX_MAX_ITERATIONS + 1)),
             mapped_at_creation: false,
         });
+        let (layouts, groups) =
+            crate::shader::describe_bind_groups(device, &reference_buffer, None);
 
-        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: perturbation_points_buffer.as_entire_binding(),
-            }],
-            label: Some("fractal_bind_group"),
-        });
-        self.perturbation.buffer = Some(perturbation_points_buffer);
-        (vec![layout], vec![bind_group])
+        self.perturbation.buffer = Some(reference_buffer);
+        (layouts, groups)
     }
 
-    #[cfg(feature = "hot-reload-shader")]
-    fn new_shader_module(&mut self, _shader_key: &'static str) {
+    fn loaded_wgsl_module(&mut self, _shader_key: Cow<'static, str>) {
         self.reiterate = true;
     }
 

@@ -20,136 +20,8 @@ env:
   CLICOLOR_FORCE: 1
   RUST_BACKTRACE: 1
   CARGO_INCREMENTAL: 0
-  BROT3_RUST_VERSION: nightly-2026-07-03
-  # BROT3_RUST_VERSION should match the version in rust-toolchain.toml & across all workflows
 
 jobs:
-  shader_builder:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 30
-    outputs:
-      artifact_id: ${{ steps.upload.outputs.artifact-id }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
-      - name: Base toolchain
-        uses: ./.github/actions/toolchain
-        with:
-          channel: ${{ env.BROT3_RUST_VERSION }}
-
-      # This job builds tooling for the shader job. Note that shader-builder is a thin wrapper around spirv_builder.
-      # We also cache the built artifacts, so include as an extra key the hash of the crate source tree.
-      # If the cache is hot, we short-circuit the build process and simply re-ship the cached artifacts.
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-        id: rust-cache
-        with:
-          save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
-          cache-directories: .temp/sb
-          key: ${{ hashFiles('shader_builder/**') }}
-          cache-bin: false # Necessary as we are installing toolchain components after cache
-
-      - name: Determine build status
-        id: do-build
-        run: |
-          echo Cache hit status: Rust ${{ steps.rust-cache.outputs.cache-hit }}.
-          do_build=${{ (steps.rust-cache.outputs.cache-hit != 'true') && '1' || '0' }}
-          echo RCC cache hit: ${{ steps.rust-cache.outputs.cache-hit }} : ${{ steps.rust-cache.outputs.cache-hit == 'true' }}
-          echo do-build decision: $do_build
-          echo do-build=$do_build >> $GITHUB_OUTPUT
-
-      # Build and tooling actions (gated by the status check)
-      # N.B. We don't need to install the spirv-tools .deb here, as we're not actually using them in this job
-      - uses: ./.github/actions/toolchain
-        if: ${{ steps.do-build.outputs.do-build == '1' }}
-        with:
-          channel: ${{ env.BROT3_RUST_VERSION }}
-          components: rust-src,rustc-dev,llvm-tools
-      - name: build
-        if: ${{ steps.do-build.outputs.do-build == '1' }}
-        run: |
-          rm -rf .temp/sb
-          cargo build -p shader_builder --locked --release --no-default-features -F use-installed-tools
-      - name: assemble upload
-        if: ${{ steps.do-build.outputs.do-build == '1' }}
-        run: mkdir -p .temp/sb && cp target/release/shader_builder target/release/librustc_codegen_spirv.so .temp/sb/
-
-      # Send the artifact, whether we built it or it came from cache.
-      - name: Upload artifact
-        id: upload
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: shader_builder
-          path: .temp/sb/*
-          if-no-files-found: error
-        if: ${{ !cancelled() }}
-
-  shader:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 30
-    needs: shader_builder
-    outputs:
-      artifact_id: ${{ steps.upload.outputs.artifact-id }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
-      - uses: crazyscot/gh-actions/apt-resilience@main
-      - name: Base toolchain
-        uses: ./.github/actions/toolchain
-        with:
-          channel: ${{ env.BROT3_RUST_VERSION }}
-
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-        id: rust-cache
-        with:
-          save-if: ${{ github.ref_type != 'tag' }}
-          cache-directories: .temp/shader
-          key: ${{ hashFiles('lib/**') }}
-          cache-bin: false # Necessary as we are installing toolchain components after cache
-      - name: Determine build status
-        id: do-build
-        run: |
-          echo Cache hit status: Rust ${{ steps.rust-cache.outputs.cache-hit }}
-          do_build=${{ (steps.rust-cache.outputs.cache-hit != 'true') && '1' || '0' }}
-          echo do-build decision: $do_build
-          echo do-build=$do_build >> $GITHUB_OUTPUT
-          ls -lR .temp/shader || true
-
-      # Tool installation and shader build are gated by the status check
-      - uses: ./.github/actions/toolchain
-        if: ${{ steps.do-build.outputs.do-build == '1' }}
-        with:
-          channel: ${{ env.BROT3_RUST_VERSION }}
-          components: rust-src,rustc-dev,llvm-tools
-      - name: Download shader_builder
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        if: ${{ steps.do-build.outputs.do-build == '1' }}
-        with:
-          artifact-ids: ${{ needs.shader_builder.outputs.artifact_id }}
-          path: ${{ github.workspace }}/.temp/shader_builder/
-      - name: Install spirv-tools, fix permissions
-        run: |
-          sudo apt update && sudo apt install spirv-tools
-          ls -lR .temp ; chmod -v +x ${{ github.workspace }}/.temp/shader_builder/*
-        if: ${{ steps.do-build.outputs.do-build == '1' }}
-      - name: build shader
-        if: ${{ steps.do-build.outputs.do-build == '1' }}
-        env:
-          LD_LIBRARY_PATH: ${{ github.workspace }}/.temp/shader_builder
-        run: |
-          pwd; ls -lR .temp/shader_builder
-          ./.temp/shader_builder/shader_builder
-          mkdir -p .temp/shader
-          cp target/spirv-builder/spirv-unknown-vulkan1.1/release/deps/*.spv .temp/shader
-
-      # This step is unconditional so the result can be used by later jobs
-      - name: Upload artifact
-        id: upload
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: shaders
-          path: .temp/shader/
-          if-no-files-found: error
-        # Try to upload on error, to provide maximum useful information for a human diagnostic
-        if: ${{ !cancelled() }}
-
   define-matrix:
     runs-on: ubuntu-26.04
     outputs:
@@ -219,7 +91,6 @@ jobs:
   ui:
     needs:
       - define-matrix
-      - shader
     strategy:
       matrix:
         include: ${{ fromJSON(needs.define-matrix.outputs.matrix) }}
@@ -232,12 +103,11 @@ jobs:
       # Downloaded artifact from an earlier job - set up by download-artifact action
       BROT3_PREBUILD_SHADERS_DIR: ${{ github.workspace }}/.temp/prebuilt-shader
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
-      # N.B. We do not use the local toolchain action here, because it overwrites rust-toolchain.toml which causes the build to be marked as dirty.
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
         with:
-          toolchain: ${{ env.BROT3_RUST_VERSION }}
+          toolchain: stable
           components: ${{ join(env.Components, ',') }}
         env:
           Components: ${{ matrix.rust_components }}
@@ -252,11 +122,6 @@ jobs:
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
-      - name: Download shader artifact
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          artifact-ids: ${{ needs.shader.outputs.artifact_id }}
-          path: ${{ env.BROT3_PREBUILD_SHADERS_DIR }}
 
       - name: status check
         run: git status --porcelain
@@ -387,21 +252,9 @@ jobs:
     # This is a separate build due to its size. (The hot-reload-shader feature flag pulls in spirv-tools.)
     runs-on: ubuntu-26.04
     timeout-minutes: 30
-    needs:
-      - shader
-    env:
-      BROT3_PREBUILD_SHADERS_DIR: ${{ github.workspace }}/.temp/prebuilt-shader
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
-      - uses: ./.github/actions/toolchain
-        with:
-          channel: ${{ env.BROT3_RUST_VERSION }}
-      - name: Download shader
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          artifact-ids: ${{ needs.shader.outputs.artifact_id }}
-          path: ${{ env.BROT3_PREBUILD_SHADERS_DIR }}
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
       # As these builds are not shipped, build as debug builds for speed.
@@ -410,5 +263,3 @@ jobs:
       # but maybe unit tests in future? If so, use the artifact from shader_builder.)
       - name: build (headless)
         run: cargo build --bin brot3 --locked --package brot3-ui --verbose --no-default-features
-      - name: build (hot-reload)
-        run: cargo build --bin brot3 --locked --package brot3-ui --verbose --no-default-features -F hot-reload-shader -F ui

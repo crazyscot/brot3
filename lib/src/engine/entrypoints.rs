@@ -3,8 +3,6 @@
 //! (c) 2025-6 Ross Younger, with inspiration from earlier work by Abel <abel465@gmail.com>; see <https://github.com/abel465/mandelbrot>
 
 use easy_cast::Cast as _;
-#[allow(unused_imports)] // Some are reused in some configurations
-use spirv_std::spirv;
 
 use crate::{
     INSPECTOR_MARKER_SIZE, UVec3, Vec2, Vec3Swizzles as _, Vec4, Vec4Swizzles as _,
@@ -27,7 +25,7 @@ pub(crate) fn main_fs(
     let coord = frag_coord.xy();
 
     // viewport pixel size e.g. 1920x1080
-    let size = constants.size.as_vec2();
+    let size = constants.viewport_size.as_vec2();
     let pixel_spacing = constants.pixel_spacing();
 
     // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
@@ -38,7 +36,7 @@ pub(crate) fn main_fs(
     let colour = engine::colour_data(render_data, constants);
 
     // Draw the inspector marker
-    let dist = engine::new_york_distance(constants.inspector_point_pixel_address, coord);
+    let dist = engine::new_york_distance(constants.inspector_point_pixel_address.into(), coord);
     let component = if dist < INSPECTOR_MARKER_SIZE * 0.667 {
         0.0
     } else {
@@ -58,6 +56,7 @@ pub(crate) fn main_fs(
 }
 
 /// SPIRV `vertex` entrypoint.
+#[cfg(spirv)]
 pub(crate) fn main_vs(vert_id: i32, out_pos: &mut Vec4) {
     let uv = vec2(((vert_id << 1) & 2).cast(), (vert_id & 2).cast());
     // uv expresses the cycle: (0,0) (2,0) (0,2) (2,2)
@@ -68,6 +67,7 @@ pub(crate) fn main_vs(vert_id: i32, out_pos: &mut Vec4) {
 }
 
 /// SPIRV compute shader entrypoint
+#[cfg(spirv)]
 pub(crate) fn main_cs(
     gid: UVec3,
     #[cfg(not(feature = "emulate_constants"))] constants: &FragmentConstants,
@@ -80,7 +80,7 @@ pub(crate) fn main_cs(
     let coord = coord_int.as_vec2();
 
     // viewport pixel size e.g. 1920x1080
-    let size = constants.size.as_vec2();
+    let size = constants.viewport_size.as_vec2();
     let pixel_spacing = constants.pixel_spacing();
 
     // convert pixel coordinates to complex units such that (0,0) is at the centre of the viewport
@@ -91,7 +91,7 @@ pub(crate) fn main_cs(
 
     // no inspector marker in compute shader
 
-    let mut matrix = GridRefMut::new(constants.size.as_uvec2(), pixels);
+    let mut matrix = GridRefMut::new(constants.viewport_size.as_uvec2(), pixels);
     matrix.set(gid.xy(), PackedRgba8::from(colour).0);
 }
 
@@ -111,6 +111,7 @@ mod tests {
 
     const TEST_GRID_SIZE: UVec2 = uvec2(2560, 1440);
 
+    #[cfg(spirv)] // disabled for now
     #[test]
     fn vertex() {
         let cases = &[
@@ -130,19 +131,16 @@ mod tests {
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {
-            flags: Flags::NEEDS_REITERATE,
-            viewport_translate: vec2(0., 0.),
+            flags: Flags::NEEDS_REITERATE.into(),
             viewport_zoom: 0.3,
-            size: Size::new(1024, 1024),
+            viewport_size: Size::new(1024, 1024),
             buffer_size: TEST_GRID_SIZE.into(),
             max_iter: 10,
-            algorithm: Algorithm::Mandelbrot,
-            exponent: PushExponent::default(),
             palette: Palette {
-                colourer: Colourer::Neon2,
+                colourer: Colourer::Neon2.into(),
                 ..Default::default()
             },
-            inspector_point_pixel_address: Vec2::default(),
+            ..Default::default()
         }
     }
 
@@ -167,8 +165,8 @@ mod tests {
 
             // Set up to inspect the pixel we're rendering
             let inspector = FragmentConstants {
-                flags: Flags::INSPECTOR_ACTIVE | Flags::NEEDS_REITERATE,
-                inspector_point_pixel_address: Vec2::from(*point),
+                flags: (Flags::INSPECTOR_ACTIVE | Flags::NEEDS_REITERATE).into(),
+                inspector_point_pixel_address: Vec2::from(*point).into(),
                 ..test_frag_consts()
             };
             crate::main_fs(vec4(0., 0., 0., 0.), &inspector, empty.as_mut(), &mut res);
@@ -197,6 +195,7 @@ mod tests {
         }
     }
 
+    #[cfg(spirv)] // disabled for now
     #[test]
     fn compute_shader() {
         let mut pixels = vec![0u32; (TEST_GRID_SIZE.x * TEST_GRID_SIZE.y) as usize];

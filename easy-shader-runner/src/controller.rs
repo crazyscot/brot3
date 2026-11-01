@@ -84,12 +84,21 @@ pub trait ControllerTrait: 'static {
     ) {
     }
 
-    fn current_shader_key(&self) -> Option<&'static str> {
+    fn current_shader_key(&self) -> Option<std::borrow::Cow<'static, str>> {
+        None
+    }
+
+    /// Supplies WGSL source for a shader key the runner does not know about yet.
+    /// Called when `current_shader_key` names an unregistered shader; the result is cached under
+    /// that key.
+    fn shader_source(&mut self, _key: &str) -> Option<String> {
         None
     }
 
     #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
-    fn new_shader_module(&mut self, _shader_key: &'static str) {}
+    fn new_shader_module(&mut self, _shader_key: std::borrow::Cow<'static, str>) {}
+
+    fn loaded_wgsl_module(&mut self, _shader_key: std::borrow::Cow<'static, str>) {}
 
     /// This callback is invoked during initialision, before the wgpu context is created.
     /// For example, it allows you to detect the available screen resolutions before the shader is

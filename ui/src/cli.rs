@@ -23,27 +23,6 @@ pub(crate) struct Args {
     #[arg(short = 'V', long, help = "Print version")]
     pub version: bool,
 
-    #[cfg(feature = "hot-reload-shader")]
-    #[arg(long)]
-    /// Specifies the path to the shader directory.
-    ///
-    /// This is only allowed when run standalone (not via `cargo run`).
-    pub shader: Option<PathBuf>,
-
-    #[cfg(feature = "hot-reload-shader")]
-    #[arg(long)]
-    /// Specifies the path to the the rust SPIRV code generation library, if needed
-    /// (`librustc_codegen_spirv.so`, `librustc_codegen_spirv.dylib`, `rustc_codegen_spirv.dll`)
-    ///
-    /// This is only required when the tools library is not on your shared library/DLL search path.
-    /// It works best with absolute paths.
-    pub spirv_tools: Option<PathBuf>,
-
-    #[cfg(feature = "hot-reload-shader")]
-    #[arg(long)]
-    /// Disables runtime shader compilation and uses the built-in shader.
-    pub static_shader: bool,
-
     /// Causes the UI window to start up in fullscreen
     #[arg(long)]
     pub fullscreen: bool,
@@ -58,7 +37,7 @@ pub(crate) struct Args {
         long,
         alias = "fractal",
         value_name = "NAME",
-        default_value = "mandelbrot",
+        default_value = "Mandelbrot",
         help_heading("Fractal")
     )]
     pub fractal: Algorithm,
@@ -69,7 +48,7 @@ pub(crate) struct Args {
         long,
         alias = "colorer",
         value_name = "NAME",
-        default_value = "neon2",
+        default_value = "Neon2",
         help_heading("Colouring")
     )]
     pub colourer: Colourer,
@@ -79,7 +58,7 @@ pub(crate) struct Args {
         long,
         alias = "color-style",
         value_name = "NAME",
-        default_value = "continuous",
+        default_value = "Continuous",
         help_heading("Colouring")
     )]
     pub colour_style: ColourStyle,
@@ -89,7 +68,7 @@ pub(crate) struct Args {
         long,
         alias = "color-brightness-style",
         value_name = "NAME",
-        default_value = "standard",
+        default_value = "Standard",
         help_heading("Colouring")
     )]
     pub brightness_style: Modifier,
@@ -114,7 +93,7 @@ pub(crate) struct Args {
     ///
     /// This currently requires --input to be set, and will render the same image that would be
     /// shown in the UI.
-    #[arg(short = 'o', long, value_name = "FILENAME", requires = "input")]
+    #[arg(short = 'o', long, value_name = "FILENAME")]
     pub output: Option<PathBuf>,
 
     /// The size of the output image when using --output. This is in the format "WIDTH,HEIGHT"
@@ -125,7 +104,7 @@ pub(crate) struct Args {
     #[arg(
         short('R'),
         long,
-        default_value = "gpu",
+        default_value = "Gpu",
         help = "The render mode to use when saving an image. This may be useful for benchmarking or other analytical runs.",
         help_heading("Fractal")
     )]
@@ -170,6 +149,11 @@ pub(crate) struct Args {
     )]
     /// The compression level to use when saving PNG images.
     pub compress: PngCompression,
+
+    #[arg(hide = true, long)]
+    pub debug_wgsl: bool,
+    #[arg(hide = true, long)]
+    pub debug_compute: bool,
 }
 
 // Sigh! png::Compression does not implement FromStr. So we map to it.

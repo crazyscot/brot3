@@ -3,11 +3,12 @@
 
 use std::path::Path;
 
+use brot3_idl::{Colourer, WgslVec2};
 use serde::{Deserialize, Serialize};
 
 use super::{Error as LibError, ViewportZoom};
 use crate::{
-    BigComplexExt as _, CBig, UVec2, Vec2,
+    BigComplexExt as _, CBig, UVec2,
     data::{Algorithm, Flags, FragmentConstants, Modifier, Palette, PushExponent},
     engine::NOMINAL_WINDOW_SIZE,
     util::Size,
@@ -60,22 +61,29 @@ impl Default for UiState {
 
 impl From<&UiState> for FragmentConstants {
     fn from(state: &UiState) -> Self {
-        let dist_est_required = state.palette.brightness_style == Modifier::Filaments;
+        let dist_est_required = *state.palette.brightness_style == Modifier::Filaments;
         Self {
             // caution; this flags value is overridden by Controller::fragment_constants() if we've
             // come that way
-            flags: Flags::flag_if(state.iteration_cull, Flags::ITERATION_CULL)
-                | Flags::flag_if(dist_est_required, Flags::DISTANCE_ESTIMATE),
-            viewport_translate: state.viewport_translate.as_vec2(),
+            flags: (Flags::flag_if(state.iteration_cull, Flags::ITERATION_CULL)
+                | Flags::flag_if(dist_est_required, Flags::DISTANCE_ESTIMATE))
+            .into(),
+            viewport_translate: state.viewport_translate.as_vec2().into(),
             viewport_zoom: state.viewport_zoom.into(),
-            size: state.viewport_size.into(),
+            viewport_size: state.viewport_size.into(),
             buffer_size: Size::ZERO,
-            algorithm: state.algorithm,
+            algorithm: state.algorithm.into(),
             max_iter: state.max_iter,
             exponent: state.exponent,
             palette: state.palette,
-            inspector_point_pixel_address: Vec2::ZERO,
+            inspector_point_pixel_address: WgslVec2::default(),
         }
+    }
+}
+
+impl From<&UiState> for Colourer {
+    fn from(state: &UiState) -> Self {
+        *state.palette.colourer
     }
 }
 
@@ -88,12 +96,12 @@ impl TryFrom<&FragmentConstants> for UiState {
             viewport_translate: CBig::try_new(xy.x, xy.y)
                 .map_err(|e| LibError::StateConversionFailed(e.to_string()))?,
             viewport_zoom: consts.viewport_zoom.into(),
-            algorithm: consts.algorithm,
+            algorithm: *consts.algorithm,
             max_iter: consts.max_iter,
             palette: consts.palette,
             exponent: consts.exponent,
             iteration_cull: consts.flags.contains(Flags::ITERATION_CULL),
-            viewport_size: consts.size.into(),
+            viewport_size: consts.viewport_size.into(),
         })
     }
 }
@@ -202,6 +210,7 @@ impl UiState {
 }
 #[cfg(not(spirv))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+/// Contents of a save file containing the UI state and its version.
 pub struct UiStateSaveFile {
     /// The version of the save file format. This can be used to handle breaking changes in the
     /// future.
@@ -228,12 +237,14 @@ impl TryFrom<UiStateSaveFile> for UiState {
 }
 
 impl UiStateSaveFile {
+    /// Saves the UI state to the specified path in JSON format.
     pub fn save(&self, path: &impl AsRef<Path>) -> Result<(), LibError> {
         let json = serde_json::to_string_pretty(self)?;
         std::fs::write(path, json)?;
         Ok(())
     }
 
+    /// Loads the UI state from the specified path
     pub fn load(path: &impl AsRef<Path>) -> Result<UiState, LibError> {
         let data = std::fs::read_to_string(path.as_ref())?;
         let save_file: UiStateSaveFile = serde_json::from_str(&data)?;
@@ -573,16 +584,11 @@ mod conversion_tests {
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {
-            flags: Flags::empty(),
-            viewport_translate: crate::vec2(-0.75, 0.1),
+            viewport_translate: crate::vec2(-0.75, 0.1).into(),
             viewport_zoom: 2.5,
-            size: Size::new(800, 600),
-            buffer_size: Size::ZERO,
-            algorithm: Algorithm::Mandelbrot,
+            viewport_size: Size::new(800, 600),
             max_iter: 256,
-            exponent: PushExponent::default(),
-            palette: Palette::default(),
-            inspector_point_pixel_address: Vec2::ZERO,
+            ..Default::default()
         }
     }
 
@@ -592,18 +598,18 @@ mod conversion_tests {
         let state = UiState::try_from(&consts).expect("conversion failed");
 
         assert_eq!(state.viewport_zoom, consts.viewport_zoom.into());
-        assert_eq!(state.algorithm, consts.algorithm);
+        assert_eq!(state.algorithm, *consts.algorithm);
         assert_eq!(state.max_iter, consts.max_iter);
         assert_eq!(state.palette, consts.palette);
         assert_eq!(state.exponent, consts.exponent);
         assert!(!state.iteration_cull);
-        assert_eq!(state.viewport_size, consts.size.into());
+        assert_eq!(state.viewport_size, consts.viewport_size.into());
     }
 
     #[test]
     fn uistate_from_fragment_constants_with_iteration_cull() {
         let mut consts = test_frag_consts();
-        consts.flags |= Flags::ITERATION_CULL;
+        consts.flags.set(Flags::ITERATION_CULL, true);
         let state = UiState::try_from(&consts).expect("conversion failed");
 
         assert!(state.iteration_cull);
@@ -616,7 +622,7 @@ mod conversion_tests {
         let consts = FragmentConstants::from(&state);
 
         assert_eq!(consts.viewport_zoom, state.viewport_zoom.0 as f32);
-        assert_eq!(consts.algorithm, state.algorithm);
+        assert_eq!(*consts.algorithm, state.algorithm);
         assert_eq!(consts.max_iter, state.max_iter);
         assert_eq!(consts.palette, state.palette);
         assert_eq!(consts.exponent, state.exponent);
@@ -636,7 +642,7 @@ mod conversion_tests {
     fn fragment_constants_from_uistate_with_distance_estimate_flag() {
         let mut state = test_ui_state();
         let palette = Palette {
-            brightness_style: Modifier::Filaments,
+            brightness_style: Modifier::Filaments.into(),
             ..Palette::default()
         };
         state.palette = palette;
@@ -685,7 +691,7 @@ mod conversion_tests {
         let display = state.display_string('-');
 
         // display_string should be non-empty and contain algorithm name, max_iter, exponent
-        assert!(!display.is_empty());
+        assert_ne!(display, "");
         assert!(display.contains("Mandelbrot"));
         assert!(display.contains("256")); // max_iter
         assert!(display.contains("exp2")); // exponent
@@ -698,8 +704,8 @@ mod conversion_tests {
         let display_space = state.display_string(' ');
 
         // Both should have content but with different separators
-        assert!(!display_dash.is_empty());
-        assert!(!display_space.is_empty());
+        assert_ne!(display_dash, "");
+        assert_ne!(display_space, "");
         assert!(display_dash.contains('-'));
         assert!(display_space.contains(' '));
     }

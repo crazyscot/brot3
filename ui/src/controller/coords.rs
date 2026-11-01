@@ -6,7 +6,7 @@ use brot3_lib::{
     engine::{DEFAULT_FRACTAL_PLANE_SIZE, NOMINAL_WINDOW_SIZE},
 };
 use easy_cast::CastApprox as _;
-use easy_shader_runner::egui;
+use easy_shader_runner::{ControllerTrait, egui};
 
 #[allow(unused_results)]
 impl super::Controller {
@@ -87,7 +87,10 @@ impl super::Controller {
                 if self.show_shader {
                     ui.separator();
                     ui.label(egui::RichText::new("Shader").italics());
-                    ui.label(self.current_shader_variant().key());
+                    ui.label(
+                        self.current_shader_key()
+                            .unwrap_or(std::borrow::Cow::Borrowed("unknown")),
+                    );
                 }
 
                 if self.inspector.active {
@@ -125,7 +128,7 @@ impl super::Controller {
             } else {
                 // We only need to report in standard precision for iterations
                 ui.monospace(dynfmt!(
-                    self.inspector.data.iters(self.state.palette.colour_style),
+                    self.inspector.data.iters(*self.state.palette.colour_style),
                     6
                 ));
             }

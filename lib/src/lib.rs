@@ -5,26 +5,17 @@
 
 #![cfg_attr(spirv, no_std)]
 #![cfg_attr(all(coverage_nightly, test), feature(coverage_attribute))]
-// HACK(eddyb) can't easily see warnings otherwise from `spirv-builder` builds.
-#![deny(warnings)]
 
 //! ## Feature flags
 #![doc = document_features::document_features!()]
-#![allow(missing_docs)]
 
 pub use easy_cast;
 /// Local glam re-exports for convenience
-#[allow(unused_imports)] // Some are reused in tests
-pub(crate) use spirv_std::glam::{
+pub(crate) use glam::{
     DVec2, UVec2, UVec3, Vec2, Vec3, Vec3Swizzles, Vec4, Vec4Swizzles, dvec2, f32, uvec2, uvec3,
-    uvec4, vec2, vec3, vec4,
+    vec2, vec3, vec4,
 };
-#[cfg(spirv)]
-use spirv_std::num_traits::real::Real;
-#[allow(unused_imports)] // Some are reused in some configurations
-use spirv_std::spirv;
 
-#[cfg(not(spirv))]
 mod bignum;
 
 pub mod data;
@@ -32,12 +23,10 @@ pub mod engine;
 pub mod maths;
 pub mod ui;
 pub mod util;
+pub mod wgsl;
 
-#[cfg(not(spirv))]
 pub use bignum::BigComplexExt;
-#[cfg(not(spirv))]
 pub use dashu_cmplx::CBig;
-#[cfg(not(spirv))]
 pub use dashu_float::FBig;
 
 use crate::data::FragmentConstants;
@@ -55,50 +44,24 @@ const ESCAPE_THRESHOLD_LOGLOG2: f32 = 1.732_020_9; // ESCAPE_THRESHOLD.log2().lo
 
 /// SPIRV `fragment` entrypoint.
 /// This does the iteration and rendering work.
-#[spirv(fragment)]
+//#[spirv(fragment)]
 pub fn main_fs(
-    #[spirv(frag_coord)] frag_coord: Vec4,
+    //#[spirv(frag_coord)]
+    frag_coord: Vec4,
 
     #[cfg(not(feature = "emulate_constants"))]
-    #[spirv(push_constant)]
+    //#[spirv(push_constant)]
     constants: &FragmentConstants,
     #[cfg(feature = "emulate_constants")]
-    #[spirv(storage_buffer, descriptor_set = 1, binding = 0)]
+    //#[spirv(storage_buffer, descriptor_set = 1, binding = 0)]
     constants: &FragmentConstants,
 
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)]
+    //#[spirv(storage_buffer, descriptor_set = 0, binding = 0)]
     perturbation_reference_points: &[Vec2],
     output: &mut Vec4,
 ) {
     engine::entrypoints::main_fs(frag_coord, constants, perturbation_reference_points, output);
 }
 
-/// SPIRV `vertex` entrypoint.
-#[spirv(vertex)]
-pub fn main_vs(
-    #[spirv(vertex_index)] vert_id: i32,
-    #[spirv(position, invariant)] out_pos: &mut Vec4,
-) {
-    engine::entrypoints::main_vs(vert_id, out_pos);
-}
-
+/// Number of threads per workgroup for the compute shader
 pub const COMPUTE_SHADER_THREADS: UVec3 = uvec3(64, 1, 1);
-
-/// SPIRV compute shader entrypoint
-#[spirv(compute(threads(64, 1, 1)))]
-pub fn main_cs(
-    #[spirv(global_invocation_id)] gid: UVec3,
-
-    #[cfg(not(feature = "emulate_constants"))]
-    #[spirv(push_constant)]
-    constants: &FragmentConstants,
-    #[cfg(feature = "emulate_constants")]
-    #[spirv(storage_buffer, descriptor_set = 1, binding = 1)]
-    constants: &FragmentConstants,
-
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 0)] pixels: &mut [u32],
-    #[spirv(storage_buffer, descriptor_set = 0, binding = 1)]
-    perturbation_reference_points: &[Vec2],
-) {
-    engine::entrypoints::main_cs(gid, constants, pixels, perturbation_reference_points);
-}

@@ -43,12 +43,12 @@ fn palette_colourer_variants() {
 
     for colourer in colourers {
         let mut state = test_ui_state();
-        state.palette.colourer = colourer;
+        *state.palette.colourer = colourer;
 
         let consts = FragmentConstants::from(&state);
 
         assert_eq!(
-            consts.palette.colourer, colourer,
+            *consts.palette.colourer, colourer,
             "Colourer {colourer:?} should be preserved",
         );
     }
@@ -64,7 +64,7 @@ fn distance_estimate_flag_with_filaments_modifier() {
     assert!(!consts.flags.contains(Flags::DISTANCE_ESTIMATE));
 
     // Add filaments to brightness_style
-    state.palette.brightness_style = Modifier::Filaments;
+    *state.palette.brightness_style = Modifier::Filaments;
     let consts = FragmentConstants::from(&state);
     assert!(
         consts.flags.contains(Flags::DISTANCE_ESTIMATE),

@@ -3,12 +3,14 @@
 //! (c) 2025-6 Ross Younger
 
 use bytemuck::NoUninit;
+use my_wgsl::WgslCompatible;
 use num_traits::AsPrimitive;
 
 use super::{BoundaryClass, ColourStyle};
+use crate::WgslEnum;
 
 /// Raw data from a fractal invocation
-#[derive(Copy, Clone, Debug, Default, NoUninit, derive_more::Constructor)]
+#[derive(Copy, Clone, Debug, Default, NoUninit, WgslCompatible)]
 #[repr(C)]
 pub struct PointResult {
     /// iteration count; `u32::MAX` means that the limit was reached, signifying "inside the set"
@@ -20,7 +22,7 @@ pub struct PointResult {
     /// final complex distance, squared
     pub radius_sqr: f32,
     /// Is this point considered to be on the boundary?
-    pub boundary: BoundaryClass,
+    pub boundary: WgslEnum<BoundaryClass>,
 }
 
 impl const_default::ConstDefault for PointResult {
@@ -29,11 +31,29 @@ impl const_default::ConstDefault for PointResult {
         iters_fraction: 0.0,
         angle: 0.0,
         radius_sqr: 0.0,
-        boundary: BoundaryClass::Indeterminate,
+        boundary: WgslEnum(BoundaryClass::Indeterminate),
     };
 }
 
 impl PointResult {
+    #[allow(missing_docs)]
+    #[must_use]
+    pub fn new(
+        iters: u32,
+        iters_fraction: f32,
+        angle: f32,
+        radius_sqr: f32,
+        boundary: BoundaryClass,
+    ) -> Self {
+        Self {
+            iters,
+            iters_fraction,
+            angle,
+            radius_sqr,
+            boundary: WgslEnum(boundary),
+        }
+    }
+
     // ACCESSORS ////////////////////////////////////////////////////////////
     /// Iterations
     #[must_use]

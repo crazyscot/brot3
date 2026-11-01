@@ -193,17 +193,7 @@ impl super::Controller {
                         save_busy.store(false, std::sync::atomic::Ordering::Release);
                     }
 
-                    let mode = if cfg!(feature = "hot-reload-shader")
-                    {
-                        // At present the compute shader doesn't support hot reload, so in that mode we
-                        // fall back to CPU rendering.
-                        // TODO: Update compute shader controller to get the shader path (this may require modifying e-s-r)
-                        log::info!("Using CpuParallel render mode for saving image because hot-reload-shader feature is enabled");
-                        RenderMode::CpuParallel
-                    } else {
-                        RenderMode::Gpu // TODO: allow user to choose?
-                    };
-
+                    let mode = RenderMode::Gpu; // TODO: allow user to choose?
                     save::do_save_image(filename, &state, &perturbation_points, mode, compression)
                 },
                 "saving image",

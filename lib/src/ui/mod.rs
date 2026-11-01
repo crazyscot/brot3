@@ -5,22 +5,23 @@
 
 use thiserror::Error;
 
-mod build_defs;
 mod dynfmt;
-mod exponent;
 mod messaging;
+mod shader_key;
 mod shader_variant;
 mod state;
 mod zoom;
 
-pub use build_defs::ShaderVariant;
+pub use brot3_idl::Exponent;
 pub use dynfmt::dynamic_format;
-pub use exponent::Exponent;
 pub use messaging::*;
+pub use shader_key::ShaderKey;
+pub use shader_variant::ShaderVariant;
 pub use state::{UiState, UiStateSaveFile};
 pub use zoom::ViewportZoom;
 
 #[derive(Error, Debug)]
+#[allow(missing_docs)]
 /// The error type used by [`crate::ui`]
 pub enum Error {
     #[error("Unsupported save file version {0}")]

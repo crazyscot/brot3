@@ -4,33 +4,35 @@
 
 #![allow(missing_docs)]
 
-use bytemuck::{NoUninit, Pod, Zeroable};
+use bytemuck::NoUninit;
 use const_default::ConstDefault;
-use spirv_std::glam::Vec2;
+use my_wgsl::WgslCompatible;
 
-use super::{Algorithm, ColourStyle, Colourer, Modifier, PushExponent};
-use crate::util::Size;
+use crate::{
+    Algorithm, ColourStyle, Colourer, Modifier, PushExponent, Size, WgslEnum, WgslFlags, WgslVec2,
+};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, WgslCompatible)]
 // We only derive NoUninit on non-spirv, because Vec2 is not marked as NoUninit on spirv builds.
 #[cfg_attr(not(spirv), derive(NoUninit))]
 #[repr(C)]
+#[repr(align(8))]
 /// Shader push constants
 #[allow(missing_docs)]
 pub struct FragmentConstants {
     // Caution! Larger structs must be correctly aligned, hence the seemingly random ordering.
     pub exponent: PushExponent, // 96 bits
-    pub flags: Flags,           // u32
+    pub flags: WgslFlags,       // u32
 
     /// window pixel size
-    pub size: Size, // 64 bits
+    pub viewport_size: Size, // 64 bits
     /// size of pixel cache grid we've allocated
     pub buffer_size: Size, // 64 bits
-    pub inspector_point_pixel_address: Vec2, // 64 bits
-    pub viewport_translate: Vec2,            // 64 bits
+    pub inspector_point_pixel_address: WgslVec2, // 64 bits
+    pub viewport_translate: WgslVec2,            // 64 bits
 
     pub viewport_zoom: f32,
-    pub algorithm: Algorithm, // u32
+    pub algorithm: WgslEnum<Algorithm>, // u32
     pub max_iter: u32,
     pub palette: Palette, // u32
 }
@@ -42,77 +44,52 @@ const _: () = {
 
 #[allow(missing_docs)]
 impl FragmentConstants {
-    pub(crate) const DEFAULT_MAX_ITER: u32 = 250;
-    pub(crate) const DEFAULT_ZOOM: f32 = 0.25;
+    pub const DEFAULT_MAX_ITER: u32 = 250;
+    pub const DEFAULT_ZOOM: f32 = 0.25;
 }
 
 impl Default for FragmentConstants {
-    /// Caution: The default implementation sets both `size` and `buffer_size` to (0,0).
+    /// Caution: The default implementation sets both `viewport_size` and `buffer_size` to (0,0).
     fn default() -> Self {
         Self {
-            flags: Flags::default(),
-            viewport_translate: Vec2::ZERO,
+            flags: WgslFlags::default(),
+            viewport_translate: WgslVec2::default(),
             viewport_zoom: Self::DEFAULT_ZOOM,
-            size: Size::new(0, 0),
+            viewport_size: Size::new(0, 0),
             buffer_size: Size::new(0, 0),
             max_iter: Self::DEFAULT_MAX_ITER,
-            algorithm: Algorithm::default(),
+            algorithm: Algorithm::default().into(),
             exponent: PushExponent::default(),
             palette: Palette::default(),
-            inspector_point_pixel_address: Vec2::default(),
+            inspector_point_pixel_address: WgslVec2::default(),
         }
-    }
-}
-
-bitflags::bitflags! {
-#[derive(Copy, Clone, Debug, Default, Zeroable, Pod, PartialEq)]
-#[repr(transparent)]
-#[allow(missing_docs)]
-/// Flag bits for shader operation, packed into a u32 in the push constants
-pub struct Flags : u32 {
-    const NEEDS_REITERATE = 1 << 0;
-    const INSPECTOR_ACTIVE = 1 << 1;
-    const PERTURBATION_MODE = 1 << 2;
-    const ITERATION_CULL = 1<<3;
-    /// Set if we want to calculate distance estimation information (which is moderately expensive)
-    const DISTANCE_ESTIMATE = 1<<4;
-
-    const _ = !0;
-}
-}
-
-impl Flags {
-    /// Conditionally returns a flag value
-    #[must_use]
-    pub fn flag_if(condition: bool, flag: Flags) -> Flags {
-        if condition { flag } else { Flags::empty() }
     }
 }
 
 impl FragmentConstants {
     #[must_use]
     pub fn pixel_spacing(&self) -> f32 {
-        use crate::engine::PixelSpacing as _;
-        self.viewport_zoom.pixel_spacing(self.size.height)
+        use crate::PixelSpacing as _;
+        self.viewport_zoom.pixel_spacing(self.viewport_size.height)
     }
 }
 
-#[derive(Copy, Clone, Debug, NoUninit, PartialEq)]
+#[derive(Copy, Clone, Debug, NoUninit, PartialEq, WgslCompatible)]
 #[cfg_attr(not(spirv), derive(serde::Serialize, serde::Deserialize))]
 #[repr(C)]
 /// Colouring palette selection and parameters
 pub struct Palette {
-    pub colourer: Colourer,
-    pub colour_style: ColourStyle,
-    pub brightness_style: Modifier,
+    pub colourer: WgslEnum<Colourer>,
+    pub colour_style: WgslEnum<ColourStyle>,
+    pub brightness_style: WgslEnum<Modifier>,
     pub gradient: f32,
     pub offset: f32,
 }
 impl ConstDefault for Palette {
     const DEFAULT: Self = Self {
-        colourer: Colourer::Neon2,
-        colour_style: ColourStyle::DEFAULT,
-        brightness_style: Modifier::DEFAULT,
+        colourer: WgslEnum(Colourer::Neon2),
+        colour_style: WgslEnum(ColourStyle::DEFAULT),
+        brightness_style: WgslEnum(Modifier::DEFAULT),
         // N.B. Each colourer is at liberty to scale gradient & offset as may be reasonable.
         gradient: 1.,
         offset: 0.,
@@ -126,35 +103,35 @@ impl Default for Palette {
 
 impl Palette {
     pub const MAXIMA: Palette = Palette {
-        colourer: Colourer::DEFAULT,
-        colour_style: ColourStyle::DEFAULT,
-        brightness_style: Modifier::DEFAULT,
+        colourer: WgslEnum(Colourer::DEFAULT),
+        colour_style: WgslEnum(ColourStyle::DEFAULT),
+        brightness_style: WgslEnum(Modifier::DEFAULT),
         gradient: 10.,
         offset: 10.,
     };
     pub const MINIMA: Palette = Palette {
-        colourer: Colourer::DEFAULT,
-        colour_style: ColourStyle::DEFAULT,
-        brightness_style: Modifier::DEFAULT,
+        colourer: WgslEnum(Colourer::DEFAULT),
+        colour_style: WgslEnum(ColourStyle::DEFAULT),
+        brightness_style: WgslEnum(Modifier::DEFAULT),
         gradient: 0.1,
         offset: -10.0,
     };
 
     #[must_use]
     pub fn with_colourer(mut self, colourer: Colourer) -> Self {
-        self.colourer = colourer;
+        self.colourer = colourer.into();
         self
     }
 
     #[must_use]
     pub fn with_style(mut self, style: ColourStyle) -> Self {
-        self.colour_style = style;
+        self.colour_style = style.into();
         self
     }
 
     #[must_use]
     pub fn with_brightness(mut self, style: Modifier) -> Self {
-        self.brightness_style = style;
+        self.brightness_style = style.into();
         self
     }
 }
@@ -165,7 +142,7 @@ mod tests {
 
     use float_eq::assert_float_eq;
 
-    use super::{ColourStyle, Flags, Palette};
+    use crate::{ColourStyle, Flags, Palette, WgslEnum};
 
     #[test]
     fn flags_if() {
@@ -181,7 +158,7 @@ mod tests {
 
     #[test]
     fn pixel_spacing() {
-        use crate::engine::PixelSpacing as _;
+        use crate::PixelSpacing as _;
 
         assert_float_eq!(
             12345.0f64.pixel_spacing(1920),
@@ -193,6 +170,6 @@ mod tests {
     #[test]
     fn construct_palette() {
         let p = Palette::default().with_style(ColourStyle::Discrete);
-        assert_eq!(p.colour_style, ColourStyle::Discrete);
+        assert_eq!(p.colour_style, WgslEnum(ColourStyle::Discrete));
     }
 }

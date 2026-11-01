@@ -39,11 +39,11 @@ pub fn colour_data(data: PointResult, constants: &FragmentConstants) -> RgbVec {
         return RgbVec::BLACK;
     }
 
-    let iters = Iterations(data.iters(constants.palette.colour_style));
-    let mut rgb: RgbVec = colour_main(constants, iters, constants.palette.colourer);
+    let iters = Iterations(data.iters(*constants.palette.colour_style));
+    let mut rgb: RgbVec = colour_main(constants, iters, *constants.palette.colourer);
     deprintln!("interim rgb: {rgb:?}");
 
-    let mut factor = factor_for(constants.palette.brightness_style, &data);
+    let mut factor = factor_for(*constants.palette.brightness_style, &data);
     // Short-circuit to black for points inside the set, regardless of modifier
     factor = if data.inside() { 0.0 } else { factor };
     rgb.0 *= factor;
@@ -178,7 +178,7 @@ fn powered_cos_input(
 
 fn factor_for(style: Modifier, data: &PointResult) -> f32 {
     match style {
-        Modifier::Filaments if data.boundary == BoundaryClass::NotClose => 1.0,
+        Modifier::Filaments if *data.boundary == BoundaryClass::NotClose => 1.0,
         Modifier::Filaments => 0.1,
         Modifier::FinalAngle => data.angle() / TAU + 0.5,
         Modifier::FinalRadius => {
@@ -225,6 +225,7 @@ fn powered_cos(
 #[cfg_attr(coverage_nightly, coverage(off))]
 #[allow(unused_imports)]
 mod tests {
+    use brot3_idl::PixelSpacing as _;
     use const_default::ConstDefault;
     use float_eq::float_eq;
     use strum::IntoEnumIterator;
@@ -233,7 +234,6 @@ mod tests {
     use crate::{
         Vec2, Vec3,
         data::{Algorithm, Colourer, FragmentConstants, Modifier, Palette},
-        engine::PixelSpacing as _,
         uvec2, vec2, vec3,
     };
 
@@ -367,10 +367,10 @@ mod tests {
             palette: Palette::default()
                 .with_colourer(Colourer::None)
                 .with_brightness(Modifier::Filaments),
-            size: uvec2(500, 500).into(),
+            viewport_size: uvec2(500, 500).into(),
             ..Default::default()
         };
-        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
+        assert_eq!(*consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 0.83;
         let pt = vec2(-0.707_752, -0.353_065_3);
@@ -389,10 +389,10 @@ mod tests {
             palette: Palette::default()
                 .with_colourer(Colourer::None)
                 .with_brightness(Modifier::Filaments),
-            size: uvec2(500, 500).into(),
+            viewport_size: uvec2(500, 500).into(),
             ..Default::default()
         };
-        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
+        assert_eq!(*consts.algorithm, Algorithm::Mandelbrot);
 
         // Origin (0,0), zoom 30 => the viewport is filled by the cardioid
         consts.viewport_zoom = 30.0;
@@ -412,10 +412,10 @@ mod tests {
             palette: Palette::default()
                 .with_colourer(Colourer::None)
                 .with_brightness(Modifier::Filaments),
-            size: uvec2(500, 500).into(),
+            viewport_size: uvec2(500, 500).into(),
             ..Default::default()
         };
-        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
+        assert_eq!(*consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 4.0;
         let pt = vec2(-0.8789, -0.23563);
@@ -434,10 +434,10 @@ mod tests {
             palette: Palette::default()
                 .with_colourer(Colourer::None)
                 .with_brightness(Modifier::FinalRadius),
-            size: uvec2(500, 500).into(),
+            viewport_size: uvec2(500, 500).into(),
             ..Default::default()
         };
-        assert_eq!(consts.algorithm, Algorithm::Mandelbrot);
+        assert_eq!(*consts.algorithm, Algorithm::Mandelbrot);
 
         consts.viewport_zoom = 1.29;
         let pt = vec2(0.17388, 0.80085);
