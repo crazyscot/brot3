@@ -42,7 +42,7 @@ fn fragment_constants_from_uistate_preserves_algorithm() {
 
     for state in states {
         let consts = FragmentConstants::from(&state);
-        assert_eq!(consts.algorithm, state.algorithm);
+        assert_eq!(*consts.algorithm, state.algorithm);
     }
 }
 

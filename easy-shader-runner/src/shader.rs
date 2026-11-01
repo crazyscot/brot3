@@ -10,7 +10,7 @@ use {
 use crate::{Error as ESRError, RuntimeCompilationShader};
 
 pub(crate) struct CompiledShader {
-    pub(crate) key: &'static str,
+    pub(crate) key: std::borrow::Cow<'static, str>,
     pub(crate) path: PathBuf,
 }
 
@@ -22,7 +22,7 @@ pub(crate) struct CompiledShader {
 pub(crate) fn compile_shaders<#[cfg(feature = "hot-reload-shader")] C: ControllerTrait + Send>(
     #[cfg(feature = "hot-reload-shader")] event_proxy: &EventLoopProxy<CustomEvent<C>>,
     shaders: &'static [RuntimeCompilationShader],
-    initial_shader_key: &'static str,
+    initial_shader_key: &str,
     crate_path: impl AsRef<Path>,
     relative_to_manifest: bool,
     rustc_codegen_spirv_location: Option<&PathBuf>,
@@ -129,7 +129,7 @@ fn compile_shader(
 fn compile_shaders_with_background_warmup<C: ControllerTrait + Send>(
     event_proxy: &EventLoopProxy<CustomEvent<C>>,
     shaders: &'static [RuntimeCompilationShader],
-    initial_shader_key: &'static str,
+    initial_shader_key: &str,
     crate_path: &Path,
     rustc_codegen_spirv_location: Option<&PathBuf>,
 ) -> Result<Vec<CompiledShader>, ESRError> {
@@ -197,7 +197,7 @@ fn compile_shaders_with_background_warmup<C: ControllerTrait + Send>(
             .iter()
             .filter(|shader| shader.key != initial_shader.key)
             .map(|shader| CompiledShader {
-                key: shader.key,
+                key: shader.key.into(),
                 path: shader_out_dir(shader.key).join("shader.spv"),
             }),
     );
@@ -248,7 +248,7 @@ fn compile_shader_with_watch<C: ControllerTrait + Send>(
         .watch()
         .expect("Configuration is incorrect for watching");
     let first_compile = watcher.recv().map_err(ESRError::BuildFailed)?;
-    let shader_key = shader.key;
+    let shader_key = shader.key.to_owned();
     let _jh = std::thread::spawn(move || {
         loop {
             let compile_result = match watcher.recv() {
@@ -258,7 +258,7 @@ fn compile_shader_with_watch<C: ControllerTrait + Send>(
                     continue;
                 }
             };
-            let shader_path = match stage_compile_result(shader_key, compile_result) {
+            let shader_path = match stage_compile_result(&shader_key, compile_result) {
                 Ok(shader_path) => shader_path,
                 Err(e) => {
                     log::error!("Failed to stage shader build for {shader_key}: {e}");
@@ -267,7 +267,7 @@ fn compile_shader_with_watch<C: ControllerTrait + Send>(
             };
             if event_proxy
                 .send_event(CustomEvent::NewModule {
-                    shader_key,
+                    shader_key: shader_key.clone().into(),
                     shader_path,
                 })
                 .is_err()
@@ -279,7 +279,7 @@ fn compile_shader_with_watch<C: ControllerTrait + Send>(
     });
 
     let compiled_shader = CompiledShader {
-        key: shader.key,
+        key: shader.key.into(),
         path: stage_compile_result(shader.key, first_compile)?,
     };
     let duration = start.elapsed();

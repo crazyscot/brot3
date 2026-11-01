@@ -20,8 +20,8 @@ fn test_fragment_constants() -> FragmentConstants {
         viewport_size: uvec2(100, 100),
     };
     let mut consts = FragmentConstants::from(&state);
-    consts.size.width = 100;
-    consts.size.height = 100;
+    consts.viewport_size.width = 100;
+    consts.viewport_size.height = 100;
     consts
 }
 

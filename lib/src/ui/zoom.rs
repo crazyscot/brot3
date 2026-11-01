@@ -31,7 +31,7 @@ impl ViewportZoom {
         default_y_axis_pixel_size: u32,
         y_axis_pixel_count: u32,
     ) -> String {
-        use crate::engine::PixelSpacing as _;
+        use brot3_idl::PixelSpacing as _;
 
         let initial_zoom = fractal_plane_size / f64::from(default_y_axis_pixel_size);
         // let zoom = initial_zoom / pixel_size;

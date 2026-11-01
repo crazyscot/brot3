@@ -194,11 +194,15 @@ impl<C: ControllerTrait + Send> App<C> {
     }
 
     #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
-    pub(crate) fn new_module(&mut self, shader_key: &'static str, shader_path: &std::path::Path) {
+    pub(crate) fn new_module(
+        &mut self,
+        shader_key: std::borrow::Cow<'static, str>,
+        shader_path: &std::path::Path,
+    ) {
         let Self::Graphics(gfx) = self else {
             return;
         };
-        match gfx.rpass.new_module(&gfx.ctx, shader_key, shader_path) {
+        match gfx.rpass.new_module(&gfx.ctx, &shader_key, shader_path) {
             Ok(active_shader_changed) => {
                 gfx.controller.new_shader_module(shader_key);
                 if active_shader_changed {
@@ -336,7 +340,9 @@ async fn create_graphics<C: ControllerTrait + Send>(
     display: OwnedDisplayHandle,
 ) {
     let options = builder.params.options;
-    let default_shader_key = options.default_shader_key.unwrap_or(builder.shaders[0].key);
+    let default_shader_key = options
+        .default_shader_key
+        .map_or_else(|| builder.shaders[0].key.clone(), std::convert::Into::into);
     let mut controller = builder.params.controller;
     let window = Arc::new(window);
     let ctx = GraphicsContext::new(window.clone(), initial_size, &controller, display).await;

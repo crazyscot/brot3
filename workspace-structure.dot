@@ -2,32 +2,32 @@ digraph {
     compound = true;
 
     node [shape = box;];
-    ui;
-    shader_builder;
-    xtask [style = dashed;];
+    ui
+    lib
+    idl
+    #xtask [style = dashed];
+
+    shader [shape=component]
+
     {
-        rank=same;
-        shader [label="lib"];
-        shader_spv [shape = cylinder;label = "built shaders\n(spv files)";];
+        #rank=same;
+        lib
+        shader
+        easy_shader_runner [style=filled]
+
     }
 
-    node [shape = box3d; style = filled;];
-    spirv_builder;
-    easy_shader_runner;
+    node [style=filled];
+    easy_shader_runner
+    egui_winit
+
+    #########################
 
     edge [fontname = "arial"; fontsize = 7;];
-    ui -> shader;
+    ui -> lib -> idl
     ui -> easy_shader_runner;
-    
-    spirv_builder -> shader [style=dashed; label = "compiles"]
-    
-    shader_builder -> spirv_builder;
-    
-    easy_shader_runner -> spirv_builder [style = dotted; label = "(feature gated)";];
-    
-    ui -> shader_builder [style = dotted; label = "invoked on build\n& cargo run (feature gated)";];
-    
-    spirv_builder -> shader_spv [style = dashed; label = "   outputs"];
-    easy_shader_runner -> shader_spv [style = dashed; label = "loads\nat runtime";];
+    ui -> egui_winit;
+
+    easy_shader_runner -> shader [style=dashed; label="uses"]
+    lib -> shader [style=dashed; label="prepares"]
 }
-# caption xtask?

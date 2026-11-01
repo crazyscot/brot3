@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-use std::path::PathBuf;
+use std::{borrow::Cow, path::PathBuf};
 
 pub use context::GraphicsContext;
 pub use controller::ControllerTrait;
@@ -31,16 +31,14 @@ pub enum Error {
     EventLoopError(#[from] egui_winit::winit::error::EventLoopError),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
-    #[error("No shaders were provided")]
-    EmptyShaderSet,
     #[error("Duplicate shader key {0}")]
-    DuplicateShaderKey(&'static str),
+    DuplicateShaderKey(String),
     #[error("Missing CARGO_MANIFEST_DIR")]
     MissingCargoManifest,
     #[error("Shader directory {0} not found")]
     ShaderDirectoryNotFound(PathBuf),
     #[error("Shader key {0} not found")]
-    UnknownShaderKey(&'static str),
+    UnknownShaderKey(String),
     #[cfg(all(
         any(feature = "runtime-compilation", feature = "hot-reload-shader"),
         not(target_arch = "wasm32")
@@ -59,6 +57,22 @@ impl PrebuiltShader {
     #[must_use]
     pub const fn new(key: &'static str, bytes: &'static [u8]) -> Self {
         Self { key, bytes }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct WgslShader {
+    pub key: Cow<'static, str>,
+    pub source: Cow<'static, str>,
+}
+
+impl WgslShader {
+    #[must_use]
+    pub fn new<K: Into<Cow<'static, str>>, S: Into<Cow<'static, str>>>(key: K, source: S) -> Self {
+        Self {
+            key: key.into(),
+            source: source.into(),
+        }
     }
 }
 
@@ -88,7 +102,7 @@ impl RuntimeCompilationShader {
 
 #[derive(Clone, Debug)]
 pub(crate) struct ShaderDescriptor {
-    pub(crate) key: &'static str,
+    pub(crate) key: std::borrow::Cow<'static, str>,
     pub(crate) source: ShaderSource,
 }
 
@@ -160,17 +174,25 @@ pub fn run_with_runtime_compilation<C: ControllerTrait + Send>(
 ) -> Result<(), Error> {
     setup_logging();
     let event_loop = EventLoop::with_user_event().build()?;
+    let default_key = params
+        .options
+        .default_shader_key
+        .map(std::convert::Into::into);
     let initial_shader_key = params
         .controller
         .current_shader_key()
-        .or(params.options.default_shader_key)
-        .unwrap_or_else(|| shaders.first().map_or("", |shader| shader.key));
+        .or(default_key)
+        .unwrap_or_else(|| {
+            shaders
+                .first()
+                .map_or("".into(), |shader| std::borrow::Cow::Borrowed(shader.key))
+        });
     // Build the shaders before we pop open a window, since it might take a while.
     let shaders = shader::compile_shaders(
         #[cfg(feature = "hot-reload-shader")]
         &event_loop.create_proxy(),
         shaders,
-        initial_shader_key,
+        &initial_shader_key,
         shader_crate_path,
         relative_to_manifest,
         rustc_codegen_spirv_location,
@@ -199,8 +221,27 @@ pub fn run_with_prebuilt_shaders<C: ControllerTrait + Send>(
         shaders
             .iter()
             .map(|shader| ShaderDescriptor {
-                key: shader.key,
+                key: std::borrow::Cow::Borrowed(shader.key),
                 source: ShaderSource::Prebuilt(shader.bytes),
+            })
+            .collect(),
+        params,
+    )
+}
+
+pub fn run_with_wgsl_shaders<C: ControllerTrait + Send>(
+    params: Parameters<C>,
+    shaders: &'static [WgslShader],
+) -> Result<(), Error> {
+    setup_logging();
+    let event_loop = EventLoop::with_user_event().build()?;
+    start(
+        event_loop,
+        shaders
+            .iter()
+            .map(|shader| ShaderDescriptor {
+                key: std::borrow::Cow::Borrowed(&shader.key),
+                source: ShaderSource::Wgsl(std::borrow::Cow::Borrowed(&shader.source)),
             })
             .collect(),
         params,
@@ -212,36 +253,40 @@ fn start<C: ControllerTrait + Send>(
     shaders: Vec<ShaderDescriptor>,
     params: Parameters<C>,
 ) -> Result<(), Error> {
-    validate_shaders(
-        &shaders,
-        params
-            .options
-            .default_shader_key
-            .unwrap_or_else(|| shaders.first().map_or("", |shader| shader.key)),
-    )?;
+    //let default_key = params.options.default_shader_key.map(|s| s.into());
+    // We need a &str
+    // We have some sort of static str, or Borrowed str
+    // Want to use the default in options [Option<&'static str>], OR the name of the first shader
+    // [Cow], OR if there was no shader the empty string.
+    let default1: Option<std::borrow::Cow<'static, str>> = params
+        .options
+        .default_shader_key
+        .map(std::borrow::Cow::Borrowed); // The default provided
+    let default_key = default1.unwrap_or_else(|| {
+        shaders
+            .first()
+            .map_or("".into(), |shader| shader.key.clone())
+    });
+
+    validate_shaders(&shaders, &default_key)?;
     let mut app = app::App::new(event_loop.create_proxy(), shaders, params);
     Ok(event_loop.run_app(&mut app)?)
 }
 
-fn validate_shaders(
-    shaders: &[ShaderDescriptor],
-    default_shader_key: &'static str,
-) -> Result<(), Error> {
-    if shaders.is_empty() {
-        return Err(Error::EmptyShaderSet);
-    }
-
+fn validate_shaders(shaders: &[ShaderDescriptor], default_shader_key: &str) -> Result<(), Error> {
     for (index, shader) in shaders.iter().enumerate() {
         if shaders[..index].iter().any(|other| other.key == shader.key) {
-            return Err(Error::DuplicateShaderKey(shader.key));
+            return Err(Error::DuplicateShaderKey(shader.key.to_string()));
         }
     }
 
-    if shaders
-        .iter()
-        .all(|shader| shader.key != default_shader_key)
+    // With no shaders registered, the controller must supply source on demand.
+    if !shaders.is_empty()
+        && shaders
+            .iter()
+            .all(|shader| shader.key != default_shader_key)
     {
-        return Err(Error::UnknownShaderKey(default_shader_key));
+        return Err(Error::UnknownShaderKey(default_shader_key.to_string()));
     }
 
     Ok(())
@@ -275,35 +320,32 @@ mod tests {
 
     fn shader(key: &'static str) -> ShaderDescriptor {
         ShaderDescriptor {
-            key,
+            key: std::borrow::Cow::Borrowed(key),
             source: ShaderSource::Prebuilt(&[]),
         }
     }
 
     #[test]
-    fn rejects_empty_shader_sets() {
-        assert!(matches!(
-            validate_shaders(&[], "default"),
-            Err(Error::EmptyShaderSet)
-        ));
+    fn accepts_empty_shader_sets() {
+        assert!(validate_shaders(&[], "default").is_ok());
     }
 
     #[test]
     fn rejects_duplicate_shader_keys() {
         let shaders = [shader("first"), shader("first")];
-        assert!(matches!(
-            validate_shaders(&shaders, "first"),
-            Err(Error::DuplicateShaderKey("first"))
-        ));
+        let Err(Error::DuplicateShaderKey(s)) = validate_shaders(&shaders, "first") else {
+            panic!("Expected DuplicateShaderKey error")
+        };
+        assert_eq!(s, "first");
     }
 
     #[test]
     fn rejects_missing_default_shader_key() {
         let shaders = [shader("first"), shader("second")];
-        assert!(matches!(
-            validate_shaders(&shaders, "missing"),
-            Err(Error::UnknownShaderKey("missing"))
-        ));
+        let Err(Error::UnknownShaderKey(s)) = validate_shaders(&shaders, "missing") else {
+            panic!("Expected UnknownShaderKey error")
+        };
+        assert_eq!(s, "missing");
     }
 
     #[test]

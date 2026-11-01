@@ -4,6 +4,7 @@
 
 use std::sync::atomic::Ordering;
 
+use brot3_idl::WgslEnum;
 use brot3_lib::{
     BigComplexExt,
     data::{Algorithm, NumericType, Palette, PushExponent},
@@ -176,15 +177,15 @@ impl super::Controller {
         }
         if movement.exponent != 0. {
             let current = match self.state.exponent.typ {
-                NumericType::Integer => self.state.exponent.int.cast(),
-                NumericType::Float => self.state.exponent.real,
+                WgslEnum(NumericType::Integer) => self.state.exponent.int.cast(),
+                WgslEnum(NumericType::Float) => self.state.exponent.real,
             };
             let new_exp = (current + factor32 * movement.exponent)
                 .clamp(PushExponent::MIN, PushExponent::MAX);
             if self.state.exponent.real != new_exp {
                 self.reiterate = true;
                 self.state.exponent.real = new_exp;
-                if self.state.exponent.typ == NumericType::Integer {
+                if self.state.exponent.typ == brot3_idl::WgslEnum(NumericType::Integer) {
                     self.state.exponent.int = self.state.exponent.real.cast_nearest();
                 }
             }

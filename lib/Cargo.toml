@@ -10,10 +10,11 @@ publish = false
 repository.workspace = true
 description = "brot3's engine"
 
-# TODO: It would be nice to build dylib only on spirv and rlib on host builds.
-# This is not currently supported by cargo; https://github.com/rust-lang/cargo/issues/12260 refers.
 [lib]
-crate-type = ["dylib", "rlib"]
+crate-type = ["rlib"]
+# It would be nice to build dylib only on spirv and rlib on host builds.
+# This is not currently supported by cargo; https://github.com/rust-lang/cargo/issues/12260 refers.
+# crate-type = ["dylib", "rlib"]
 
 [[bench]]
 name = "cycles"
@@ -43,30 +44,28 @@ standard-mode = []
 distance-estimate = []
 
 [dependencies]
-bitflags = { workspace = true, features = ["bytemuck"] }
-bytemuck = { workspace = true, features = ["derive"] }
+brot3-idl = { workspace = true }
 cfg-if.workspace = true
 const-default = { workspace = true }
-derive_more = { workspace = true, default-features = false, features = ["constructor", "display", "eq"] }
+derive_more = { workspace = true, default-features = false, features = ["display", "eq"] }
 document-features = { workspace = true }
 easy-cast = { workspace = true, default-features = false, features = ["libm"] }
 float_eq.workspace = true
+internment = "0.8.6"
 num-traits.workspace = true
 paste = { workspace = true }
-spirv-std = { workspace = true }
 
 [target.'cfg(target_arch = "spirv")'.dependencies]
 abels-complex = { workspace = true, features = ["libm", "glam"] }
 
 [target.'cfg(not(target_arch = "spirv"))'.dependencies]
 abels-complex = { workspace = true, features = ["std", "glam"] }
-clap = { workspace = true, features = ["derive"] }
 dashu-cmplx = { workspace = true, features = ["serde"] }
 dashu-float = { workspace = true }
 dashu = { workspace = true, features = ["serde"] }
 glam = { workspace = true, features = ["std", "bytemuck"] }
 log = { workspace = true }
-num-derive = { workspace = true }
+naga = { version = "29.0", features = ["wgsl-in"] }
 png = { workspace = true }
 rayon = { workspace = true }
 serde_json = { workspace = true }
@@ -75,7 +74,6 @@ strum = { workspace = true, default-features = false, features = ["derive"] }
 thiserror = { workspace = true }
 
 [dev-dependencies]
-assert_matches = { workspace = true }
 criterion = { workspace = true, features = ["html_reports"] }
 derive_more = { workspace = true, features = ["debug"] }
 easy-cast = { workspace = true, default-features = true }

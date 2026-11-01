@@ -2,10 +2,7 @@
 
 use std::{path::Path, time::Instant};
 
-use brot3_lib::{
-    data::FragmentConstants,
-    ui::{ShaderVariant, UiState},
-};
+use brot3_lib::{data::FragmentConstants, ui::UiState};
 use brot3_ui::compute::ComputeController;
 use glam::uvec2;
 
@@ -17,12 +14,11 @@ fn compute_shader_test() -> Result<(), Box<dyn std::error::Error>> {
     let mut times = Vec::new();
     let start = Instant::now();
     let consts = FragmentConstants {
-        size: render_size.into(),
+        viewport_size: render_size.into(),
         ..Default::default()
     };
     let state = UiState::try_from(&consts).unwrap();
-    let mut controller =
-        ComputeController::new(render_size, n_passes, ShaderVariant::from_ui_state(&state))?;
+    let mut controller = ComputeController::new(render_size, n_passes, (&state).into())?;
     times.push(("initialization", start.elapsed()));
     let mut frame_data = Vec::with_capacity(render_size.element_product() as usize);
 

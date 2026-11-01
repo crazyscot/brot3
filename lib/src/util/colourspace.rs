@@ -32,7 +32,7 @@ impl From<Vec3> for RgbVec {
     }
 }
 
-#[derive(Clone, Copy, Debug, derive_more::Constructor)]
+#[derive(Clone, Copy, Debug)]
 /// HSL colour space
 pub struct Hsl {
     /// Hue in degrees (range 0..360)
@@ -54,6 +54,11 @@ impl Hsl {
         s: 0.,
         l: 100.,
     };
+    #[must_use]
+    #[inline]
+    pub const fn new(h: f32, s: f32, l: f32) -> Hsl {
+        Hsl { h, s, l }
+    }
 }
 impl PartialEq for Hsl {
     fn eq(&self, other: &Self) -> bool {
@@ -86,7 +91,7 @@ impl From<RgbVec> for Hsl {
         let RgbVec(Vec3 { x: r, y: g, z: b }) = value;
         let max = r.max(g.max(b));
         let min = r.min(g.min(b));
-        let l = (max + min) * 0.5;
+        let l = f32::midpoint(max, min);
 
         let is_gray = float_eq!(max, min, abs <= 0.000_001);
 

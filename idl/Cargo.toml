@@ -1,0 +1,31 @@
+[package]
+name = "brot3-idl"
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+bitflags = { workspace = true, features = ["bytemuck"] }
+bytemuck = { workspace = true, features = ["derive"] }
+clap = { workspace = true, features = ["derive"] }
+const-default.workspace = true
+easy-cast = { workspace = true, default-features = false, features = ["libm"] }
+float_eq.workspace = true
+glam = { workspace = true, features = ["std", "bytemuck"] }
+my-wgsl = "0.1.5"
+num-traits.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+strum = { workspace = true, default-features = false, features = ["derive"] }
+
+[dev-dependencies]
+assert_matches = { workspace = true }
+float_eq.workspace = true
+pretty_assertions = { workspace = true }
+
+[lints]
+workspace = true

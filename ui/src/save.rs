@@ -10,7 +10,7 @@ use std::{
 
 use brot3_lib::{
     data::{Flags, FragmentConstants, RenderMode},
-    ui::{Error as LibError, ShaderVariant, UiState},
+    ui::{Error as LibError, UiState},
     util::render_frame,
 };
 use easy_cast::CastApprox;
@@ -49,14 +49,14 @@ pub(crate) fn do_save_image(
     compression: png::Compression,
 ) -> Result<(), LoadSaveError> {
     let mut constants = FragmentConstants::from(state);
-    constants.flags |= Flags::NEEDS_REITERATE;
+    constants.flags.set(Flags::NEEDS_REITERATE, true);
     constants.buffer_size = uvec2(0, 0).into();
     log::debug!(
         "Saving image to {} with constants: {constants:?}",
         path.display()
     );
     if !perturbation_points.is_empty() {
-        constants.flags |= Flags::PERTURBATION_MODE;
+        constants.flags.set(Flags::PERTURBATION_MODE, true);
     }
     let start = Instant::now();
     match mode {
@@ -84,9 +84,8 @@ fn render_gpu(
     compression: png::Compression,
 ) -> Result<(), LoadSaveError> {
     use easy_cast::Conv as _;
-    let render_size = constants.size.into();
-    let mut controller =
-        ComputeController::new(render_size, 1, ShaderVariant::from_ui_state(state))?;
+    let render_size = constants.viewport_size.into();
+    let mut controller = ComputeController::new(render_size, 1, state.into())?;
     let start = Instant::now();
     let times = controller.run(
         *constants,

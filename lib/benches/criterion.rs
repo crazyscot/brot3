@@ -16,14 +16,14 @@ use easy_cast::{Cast as _, CastApprox as _, ConvApprox as _};
 use glam::{Vec2, vec2};
 
 static CONSTS_M2_DEFAULT: LazyLock<FragmentConstants> = LazyLock::new(|| FragmentConstants {
-    size: Size::new(800, 600),
-    viewport_translate: Vec2::new(-1.0, 0.0),
+    viewport_size: Size::new(800, 600),
+    viewport_translate: Vec2::new(-1.0, 0.0).into(),
     ..Default::default()
 });
 
 fn prep_render(x: u32, y: u32, constants: &FragmentConstants) -> (Vec2, FragmentConstants) {
     let coord = vec2(f32::conv_approx(x) + 0.5, f32::conv_approx(y) + 0.5);
-    let size = constants.size.as_vec2();
+    let size = constants.viewport_size.as_vec2();
     let pixel_spacing = constants.pixel_spacing();
     let complex_offset = (coord - 0.5 * size) * pixel_spacing;
     (complex_offset, *constants)

@@ -63,14 +63,21 @@ struct PipelineLayouts {
     compute: wgpu::PipelineLayout,
 }
 
+struct ShaderConstantsResources {
+    layout: wgpu::BindGroupLayout,
+    bind_group: wgpu::BindGroup,
+    buffer: wgpu::Buffer,
+}
+
 pub(crate) struct RenderPass {
     pipelines: Pipelines,
     pipeline_layouts: PipelineLayouts,
     shaders: Vec<ShaderDescriptor>,
-    active_shader_key: &'static str,
-    default_shader_key: &'static str,
+    active_shader_key: std::borrow::Cow<'static, str>,
+    default_shader_key: std::borrow::Cow<'static, str>,
     ui_renderer: egui_wgpu::Renderer,
     bind_groups: Vec<wgpu::BindGroup>,
+    shader_constants: ShaderConstantsResources,
     shader_viewport: egui::Rect,
     #[cfg(feature = "emulate_constants")]
     emulate_constants_buffer: EmulateConstantsBuffer,
@@ -191,15 +198,17 @@ impl RenderPass {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 impl RenderPass {
     pub(crate) fn new<C: ControllerTrait>(
         ctx: &GraphicsContext,
-        shaders: Vec<ShaderDescriptor>,
-        default_shader_key: &'static str,
+        mut shaders: Vec<ShaderDescriptor>,
+        default_shader_key: std::borrow::Cow<'static, str>,
         controller: &mut C,
     ) -> Result<Self, Error> {
         let (layouts, bind_groups) = controller.describe_bind_groups(ctx);
-        let bind_group_layouts = layouts.iter();
+        let shader_constants = create_shader_constants_resources(&ctx.device);
+        let bind_group_layouts = layouts.iter().chain([&shader_constants.layout]);
 
         #[cfg(feature = "emulate_constants")]
         let (emulate_constants_layout, emulate_constants_bind_group, emulate_constants_buffer) =
@@ -217,8 +226,14 @@ impl RenderPass {
             create_pipeline_layouts(ctx, &bind_group_layouts.map(Some).collect::<Vec<_>>());
         let active_shader_key = controller
             .current_shader_key()
-            .unwrap_or(default_shader_key);
-        let shader = find_shader(&shaders, active_shader_key)?;
+            .unwrap_or_else(|| default_shader_key.clone());
+        if find_shader(&shaders, &active_shader_key).is_err() {
+            let source = controller
+                .shader_source(&active_shader_key)
+                .ok_or_else(|| Error::UnknownShaderKey(active_shader_key.to_string()))?;
+            upsert_wgsl_shader(&mut shaders, &active_shader_key, source);
+        }
+        let shader = find_shader(&shaders, &active_shader_key)?;
         let pipelines = create_pipelines(
             &ctx.device,
             &pipeline_layouts,
@@ -280,10 +295,11 @@ impl RenderPass {
             pipelines,
             pipeline_layouts,
             shaders,
-            active_shader_key,
+            active_shader_key: active_shader_key.clone(),
             default_shader_key,
             ui_renderer,
             bind_groups,
+            shader_constants,
             shader_viewport: egui::Rect::NAN,
             #[cfg(feature = "emulate_constants")]
             emulate_constants_buffer,
@@ -491,6 +507,8 @@ impl RenderPass {
             {
                 let push_constants = controller.prepare_render(ctx, offset);
                 let bytes = bytemuck::bytes_of(&push_constants);
+                ctx.queue
+                    .write_buffer(&self.shader_constants.buffer, 0, bytes);
                 #[cfg(not(feature = "emulate_constants"))]
                 rpass.set_immediates(0, bytes);
                 #[cfg(feature = "emulate_constants")]
@@ -500,6 +518,11 @@ impl RenderPass {
             for (i, bind_group) in self.bind_groups.iter().enumerate() {
                 rpass.set_bind_group(i.as_(), bind_group, &[]);
             }
+            rpass.set_bind_group(
+                self.bind_groups.len().as_(),
+                &self.shader_constants.bind_group,
+                &[],
+            );
             let (vertices, indices) = controller.get_vertex_index_buffer();
             if let Some((vertex_buffer, num_vertices)) = vertices {
                 rpass.set_vertex_buffer(0, vertex_buffer.slice(..));
@@ -510,7 +533,7 @@ impl RenderPass {
                     rpass.draw(0..num_vertices, 0..1);
                 }
             } else {
-                rpass.draw(0..3, 0..1);
+                rpass.draw(0..6, 0..1);
             }
         }
         if ctx.timestamps {
@@ -553,8 +576,8 @@ impl RenderPass {
         if available_rect.width() > 0.0 && available_rect.height() > 0.0 {
             let shader_key = controller
                 .current_shader_key()
-                .unwrap_or(self.default_shader_key);
-            if let Err(error) = self.select_shader(ctx, shader_key) {
+                .unwrap_or(self.default_shader_key.clone());
+            if let Err(error) = self.select_shader(ctx, &shader_key, controller) {
                 log::error!("{error}");
                 return false;
             }
@@ -707,13 +730,26 @@ impl RenderPass {
         true
     }
 
-    pub(crate) fn select_shader(
+    pub(crate) fn select_shader<C: ControllerTrait>(
         &mut self,
         ctx: &GraphicsContext,
-        shader_key: &'static str,
+        shader_key: &str,
+        controller: &mut C,
     ) -> Result<(), Error> {
         if shader_key == self.active_shader_key {
             return Ok(());
+        }
+        log::debug!(
+            "Changing shader: {} -> {shader_key}",
+            self.active_shader_key
+        );
+        if find_shader(&self.shaders, shader_key).is_err() {
+            // Unknown key: ask the controller to supply the source at runtime.
+            log::debug!("Requesting {shader_key} from controller");
+            let Some(source) = controller.shader_source(shader_key) else {
+                return Err(Error::UnknownShaderKey(shader_key.to_string()));
+            };
+            upsert_wgsl_shader(&mut self.shaders, shader_key, source);
         }
         match self.rebuild_pipelines(ctx, shader_key) {
             Err(Error::IoError(error)) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
@@ -725,7 +761,7 @@ impl RenderPass {
     pub(crate) fn new_module(
         &mut self,
         ctx: &GraphicsContext,
-        shader_key: &'static str,
+        shader_key: &str,
         shader_path: &std::path::Path,
     ) -> Result<bool, Error> {
         let shader = find_shader_mut(&mut self.shaders, shader_key)?;
@@ -751,11 +787,7 @@ impl RenderPass {
         self.current_ping %= 2;
     }
 
-    fn rebuild_pipelines(
-        &mut self,
-        ctx: &GraphicsContext,
-        shader_key: &'static str,
-    ) -> Result<(), Error> {
+    fn rebuild_pipelines(&mut self, ctx: &GraphicsContext, shader_key: &str) -> Result<(), Error> {
         let shader = find_shader(&self.shaders, shader_key)?.clone();
         self.pipelines = create_pipelines(
             &ctx.device,
@@ -764,7 +796,7 @@ impl RenderPass {
             &self.vertex_buffer_layouts,
             &shader.source,
         );
-        self.active_shader_key = shader_key;
+        self.active_shader_key = shader_key.to_string().into();
         Ok(())
     }
 
@@ -814,35 +846,35 @@ impl RenderPass {
 
 fn find_shader<'a>(
     shaders: &'a [ShaderDescriptor],
-    shader_key: &'static str,
+    shader_key: &str,
 ) -> Result<&'a ShaderDescriptor, Error> {
     shaders
         .iter()
         .find(|shader| shader.key == shader_key)
-        .ok_or(Error::UnknownShaderKey(shader_key))
+        .ok_or(Error::UnknownShaderKey(shader_key.to_string()))
+}
+
+fn upsert_wgsl_shader(shaders: &mut Vec<ShaderDescriptor>, shader_key: &str, source: String) {
+    let source = ShaderSource::Wgsl(source.into());
+    if let Some(shader) = shaders.iter_mut().find(|s| s.key == shader_key) {
+        shader.source = source;
+    } else {
+        shaders.push(ShaderDescriptor {
+            key: shader_key.to_owned().into(),
+            source,
+        });
+    }
 }
 
 #[cfg(all(feature = "hot-reload-shader", not(target_arch = "wasm32")))]
 fn find_shader_mut<'a>(
     shaders: &'a mut [ShaderDescriptor],
-    shader_key: &'static str,
+    shader_key: &str,
 ) -> Result<&'a mut ShaderDescriptor, Error> {
     shaders
         .iter_mut()
         .find(|shader| shader.key == shader_key)
-        .ok_or(Error::UnknownShaderKey(shader_key))
-}
-
-fn load_shader_bytes(shader: &ShaderDescriptor) -> Result<std::borrow::Cow<'_, [u8]>, Error> {
-    match &shader.source {
-        ShaderSource::Prebuilt(bytes) => Ok(std::borrow::Cow::Borrowed(*bytes)),
-        ShaderSource::Wgsl(_) => Ok(std::borrow::Cow::Borrowed(&[])),
-        #[cfg(all(
-            any(feature = "runtime-compilation", feature = "hot-reload-shader"),
-            not(target_arch = "wasm32")
-        ))]
-        ShaderSource::RuntimePath(path) => Ok(std::borrow::Cow::Owned(std::fs::read(path)?)),
-    }
+        .ok_or(Error::UnknownShaderKey(shader_key.to_string()))
 }
 
 fn create_pipeline_layouts(
@@ -951,6 +983,45 @@ fn create_shader_module(
     };
 
     device.create_shader_module(wgpu::ShaderModuleDescriptor { label, source })
+}
+
+fn create_shader_constants_resources(device: &wgpu::Device) -> ShaderConstantsResources {
+    use wgpu::util::DeviceExt;
+
+    let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("shader-constants-layout"),
+        entries: &[wgpu::BindGroupLayoutEntry {
+            binding: 0,
+            visibility: wgpu::ShaderStages::FRAGMENT,
+            ty: wgpu::BindingType::Buffer {
+                ty: wgpu::BufferBindingType::Storage { read_only: true },
+                has_dynamic_offset: false,
+                min_binding_size: None,
+            },
+            count: None,
+        }],
+    });
+
+    let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("shader-constants-buffer"),
+        contents: &[0; 128],
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+    });
+
+    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: Some("shader-constants-bind-group"),
+        layout: &layout,
+        entries: &[wgpu::BindGroupEntry {
+            binding: 0,
+            resource: buffer.as_entire_binding(),
+        }],
+    });
+
+    ShaderConstantsResources {
+        layout,
+        bind_group,
+        buffer,
+    }
 }
 
 #[cfg(feature = "emulate_constants")]

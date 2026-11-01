@@ -4,7 +4,9 @@
 
 #![cfg(not(spirv))]
 
-pub(crate) trait FloatIsNear {
+/// Helper trait for float comparisons
+#[allow(missing_docs)]
+pub trait FloatIsNear {
     #[allow(clippy::wrong_self_convention)]
     fn is_near(self, other: Self) -> bool;
 }

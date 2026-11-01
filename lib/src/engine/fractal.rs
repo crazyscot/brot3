@@ -78,7 +78,7 @@ fn f32_is_infinite(f: f32) -> bool {
 /// * `$alg`: Algorithm type to pass to `$run_it`
 macro_rules! exponent_monomorph {
     ($exponent: expr, $run_it: ident, $alg:ty) => {
-        match $exponent.typ {
+        match *$exponent.typ {
             $crate::data::NumericType::Integer if $exponent.int == 2 => {
                 $run_it!($crate::maths::Power2 {}, $alg)
             }
@@ -118,7 +118,7 @@ pub fn render(
     let point = offset + constants.viewport_translate;
     let dc = Complex::from(offset);
 
-    let c = if cfg!(feature = "all-fractals") && constants.algorithm == Algorithm::Mandeldrop {
+    let c = if cfg!(feature = "all-fractals") && constants.algorithm.0 == Algorithm::Mandeldrop {
         Complex::from(point).recip()
     } else {
         Complex::from(point)
@@ -132,7 +132,7 @@ pub fn render(
                 consts: RunningConstants::perturbed_with(
                     c,
                     $expo,
-                    constants.algorithm,
+                    *constants.algorithm,
                     dc.into(),
                     reference_points,
                 ),
@@ -333,7 +333,7 @@ pub struct AlgorithmModifiers {
     premod_im_conjugate: bool,
 }
 
-#[cfg(not(spirv))]
+#[cfg(all(feature = "all-fractals", not(spirv)))]
 impl AlgorithmModifiers {
     fn premod_does_anything(self) -> bool {
         self.premod_re_abs | self.premod_im_abs | self.premod_im_conjugate
@@ -347,7 +347,7 @@ impl AlgorithmModifiers {
 #[cfg(feature = "all-fractals")]
 impl From<&FragmentConstants> for AlgorithmModifiers {
     fn from(consts: &FragmentConstants) -> Self {
-        AlgorithmModifiers::from(consts.algorithm)
+        AlgorithmModifiers::from(*consts.algorithm)
     }
 }
 
@@ -839,7 +839,9 @@ pub fn mandelbrot_perturbed_compute_reference_iters(
     let mut z = CBig::ZERO;
     points.push(Vec2::ZERO);
     let mut iter = 0;
+    #[cfg(feature = "all-fractals")]
     let premod_active = modifiers.premod_does_anything();
+    #[cfg(feature = "all-fractals")]
     let iter_mod_active = modifiers.iter_does_anything();
 
     while (iter < max_iter) & (z.norm() < threshold_sq) {
@@ -893,16 +895,12 @@ mod tests {
 
     fn test_frag_consts() -> FragmentConstants {
         FragmentConstants {
-            flags: Flags::NEEDS_REITERATE,
-            viewport_translate: vec2(0., 0.),
+            flags: Flags::NEEDS_REITERATE.into(),
             viewport_zoom: 0.3,
-            size: Size::new(1, 1),
+            viewport_size: Size::new(1, 1),
             buffer_size: Size::new(1, 1),
             max_iter: 10,
-            algorithm: Algorithm::Mandelbrot,
-            exponent: PushExponent::default(),
-            palette: Palette::DEFAULT,
-            inspector_point_pixel_address: Vec2::default(),
+            ..Default::default()
         }
     }
 
@@ -924,7 +922,7 @@ mod tests {
     fn variant_correctness() {
         let point = crate::vec2(-0.75, 0.75);
         let mut consts = test_frag_consts();
-        consts.algorithm = Algorithm::Variant;
+        *consts.algorithm = Algorithm::Variant;
         // Variant has a debug_assert! consistency check
         let result = engine::render(&consts, point - consts.viewport_translate, &[Vec2::ZERO; 0]);
         eprintln!("{result:?}");
@@ -936,10 +934,10 @@ mod tests {
         let centre = vec2(-1.5, 0.0);
         let centre_big = make_bigcomplex!(centre.x, centre.y);
         let mut consts = FragmentConstants {
-            flags: Flags::PERTURBATION_MODE | Flags::DISTANCE_ESTIMATE,
-            viewport_translate: centre,
+            flags: (Flags::PERTURBATION_MODE | Flags::DISTANCE_ESTIMATE).into(),
+            viewport_translate: centre.into(),
             viewport_zoom: 1.0,
-            size: Size::new(1000, 1000),
+            viewport_size: Size::new(1000, 1000),
             buffer_size: Size::new(1, 1),
             max_iter: 1000,
             ..Default::default()
@@ -963,8 +961,8 @@ mod tests {
             );
             let result = super::render(&consts, offset, &ref_points);
             println!("{result:?}");
-            (result.boundary == BoundaryClass::Close)
-                | (result.boundary == BoundaryClass::VeryClose)
+            (*result.boundary == BoundaryClass::Close)
+                | (*result.boundary == BoundaryClass::VeryClose)
         };
         assert!(!run_case(0));
         assert!(!run_case(15));

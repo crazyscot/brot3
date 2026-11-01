@@ -14,10 +14,7 @@ use serde::{
     ser::Serializer,
 };
 
-use crate::{
-    data::{NumericType, PushExponent},
-    maths::FloatIsNear as _,
-};
+use crate::{FloatIsNear as _, NumericType, PushExponent, enums::WgslEnum};
 
 /// A fractal exponent that can be an integer or real number.
 ///
@@ -138,12 +135,12 @@ impl Exponent {
     pub fn to_push_exponent(&self) -> PushExponent {
         match self {
             Exponent::Integer(i) => PushExponent {
-                typ: NumericType::Integer,
+                typ: NumericType::Integer.into(),
                 int: *i,
                 real: 0.0,
             },
             Exponent::Real(r) => PushExponent {
-                typ: NumericType::Float,
+                typ: NumericType::Float.into(),
                 int: 0,
                 real: *r,
             },
@@ -154,12 +151,13 @@ impl Exponent {
     #[must_use]
     pub fn from_push_exponent(push: PushExponent) -> Self {
         match push.typ {
-            NumericType::Integer => Exponent::Integer(push.int),
-            NumericType::Float => Exponent::Real(push.real),
+            WgslEnum(NumericType::Integer) => Exponent::Integer(push.int),
+            WgslEnum(NumericType::Float) => Exponent::Real(push.real),
         }
     }
 
     #[must_use]
+    #[allow(missing_docs)]
     pub fn display_string(&self) -> String {
         match self {
             Exponent::Integer(i) => format!("{i}"),
@@ -195,7 +193,7 @@ mod tests {
     fn test_integer_exponent() {
         let exp = Exponent::Integer(2);
         let push = exp.to_push_exponent();
-        assert_eq!(push.typ, NumericType::Integer);
+        assert_eq!(push.typ, NumericType::Integer.into());
         assert_eq!(push.int, 2);
     }
 
@@ -203,7 +201,7 @@ mod tests {
     fn test_real_exponent() {
         let exp = Exponent::Real(2.5);
         let push = exp.to_push_exponent();
-        assert_eq!(push.typ, NumericType::Float);
+        assert_eq!(push.typ, NumericType::Float.into());
         assert!((push.real - 2.5).abs() < f32::EPSILON);
     }
 
