@@ -13,7 +13,7 @@ description = "Use rust shaders and egui on the web and native"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["hot-reload-shader", "use-compiled-tools"]
+# default = ["hot-reload-shader", "use-compiled-tools"]
 runtime-compilation = ["dep:spirv-builder"]
 hot-reload-shader = ["spirv-builder/watch"]
 emulate_constants = []
