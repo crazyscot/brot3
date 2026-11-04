@@ -39,7 +39,7 @@ jobs:
       # This job builds tooling for the shader job. Note that shader-builder is a thin wrapper around spirv_builder.
       # We also cache the built artifacts, so include as an extra key the hash of the crate source tree.
       # If the cache is hot, we short-circuit the build process and simply re-ship the cached artifacts.
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         id: rust-cache
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
@@ -95,7 +95,7 @@ jobs:
         with:
           channel: ${{ env.BROT3_RUST_VERSION }}
 
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         id: rust-cache
         with:
           save-if: ${{ github.ref_type != 'tag' }}
@@ -249,7 +249,7 @@ jobs:
         with:
           tool: ${{ matrix.tools }}
           checksum: true
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
       - name: Download shader artifact
@@ -401,7 +401,7 @@ jobs:
         with:
           artifact-ids: ${{ needs.shader.outputs.artifact_id }}
           path: ${{ env.BROT3_PREBUILD_SHADERS_DIR }}
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           save-if: ${{ inputs.save_cache && github.ref_type != 'tag' }}
       # As these builds are not shipped, build as debug builds for speed.
