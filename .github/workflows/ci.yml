@@ -62,7 +62,7 @@ jobs:
           tool: cargo-llvm-cov
           checksum: true
       # 2025-10-26: a hot cache saves only around 15 seconds, this is not worthwhile at present
-      #- uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      #- uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: mkdir -p target/coverage
       - name: Run selected package tests with coverage analysis
         run:
@@ -122,7 +122,7 @@ jobs:
         with:
           channel: ${{ env.BROT3_RUST_VERSION }}
           components: clippy,rustc-dev
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - name: clippy (no-default-features)
         run: cargo clippy --locked --no-deps --all-targets -p brot3-lib -p brot3-ui --no-default-features
       - name: clippy (ui + hot-reload)
