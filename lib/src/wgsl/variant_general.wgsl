@@ -61,7 +61,10 @@ fn mandelbrot_pixel(coord: vec2<f32>, size: vec2<f32>) -> vec3<f32> {
 
     let iter_fraction = 1.0 + ESCAPE_THRESHOLD_LOGLOG2 - log_term;
 
-    let result = PointResult(iter, iter_fraction, 0.0, 0.0, BoundaryClass_Indeterminate);
+    if ((constants.flags.bits & FLAG_ITERATION_CULL) != 0u) {
+        iter = cull_iterations(iter);
+    }
+    var result = PointResult(iter, iter_fraction, 0.0, 0.0, BoundaryClass_Indeterminate);
 
     return colour_pixel(result);
 }
