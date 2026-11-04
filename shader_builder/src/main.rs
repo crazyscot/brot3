@@ -41,6 +41,7 @@ fn build_shader(path_to_crate: &str, variant: ShaderVariant) -> Result<PathBuf, 
     let mut builder = SpirvBuilder::new(path_to_crate, "spirv-unknown-vulkan1.1")
         .spirv_metadata(SpirvMetadata::None)
         .shader_crate_features(features)
+        .relax_logical_pointer(true) // Work around validation issue in spirv-tools 2025.5
         .shader_panic_strategy(spirv_builder::ShaderPanicStrategy::SilentExit);
     builder.build_script.defaults = true;
     builder.build_script.env_shader_spv_path = Some(false);
