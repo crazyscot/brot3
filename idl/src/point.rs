@@ -124,28 +124,15 @@ impl PointResult {
     ///
     /// INPUT CONDITION: `self.inside() == false` (caller is expected to have checked this)
     pub fn cull_iterations(&mut self) {
-        let mut odd_pass = true;
-        let mut this_pass_maxiter = 0;
-        let mut maxiter_scale = 256;
-        let mut iters = self.iters;
-
-        // The slightly odd shape of this logic is to reduce branching and hence warp divergence in
-        // the GPU.
-        loop {
-            iters -= this_pass_maxiter;
-            odd_pass = !odd_pass;
-            let half_maxiter = this_pass_maxiter >> 1;
-            maxiter_scale = if odd_pass {
-                half_maxiter
-            } else {
-                maxiter_scale
-            };
-            this_pass_maxiter += maxiter_scale;
-            if iters <= this_pass_maxiter {
-                break;
-            }
-        }
-        self.iters = iters;
+        // k := floor(log2(floor(iters / 640) + 1))
+        let pair_index = self.iters / 640 + 1;
+        let k = pair_index.ilog2();
+        // r := iters - 640 * (2^k - 1)
+        let scale = 1 << k;
+        let r = self.iters - 640 * (scale - 1);
+        let first_pass = 256 * scale;
+        let result = if r < first_pass { r } else { r - first_pass };
+        self.iters = result;
     }
 }
 
@@ -160,21 +147,28 @@ mod tests {
     fn cull_known_answers() {
         let cases = [
             (1, 1),
-            (256, 256),
+            (255, 255),
+            (256, 0),
             (257, 1),
-            (640, 384),
+            (639, 383),
+            (640, 0),
             (641, 1),
-            (1152, 512),
-            (1153, 1),
-            (1920, 768),
+            (1151, 511),
+            (1152, 0),
+            (1919, 767),
+            (1920, 0),
             (1921, 1),
-            (2944, 1024),
+            (2943, 1023),
+            (2944, 0),
             (2945, 1),
-            (4480, 1536),
+            (4479, 1535),
+            (4480, 0),
             (4481, 1),
-            (6528, 2048),
+            (6527, 2047),
+            (6528, 0),
             (6529, 1),
-            (9600, 3072),
+            (9599, 3071),
+            (9600, 0),
             (9601, 1),
         ];
 
