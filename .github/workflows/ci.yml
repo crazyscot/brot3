@@ -33,7 +33,7 @@ jobs:
     # Prevent sudden announcement of a new advisory from failing ci:
     continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
         with:
           persist-credentials: false
       - name: Override toolchain
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
       - uses: ./.github/actions/toolchain
         with:
           channel: ${{ env.BROT3_RUST_VERSION }}
@@ -88,7 +88,7 @@ jobs:
     timeout-minutes: 5
     steps:
       # This job runs all its checks without stopping (unless cancelled)
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
       - uses: ./.github/actions/toolchain
         with:
           channel: ${{ env.BROT3_RUST_VERSION }}
@@ -117,7 +117,7 @@ jobs:
     env:
       RUSTGPU_SKIP_TOOLCHAIN_CHECK: 1
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # 6.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
       - uses: ./.github/actions/toolchain
         with:
           channel: ${{ env.BROT3_RUST_VERSION }}
