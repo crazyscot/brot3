@@ -4,7 +4,7 @@
 use brot3_lib::data::{
     Algorithm, ColourStyle, Colourer, Modifier, NumericType, Palette, PushExponent,
 };
-use easy_cast::{Cast as _, CastFloat as _};
+use easy_cast::{Cast as _, CastTo as _, Nearest};
 use easy_shader_runner::egui;
 use strum::{EnumMessage as _, IntoEnumIterator as _};
 
@@ -53,7 +53,7 @@ impl super::Controller {
                                 self.state.exponent.real = self.state.exponent.int.cast();
                             }
                             (_, NumericType::Integer) => {
-                                self.state.exponent.int = self.state.exponent.real.cast_nearest();
+                                self.state.exponent.int = self.state.exponent.real.cast_to(Nearest);
                                 self.state.exponent.real = self.state.exponent.int.cast();
                             }
                             (NumericType::Float, NumericType::Float) => (),

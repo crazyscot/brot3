@@ -8,7 +8,7 @@ use brot3_lib::{
     data::{Algorithm, NumericType, Palette, PushExponent},
     engine,
 };
-use easy_cast::{Cast as _, CastApprox as _, CastFloat as _};
+use easy_cast::{Cast as _, CastApprox as _, CastTo as _, Nearest};
 use easy_shader_runner::{UiState, egui};
 
 use super::{DVec2, Instant};
@@ -182,7 +182,7 @@ impl super::Controller {
                 self.reiterate = true;
                 self.state.exponent.real = new_exp;
                 if self.state.exponent.typ == NumericType::Integer {
-                    self.state.exponent.int = self.state.exponent.real.cast_nearest();
+                    self.state.exponent.int = self.state.exponent.real.cast_to(Nearest);
                 }
             }
             movement.exponent = 0.;

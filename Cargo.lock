@@ -253,7 +253,7 @@ version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04c5a79a6c36c527e1c31bc0effa93af02e7278b7369b83e0674255290b6c1b0"
 dependencies = [
- "easy-cast",
+ "easy-cast 0.5.5",
  "float-ord",
  "num-traits",
 ]
@@ -336,7 +336,7 @@ dependencies = [
  "dashu-float",
  "derive_more 2.1.1",
  "document-features",
- "easy-cast",
+ "easy-cast 0.7.1",
  "float_eq",
  "glam",
  "gungraun",
@@ -368,7 +368,7 @@ dependencies = [
  "derive_more 2.1.1",
  "dirs",
  "dunce",
- "easy-cast",
+ "easy-cast 0.7.1",
  "easy-shader-runner",
  "egui_extras",
  "env_logger",
@@ -1129,6 +1129,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "easy-cast"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eae1c5aaf1bfdc24a9b5bf6daf3afee62c478afe08706a6bd9fd996f73630494"
+dependencies = [
+ "libm",
+]
+
+[[package]]
 name = "easy-shader-runner"
 version = "0.0.0"
 dependencies = [
@@ -1136,7 +1145,7 @@ dependencies = [
  "cfg-if",
  "console_error_panic_hook",
  "console_log",
- "easy-cast",
+ "easy-cast 0.7.1",
  "egui",
  "egui-wgpu",
  "egui-winit",

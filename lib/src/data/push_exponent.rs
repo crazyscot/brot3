@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use bytemuck::NoUninit;
 #[cfg(not(spirv))]
-use easy_cast::CastFloat;
+use easy_cast::{CastTo as _, Floor};
 #[cfg(not(spirv))]
 use serde::{Deserialize, Serialize};
 
@@ -75,7 +75,7 @@ impl TryFrom<f32> for PushExponent {
         Ok(match f.fract() {
             0. => Self {
                 typ: NumericType::Integer,
-                int: f.cast_floor(),
+                int: f.cast_to(Floor),
                 ..Default::default()
             },
             _ => Self {
