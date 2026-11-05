@@ -55,7 +55,7 @@ pub trait ControllerTrait: 'static {
     fn describe_vertex_buffer_layouts(
         &mut self,
         _gfx_ctx: &GraphicsContext,
-    ) -> Vec<wgpu::VertexBufferLayout<'static>> {
+    ) -> Vec<Option<wgpu::VertexBufferLayout<'static>>> {
         vec![]
     }
 

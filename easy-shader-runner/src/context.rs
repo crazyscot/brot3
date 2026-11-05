@@ -60,6 +60,7 @@ impl GraphicsContext {
                 power_preference: wgpu::PowerPreference::HighPerformance,
                 compatible_surface: Some(&initial_surface),
                 force_fallback_adapter: false,
+                apply_limit_buckets: false,
             })
             .await
             .unwrap();

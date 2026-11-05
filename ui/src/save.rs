@@ -39,6 +39,10 @@ pub enum LoadSaveErrorInternal {
     PngEncode(#[from] png::EncodingError),
     #[error("{0}")]
     Lib(#[from] LibError),
+    #[error("{0}")]
+    MapRange(#[from] wgpu::MapRangeError),
+    #[error("Failed to map staging buffer")]
+    StagingBufferMapFailed,
 }
 
 pub(crate) fn do_save_image(

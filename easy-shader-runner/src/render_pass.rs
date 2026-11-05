@@ -74,7 +74,7 @@ pub(crate) struct RenderPass {
     shader_viewport: egui::Rect,
     #[cfg(feature = "emulate_constants")]
     emulate_constants_buffer: EmulateConstantsBuffer,
-    vertex_buffer_layouts: Vec<wgpu::VertexBufferLayout<'static>>,
+    vertex_buffer_layouts: Vec<Option<wgpu::VertexBufferLayout<'static>>>,
     query_set: Option<wgpu::QuerySet>,
     resolve_buffer: Option<wgpu::Buffer>,
     destination_buffer: Option<wgpu::Buffer>,
@@ -358,11 +358,16 @@ impl RenderPass {
                 .device
                 .poll(wgpu::PollType::wait_indefinitely())
                 .unwrap();
-            let timestamp_view = destination_buffer
+
+            let ticks = if let Ok(timestamp_view) = destination_buffer
                 .slice(..self.destination_buffer_size)
-                .get_mapped_range();
-            let timestamps: &[u64] = bytemuck::cast_slice(&timestamp_view);
-            let ticks = timestamps[1].saturating_sub(timestamps[0]);
+                .get_mapped_range()
+            {
+                let timestamps: &[u64] = bytemuck::cast_slice(&timestamp_view);
+                timestamps[1].saturating_sub(timestamps[0])
+            } else {
+                0
+            };
             let resolution = ctx.queue.get_timestamp_period();
             #[allow(
                 clippy::cast_possible_truncation,
@@ -370,7 +375,6 @@ impl RenderPass {
                 clippy::cast_precision_loss
             )]
             let nanos = (ticks as f64 * f64::from(resolution)) as u64;
-            drop(timestamp_view);
             destination_buffer.unmap();
             self.last_elapsed = Some(std::time::Duration::from_nanos(nanos));
         }
@@ -419,7 +423,7 @@ impl RenderPass {
         if !self.render_ui(ctx, &output_view, window, ui, ui_state, controller) {
             return false;
         }
-        texture.present();
+        ctx.queue.present(texture);
         true
     }
 
@@ -544,7 +548,7 @@ impl RenderPass {
         ui_state: &mut UiState,
         controller: &mut C,
     ) -> bool {
-        let (clipped_primitives, textures_delta, available_rect, pixels_per_point) =
+        let (clipped_primitives, mut textures_delta, available_rect, pixels_per_point) =
             ui.prepare(window, ui_state, controller, ctx);
 
         let suppress = Self::render_suppressed(ui_state, ctx);
@@ -555,6 +559,7 @@ impl RenderPass {
                 .unwrap_or(self.default_shader_key);
             if let Err(error) = self.select_shader(ctx, shader_key) {
                 log::error!("{error}");
+                textures_delta.clear();
                 return false;
             }
             // Render shader into the current offscreen target (if available) or directly to the
@@ -581,14 +586,16 @@ impl RenderPass {
             pixels_per_point,
         };
 
-        self.finish_frame(
+        let r = self.finish_frame(
             ctx,
             output_view,
             &clipped_primitives,
             &textures_delta,
             &screen_descriptor,
             ui_state,
-        )
+        );
+        textures_delta.clear();
+        r
     }
 
     fn finish_frame(
@@ -602,7 +609,7 @@ impl RenderPass {
     ) -> bool {
         for (id, delta) in &textures_delta.set {
             self.ui_renderer
-                .update_texture(&ctx.device, &ctx.queue, *id, delta);
+                .update_texture(&ctx.device, &ctx.queue, *id, &delta[0]);
         }
 
         let mut encoder = ctx
@@ -869,7 +876,7 @@ fn create_pipelines(
     device: &wgpu::Device,
     pipeline_layouts: &PipelineLayouts,
     surface_format: wgpu::TextureFormat,
-    vertex_buffer_layouts: &[wgpu::VertexBufferLayout<'_>],
+    vertex_buffer_layouts: &[Option<wgpu::VertexBufferLayout<'_>>],
     shader_bytes: &[u8],
 ) -> Pipelines {
     let spirv = wgpu::util::make_spirv(shader_bytes);

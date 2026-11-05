@@ -23,6 +23,8 @@ pub enum Error {
     RequestDeviceError(#[from] wgpu::RequestDeviceError),
     #[error(transparent)]
     LoadSaveError(#[from] LoadSaveErrorInternal),
+    #[error("Failed to map staging buffer")]
+    StagingBufferMapFailed,
 }
 
 #[allow(missing_docs)]
@@ -189,14 +191,17 @@ impl ComputeController {
         // now we can access the result
         let result;
         {
-            let slice: &[u8] = &self.staging_buffer.slice(..).get_mapped_range();
-            let rgba = bytemuck::cast_slice::<u8, u32>(slice);
-            log::trace!(
-                "Pixel data: {:08x?}.. ({} bytes)",
-                &rgba[0..10],
-                slice.len()
-            );
-            result = frame_cb(slice);
+            if let Ok(slice) = self.staging_buffer.slice(..).get_mapped_range() {
+                let rgba = bytemuck::cast_slice::<u8, u32>(&slice);
+                log::trace!(
+                    "Pixel data: {:08x?}.. ({} bytes)",
+                    &rgba[0..10],
+                    slice.len()
+                );
+                result = frame_cb(&slice);
+            } else {
+                result = Err(LoadSaveErrorInternal::StagingBufferMapFailed);
+            }
         }
         self.staging_buffer.unmap();
         result?;
@@ -234,6 +239,7 @@ impl ComputeController {
                 power_preference: wgpu::PowerPreference::default(),
                 force_fallback_adapter: false,
                 compatible_surface: None,
+                apply_limit_buckets: false,
             })
             .await
             .expect("Failed to find an appropriate adapter");

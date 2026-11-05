@@ -73,11 +73,15 @@ impl Queries {
         let _ = device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
 
         let timestamps = {
-            let timestamp_view = self
+            if let Ok(timestamp_view) = self
                 .destination_buffer
                 .slice(..(std::mem::size_of::<u64>() as wgpu::BufferAddress * u64::from(self.size)))
-                .get_mapped_range();
-            bytemuck::allocation::pod_collect_to_vec(&timestamp_view)
+                .get_mapped_range()
+            {
+                bytemuck::allocation::pod_collect_to_vec(&timestamp_view)
+            } else {
+                Vec::new()
+            }
         };
 
         self.destination_buffer.unmap();
