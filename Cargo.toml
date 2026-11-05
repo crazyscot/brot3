@@ -12,7 +12,7 @@ license = "MIT"
 repository = "https://github.com/crazyscot/brot3/"
 
 [workspace.dependencies]
-abels-complex = { version = "0.5.1", default-features = false }
+abels-complex = { version = "0.6.3", default-features = false }
 anyhow = "1.0.102"
 assert_matches = "1.5.0"
 average = "0.17.0"
@@ -43,7 +43,7 @@ flate2 = "1.1.9"
 float_eq = { version = "1.0.1", default-features = false }
 futures = { version = "0.3.32", default-features = false }
 futures-channel = "0.3.32"
-glam = { version = "0.32.1", default-features = false }
+glam = { version = "0.33.12", default-features = false, features = ["i32", "u32", "u8", "u64"] }
 gungraun = "0.19.2"
 image = { version = "0.25.10", default-features = false }
 itertools = "0.15.0"
@@ -68,16 +68,11 @@ windows = { version = "0.62.2", default-features = false }
 
 [workspace.dependencies.spirv-std]
 git = "https://github.com/Rust-GPU/rust-gpu"
-rev = "c904e5c039676df3409dd7aa61119102109af921"
-
-[patch.'https://github.com/Rust-GPU/rust-gpu']
-# TEMP: abels-complex 0.5 forces glam 0.32; rust-gpu currently requires glam >=0.30.8
-# N.B. easy-shader-runner also uses glam
-glam = { version = "0.32.1" }
+rev = "0a9d096f32ef21b253ff77ee6d0f36e15b105d44" # 0.10.0
 
 [workspace.dependencies.spirv-builder]
 git = "https://github.com/Rust-GPU/rust-gpu"
-rev = "c904e5c039676df3409dd7aa61119102109af921"
+rev = "0a9d096f32ef21b253ff77ee6d0f36e15b105d44" # 0.10.0
 default-features = false
 
 [workspace.lints.rust]

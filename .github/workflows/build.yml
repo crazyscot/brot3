@@ -20,7 +20,7 @@ env:
   CLICOLOR_FORCE: 1
   RUST_BACKTRACE: 1
   CARGO_INCREMENTAL: 0
-  BROT3_RUST_VERSION: nightly-2026-04-11
+  BROT3_RUST_VERSION: nightly-2026-07-03
   # BROT3_RUST_VERSION should match the version in rust-toolchain.toml & across all workflows
 
 jobs:
@@ -239,8 +239,7 @@ jobs:
           toolchain: ${{ env.BROT3_RUST_VERSION }}
           components: ${{ join(env.Components, ',') }}
         env:
-          Components:
-            ${{ matrix.rust_components }}
+          Components: ${{ matrix.rust_components }}
 
       - name: install additional tools
         if: ${{ matrix.tools }}
