@@ -36,21 +36,21 @@ const _: () = assert!(
 );
 
 #[library_benchmark]
-#[bench::special2(&it_setup(Power2{}))]
-#[bench::special3(&it_setup(Power3{}))]
-#[bench::special6(&it_setup(Power6{}))]
-#[bench::real2(&it_setup(RealPower(2.0)))]
-#[bench::real3(&it_setup(RealPower(3.0)))]
-#[bench::real6(&it_setup(RealPower(6.0)))]
-#[bench::real7(&it_setup(RealPower(7.0)))]
-#[bench::real20(&it_setup(RealPower(20.0)))]
-//#[bench::mbar(&it_alg_setup(Algorithm::Mandelbar))] // same result as m2
-//#[bench::bird(&it_alg_setup(Algorithm::BirdOfPrey))] // same result as m2
-fn iterate_std<E: Exponentiator>(consts: &RunningConstants<'_, E>) {
+#[bench::special2(it_setup(Power2{}))]
+#[bench::special3(it_setup(Power3{}))]
+#[bench::special6(it_setup(Power6{}))]
+#[bench::real2(it_setup(RealPower(2.0)))]
+#[bench::real3(it_setup(RealPower(3.0)))]
+#[bench::real6(it_setup(RealPower(6.0)))]
+#[bench::real7(it_setup(RealPower(7.0)))]
+#[bench::real20(it_setup(RealPower(20.0)))]
+//#[bench::mbar(it_alg_setup(Algorithm::Mandelbar))] // same result as m2
+//#[bench::bird(it_alg_setup(Algorithm::BirdOfPrey))] // same result as m2
+fn iterate_std<E: Exponentiator>(consts: RunningConstants<'_, E>) {
     let mut vars = RunningVariables::default();
     let mut z = Complex::ZERO;
     MandelbrotFamily::iterate_algorithm(
-        black_box(consts),
+        black_box(&consts),
         black_box(&mut z),
         black_box(0),
         black_box(&mut vars),
@@ -93,13 +93,13 @@ fn prep_bigvec2(filename: &str) -> BigVec2 {
 }
 
 #[library_benchmark]
-#[bench::in_set(&prep_bigvec2("../data/m2-minibrot-perturbation-neon.json"))]
-fn reference_points(centre: &BigVec2) {
+#[bench::in_set(prep_bigvec2("../data/m2-minibrot-perturbation-neon.json"))]
+fn reference_points(centre: BigVec2) {
     let mut points = Vec::with_capacity(MAXITER_REFPOINTS);
     // Interestingly, we don't need to know the zoom to compute the reference points!
     engine::mandelbrot_perturbed_compute_reference_iters(
         &mut points,
-        centre,
+        &centre,
         Algorithm::Mandelbrot,
         MAXITER_REFPOINTS.cast(),
     );
@@ -145,8 +145,8 @@ impl PerturbedSetup<'_> {
 }
 
 #[library_benchmark]
-#[bench::deepzoom(&PerturbedSetup::new("../data/m2-minibrot-perturbation-neon.json", 322, 246))]
-fn iterate_perturbed(setup: &PerturbedSetup<'_>) {
+#[bench::deepzoom(PerturbedSetup::new("../data/m2-minibrot-perturbation-neon.json", 322, 246))]
+fn iterate_perturbed(setup: PerturbedSetup<'_>) {
     let mut vars = RunningVariables::default();
     let mut consts = setup.constants;
     consts.reference_points = &setup.reference_points;
