@@ -283,7 +283,7 @@ impl RenderPass {
             default_shader_key,
             ui_renderer,
             bind_groups,
-            shader_viewport: egui::Rect::NAN,
+            shader_viewport: egui::Rect::ZERO,
             #[cfg(feature = "emulate_constants")]
             emulate_constants_buffer,
             vertex_buffer_layouts,
