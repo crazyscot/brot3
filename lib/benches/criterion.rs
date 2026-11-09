@@ -3,7 +3,7 @@
 use std::{hint::black_box, sync::LazyLock};
 
 use brot3_lib::{
-    BigVec2,
+    BigComplexExt as _, CBig,
     data::{Algorithm, FragmentConstants, PointResult},
     engine,
     engine::{AlgorithmDetail as _, MandelbrotPerturbed, RunningConstants, RunningVariables},
@@ -51,7 +51,7 @@ fn iterate_standard(c: &mut Criterion) {
 
 // ..................................................
 
-fn prep_bigvec2(filename: &str) -> BigVec2 {
+fn prep_bigcomplex(filename: &str) -> CBig {
     let state = UiState::load_json(&filename).expect("Failed to load state");
     state.viewport_translate
 }
@@ -59,7 +59,7 @@ fn prep_bigvec2(filename: &str) -> BigVec2 {
 const MAXITER_REFPOINTS: usize = 250;
 
 fn reference_points(c: &mut Criterion) {
-    let centre = prep_bigvec2("../data/m2-minibrot-perturbation-neon.json");
+    let centre = prep_bigcomplex("../data/m2-minibrot-perturbation-neon.json");
     let mut points = Vec::with_capacity(MAXITER_REFPOINTS);
     let _ = c.bench_with_input(
         BenchmarkId::new("refpoints", "m2-minibrot-perturbation-neon.json"),

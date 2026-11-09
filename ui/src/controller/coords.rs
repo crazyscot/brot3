@@ -2,7 +2,7 @@
 // (c) 2025 Ross Younger
 
 use brot3_lib::{
-    dynfmt,
+    BigComplexExt as _, dynfmt,
     engine::{DEFAULT_FRACTAL_PLANE_SIZE, NOMINAL_WINDOW_SIZE},
 };
 use easy_cast::CastApprox as _;
@@ -40,13 +40,13 @@ impl super::Controller {
                     ui.end_row();
                     ui.label("Fractal X (Re)");
                     ui.monospace(dynfmt!(
-                        self.state.viewport_translate.x.to_f64().value(),
+                        self.state.viewport_translate.re().to_f64().value(),
                         precision
                     ));
                     ui.end_row();
                     ui.label("Fractal Y (Im)");
                     ui.monospace(dynfmt!(
-                        self.state.viewport_translate.y.to_f64().value(),
+                        self.state.viewport_translate.im().to_f64().value(),
                         precision
                     ));
                     ui.end_row();
@@ -109,10 +109,10 @@ impl super::Controller {
 
             let complex_pos = &self.inspector.position;
             ui.label("X (Re)");
-            ui.monospace(dynfmt!(complex_pos.x.to_f64().value(), precision));
+            ui.monospace(dynfmt!(complex_pos.re().to_f64().value(), precision));
             ui.end_row();
             ui.label("Y (Im)");
-            ui.monospace(dynfmt!(complex_pos.y.to_f64().value(), precision));
+            ui.monospace(dynfmt!(complex_pos.im().to_f64().value(), precision));
             ui.end_row();
             let inside: bool = self.inspector.data.inside();
             if self.state.iteration_cull {
@@ -168,7 +168,7 @@ impl super::Controller {
     pub(crate) fn update_inspector(&mut self) {
         self.inspector.stale = false;
         let consts = self.fragment_constants(false);
-        let offset = (self.inspector.position.clone() - &self.state.viewport_translate).as_vec2();
+        let offset = (&self.inspector.position - &self.state.viewport_translate).as_vec2();
         self.inspector.data = brot3_lib::engine::render(&consts, offset, &self.perturbation.points);
     }
 }

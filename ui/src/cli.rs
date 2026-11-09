@@ -4,7 +4,7 @@
 use std::{path::PathBuf, str::FromStr};
 
 use brot3_lib::{
-    BigComplex,
+    BigComplexExt, CBig,
     data::{Algorithm, ColourStyle, Colourer, Modifier, Palette, PushExponent, RenderMode},
     engine::DEFAULT_FRACTAL_PLANE_SIZE,
     ui::UiState,
@@ -141,9 +141,10 @@ pub(crate) struct Args {
         long,
         value_name = "COMPLEX",
         allow_hyphen_values(true),
+        value_parser = <CBig as BigComplexExt>::from_str_b3,
         help_heading("Fractal")
     )]
-    pub(crate) centre: Option<BigComplex>,
+    pub(crate) centre: Option<brot3_lib::CBig>,
 
     /// The zoom depth of the plot, e.g. 1e16
     #[arg(short = 'z', long, value_name = "NUMBER", help_heading("Fractal"))]
@@ -245,10 +246,10 @@ impl From<&Args> for UiState {
                 .with_style(args.colour_style)
                 .with_brightness(args.brightness_style),
             max_iter: args.max_iterations.unwrap_or(UiState::default().max_iter),
-            viewport_translate: args
-                .centre
-                .as_ref()
-                .map_or(UiState::default().viewport_translate, |c| c.0.clone()),
+            viewport_translate: args.centre.as_ref().map_or(
+                UiState::default().viewport_translate,
+                std::clone::Clone::clone,
+            ),
             viewport_zoom: args.zoom.map_or(UiState::default().viewport_zoom, |z| {
                 (z / DEFAULT_FRACTAL_PLANE_SIZE).into()
             }),

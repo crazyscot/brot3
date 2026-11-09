@@ -5,6 +5,7 @@
 use std::sync::atomic::Ordering;
 
 use brot3_lib::{
+    BigComplexExt,
     data::{Algorithm, NumericType, Palette, PushExponent},
     engine,
 };
@@ -167,8 +168,10 @@ impl super::Controller {
         }
         let movement = &mut self.movement;
         if movement.translate != DVec2::ZERO {
-            self.state.viewport_translate +=
-                movement.translate * factor / self.state.viewport_zoom.0 * dt;
+            self.state
+                .viewport_translate
+                .add_assign_dvec2(movement.translate * factor / self.state.viewport_zoom.0 * dt)
+                .unwrap();
             self.reiterate = true;
         }
         if movement.exponent != 0. {

@@ -11,10 +11,10 @@ use std::{
 };
 
 use brot3_lib::{
-    BigVec2,
+    BigComplexExt, CBig,
     data::{Flags, FragmentConstants, Modifier, PointResult},
     engine::PixelSpacing as _,
-    ui::{BIGNUM_PRECISION_LIMIT, Channel, ShaderVariant, UiState as BrotUiState, ViewportZoom},
+    ui::{Channel, ShaderVariant, UiState as BrotUiState, ViewportZoom},
 };
 use easy_cast::Conv as _;
 use easy_shader_runner::{
@@ -102,7 +102,7 @@ pub(crate) struct Controller {
 struct Inspector {
     active: bool,
     dragging: bool,
-    position: BigVec2,
+    position: CBig,
     stale: bool, /* N.B. Controller.reiterate implies the inspector data is stale. The converse
                   * is not true. */
     data: PointResult,
@@ -369,17 +369,16 @@ impl ControllerTrait for Controller {
         let prev_position = self.mouse_position;
         self.mouse_position = position;
         if self.inspector.dragging {
-            self.inspector.position += self.pixel_address_to_complex(self.mouse_position)
-                - &self.pixel_address_to_complex(prev_position);
+            self.inspector.position = self.pixel_address_to_complex(position);
             self.inspector.stale = true;
         } else if self.dragging {
-            let delta = BigVec2::try_from(
-                (prev_position - self.mouse_position) / f64::from(self.state.viewport_size.y),
-            )
-            .unwrap()
-            .with_precision(BIGNUM_PRECISION_LIMIT);
-            self.state.viewport_translate +=
-                delta * self.modifier_key_factor() / self.state.viewport_zoom.0;
+            let delta =
+                (prev_position - self.mouse_position) / f64::from(self.state.viewport_size.y);
+            self.state
+                .viewport_translate
+                .add_assign_dvec2(delta * self.modifier_key_factor() / self.state.viewport_zoom.0)
+                .unwrap();
+            // We're dealing with finites, so the dvec2 should never fail to convert.
             self.reiterate = true;
         }
     }
@@ -393,11 +392,15 @@ impl ControllerTrait for Controller {
         let position = self.mouse_position;
         let size = self.state.viewport_size.as_dvec2();
         let prev_zoom = self.state.viewport_zoom.0;
-        let mouse_pos0 = BigVec2::try_from(position - size / 2.).unwrap() / prev_zoom / size.y;
+        let mouse_pos0 = (position - size / 2.) / (prev_zoom * size.y);
         self.update_zoom_factor(prev_zoom * (1.0 + motion));
         let new_zoom = self.state.viewport_zoom.0;
-        let mouse_pos1 = BigVec2::try_from(position - size / 2.).unwrap() / new_zoom / size.y;
-        self.state.viewport_translate += &(mouse_pos0 - &mouse_pos1);
+        let mouse_pos1 = (position - size / 2.) / (new_zoom * size.y);
+        self.state
+            .viewport_translate
+            .add_assign_dvec2(mouse_pos0 - mouse_pos1)
+            .unwrap();
+        // We're dealing with finites, so the dvec2 should never fail to convert.
         self.reiterate = true;
     }
 
@@ -438,18 +441,18 @@ impl Controller {
     }
 
     #[allow(clippy::missing_panics_doc)]
-    fn pixel_address_to_complex(&self, p: DVec2) -> BigVec2 {
+    fn pixel_address_to_complex(&self, p: DVec2) -> CBig {
         let size = self.state.viewport_size.as_dvec2();
-        BigVec2::try_from(
+        CBig::try_from_dvec2(
             (p - 0.5 * size) * dvec2(size.x / size.y, 1.0) / self.state.viewport_zoom.0 / size,
         )
         .unwrap()
             + &self.state.viewport_translate
     }
 
-    fn complex_point_to_pixel(&self, p: &BigVec2) -> DVec2 {
+    fn complex_point_to_pixel(&self, p: &CBig) -> DVec2 {
         let size = self.state.viewport_size.as_dvec2();
-        (p.clone() - &self.state.viewport_translate).as_dvec2() / dvec2(size.x / size.y, 1.0)
+        (p - &self.state.viewport_translate).as_dvec2() / dvec2(size.x / size.y, 1.0)
             * self.state.viewport_zoom.0
             * size
             + 0.5 * size

@@ -3,15 +3,15 @@
 use std::fs;
 
 use brot3_lib::{
-    BigVec2,
     data::{Algorithm, Palette, PushExponent},
+    make_bigcomplex,
     ui::{UiState, ViewportZoom},
 };
 use glam::uvec2;
 
 fn test_ui_state() -> UiState {
     UiState {
-        viewport_translate: BigVec2::try_new(-0.75, 0.1).expect("failed to create BigVec2"),
+        viewport_translate: make_bigcomplex!(-0.75, 0.1),
         viewport_zoom: ViewportZoom::from(2.5_f32),
         algorithm: Algorithm::Mandelbrot,
         max_iter: 256,

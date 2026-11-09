@@ -1,8 +1,8 @@
 #![allow(missing_docs)]
 
 use brot3_lib::{
-    BigVec2,
     data::{Algorithm, FragmentConstants, Palette, PushExponent},
+    make_bigcomplex,
     ui::{UiState, ViewportZoom},
     util::{render_chunk, render_frame},
 };
@@ -10,7 +10,7 @@ use glam::uvec2;
 
 fn test_fragment_constants() -> FragmentConstants {
     let state = UiState {
-        viewport_translate: BigVec2::try_new(-0.75, 0.1).expect("failed to create BigVec2"),
+        viewport_translate: make_bigcomplex!(-0.75, 0.1),
         viewport_zoom: ViewportZoom::from(2.5_f32),
         algorithm: Algorithm::Mandelbrot,
         max_iter: 256,
