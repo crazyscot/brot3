@@ -25,7 +25,7 @@ env:
 
 jobs:
   shader_builder:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     outputs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
@@ -83,7 +83,7 @@ jobs:
         if: ${{ !cancelled() }}
 
   shader:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     needs: shader_builder
     outputs:
@@ -150,7 +150,7 @@ jobs:
         if: ${{ !cancelled() }}
 
   define-matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       matrix: ${{ steps.define.outputs.matrix }}
     steps:
@@ -193,7 +193,7 @@ jobs:
           print('::group::Building matrix')
 
           # Combinations to always include in the matrix
-          matrix = [combo('x86_64-unknown-linux-gnu', 'ubuntu-22.04', 'cargo-deb', '', True)]
+          matrix = [combo('x86_64-unknown-linux-gnu', 'ubuntu-26.04', 'cargo-deb', '', True)]
 
           # Combinations to include only on release builds
           if RELEASE_WORKFLOW == 'true':
@@ -384,7 +384,7 @@ jobs:
   ui-variants:
     # These builds are not shipped, but confirming that they haven't broken is valuable.
     # This is a separate build due to its size. (The hot-reload-shader feature flag pulls in spirv-tools.)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     needs:
       - shader
